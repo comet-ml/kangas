@@ -1139,6 +1139,8 @@ def select_query(
                         cell["type"] = "datetime-group"
                     elif column_type == "BOOLEAN":
                         cell["type"] = "boolean-group"
+                    elif column_type == "JSON":
+                        cell["type"] = "json-group"
                     else:  # Asset types
                         asset_type = column_type.split("-", 1)[0].lower()
                         cell["type"] = "asset-group"
@@ -1164,6 +1166,12 @@ def select_query(
                         "assetType": asset_type,
                         "assetId": column_value,
                     }
+                elif column_type == "JSON":
+                    try:
+                        row[select_column] = json.loads(row[select_column])
+                    except Exception:
+                        # FIXME: invalid JSON; ignore?
+                        pass
 
             for column in remove_columns:
                 row.pop(column)

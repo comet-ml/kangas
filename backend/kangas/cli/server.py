@@ -19,6 +19,7 @@ import urllib
 import webbrowser
 
 import kangas.server
+
 from kangas import get_localhost
 
 ADDITIONAL_ARGS = False

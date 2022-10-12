@@ -1,6 +1,22 @@
-from kangas import DataGrid, Image
+# -*- coding: utf-8 -*-
+######################################################
+#     _____                  _____      _     _      #
+#    (____ \       _        |  ___)    (_)   | |     #
+#     _   \ \ ____| |_  ____| | ___ ___ _  _ | |     #
+#    | |  | )/ _  |  _)/ _  | |(_  / __) |/ || |     #
+#    | |__/ ( ( | | | ( ( | | |__| | | | ( (_| |     #
+#    |_____/ \_||_|___)\_||_|_____/|_| |_|\____|     #
+#                                                    #
+#    Copyright (c) 2022 Kangas Development Team      #
+#    All rights reserved                             #
+######################################################
+
 from kangas.server.computed_columns import update_state
 from kangas.server.queries import select_query
+
+from kangas import DataGrid, Image
+
+from ..testlib import AlwaysEquals
 
 DGID = "test_computed_columns.datagrid"
 dg = DataGrid(columns=["A", "X", "Text", "Image"])
@@ -75,6 +91,15 @@ def test_none():
     assert where_sql == "column_1 = 42"
 
     results = select_by_query(where_expr, computed_columns)
+    expected_results = {
+        "columnTypes": ["ROW_ID", "INTEGER", "FLOAT", "TEXT", "IMAGE-ASSET", "JSON"],
+        "columns": ["row-id", "A", "X", "Text", "Image", "Image--metadata"],
+        "ncols": 6,
+        "nrows": 0,
+        "rows": [],
+        "total": 0,
+    }
+    assert results == expected_results
 
 
 def test_simple_1():
@@ -103,6 +128,72 @@ def test_simple_1():
     assert where_sql == "cc1 = 42"
 
     results = select_by_query(where_expr, computed_columns)
+    expected_results = {
+        "columnTypes": [
+            "ROW_ID",
+            "INTEGER",
+            "TEXT",
+            "TEXT",
+            "IMAGE-ASSET",
+            "JSON",
+            "TEXT",
+        ],
+        "columns": ["row-id", "A", "X", "Text", "Image", "Image--metadata", "X"],
+        "ncols": 7,
+        "nrows": 3,
+        "rows": [
+            {
+                "A": 1,
+                "Image": {
+                    "assetId": AlwaysEquals(),
+                    "assetType": "image",
+                    "type": "asset",
+                },
+                "Image--metadata": {
+                    "assetId": AlwaysEquals(),
+                    "image": {"width": 3, "height": 1},
+                    "tag": "dog",
+                },
+                "Text": "hello",
+                "X": 42,
+                "row-id": 1,
+            },
+            {
+                "A": 2,
+                "Image": {
+                    "assetId": AlwaysEquals(),
+                    "assetType": "image",
+                    "type": "asset",
+                },
+                "Image--metadata": {
+                    "assetId": AlwaysEquals(),
+                    "image": {"width": 3, "height": 1},
+                    "tag": "cat",
+                },
+                "Text": "world",
+                "X": 42,
+                "row-id": 2,
+            },
+            {
+                "A": 3,
+                "Image": {
+                    "assetId": AlwaysEquals(),
+                    "assetType": "image",
+                    "type": "asset",
+                },
+                "Image--metadata": {
+                    "assetId": AlwaysEquals(),
+                    "image": {"width": 3, "height": 1},
+                    "tag": "dog",
+                },
+                "Text": "test",
+                "X": 42,
+                "row-id": 3,
+            },
+        ],
+        "total": 3,
+    }
+    assert results == expected_results
 
 
 def test_simple_2():
@@ -131,6 +222,23 @@ def test_simple_2():
     assert where_sql == "cc1 = 42"
 
     results = select_by_query(where_expr, computed_columns)
+    expected_results = {
+        "columnTypes": [
+            "ROW_ID",
+            "INTEGER",
+            "TEXT",
+            "TEXT",
+            "IMAGE-ASSET",
+            "JSON",
+            "TEXT",
+        ],
+        "columns": ["row-id", "A", "X", "Text", "Image", "Image--metadata", "X"],
+        "ncols": 7,
+        "nrows": 0,
+        "rows": [],
+        "total": 0,
+    }
+    assert results == expected_results
 
 
 def test_aggregate_where1():
@@ -161,6 +269,23 @@ def test_aggregate_where1():
     assert where_sql == "cc1 < AVG_aggregate_column_1"
 
     results = select_by_query(where_expr, computed_columns)
+    expected_results = {
+        "columnTypes": [
+            "ROW_ID",
+            "INTEGER",
+            "TEXT",
+            "TEXT",
+            "IMAGE-ASSET",
+            "JSON",
+            "TEXT",
+        ],
+        "columns": ["row-id", "A", "X", "Text", "Image", "Image--metadata", "X"],
+        "ncols": 7,
+        "nrows": 0,
+        "rows": [],
+        "total": 0,
+    }
+    assert results == expected_results
 
 
 def test_aggregate_column():
@@ -194,6 +319,41 @@ def test_aggregate_column():
     assert where_sql == "column_1 < cc1"
 
     results = select_by_query(where_expr, computed_columns)
+    expected_results = {
+        "columnTypes": [
+            "ROW_ID",
+            "INTEGER",
+            "FLOAT",
+            "TEXT",
+            "IMAGE-ASSET",
+            "JSON",
+            "TEXT",
+        ],
+        "columns": ["row-id", "A", "X", "Text", "Image", "Image--metadata", "AVG A"],
+        "ncols": 7,
+        "nrows": 1,
+        "rows": [
+            {
+                "A": 1,
+                "AVG A": 2.0,
+                "Image": {
+                    "assetId": AlwaysEquals(),
+                    "assetType": "image",
+                    "type": "asset",
+                },
+                "Image--metadata": {
+                    "assetId": AlwaysEquals(),
+                    "image": {"height": 1, "width": 3},
+                    "tag": "dog",
+                },
+                "Text": "hello",
+                "X": 2.0,
+                "row-id": 1,
+            }
+        ],
+        "total": 1,
+    }
+    assert results == expected_results
 
 
 def test_image_column():
@@ -221,9 +381,67 @@ def test_image_column():
     )
     assert databases == []
     assert select_expr_as == []
-    assert where_sql == None
+    assert where_sql is not None
 
     results = select_by_query(where_expr, computed_columns)
+    expected_results = {
+        "columnTypes": ["ROW_ID", "INTEGER", "FLOAT", "TEXT", "IMAGE-ASSET", "JSON"],
+        "columns": ["row-id", "A", "X", "Text", "Image", "Image--metadata"],
+        "ncols": 6,
+        "nrows": 3,
+        "rows": [
+            {
+                "A": 1,
+                "Image": {
+                    "assetId": AlwaysEquals(),
+                    "assetType": "image",
+                    "type": "asset",
+                },
+                "Image--metadata": {
+                    "assetId": AlwaysEquals(),
+                    "image": {"height": 1, "width": 3},
+                    "tag": "dog",
+                },
+                "Text": "hello",
+                "X": 2.0,
+                "row-id": 1,
+            },
+            {
+                "A": 2,
+                "Image": {
+                    "assetId": AlwaysEquals(),
+                    "assetType": "image",
+                    "type": "asset",
+                },
+                "Image--metadata": {
+                    "assetId": AlwaysEquals(),
+                    "image": {"height": 1, "width": 3},
+                    "tag": "cat",
+                },
+                "Text": "world",
+                "X": 3.0,
+                "row-id": 2,
+            },
+            {
+                "A": 3,
+                "Image": {
+                    "assetId": AlwaysEquals(),
+                    "assetType": "image",
+                    "type": "asset",
+                },
+                "Image--metadata": {
+                    "assetId": AlwaysEquals(),
+                    "image": {"height": 1, "width": 3},
+                    "tag": "dog",
+                },
+                "Text": "test",
+                "X": 4.0,
+                "row-id": 3,
+            },
+        ],
+        "total": 3,
+    }
+    assert results == expected_results
 
 
 def test_image_column_metadata():
@@ -258,6 +476,15 @@ def test_image_column_metadata():
     assert where_sql == "json_extract(column_5, '$.extension') = 'jpg'"
 
     results = select_by_query(where_expr, computed_columns)
+    expected_results = {
+        "columnTypes": ["ROW_ID", "INTEGER", "FLOAT", "TEXT", "IMAGE-ASSET", "JSON"],
+        "columns": ["row-id", "A", "X", "Text", "Image", "Image--metadata"],
+        "ncols": 6,
+        "nrows": 0,
+        "rows": [],
+        "total": 0,
+    }
+    assert results == expected_results
 
 
 def test_image_computed_column():
@@ -293,3 +520,20 @@ def test_image_computed_column():
     assert where_sql == "cc1 = 'jpg'"
 
     results = select_by_query(where_expr, computed_columns)
+    expected_results = {
+        "columnTypes": [
+            "ROW_ID",
+            "INTEGER",
+            "FLOAT",
+            "TEXT",
+            "IMAGE-ASSET",
+            "JSON",
+            "TEXT",
+        ],
+        "columns": ["row-id", "A", "X", "Text", "Image", "Image--metadata", "Image2"],
+        "ncols": 7,
+        "nrows": 0,
+        "rows": [],
+        "total": 0,
+    }
+    assert results == expected_results

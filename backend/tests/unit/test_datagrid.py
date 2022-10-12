@@ -7,7 +7,7 @@
 #    | |__/ ( ( | | | ( ( | | |__| | | | ( (_| |     #
 #    |_____/ \_||_|___)\_||_|_____/|_| |_|\____|     #
 #                                                    #
-#    Copyright (c) 2022 Kangas Development Team    #
+#    Copyright (c) 2022 Kangas Development Team      #
 #    All rights reserved                             #
 ######################################################
 
@@ -16,10 +16,10 @@ import os
 import random
 
 import pytest
-
-from kangas import Audio, Curve, DataGrid, Image, Text, Video
 from kangas.datatypes.utils import convert_string_to_date, convert_string_to_value
 from kangas.utils import make_column_name, sanitize_name
+
+from kangas import Audio, Curve, DataGrid, Image, Text, Video
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 

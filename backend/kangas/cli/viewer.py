@@ -8,7 +8,7 @@
 #    | |__/ ( ( | | | ( ( | | |__| | | | ( (_| |     #
 #    |_____/ \_||_|___)\_||_|_____/|_| |_|\____|     #
 #                                                    #
-#    Copyright (c) 2022 Kangas Development Team    #
+#    Copyright (c) 2022 Kangas Development Team      #
 #    All rights reserved                             #
 ######################################################
 
