@@ -21,6 +21,20 @@ const HelpButton = () => (
 const FilterExpr = ({ query }) => {
     const refresh = useRefreshRoot();
 
+    const onKeyPress = useCallback(
+	(e) => {
+	    if (e.key === 'Enter') {
+		refresh({
+                    query: {
+			...query,
+			whereExpr: filter?.value,
+			offset: 0,
+                    },
+		});
+	    }
+	}, [query]
+    );
+
     const applyFilter = useCallback(
         (e) => {
             const filter = document.getElementById('filter');
@@ -48,6 +62,7 @@ const FilterExpr = ({ query }) => {
                 InputProps={{
                     endAdornment: <FilterButton callback={applyFilter} />,
                 }}
+                onKeyPress={onKeyPress}
             />
             <DialogueModal toggleElement={<HelpButton />}>
                 <HelpText />
