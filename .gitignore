@@ -136,3 +136,6 @@ dmypy.json
 /frontend/config.js
 /frontend/server.js
 /frontend/.swc
+
+node_modules
+yarn.lock
