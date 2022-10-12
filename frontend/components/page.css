@@ -1,0 +1,422 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+
+/* Layout */
+body {
+    font-family: 'Roboto';
+}
+
+.main {
+    min-width: 100%;
+}
+
+.select-row {
+    display: flex;
+    align-items: baseline;
+    padding-bottom: 10px;
+    column-gap: 12px;
+}
+
+.select-row > label {
+    padding-right: 15px;
+}
+
+#header {
+    position: sticky;
+    top: 0;
+    background: white;
+}
+
+#matrix-select > div {
+    width: 350px;
+}
+
+#nav-bar {
+    display: flex;
+    width: 100%;
+    justify-content: flex-end;
+    align-items: baseline;
+}
+
+.pages {
+    padding-right: 25px;
+}
+
+/* Table level */
+.table-root {
+    min-width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    min-height: 100%;
+}
+
+.row {
+    min-width: 100%;
+    width: fit-content;
+    display: flex;
+    max-height: 55px;
+    border-bottom: 1px solid rgb(224, 224, 224);
+}
+
+.row:hover {
+    background-color: #eaecf2;
+}
+
+.row-group {
+    min-width: 100%;
+    width: fit-content;
+    display: flex;
+    max-height: 110px;
+    border-bottom: 1px solid rgb(224, 224, 224);
+}
+
+.row-group:hover {
+    background-color: #eaecf2;
+}
+
+.column {
+    min-width: 100px;
+    max-width: 100px;
+    margin-left: 12px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.column-group {
+    min-width: 200px;
+    max-width: 300px;
+    margin-left: 12px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+#header-row > .column {
+    text-transform: uppercase;
+    font-size: 11px;
+    font-family: 'Roboto';
+    font-weight: 500;
+    font-style: normal;
+    color: #8c95a8;
+}
+
+#header-row > .column-group {
+    text-transform: uppercase;
+}
+
+.footer-row {
+    width: 100%;
+    padding: 22px 0;
+    display: flex;
+    justify-content: flex-end;
+    position: sticky;
+    bottom: 0;
+    background: white;
+    z-index: 999;
+}
+
+.pages {
+    font-family: 'Roboto';
+    color: #5f677e;
+    line-height: 14px;
+    font-weight: 400;
+    font-size: 12px;
+}
+
+/* Cells */
+.cell {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: relative;
+    min-height: 55px;
+}
+
+.cell-group {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: relative;
+    min-height: 110px;
+}
+
+.cell-content {
+    height: 100%;
+    width: 100%;
+
+    justify-content: center;
+    align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 13px;
+    color: #3d4355;
+}
+
+.histogram {
+    padding: 0px;
+}
+
+.image {
+    padding: 5px;
+}
+.image > img {
+    height: 90%;
+    width: 90%;
+    object-fit: contain;
+    max-width: 100px;
+}
+
+.image-group {
+    padding: 5px;
+}
+.image-group > img {
+    height: 90%;
+    width: 90%;
+    object-fit: contain;
+    max-width: 300px;
+}
+
+.video {
+    padding: 5px;
+}
+
+.video > video {
+    height: 90%;
+    width: 90%;
+}
+
+.text-asset {
+    background-color: #f7f8f9;
+}
+pre code {
+    display: block;
+    white-space: pre-wrap;
+}
+
+.expand-overlay {
+    position: absolute;
+    z-index: 10;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+}
+
+.expand-overlay svg {
+    position: absolute;
+    right: 0;
+    cursor: pointer;
+}
+
+.placeholder-cell {
+    min-height: 100;
+    min-width: 100;
+}
+
+.asset-grid {
+    display: flex;
+    flex-wrap: wrap;
+    min-width: 400px;
+    align-items: space-around;
+}
+
+.asset-grid .image {
+    margin-left: 2px;
+    margin-right: 2px;
+}
+
+.asset-grid .image img {
+    cursor: pointer;
+}
+
+/* Element-level */
+
+.selector {
+    background-color: #3438d0;
+}
+
+.alert {
+    /* Ripped from Material UI's Alert */
+    background-color: rgb(232, 244, 253);
+    color: rgb(13, 60, 97);
+    font-size: 0.75rem;
+    letter-spacing: 0.01071em;
+    line-height: 1.43;
+    padding: 6px 16px;
+    font-weight: 400;
+    font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+    margin-bottom: 8px;
+    border-radius: 4px;
+}
+
+.button-outline {
+    color: #5155f5;
+    border: 1px solid #5155f5;
+    border-radius: 5px;
+    padding: 7.5px 12px;
+    font-family: 'Roboto';
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    cursor: pointer;
+    max-height: 34px;
+    box-sizing: border-box;
+}
+
+.active-button {
+    border: 2px solid #5155f5;
+}
+
+.button-outline > img {
+    padding-right: 3px;
+    height: 10.5px;
+    width: 10.5px;
+}
+
+.select-modal-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 17px 0;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 19px;
+}
+
+.select-modal-title > .reset-button {
+    font-weight: 400;
+    font-size: 13px;
+    line-height: 15px;
+    cursor: pointer;
+    margin-left: 54px;
+}
+
+.select-modal-title > .disabled {
+    color: #afb0fb;
+}
+
+.select-modal-title > .enabled {
+    color: #5155f5;
+}
+.select-modal-body {
+    border-top: 1px solid #f0f2f6;
+    width: 100%;
+}
+
+.accordion-label {
+    display: flex;
+    cursor: pointer;
+}
+.accordion-content {
+    height: 0;
+    overflow: scroll;
+    transition: 0.5s;
+}
+
+.accordion-content.active {
+    height: auto;
+    padding: 10px 0;
+}
+
+/* 3rd Party Specific */
+
+/* Material UI */
+
+.MuiPaper-root {
+    min-width: 300px;
+    max-width: 1400px;
+    max-height: 1000px;
+    padding: 16px;
+    background: white;
+    box-sizing: border-box;
+    box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.13);
+    border-radius: 4px;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: visible;
+}
+
+.MuiDialog-paperWidthSm {
+    min-width: 910px;
+}
+
+.MuiPaper-root .expanded > * {
+    max-height: 500px;
+}
+
+.MuiOutlinedInput-root {
+    max-height: 34px;
+    box-sizing: border-box;
+    border: 1px solid #5155f5;
+    border-right: 0;
+    border-radius: 4px;
+}
+
+.MuiOutlinedInput-notchedOutline {
+    border: 0;
+}
+
+/* TODO: Fix this !important flag by customizing the styles in MUI better */
+.MuiInputBase-adornedEnd {
+    padding-right: 0 !important;
+}
+
+.MuiAccordion--root {
+    padding: 0;
+}
+
+.MuiDialog-container div[role='dialog'] {
+    max-width: 100%;
+}
+
+/* TODO: Fix this !important flag by customizing the styles in MUI better */
+.MuiPopover-paper {
+    overflow: visible !important;
+}
+
+
+/* react-select */
+
+.react-select-list {
+    position: relative;
+}
+
+/* Media queries */
+@media (max-width: 750px) {
+    .main {
+        padding: 0;
+        width: auto;
+    }
+}
+
+/* Resets */
+
+/* Adapted from Normalize: https://github.com/necolas/normalize.css/blob/master/normalize.css */
+button {
+    font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+    font-size: 50%;
+    line-height: 1.15;
+    margin: 0;
+    overflow: visible;
+    text-transform: none;
+    border: 0;
+    border-radius: 10%;
+    color: white;
+    -webkit-appearance: button;
+    background-color: #3438d0;
+    cursor: pointer;
+    padding: 5px 10px;
+}
+
+.cell-verbatim {
+    text-overflow: ellipsis;
+    width: 200px;
+    overflow: hidden;
+}
