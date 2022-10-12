@@ -381,7 +381,7 @@ def test_image_column():
     )
     assert databases == []
     assert select_expr_as == []
-    assert where_sql is not None
+    assert where_sql is None
 
     results = select_by_query(where_expr, computed_columns)
     expected_results = {
