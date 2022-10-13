@@ -26,6 +26,10 @@ body {
     background: white;
 }
 
+#settings-bar {
+    display: flex;
+    flex-direction: row;
+}
 #matrix-select > div {
     width: 350px;
 }
