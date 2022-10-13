@@ -32,8 +32,9 @@ def _is_running(name, command):
             process = psutil.Process(pid)
         except Exception:
             continue
-        if process.name().startswith(name) and command in process.cmdline():
-            return process.is_running() and process.status() != psutil.STATUS_ZOMBIE
+        if process.name().startswith(name):
+            if len(process.cmdline()) > 1 and command in process.cmdline()[1]:
+                return process.is_running() and process.status() != psutil.STATUS_ZOMBIE
     return False
 
 
@@ -43,8 +44,9 @@ def _process_method(name, command, method):
             process = psutil.Process(pid)
         except Exception:
             continue
-        if process.name().startswith(name) and command in process.cmdline():
-            getattr(process, method)()
+        if process.name().startswith(name):
+            if len(process.cmdline()) > 1 and command in process.cmdline()[1]:
+                getattr(process, method)()
 
 
 def terminate():

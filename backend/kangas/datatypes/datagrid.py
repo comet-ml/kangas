@@ -336,11 +336,12 @@ class DataGrid(object):
         """
         Save a DataGrid as a Comma Separated Values file.
         """
+        print("Saving DataGrid to %r..." % filename)
         with open(filename, "w", encoding=encoding, newline="") as fp:
             writer = csv.writer(fp, delimiter=sep, quotechar=quotechar)
             if header:
                 writer.writerow(self.get_columns())
-            for row in self:
+            for row in tqdm.tqdm(self):
                 writer.writerow(
                     [
                         apply_converters(value, colname, converters)
@@ -357,8 +358,9 @@ class DataGrid(object):
         except ImportError:
             raise Exception("DataGrid.to_dataframe() requires pandas")
 
+        print("Creating DataFrame...")
         data = {
-            self._columns[col]: [row[col] for row in self._data]
+            self._columns[col]: [row[col] for row in tqdm.tqdm(self._data)]
             for col in range(len(self._columns))
         }
         return pandas.DataFrame(data=data, columns=self._columns)
@@ -466,8 +468,9 @@ class DataGrid(object):
         """
         Takes a columnar pandas dataframe and returns a DataGrid.
         """
-        columns = list(dataframe._columns)
-        data = [list(row) for r, row in dataframe.iterrows()]
+        print("Reading DataFrame...")
+        columns = list(dataframe.columns)
+        data = [list(row) for r, row in tqdm.tqdm(dataframe.iterrows())]
         return DataGrid(data=data, columns=columns, **kwargs)
 
     @classmethod
@@ -476,10 +479,11 @@ class DataGrid(object):
         Read JSON Line files.
         https://jsonlines.org/
         """
+        print("Reading JSON line file...")
         filename = download_filename(filename)
         if os.path.isfile(filename):
             dg = DataGrid(**kwargs)
-            for line in open(filename):
+            for line in tqdm.tqdm(open(filename)):
                 dg.append(json.loads(line))
             if "." in filename:
                 dg_filename, extension = filename.rsplit(".", 1)
@@ -529,9 +533,10 @@ class DataGrid(object):
         read_header = False
         data = []
         filename = download_filename(filename)
+        print("Loading CSV file %r..." % filename)
         with open(filename) as csvfile:
             reader = csv.reader(csvfile, delimiter=sep, quotechar=quotechar)
-            for r, row in enumerate(reader):
+            for r, row in tqdm.tqdm(enumerate(reader)):
                 if header is not None:
                     if not read_header:
                         if header == r:
@@ -597,52 +602,75 @@ class DataGrid(object):
             )
 
     def head(self, n=5):
+        """
+        Display the last n rows of the DataGrid.
+        """
         nrows = self.nrows
-
-        if nrows == 0:
-            return
-
-        widths = []
-        for column in ["row-id"] + self.get_columns():
-            # FIXME: make widths dynamic
-            widths.append(15)
-
-        for c, column in enumerate(["row-id"] + self.get_columns()):
-            print(("%%%ss" % widths[c]) % column, end="")
-        print()
-
-        for i in range(min(n, nrows)):
-            row = [i + 1] + self[i]
-            for c, column in enumerate(["row-id"] + self.get_columns()):
-                print(
-                    ("%%%ss" % widths[c]) % str(row[c])[: widths[c] - 2],
-                    end="",
-                )
-            print()
+        return self._display_rows(n, nrows, range(min(n, nrows)))
 
     def tail(self, n=5):
+        """
+        Display the last n rows of the DataGrid.
+        """
         nrows = self.nrows
+        return self._display_rows(
+            n, nrows, reversed(range(nrows - 1, max(nrows - n - 1, -1), -1))
+        )
 
+    def _display_rows(self, n, nrows, enumerator):
         if nrows == 0:
             return
+
+        in_jupyter = _in_jupyter_environment()
+        if in_jupyter:
+            from IPython.display import HTML, display
 
         widths = []
         for column in ["row-id"] + self.get_columns():
             # FIXME: make widths dynamic
             widths.append(15)
 
-        for c, column in enumerate(["row-id"] + self.get_columns()):
-            print(("%%%ss" % widths[c]) % column, end="")
-        print()
+        class Output:
+            def __init__(self):
+                self.output = []
+                self.accum = ""
 
-        for i in reversed(range(min(n, nrows))):
-            row = [nrows - i] + self[nrows - i - 1]
-            for c, column in enumerate(["row-id"] + self.get_columns()):
-                print(
-                    ("%%%ss" % widths[c]) % str(row[c])[: widths[c] - 2],
-                    end="",
+            def display(self, value, width, header=False):
+                if in_jupyter:
+                    self.output.append("<td>")
+                    if header:
+                        self.output.append("<b>")
+                self.output.append(
+                    ("%" + ("%s.%s" % (width, width)) + "s") % str(value)
                 )
-            print()
+                if in_jupyter:
+                    if header:
+                        self.output.append("</b>")
+                    self.output.append("</td>")
+
+            def end_row(self):
+                if in_jupyter:
+                    self.output.append("<tr>")
+                self.accum += " ".join(self.output) + "\n"
+                if in_jupyter:
+                    self.output.append("</tr>")
+                self.output = []
+
+        output = Output()
+        for c, column in enumerate(["row-id"] + self.get_columns()):
+            output.display(column, widths[c], header=True)
+        output.end_row()
+
+        for i in enumerator:
+            row = [i + 1] + self[i]
+            for c, column in enumerate(["row-id"] + self.get_columns()):
+                output.display(row[c], widths[c])
+            output.end_row()
+
+        if in_jupyter:
+            display(HTML("<table>%s</table>" % output.accum))
+        else:
+            print(output.accum)
 
     def get_columns(self):
         """
@@ -731,7 +759,8 @@ class DataGrid(object):
             )
 
             # append to data
-            for r, row in enumerate(rows):
+            print("Extending data...")
+            for r, row in tqdm.tqdm(enumerate(rows)):
                 if not isinstance(row, (dict,)):
                     # public columns will create columns, if it doesn't exist
                     row_dict = {
@@ -747,6 +776,18 @@ class DataGrid(object):
                     self._check_column_types(column_types)
 
                 self._data[r].update(row_dict)
+
+    def pop(self, index):
+        """
+        Pop a row by index from an in-memory DataGrid.
+
+        Args:
+            index: (int) position (zero-based) of row to remove
+        """
+        if self._on_disk:
+            raise Exception("Popping from a DataGrid on disk is not currently possible")
+
+        return self._data.pop(index)
 
     def append(self, row):
         """
@@ -805,7 +846,8 @@ class DataGrid(object):
             # Get datagrid ready to append:
             self._asset_id_cache = set(self.get_asset_ids())
             self.cursor = self.conn.cursor()
-            for row in rows:
+            print("Extending data...")
+            for row in tqdm.tqdm(rows):
                 if not isinstance(row, (dict,)):
                     row_dict = {
                         column_name: value
@@ -830,7 +872,8 @@ class DataGrid(object):
             self._compute_stats()
         else:
             ## Append to memory
-            for row in rows:
+            print("Extending data...")
+            for row in tqdm.tqdm(rows):
                 if not isinstance(row, (dict,)):
                     # public columns will create columns, if it doesn't exist
                     row_dict = {
@@ -1013,7 +1056,10 @@ class DataGrid(object):
             raise Exception("Column names must be unique")
 
         if len(columns) > self.MAX_COLS:
-            raise Exception("Number of columns exceeds DataGrid.MAX_COLS")
+            LOGGER.warning(
+                "Number of columns (%s) exceeds DataGrid.MAX_COLS recommendation (%s)"
+                % (len(columns), self.MAX_COLS)
+            )
 
         return [
             self._verify_column(column_name, c) for c, column_name in enumerate(columns)
@@ -1029,8 +1075,9 @@ class DataGrid(object):
             raise Exception("New data has extra columns: %r" % (unknown_columns,))
 
         if len(self._data) + 1 > self.MAX_ROWS:
-            raise Exception(
-                "Number of rows exceeds DataGrid.MAX_ROWS; you can change it if you wish"
+            LOGGER.warning(
+                "Number of rows (%s) exceeds DataGrid.MAX_ROWS recommendation (%s)"
+                % (len(self._data) + 1, self.MAX_ROWS)
             )
 
         return self._verify_col_types(row_dict)
@@ -1178,6 +1225,7 @@ class DataGrid(object):
                 for column_name, column_type in self._columns.items()
             }
         )
+        print("Saving data...")
         for row in tqdm.tqdm(self._data):
             for column_name in row:
                 row[column_name] = convert_to_type(
@@ -1303,7 +1351,8 @@ class DataGrid(object):
         columns = self.get_schema()
 
         data = []
-        for col_name in columns:
+        print("Computing statistics...")
+        for col_name in tqdm.tqdm(columns):
             col_type = columns[col_name]["type"]
             field_name = columns[col_name]["field_name"]
             if col_type in ["FLOAT", "INTEGER", "ROW_ID"]:
