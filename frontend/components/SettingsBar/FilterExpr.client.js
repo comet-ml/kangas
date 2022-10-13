@@ -57,10 +57,16 @@ const FilterExpr = ({ query }) => {
     return (
         <>
             <TextField
-                placeholder={`Use {}<>/ to filter`}
+                placeholder={`Use { } <>/ to filter the data e.g {score} > 0.5`}
                 id="filter"
+                sx={{
+                    width: '360px'
+                }}
                 InputProps={{
                     endAdornment: <FilterButton callback={applyFilter} />,
+                    sx: {
+                        fontSize: '13px'
+                    }
                 }}
                 onKeyPress={onKeyPress}
             />

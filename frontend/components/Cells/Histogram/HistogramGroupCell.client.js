@@ -10,9 +10,11 @@ import {
 import formatValue from '../../../lib/formatValue';
 import { getColor } from '../../../lib/generateChartColor';
 import { ConfigContext } from '../ClientContext.client';
+
 const Plot = dynamic(() => import('react-plotly.js'), {
     ssr: false,
 });
+
 const HistogramGroupClient = ({ value, dgid }) => {
     const [data, setData] = useState(null);
     const appConfig = useContext(ConfigContext);
