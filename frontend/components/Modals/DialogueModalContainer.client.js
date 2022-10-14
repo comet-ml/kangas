@@ -23,7 +23,7 @@ const DialogueModalContainer = ({ toggleElement, children, sx, tabIndex }) => {
                     opacity: '0',
                     cursor: 'pointer',
                 }}
-                tabindex={tabIndex}
+                tabIndex={tabIndex}
             >
                 <Dialogue  open={open} fullscreen="true" onClose={toggleOpen} sx={sx}>
                     {children}
