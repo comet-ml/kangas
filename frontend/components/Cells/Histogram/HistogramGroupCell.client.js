@@ -31,9 +31,6 @@ const HistogramGroupClient = ({ value, dgid }) => {
         fetchData();
     }, [fetchData]);
 
-    useEffect(() => {
-        console.log(value)
-    }, [value])
     const histogramData = useMemo(() => {
         if (!data) return null;
         else

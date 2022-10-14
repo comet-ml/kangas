@@ -141,3 +141,4 @@ yarn.lock
 # Examples
 
 backend/kangas/examples
+backend/kangas/frontend

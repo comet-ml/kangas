@@ -21,6 +21,7 @@ import { columnTypeMap } from '../lib/makeComponentMap';
 import FooterRow from '../components/FooterRow.server';
 import Imports from '../components/SettingsBar/Imports.client';
 import ClientContext from '../components/Cells/ClientContext.client';
+import { StyledEngineProvider } from '@mui/material';
 
 const Root = ({ query, matrices }) => {
     /* eslint-disable no-unused-vars */
@@ -63,6 +64,7 @@ const Root = ({ query, matrices }) => {
             : 'column cell';
     const headerClass = colClass.includes('group') ? 'column-group' : 'column';
     return (
+        <div>
         <Page>
             <Suspense fallback={<Skeletons />}>
                 <Imports />
@@ -200,6 +202,7 @@ const Root = ({ query, matrices }) => {
                 <FooterRow query={query} total={total} />
             </Suspense>
         </Page>
+        </div>
     );
 };
 
