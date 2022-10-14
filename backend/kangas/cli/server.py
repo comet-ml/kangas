@@ -15,6 +15,7 @@ import argparse
 import os
 import subprocess
 import sys
+import time
 import urllib
 import webbrowser
 
@@ -198,6 +199,7 @@ def server(parsed_args, remaining=None):
             url = "%s?%s" % (host, urllib.parse.urlencode(query_vars))
         else:
             url = host
+        time.sleep(1)
         webbrowser.open(url, new=new, autoraise=True)
 
     if parsed_args.backend != "no":
