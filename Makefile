@@ -11,4 +11,5 @@ build::
 	rm -rf backend/kangas/frontend/cache/*
 
 wheel::
+	rm -rf backend/build/
 	cd backend; python -m build --wheel
