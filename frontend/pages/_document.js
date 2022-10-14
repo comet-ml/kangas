@@ -5,7 +5,7 @@ export default function Document() {
         <Html>
             <Head>
                 <link rel="icon" type="image/png" href="/favicon.png" />
-                <title>DataGrid - Data and Model Analysis</title>
+                <title>Kangas - Data and Model Analysis</title>
             </Head>
             <body>
                 <Main />

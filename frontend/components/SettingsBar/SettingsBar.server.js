@@ -42,7 +42,7 @@ const SettingsBarServer = ({ query, matrices, columns, options }) => {
                 <div style={{ width: 'auto' }}>
                     <div className="button-outline">
                         <img src="/favicon.png" />
-                        <span>DataGrid</span>
+                        <span>Kangas</span>
                     </div>
                 </div>
                 <MatrixSelect query={query} options={matrices} />
