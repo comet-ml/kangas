@@ -19,13 +19,13 @@ const Canvas = ({ url, drawImage, dgid, scoreBound, ref }) => {
             body: JSON.stringify({
                 assetId,
                 dgid,
-                url: `${appConfig.apiUrl}asset-metadata`,
+                url: `${appConfig.apiProxyUrl}asset-metadata`,
             }),
             method: 'POST',
         })
             .then((res) => res.json())
             .then((data) => setParsedMeta(JSON.parse(data)));
-    }, [appConfig?.apiUrl, assetId, dgid]);
+    }, [appConfig?.apiProxyUrl, assetId, dgid]);
 
     useEffect(() => {
         if (!scoreBound || !parsedMeta?.overlays) return;

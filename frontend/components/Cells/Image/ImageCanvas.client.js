@@ -183,13 +183,13 @@ const ImageCanvas = ({ url, metadata, dgid, assetId, urls }) => {
             body: JSON.stringify({
                 assetId: assetId || new URL(url).searchParams.get('assetId'),
                 dgid,
-                url: `${appConfig.apiUrl}asset-metadata`,
+                url: `${appConfig.apiProxyUrl}asset-metadata`,
             }),
             method: 'post',
         });
         const parsed = await res.json();
         setParsedMeta(JSON.parse(parsed));
-    }, [appConfig?.apiUrl, assetId, dgid, metadata, url]);
+    }, [appConfig?.apiProxyUrl, assetId, dgid, metadata, url]);
 
 	// If metadata is passed in as a prop, we use it to set parsedMeta.
 	// If not, we fetch the metadata on the clientside 

@@ -62,7 +62,7 @@ const LazyImageGroup = ({ images, dgid, children }) => {
                             >
                                 <Image
                                     src={`/api/image?url=${encodeURIComponent(
-                                        `${appConfig.apiUrl}download?assetId=${id}&dgid=${dgid}`
+                                        `${appConfig.apiProxyUrl}download?assetId=${id}&dgid=${dgid}`
                                     )}`}
                                     lazyRoot={lazyRoot}
                                     layout={'fill'}

@@ -78,7 +78,7 @@ const Root = ({ query, matrices }) => {
                 />
             </Suspense>
             <Suspense fallback={<Skeletons />}>
-                <ClientContext apiUrl={config.apiUrl} otherUrl={config.apiUrl}>
+                <ClientContext apiUrl={config.apiUrl} otherUrl={config.apiUrl} apiProxyUrl={config.apiProxyUrl} >
                     <div className="table-root">
                         <div id="header-row" className={`${rowClass}`}>
                             {filteredColumns.map((col) => (
