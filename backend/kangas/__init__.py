@@ -93,11 +93,13 @@ def launch(host=None, port=4000, debug=False):
     
     host = host if host is not None else get_localhost()
 
-    if _in_colab_environment():
-        KANGAS_BACKEND_PROXY = output.eval_js(
-            "(async () => {return await google.colab.kernel.proxyPort(%s)})()" % port + 1)
-
     if not _is_running("node", "kangas"):
+        if _in_colab_environment():
+            from google.colab import output
+
+            KANGAS_BACKEND_PROXY = output.eval_js(
+                "(async () => {return await google.colab.kernel.proxyPort(%s)})()" % str(port + 1))
+
         KANGAS_PROCESS = subprocess.Popen(
             (
                 [
