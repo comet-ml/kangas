@@ -57,6 +57,12 @@ def get_parser_arguments(parser):
         default=None,
     )
     parser.add_argument(
+        "--backend-proxy",
+        help="The backend proxy URL to use",
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
         "-f",
         "--frontend",
         help="The frontend to use; use 'no' for no frontend",
@@ -128,6 +134,8 @@ def server(parsed_args, remaining=None):
                 "KANGAS_HOST": str(KANGAS_HOST),
             }
         )
+        if parsed_args.backend_proxy is not None:
+            env["KANGAS_BACKEND_PROXY"] = parsed_args.backend_proxy
 
         # first, check to see if nodejs is good:
         if nodejs is not None:
