@@ -1097,6 +1097,7 @@ def select_query(
     rows = cur.fetchall()
 
     if group_by:
+        total_sql = "SELECT COUNT() from (SELECT {select_expr_as} FROM {databases} GROUP BY {group_by_field_name});"
         group_by_field_name = get_field_name(group_by, metadata)
         # Add cell messages for groups and assets:
         rows = list(rows)
@@ -1150,6 +1151,7 @@ def select_query(
 
             rows[r] = row
     else:
+        total_sql = "SELECT COUNT() FROM (SELECT {select_expr_as} FROM {databases} WHERE {where});"
         # Add asset messages:
         rows = list(rows)
         for r in range(len((rows))):
@@ -1176,15 +1178,11 @@ def select_query(
 
             rows[r] = row
 
-    if group_by:
-        total_rows = len(rows)
-    else:
-        total_sql = "SELECT COUNT() FROM (SELECT {select_expr_as} FROM {databases} WHERE {where});"
-        selection_sql = total_sql.format(**env)
-        LOGGER.info("SQL %s", selection_sql)
-        start_time = time.time()
-        total_rows = cur.execute(selection_sql).fetchone()[0]
-        LOGGER.info("SQL %s seconds", time.time() - start_time)
+    selection_sql = total_sql.format(**env)
+    LOGGER.info("SQL %s", selection_sql)
+    start_time = time.time()
+    total_rows = cur.execute(selection_sql).fetchone()[0]
+    LOGGER.info("SQL %s seconds", time.time() - start_time)
 
     for column in remove_columns:
         select_columns.remove(column)
