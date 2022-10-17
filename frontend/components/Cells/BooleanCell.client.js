@@ -1,7 +1,9 @@
-import { CheckBox, CheckBoxOutlineBlank } from '@material-ui/icons';
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 
-// It is physically painful that this needs to be rendered client-side, but MUI uses stateful hooks
-const BooleanCellClient = ({ sign }) =>
-    sign ? <CheckBox /> : <CheckBoxOutlineBlank />;
+const BooleanCellClient = ({ value }) => {
+    if (value === null) return <>None</>;
+    else return (value === 1) ? <CheckBoxIcon /> : <CheckBoxOutlineBlankIcon />;
+};
 
 export default BooleanCellClient;

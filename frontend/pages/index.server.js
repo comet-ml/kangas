@@ -97,8 +97,7 @@ const Root = ({ query, matrices }) => {
                                         className={`${colClass}`}
                                         key={`${ridx}-${idx}`}
                                     >
-                                        {!!query?.groupBy &&
-                                        query?.groupBy !== col
+                                        {!!query?.groupBy && query?.groupBy !== col
                                             ? columnTypeMap[
                                                   filteredColumnTypes[idx]
                                               ].groupComponent({
@@ -116,8 +115,7 @@ const Root = ({ query, matrices }) => {
                                                   col,
                                               })}
                                         <ExpandOverlay>
-                                            {!!query?.groupBy &&
-                                            query?.groupBy !== col
+                                            {!!query?.groupBy && query?.groupBy !== col
                                                 ? columnTypeMap[
                                                       filteredColumnTypes[idx]
                                                   ].expandedGroupComponent({
@@ -145,8 +143,7 @@ const Root = ({ query, matrices }) => {
                                             className={`${colClass}`}
                                             key={`${ridx}-${idx + 5}`}
                                         >
-                                            {!!query?.groupBy &&
-                                            query?.groupBy !== col
+                                            {!!query?.groupBy && query?.groupBy !== col
                                                 ? columnTypeMap[
                                                       filteredColumnTypes[
                                                           idx + 5
@@ -169,8 +166,7 @@ const Root = ({ query, matrices }) => {
                                                       col,
                                                   })}
                                             <ExpandOverlay>
-                                                {!!query?.groupBy &&
-                                                query?.groupBy !== col
+                                                {!!query?.groupBy && query?.groupBy !== col
                                                     ? columnTypeMap[
                                                           filteredColumnTypes[
                                                               idx + 5
