@@ -214,8 +214,8 @@ def histogram(cur, metadata, values, column):
                 std = 0.0
             statistics = {
                 "count": len(np_values),  # ok
-                "min": np_values.min(),  # ok
-                "max": np_values.max(),  # ok
+                "min": np_values.min().item(),  # ok
+                "max": np_values.max().item(),  # ok
                 "mean": np.nanmean(np_values).item(),  # ok
                 "median": np.nanmedian(np_values).item(),  # ok
                 "std": std,  # ok

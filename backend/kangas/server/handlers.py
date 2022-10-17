@@ -69,7 +69,13 @@ class BaseHandler(RequestHandler):
         self.set_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
 
     def write_json(self, obj):
-        result = json.dumps(obj)
+        try:
+            result = json.dumps(obj)
+        except Exception:
+            logging.error("can't encode %r" % obj)
+            self.write("ENCODING ERROR")
+            return
+
         self.write(result)
 
     def options(self, *args):
