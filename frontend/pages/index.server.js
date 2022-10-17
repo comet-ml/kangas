@@ -12,7 +12,7 @@ import ExpandOverlay from '../components/Cells/ExpandOverlay.client';
 
 // Utils
 import config from '../config';
-import { useData } from '../lib/useData';
+import { useData, updateExpiration } from '../lib/useData';
 import Skeletons from '../components/skeletons';
 import hashQuery from '../lib/hashQuery';
 import fetchTable from '../lib/fetchTable';
@@ -24,11 +24,12 @@ import ClientContext from '../components/Cells/ClientContext.client';
 // If not imported here, the import in page.client.js will fail
 import { StyledEngineProvider } from '@mui/material';
 
-const Root = ({ query, matrices }) => {
+const Root = ({ query, matrices, expiration }) => {
     /* eslint-disable no-unused-vars */
+    updateExpiration(expiration);
     const { data: table, tableError } = useData(
         `query-${hashQuery({ query })}`,
-        () => fetchTable(query)
+        () => fetchTable(query),
     );
 
     const { data: allColumns, colError } = useData(
@@ -39,7 +40,7 @@ const Root = ({ query, matrices }) => {
                 limit: 1,
             },
         })}`,
-        () => fetchTable(query)
+        () => fetchTable(query),
     );
     
     /* eslint-enable no-unused-vars */
@@ -218,6 +219,7 @@ export const getServerSideProps = async (context) => {
                 whereExpr: context.query?.filter || null,
                 limit: 10,
             },
+            expiration: null
         }, // will be passed to the page component as props
     };
 
