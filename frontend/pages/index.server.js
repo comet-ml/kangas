@@ -21,6 +21,7 @@ import { columnTypeMap } from '../lib/makeComponentMap';
 import FooterRow from '../components/FooterRow.server';
 import Imports from '../components/SettingsBar/Imports.client';
 import ClientContext from '../components/Cells/ClientContext.client';
+// If not imported here, the import in page.client.js will fail
 import { StyledEngineProvider } from '@mui/material';
 
 const Root = ({ query, matrices }) => {
@@ -29,6 +30,7 @@ const Root = ({ query, matrices }) => {
         `query-${hashQuery({ query })}`,
         () => fetchTable(query)
     );
+
     const { data: allColumns, colError } = useData(
         `query-${hashQuery({
             query: {
@@ -39,6 +41,7 @@ const Root = ({ query, matrices }) => {
         })}`,
         () => fetchTable(query)
     );
+    
     /* eslint-enable no-unused-vars */
     const { dgid } = query;
     const { columnTypes, columns, rows, total } = table ?? EMPTY_TABLE;
@@ -227,21 +230,3 @@ export const getServerSideProps = async (context) => {
 
 export default Root;
 
-/*
-
-          <RowBlock rows={rows.slice(0, 50)} columns={filteredColumns} columnTypes={columnTypes} query={query} block={0} />
-          <RowBlock rows={rows.slice(-150, -149)} columns={filteredColumns} columnTypes={columnTypes} query={query} block={1} />
-          <RowBlock rows={rows.slice(-149, -50)} columns={filteredColumns} columnTypes={columnTypes} query={query} block={2} />
-          <ScrollProvider query={query} total={total}>
-            <RowBlock rows={rows.slice(-50, -49)} columns={filteredColumns} columnTypes={columnTypes} query={query} block={3} />
-          </ScrollProvider>
-          <RowBlock rows={rows.slice(-49)} columns={filteredColumns} columnTypes={columnTypes} query={query} block={4} />
-
-          */
-
-/*             <RowBlock rows={rows.slice(0, -100)} columns={filteredColumns} columnTypes={columnTypes} query={query} block={0} />
-            <ScrollProvider query={query} block={1} total={total}>
-              <RowBlock rows={rows.slice(-100, -99)} columns={filteredColumns} columnTypes={columnTypes} query={query} block={1} />
-            </ScrollProvider>
-            <RowBlock rows={rows.slice(-99)} columns={filteredColumns} columnTypes={columnTypes} query={query} block={2} />
-*/

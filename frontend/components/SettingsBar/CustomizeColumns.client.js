@@ -1,6 +1,8 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic.js';
 import { unstable_useRefreshRoot as useRefreshRoot } from 'next/streaming';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
 const Select = dynamic(() => import('react-select'), {
     ssr: false,
@@ -8,6 +10,15 @@ const Select = dynamic(() => import('react-select'), {
 
 import MultiSelectSort from './MultiSelectSort.client.js';
 import makeQuery from '../../lib/makeQuery.js';
+
+const SortArrow = ({ toggle, sortDesc }) => {
+    return (
+        <div className='arrow-toggle' onClick={toggle}>
+            { sortDesc && <KeyboardArrowDownIcon /> }
+            { !sortDesc && <KeyboardArrowUpIcon /> }
+        </div>
+    )
+}
 
 const CustomizeColumnsModal = ({
     columns,
@@ -22,6 +33,7 @@ const CustomizeColumnsModal = ({
     const [newOptions, setNewOptions] = useState(null);
     // Should the reset button be active
     const [active, setActive] = useState(false);
+    const [sortDesc, setSortDesc] = useState(false);
 
     const CLEAR_CHOICE = { id: 0, label: '', value: null };
 
@@ -80,7 +92,7 @@ const CustomizeColumnsModal = ({
 
             // If we've specified multiple subtrees, we need to iterate across them.
             if (subtrees.length) {
-                let newQuery = { ...query };
+                let newQuery = { ...query, sortDesc };
                 for (const tree of subtrees) {
                     newQuery = makeQuery(newQuery, tree, column);
                 }
@@ -103,7 +115,7 @@ const CustomizeColumnsModal = ({
                 });
             }
         },
-        [subtrees, subtree, query]
+        [subtrees, subtree, query, sortDesc]
     );
 
     const handleClearColumn = useCallback(() => {
@@ -124,19 +136,17 @@ const CustomizeColumnsModal = ({
         });
     }, [query, subtree, subtrees]);
 
-    const modalButtons = [
-        {
-            onClick: handleResetDefaultColumns,
-            disabled: false,
-            buttonText: 'Reset default',
-        },
-        {
-            onClick: handleClearCurrentChanges,
-            disabled: false,
-            buttonText: 'Clear changes',
-        },
-    ];
+    const toggleDesc = useCallback(() => {
+        // This is only passed to the single column selector, so the subtree parsing is unnecessary
+        refresh({
+            query: {
+                ...query,
+                sortDesc: !query?.sortDesc
+            }
+        });
 
+    }, [query])
+    
     // FIXME: remove this height: 320px when we find solution for standalone height
     // in select:
     if (isMulti) {
@@ -154,12 +164,10 @@ const CustomizeColumnsModal = ({
         );
     }
 
-    // FIXME: remove this height: 320px when we find solution for standalone height
-    // in select:
     return (
         <div>
             <div className="select-modal-title">
-                <div>Select a column</div>
+                <div>Select a column { !!query?.sortBy && <SortArrow toggle={toggleDesc} sortDesc={query?.sortDesc} /> }</div>
                 <div
                     className={`reset-button ${
                         selectedOption ? 'enabled' : 'disabled'
@@ -174,6 +182,7 @@ const CustomizeColumnsModal = ({
                     options={options}
                     value={selectedOption}
                     onChange={handleUpdateColumn}
+
                 />
             </div>
         </div>

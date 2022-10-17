@@ -16,6 +16,7 @@
     "@emotion/styled": "^11.9.3",
     "@material-ui/core": "^4.12.4",
     "@material-ui/icons": "^4.11.3",
+    "@mui/icons-material": "^5.10.9",
     "@mui/material": "^5.9.2",
     "@react-hook/resize-observer": "^1.2.6",
     "axios": "^0.27.2",

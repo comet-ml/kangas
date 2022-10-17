@@ -292,6 +292,10 @@ pre code {
     line-height: 19px;
 }
 
+.select-modal-title > div {
+    display: flex;
+}
+
 .select-modal-title > .reset-button {
     font-weight: 400;
     font-size: 13px;
@@ -325,6 +329,14 @@ pre code {
 .accordion-content.active {
     height: auto;
     padding: 10px 0;
+}
+
+.arrow-toggle {
+    cursor: pointer;
+}
+
+.arrow-toggle > svg {
+    font-size: 1.25rem;
 }
 
 /* 3rd Party Specific */
