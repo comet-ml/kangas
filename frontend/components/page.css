@@ -148,6 +148,7 @@ body {
     text-overflow: ellipsis;
     position: relative;
     min-height: 110px;
+    width: -webkit-fill-available;
 }
 
 .cell-content {
@@ -441,6 +442,6 @@ button {
 
 .cell-verbatim {
     text-overflow: ellipsis;
-    width: 200px;
+    width: 150px;
     overflow: hidden;
 }

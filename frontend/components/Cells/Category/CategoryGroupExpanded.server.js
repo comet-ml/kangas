@@ -11,7 +11,7 @@ import formatChartText from '../../../lib/formatChartText';
 // TODO Create a helper called generateLayout that also generates data.
 const CategoryGroupCell = ({ value, dgid }) => {
     return (
-        <div className="cell-content curve-asset">
+        <div className="cell-content category-chart">
             <CategoryGroupClient value={value} />
         </div>
     );

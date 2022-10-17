@@ -10,7 +10,7 @@ import fetchCategory from '../../../lib/fetchCategory';
 import formatChartText from '../../../lib/formatChartText';
 // TODO Create a helper called generateLayout that also generates data.
 const CategoryGroupCell = ({ value, dgid, defer }) => (
-    <div className="cell-content curve-asset">
+    <div className="cell-content category-chart">
         { !defer && <CategoryGroupClient value={value} /> }
         { defer && (
             <DeferredCell>
