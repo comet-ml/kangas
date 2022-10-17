@@ -759,8 +759,7 @@ class DataGrid(object):
             )
 
             # append to data
-            print("Extending data...")
-            for r, row in tqdm.tqdm(enumerate(rows)):
+            for r, row in enumerate(rows):
                 if not isinstance(row, (dict,)):
                     # public columns will create columns, if it doesn't exist
                     row_dict = {
@@ -872,8 +871,7 @@ class DataGrid(object):
             self._compute_stats()
         else:
             ## Append to memory
-            print("Extending data...")
-            for row in tqdm.tqdm(rows):
+            for row in rows:
                 if not isinstance(row, (dict,)):
                     # public columns will create columns, if it doesn't exist
                     row_dict = {
