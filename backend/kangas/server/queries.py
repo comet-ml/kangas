@@ -1176,6 +1176,16 @@ def select_query(
 
             rows[r] = row
 
+    if group_by:
+        total_rows = len(rows)
+    else:
+        total_sql = "SELECT COUNT() FROM (SELECT {select_expr_as} FROM {databases} WHERE {where});"
+        selection_sql = total_sql.format(**env)
+        LOGGER.info("SQL %s", selection_sql)
+        start_time = time.time()
+        total_rows = cur.execute(selection_sql).fetchone()[0]
+        LOGGER.info("SQL %s seconds", time.time() - start_time)
+
     for column in remove_columns:
         select_columns.remove(column)
 
@@ -1186,7 +1196,7 @@ def select_query(
         ],
         "nrows": len(rows),
         "ncols": len(select_columns),
-        "total": len(rows),
+        "total": total_rows,
         "rows": rows,
     }
 
