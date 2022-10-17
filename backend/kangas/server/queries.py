@@ -324,7 +324,7 @@ def get_group_by_rows(
         "distinct": "DISTINCT " if distinct else "",
     }
 
-    select_sql = "SELECT value FROM (SELECT {select_expr_as}, {group_by_field_expr} AS {group_by_field_name}, GROUP_CONCAT({distinct}REPLACE({field_expr}, ',', '&comma;')) as value FROM {databases} WHERE {where} GROUP BY {group_by_field_name}) WHERE {group_by_field_name} is {column_value}"
+    select_sql = "SELECT value FROM (SELECT {select_expr_as}, {group_by_field_expr} AS {group_by_field_name}, GROUP_CONCAT({distinct}REPLACE(IFNULL({field_expr},'None'), ',', '&comma;')) as value FROM {databases} WHERE {where} GROUP BY {group_by_field_name}) WHERE {group_by_field_name} is {column_value}"
     selection_sql = select_sql.format(**env)
     LOGGER.info("SQL %s", selection_sql)
     start_time = time.time()
