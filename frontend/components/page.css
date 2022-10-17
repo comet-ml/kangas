@@ -38,6 +38,9 @@ body {
 #matrix-select > div {
     width: 350px;
 }
+#matrix-select > a {
+    all: unset;
+}
 
 #nav-bar {
     display: flex;

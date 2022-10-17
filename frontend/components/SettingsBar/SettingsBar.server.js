@@ -39,12 +39,14 @@ const SettingsBarServer = ({ query, matrices, columns, options }) => {
     return (
         <div id="settings-bar">
             <div id="matrix-select" className="select-row">
-                <div style={{ width: 'auto' }}>
-                    <div className="button-outline">
-                        <img src="/favicon.png" />
-                        <span>Kangas</span>
+                <a href="https://www.github.com/comet-ml/kangas" target="_blank">
+                    <div style={{ width: 'auto' }}>
+                        <div className="button-outline">
+                            <img src="/favicon.png" />
+                            <span>Kangas</span>
+                        </div>
                     </div>
-                </div>
+                </a>
                 <MatrixSelect query={query} options={matrices} />
             </div>
             <div id="nav-bar">
