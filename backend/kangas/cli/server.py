@@ -21,7 +21,7 @@ import webbrowser
 
 import kangas.server
 
-from kangas import get_localhost
+from kangas import get_localhost, terminate
 
 ADDITIONAL_ARGS = False
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -95,6 +95,12 @@ def get_parser_arguments(parser):
         default=False,
         action="store_true",
     )
+    parser.add_argument(
+        "--terminate",
+        help="Kill the Kangas servers",
+        default=False,
+        action="store_true",
+    )
 
 
 def server(parsed_args, remaining=None):
@@ -110,6 +116,10 @@ def server(parsed_args, remaining=None):
         KANGAS_BACKEND_PORT = parsed_args.frontend_port + 1
     else:
         KANGAS_BACKEND_PORT = parsed_args.backend_port
+
+    if parsed_args.terminate:
+        terminate()
+        return
 
     print(
         "Serving DataGrids from directory: %r"

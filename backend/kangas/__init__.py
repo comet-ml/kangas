@@ -26,15 +26,15 @@ from .utils import _in_colab_environment, _in_jupyter_environment, get_localhost
 KANGAS_PROCESS = None
 KANGAS_BACKEND_PROXY = None
 
+
 def _is_running(name, command):
     for pid in psutil.pids():
         try:
             process = psutil.Process(pid)
         except Exception:
             continue
-        if process.name().startswith(name):
-            if len(process.cmdline()) > 1 and command in process.cmdline()[1]:
-                return process.is_running() and process.status() != psutil.STATUS_ZOMBIE
+        if process.name().startswith(name) and command in " ".join(process.cmdline()):
+            return process.is_running() and process.status() != psutil.STATUS_ZOMBIE
     return False
 
 
@@ -44,9 +44,8 @@ def _process_method(name, command, method):
             process = psutil.Process(pid)
         except Exception:
             continue
-        if process.name().startswith(name):
-            if len(process.cmdline()) > 1 and command in process.cmdline()[1]:
-                getattr(process, method)()
+        if process.name().startswith(name) and command in " ".join(process.cmdline()):
+            return getattr(process, method)()
 
 
 def terminate():
@@ -65,6 +64,8 @@ def terminate():
     if KANGAS_PROCESS:
         KANGAS_PROCESS.terminate()
         KANGAS_PROCESS = None
+    # If started from outside of notebook, also kill:
+    _process_method("kangas", "server", "terminate")
 
 
 def launch(host=None, port=4000, debug=False):
@@ -90,7 +91,7 @@ def launch(host=None, port=4000, debug=False):
     ```
     """
     global KANGAS_PROCESS, KANGAS_BACKEND_PROXY
-    
+
     host = host if host is not None else get_localhost()
 
     if not _is_running("node", "kangas"):
@@ -98,7 +99,9 @@ def launch(host=None, port=4000, debug=False):
             from google.colab import output
 
             KANGAS_BACKEND_PROXY = output.eval_js(
-                "(async () => {return await google.colab.kernel.proxyPort(%s)})()" % str(port + 1))
+                "(async () => {return await google.colab.kernel.proxyPort(%s)})()"
+                % str(port + 1)
+            )
 
         KANGAS_PROCESS = subprocess.Popen(
             (
@@ -114,8 +117,11 @@ def launch(host=None, port=4000, debug=False):
                     "no",
                 ]
                 + (["--host", host] if host is not None else [])
-                + (["--backend-proxy", KANGAS_BACKEND_PROXY]
-                   if KANGAS_BACKEND_PROXY is not None else [])
+                + (
+                    ["--backend-proxy", KANGAS_BACKEND_PROXY]
+                    if KANGAS_BACKEND_PROXY is not None
+                    else []
+                )
                 + (["--debug"] if debug else [])
             )
         )
