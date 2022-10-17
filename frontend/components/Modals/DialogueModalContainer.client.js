@@ -6,7 +6,8 @@ const Dialogue = dynamic(() => import('@mui/material/Dialog'), {
 
 import Dialogue from '@mui/material/Dialog';
 
-const DialogueModalContainer = ({ toggleElement, children, sx, tabIndex }) => {
+const DialogueModalContainer = ({ toggleElement, children, sx, tabIndex,
+				  fullScreen = true }) => {
     const [open, setOpen] = useState(false);
     const toggleOpen = useCallback(() => setOpen(!open), [open]);
     const openModal = useCallback(() => {
@@ -25,7 +26,7 @@ const DialogueModalContainer = ({ toggleElement, children, sx, tabIndex }) => {
                 }}
                 tabIndex={tabIndex}
             >
-                <Dialogue  open={open} fullscreen="true" onClose={toggleOpen} sx={sx}>
+                <Dialogue  open={open} fullScreen={fullScreen} onClose={toggleOpen} sx={sx}>
                     {children}
                 </Dialogue>
             </div>
@@ -34,7 +35,7 @@ const DialogueModalContainer = ({ toggleElement, children, sx, tabIndex }) => {
     return (
         <>
             <div tabIndex={tabIndex} onClick={openModal}>{toggleElement}</div>
-            <Dialogue open={open} fullscreen="true" onClose={toggleOpen} sx={sx}>
+            <Dialogue open={open} fullScreen={fullScreen} onClose={toggleOpen} sx={sx}>
                 {children}
             </Dialogue>
         </>

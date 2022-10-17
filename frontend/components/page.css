@@ -128,7 +128,7 @@ body {
     position: sticky;
     bottom: 0;
     background: white;
-    z-index: 999;
+    z-index: 900;
 }
 
 .pages {
@@ -358,8 +358,6 @@ pre code {
 
 .MuiPaper-root {
     min-width: 300px;
-    max-width: 1400px;
-    max-height: 1000px;
     padding: 16px;
     background: white;
     box-sizing: border-box;
@@ -402,7 +400,8 @@ pre code {
 }
 
 .MuiDialog-container div[role='dialog'] {
-    max-width: 100%;
+    max-width: 50%;
+    max-height: 50%
 }
 
 /* TODO: Fix this !important flag by customizing the styles in MUI better */
