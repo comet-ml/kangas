@@ -119,7 +119,7 @@ def server(parsed_args, remaining=None):
     if parsed_args.frontend != "no":
         NODE_SERVER_PATH = os.path.join(HERE, "../frontend/standalone/server.js")
         print(
-            "Kangas frontend is now running on http:/%s:%s/..."
+            "Kangas frontend is now running on http://%s:%s/..."
             % (KANGAS_HOST, KANGAS_FRONTEND_PORT)
         )
         # node uses PORT to listen on; this is a local process
