@@ -57,7 +57,7 @@ const FilterExpr = ({ query }) => {
     return (
         <>
             <TextField
-                placeholder={`Use {"column"} and Python syntax, e.g. {"score"} > 0.5`}
+                placeholder={`e.g.: {"column name"} > 0.5`}
                 id="filter"
                 sx={{
                     width: '360px'
