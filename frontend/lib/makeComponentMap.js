@@ -24,8 +24,8 @@ export const columnTypeMap = {
     BOOLEAN: {
         component: BooleanCell,
         expandedComponent: BooleanCell,
-        groupComponent: BooleanCell,
-        expandedGroupComponent: BooleanCell,
+        groupComponent: CategoryGroupCell,
+        expandedGroupComponent: CategoryGroupExpanded,
         singleWidth: SINGLE_VALUE_WIDTH,
         groupedWidth: GROUPED_ASSET_WIDTH,
     },
