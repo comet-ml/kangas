@@ -1,10 +1,5 @@
-// Config
-import config from '../../config';
-
-// Util
 import { useData } from '../../lib/useData';
 import fetchAsset from '../../lib/fetchAsset';
-import fetchData from '../../lib/fetchData';
 
 const TextAssetCell = ({ value, dgid }) => {
     const { type, assetId, assetType } = value;
