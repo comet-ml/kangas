@@ -1067,7 +1067,6 @@ def select_query(
             "databases": ", ".join(databases),
         }
         select_sql = "SELECT {select_expr_as} FROM {databases} WHERE {where} GROUP BY {group_by_field_name} ORDER BY {sort_by_field_name} {sort_desc} LIMIT {limit} OFFSET {offset}"
-        total_sql = "SELECT COUNT() from (SELECT {select_expr_as} FROM {databases} GROUP BY {group_by_field_name});"
     else:
         env = {
             "limit": limit,
@@ -1080,7 +1079,6 @@ def select_query(
             "databases": ", ".join(databases),
         }
         select_sql = "SELECT {select_expr_as} FROM {databases} WHERE {where} ORDER BY {sort_by_field_name} {sort_desc} LIMIT {limit} OFFSET {offset}"
-        total_sql = "SELECT COUNT() FROM (SELECT {select_expr_as} FROM {databases} WHERE {where});"
 
     if len(select_columns) != len(columns):
         select_sql = "SELECT {select_fields} FROM (%s);" % select_sql
@@ -1178,13 +1176,6 @@ def select_query(
 
             rows[r] = row
 
-    selection_sql = total_sql.format(**env)
-    LOGGER.info("SQL %s", selection_sql)
-    start_time = time.time()
-    total_rows = cur.execute(selection_sql).fetchone()[0]
-
-    LOGGER.info("SQL %s seconds", time.time() - start_time)
-
     for column in remove_columns:
         select_columns.remove(column)
 
@@ -1195,7 +1186,7 @@ def select_query(
         ],
         "nrows": len(rows),
         "ncols": len(select_columns),
-        "total": total_rows,
+        "total": len(rows),
         "rows": rows,
     }
 
