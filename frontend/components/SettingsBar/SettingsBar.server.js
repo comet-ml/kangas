@@ -15,6 +15,7 @@ import { Pages } from '@material-ui/icons';
 import Paging from './Paging.client';
 import Skeletons from '../skeletons';
 import SelectRow from './SelectRow.client';
+import RefreshButton from './RefreshButton.client';
 
 
 const SortButton = () => (
@@ -48,6 +49,7 @@ const SettingsBarServer = ({ query, matrices, columns, options }) => {
                     </div>
                 </a>
                 <MatrixSelect query={query} options={matrices} />
+                <RefreshButton query={query} />
             </div>
             <div id="nav-bar">
                 <SelectRow columns={columns} query={query} options={options} />
