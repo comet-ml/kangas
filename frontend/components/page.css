@@ -29,7 +29,12 @@ body {
 #settings-bar {
     display: flex;
     flex-direction: row;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    background: white;
 }
+
 #matrix-select > div {
     width: 350px;
 }
