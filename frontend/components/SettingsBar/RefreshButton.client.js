@@ -10,12 +10,12 @@ const RefreshButton = ({ query }) => {
         refresh({
             query,
             expiration: Date.now()
-        })
+        });
     };
 
     return (
-        <CachedIcon onClick={clearCache} />
-    )
+        <CachedIcon className="cached-icon" onClick={clearCache} />
+    );
 
 };
 

@@ -449,3 +449,7 @@ button {
     width: 150px;
     overflow: hidden;
 }
+
+.cached-icon {
+    cursor: pointer;
+}
