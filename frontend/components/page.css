@@ -148,7 +148,7 @@ body {
     text-overflow: ellipsis;
     position: relative;
     min-height: 110px;
-    width: -webkit-fill-available;
+    max-width: 150px;
 }
 
 .cell-content {
