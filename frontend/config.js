@@ -8,7 +8,10 @@ const localConfig = {
 };
 
 if (env.KANGAS_BACKEND_PROXY) {
-    localConfig.apiProxyUrl = `${env.KANGAS_BACKEND_PROXY}/datagrid/`;
+    if (env.KANGAS_BACKEND_PROXY.endsWith('/'))
+	localConfig.apiProxyUrl = `${env.KANGAS_BACKEND_PROXY}datagrid/`;
+    else
+	localConfig.apiProxyUrl = `${env.KANGAS_BACKEND_PROXY}/datagrid/`;
 }
 
 export default localConfig;
