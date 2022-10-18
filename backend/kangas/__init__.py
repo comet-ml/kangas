@@ -116,6 +116,8 @@ def launch(host=None, port=4000, debug=False, protocol="http"):
                     str(port + 1),
                     "--open",
                     "no",
+                    "--protocol",
+                    protocol,
                 ]
                 + (["--host", host] if host is not None else [])
                 + (

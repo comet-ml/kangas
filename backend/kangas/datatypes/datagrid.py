@@ -223,7 +223,15 @@ class DataGrid(object):
         if data:
             self.extend(data)
 
-    def show(self, host=None, port=4000, debug=False, height="750px", width="100%"):
+    def show(
+        self,
+        host=None,
+        port=4000,
+        debug=False,
+        height="750px",
+        width="100%",
+        protocol="http",
+    ):
         """
         Open DataGrid in an IFrame in the jupyter environment or browser.
         """
@@ -231,7 +239,7 @@ class DataGrid(object):
 
         from kangas import launch
 
-        url = launch(host, port, debug)
+        url = launch(host, port, debug, protocol)
 
         if not self._on_disk:
             self.save()
