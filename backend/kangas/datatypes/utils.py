@@ -34,6 +34,29 @@ LOGGER = logging.getLogger(__name__)
 INFINITY = float("inf")
 
 
+def contain(image, size, method=None):
+    """
+    Returns a resized version of the image, set to the maximum width
+    and height within the requested size, while maintaining the
+    original aspect ratio.
+    """
+    method = method if method is not None else 3  # BICUBIC
+
+    im_ratio = image.width / image.height
+    dest_ratio = size[0] / size[1]
+
+    if im_ratio != dest_ratio:
+        if im_ratio > dest_ratio:
+            new_height = int(image.height / image.width * size[0])
+            if new_height != size[1]:
+                size = (size[0], new_height)
+        else:
+            new_width = int(image.width / image.height * size[1])
+            if new_width != size[0]:
+                size = (new_width, size[1])
+    return image.resize(size, resample=method)
+
+
 def download(url, filename):
     g = urllib.request.urlopen(url)
     with open(filename, "wb") as f:
@@ -397,7 +420,10 @@ def generate_thumbnail(asset_data, size=None):
 
     size = size if size else THUMBNAIL_SIZE
     image = generate_image(asset_data)
-    new_image = ImageOps.contain(image, size)
+    if hasattr(ImageOps, "contain"):
+        new_image = ImageOps.contain(image, size)
+    else:
+        new_image = contain(image, size)
     fp = image_to_fp(new_image, "png")
     return fp.read()
 
