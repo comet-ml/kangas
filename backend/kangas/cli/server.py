@@ -104,7 +104,7 @@ def get_parser_arguments(parser):
     parser.add_argument(
         "--protocol",
         "-p",
-        help="Use this flag to set a protocol for requests. Defaults to http",
+        help="Use this flag to set a protocol for server requests. Defaults to http",
         type=str,
         default="http",
     )
@@ -119,9 +119,8 @@ def server(parsed_args, remaining=None):
 
     KANGAS_FRONTEND_PORT = parsed_args.frontend_port
     KANGAS_HOST = parsed_args.host if parsed_args.host is not None else get_localhost()
-    KANGAS_PROTOCOL = (
-        parsed_args.protocol if parsed_args.protocol is not None else "http"
-    )
+    KANGAS_PROTOCOL = parsed_args.protocol
+
     if parsed_args.backend_port is None:
         KANGAS_BACKEND_PORT = parsed_args.frontend_port + 1
     else:
@@ -152,6 +151,7 @@ def server(parsed_args, remaining=None):
                 "PORT": str(KANGAS_FRONTEND_PORT),
                 "KANGAS_BACKEND_PORT": str(KANGAS_BACKEND_PORT),
                 "KANGAS_HOST": str(KANGAS_HOST),
+                "KANGAS_PROTOCOL": KANGAS_PROTOCOL,
             }
         )
         if parsed_args.backend_proxy is not None:
