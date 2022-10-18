@@ -23,7 +23,6 @@ from ._version import __version__  # noqa
 from .datatypes import Audio, Curve, DataGrid, Image, Text, Video  # noqa
 from .utils import _in_colab_environment, _in_jupyter_environment, get_localhost
 
-KANGAS_PROCESS = None
 KANGAS_BACKEND_PROXY = None
 
 
@@ -59,12 +58,7 @@ def terminate():
     >>> kangas.terminate()
     ```
     """
-    global KANGAS_PROCESS
     _process_method("node", "kangas", "terminate")
-    if KANGAS_PROCESS:
-        KANGAS_PROCESS.terminate()
-        KANGAS_PROCESS = None
-    # If started from outside of notebook, also kill:
     _process_method("kangas", "server", "terminate")
 
 
@@ -90,11 +84,12 @@ def launch(host=None, port=4000, debug=False):
     >>> kangas.launch()
     ```
     """
-    global KANGAS_PROCESS, KANGAS_BACKEND_PROXY
+    global KANGAS_BACKEND_PROXY
 
     host = host if host is not None else get_localhost()
 
     if not _is_running("node", "kangas"):
+        terminate()
         if _in_colab_environment():
             from google.colab import output
 
@@ -103,7 +98,7 @@ def launch(host=None, port=4000, debug=False):
                 % str(port + 1)
             )
 
-        KANGAS_PROCESS = subprocess.Popen(
+        subprocess.Popen(
             (
                 [
                     sys.executable,
