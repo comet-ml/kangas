@@ -164,8 +164,8 @@ def show(
 
     if datagrid:
         query_vars = {"datagrid": datagrid}
-        qvs = urllib.parse.urlencode(query_vars)
-        url = "%s?%s" % (url, qvs)
+        qvs = "?" + urllib.parse.urlencode(query_vars)
+        url = "%s%s" % (url, qvs)
     else:
         qvs = ""
 
@@ -173,16 +173,17 @@ def show(
         display(
             Javascript(
                 """
-(async ()=>{
+(async ()=>{{
     fm = document.createElement('iframe');
-    fm.src = (await google.colab.kernel.proxyPort(%s));
-    fm.width = '%s';
-    fm.height = '%s';
+    fm.src = (await google.colab.kernel.proxyPort({port})) + '{qvs}';
+    fm.width = '{width}';
+    fm.height = '{height}';
     fm.frameBorder = 0;
     document.body.append(fm);
-})();
-"""
-                % (port, width, height)
+}})();
+""".format(
+                    port=port, width=width, height=height, qvs=qvs
+                )
             )
         )
 
