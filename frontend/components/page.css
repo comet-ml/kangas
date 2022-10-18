@@ -400,8 +400,8 @@ pre code {
 }
 
 .MuiDialog-container div[role='dialog'] {
-    max-width: 50%;
-    max-height: 50%
+    max-width: 1000px;
+    max-height: 800px;
 }
 
 /* TODO: Fix this !important flag by customizing the styles in MUI better */
