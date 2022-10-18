@@ -43,7 +43,12 @@ def _process_method(name, command, method):
             process = psutil.Process(pid)
         except Exception:
             continue
-        if process.name().startswith(name) and command in " ".join(process.cmdline()):
+        cmdline = " ".join(process.cmdline())
+        if (
+            process.name().startswith(name)
+            and command in cmdline
+            and "--terminate" not in cmdline
+        ):
             return getattr(process, method)()
 
 
@@ -60,9 +65,10 @@ def terminate():
     """
     _process_method("node", "kangas", "terminate")
     _process_method("kangas", "server", "terminate")
+    _process_method("python", "kangas", "terminate")
 
 
-def launch(host=None, port=4000, debug=False, protocol='http'):
+def launch(host=None, port=4000, debug=False, protocol="http"):
     """
     Launch the Kangas servers.
 
@@ -126,7 +132,13 @@ def launch(host=None, port=4000, debug=False, protocol='http'):
 
 
 def show(
-    datagrid=None, host=None, port=4000, debug=False, height="750px", width="100%", protocol="http"
+    datagrid=None,
+    host=None,
+    port=4000,
+    debug=False,
+    height="750px",
+    width="100%",
+    protocol="http",
 ):
     """
     Start the Kangas servers and show the DatGrid UI
