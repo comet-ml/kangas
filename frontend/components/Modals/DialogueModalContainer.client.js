@@ -6,8 +6,7 @@ const Dialogue = dynamic(() => import('@mui/material/Dialog'), {
 
 import Dialogue from '@mui/material/Dialog';
 
-const DialogueModalContainer = ({ toggleElement, children, sx, tabIndex,
-				  fullScreen = true }) => {
+const DialogueModalContainer = ({ toggleElement, children, sx, tabIndex, fullScreen = false }) => {
     const [open, setOpen] = useState(false);
     const toggleOpen = useCallback(() => setOpen(!open), [open]);
     const openModal = useCallback(() => {

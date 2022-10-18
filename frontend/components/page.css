@@ -358,6 +358,8 @@ pre code {
 
 .MuiPaper-root {
     min-width: 300px;
+    max-width: 1400px;
+    max-height: 90%;
     padding: 16px;
     background: white;
     box-sizing: border-box;
@@ -367,11 +369,10 @@ pre code {
     display: flex;
     flex-direction: column;
 
-    overflow: visible;
+    overflow: hidden;
 }
 
 .MuiDialog-paperWidthSm {
-    min-width: 910px;
 }
 
 .MuiPaper-root .expanded > * {
@@ -400,8 +401,6 @@ pre code {
 }
 
 .MuiDialog-container div[role='dialog'] {
-    max-width: 1000px;
-    max-height: 800px;
 }
 
 /* TODO: Fix this !important flag by customizing the styles in MUI better */

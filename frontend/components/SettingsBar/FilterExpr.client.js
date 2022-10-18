@@ -70,7 +70,7 @@ const FilterExpr = ({ query }) => {
                 }}
                 onKeyPress={onKeyPress}
             />
-            <DialogueModal fullScreen={false} width={'50%'} height={'50%'} toggleElement={<HelpButton />}>
+            <DialogueModal fullScreen={false} toggleElement={<HelpButton />}>
                 <HelpText />
             </DialogueModal>
         </>
