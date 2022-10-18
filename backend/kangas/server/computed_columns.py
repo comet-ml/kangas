@@ -53,6 +53,7 @@ class Evaluator:
             ast.Pow: "POW({leftOperand}, {rightOperand})",
             ast.Not: "not {operand}",
             ast.FloorDiv: "(CAST (({leftOperand} / {rightOperand}) AS INT))",
+            ast.USub: "-{operand}",
         }
 
     def eval_expr(self, pyexp):
