@@ -68,7 +68,7 @@ def terminate():
     _process_method("kangas", "server", "terminate")
 
 
-def launch(host=None, port=4000, debug=False):
+def launch(host=None, port=4000, debug=False, protocol='http'):
     """
     Launch the Kangas servers.
 
@@ -127,11 +127,11 @@ def launch(host=None, port=4000, debug=False):
         )
         time.sleep(2)
 
-    return "http://%s:%s/" % (host, port)
+    return "%s://%s:%s/" % (protocol, host, port)
 
 
 def show(
-    datagrid=None, host=None, port=4000, debug=False, height="750px", width="100%"
+    datagrid=None, host=None, port=4000, debug=False, height="750px", width="100%", protocol="http"
 ):
     """
     Start the Kangas servers and show the DatGrid UI
@@ -160,7 +160,7 @@ def show(
     """
     from IPython.display import IFrame, Javascript, display
 
-    url = launch(host, port, debug)
+    url = launch(host, port, debug, protocol)
 
     if datagrid:
         query_vars = {"datagrid": datagrid}

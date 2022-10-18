@@ -101,6 +101,13 @@ def get_parser_arguments(parser):
         default=False,
         action="store_true",
     )
+    parser.add_argument(
+        "--protocol",
+        '-p',
+        help="Use this flag to set a protocol for requests. Defaults to http",
+        type=str,
+        default="http"
+    )
 
 
 def server(parsed_args, remaining=None):
@@ -112,6 +119,7 @@ def server(parsed_args, remaining=None):
 
     KANGAS_FRONTEND_PORT = parsed_args.frontend_port
     KANGAS_HOST = parsed_args.host if parsed_args.host is not None else get_localhost()
+    KANGAS_PROTOCOL = parsed_args.protocol if parsed_args.protocol is not None else 'http'
     if parsed_args.backend_port is None:
         KANGAS_BACKEND_PORT = parsed_args.frontend_port + 1
     else:
@@ -129,8 +137,8 @@ def server(parsed_args, remaining=None):
     if parsed_args.frontend != "no":
         NODE_SERVER_PATH = os.path.join(HERE, "../frontend/standalone/server.js")
         print(
-            "Kangas frontend is now running on http://%s:%s/..."
-            % (KANGAS_HOST, KANGAS_FRONTEND_PORT)
+            "Kangas frontend is now running on %s://%s:%s/..."
+            % (KANGAS_PROTOCOL, KANGAS_HOST, KANGAS_FRONTEND_PORT)
         )
         # node uses PORT to listen on; this is a local process
         # so shouldn't effect any other node servers
@@ -209,7 +217,7 @@ def server(parsed_args, remaining=None):
 
     if parsed_args.open != "no":
         new = {"tab": 0, "window": 1}[parsed_args.open]
-        host = "http://%s:%s/" % (KANGAS_HOST, KANGAS_FRONTEND_PORT)
+        host = "%s://%s:%s/" % (KANGAS_PROTOCOL, KANGAS_HOST, KANGAS_FRONTEND_PORT)
         query_vars = {}
         if parsed_args.DATAGRID is not None:
             query_vars["datagrid"] = parsed_args.DATAGRID
@@ -222,8 +230,8 @@ def server(parsed_args, remaining=None):
 
     if parsed_args.backend != "no":
         print(
-            "Kangas backend is now running on http://%s:%s/..."
-            % (KANGAS_HOST, KANGAS_BACKEND_PORT)
+            "Kangas backend is now running on %s://%s:%s/..."
+            % (KANGAS_PROTOCOL, KANGAS_HOST, KANGAS_BACKEND_PORT)
         )
         kangas.server.start_tornado_server(
             port=KANGAS_BACKEND_PORT, debug=parsed_args.debug
