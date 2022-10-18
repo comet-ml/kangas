@@ -1,8 +1,8 @@
 import {env} from 'process';
 
 const localConfig = {
-    apiUrl: `http://${env.KANGAS_HOST}:${env.KANGAS_BACKEND_PORT}/datagrid/`,
-    apiProxyUrl: `http://${env.KANGAS_HOST}:${env.KANGAS_BACKEND_PORT}/datagrid/`,
+    apiUrl: `${env.PROTOCOL || 'http'}://${env.KANGAS_HOST}:${env.KANGAS_BACKEND_PORT}/datagrid/`,
+    apiProxyUrl: `${env.PROTOCOL || 'http'}://${env.KANGAS_HOST}:${env.KANGAS_BACKEND_PORT}/datagrid/`,
     defaultDecimalPrecision: 5,
     locale: 'en-US',
 };

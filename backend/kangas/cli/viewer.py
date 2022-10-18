@@ -132,7 +132,8 @@ def post(args, endpoint):
         "Content-Type": "application/json;charset=utf-8",
     }
     host = args.host if args.host is not None else get_localhost()
-    url = "http://%s:%s/datagrid/%s" % (host, args.port, endpoint)
+    protocol = args.protocol if args.protocol is not None else 'http'
+    url = "%s://%s:%s/datagrid/%s" % (protocol, host, args.port, endpoint)
     data = {
         "dgid": args.dgid,
         "offset": args.offset,
@@ -168,7 +169,8 @@ def get(args, endpoint):
         "Content-Type": "application/json;charset=utf-8",
     }
     host = args.host if args.host is not None else get_localhost()
-    url = "http://%s:%s/datagrid/%s" % (host, args.port, endpoint)
+    protocol = args.protocol if args.protocol is not None else 'http'
+    url = "%s://%s:%s/datagrid/%s" % (protocol, host, args.port, endpoint)
     data = {
         "dgid": args.dgid,
         "assetId": args.asset_id,
@@ -306,10 +308,13 @@ def query(parsed_args):
                 "host": parsed_args.host
                 if parsed_args.host is not None
                 else get_localhost(),
+                "protocol": parsed_args.protocol
+                if parsed_args.protocol is not None
+                else 'http'
             }
             link = "kangas viewer {dgid} --query-type {query_type} --group-by {link_group_by} --column-name {link_column_name} --column-value '{link_column_value}' --where-expr \"{where_expr}\" --computed-columns {computed_columns}"
             if reference["type"] == "asset":
-                link = "http://{host}:{port}/datagrid/download?dgid={dgid}&assetId={asset_id}"
+                link = "{protocol}://{host}:{port}/datagrid/download?dgid={dgid}&assetId={asset_id}"
                 env["query_type"] = "asset"
                 env["link_asset_id"] = reference["assetId"]
                 env["link"] = link
