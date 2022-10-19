@@ -98,6 +98,7 @@ def get_parser_arguments(parser):
     parser.add_argument("dgid", type=str, default=None, nargs="?")
     parser.add_argument("--port", type=int, default=4001)
     parser.add_argument("--host", type=str, default=None)
+    parser.add_argument("--protocol", type=str, default="http")
     # CLI arguments:
     parser.add_argument("--debug", action="store_true", default=False)
     parser.add_argument("--width", type=int, default=None)
@@ -132,7 +133,7 @@ def post(args, endpoint):
         "Content-Type": "application/json;charset=utf-8",
     }
     host = args.host if args.host is not None else get_localhost()
-    protocol = args.protocol if args.protocol is not None else 'http'
+    protocol = args.protocol if args.protocol is not None else "http"
     url = "%s://%s:%s/datagrid/%s" % (protocol, host, args.port, endpoint)
     data = {
         "dgid": args.dgid,
@@ -169,7 +170,7 @@ def get(args, endpoint):
         "Content-Type": "application/json;charset=utf-8",
     }
     host = args.host if args.host is not None else get_localhost()
-    protocol = args.protocol if args.protocol is not None else 'http'
+    protocol = args.protocol if args.protocol is not None else "http"
     url = "%s://%s:%s/datagrid/%s" % (protocol, host, args.port, endpoint)
     data = {
         "dgid": args.dgid,
@@ -310,7 +311,7 @@ def query(parsed_args):
                 else get_localhost(),
                 "protocol": parsed_args.protocol
                 if parsed_args.protocol is not None
-                else 'http'
+                else "http",
             }
             link = "kangas viewer {dgid} --query-type {query_type} --group-by {link_group_by} --column-name {link_column_name} --column-value '{link_column_value}' --where-expr \"{where_expr}\" --computed-columns {computed_columns}"
             if reference["type"] == "asset":

@@ -103,10 +103,10 @@ def get_parser_arguments(parser):
     )
     parser.add_argument(
         "--protocol",
-        '-p',
-        help="Use this flag to set a protocol for requests. Defaults to http",
+        "-p",
+        help="Use this flag to set a protocol for server requests. Defaults to http",
         type=str,
-        default="http"
+        default="http",
     )
 
 
@@ -119,7 +119,8 @@ def server(parsed_args, remaining=None):
 
     KANGAS_FRONTEND_PORT = parsed_args.frontend_port
     KANGAS_HOST = parsed_args.host if parsed_args.host is not None else get_localhost()
-    KANGAS_PROTOCOL = parsed_args.protocol if parsed_args.protocol is not None else 'http'
+    KANGAS_PROTOCOL = parsed_args.protocol
+
     if parsed_args.backend_port is None:
         KANGAS_BACKEND_PORT = parsed_args.frontend_port + 1
     else:
@@ -150,6 +151,7 @@ def server(parsed_args, remaining=None):
                 "PORT": str(KANGAS_FRONTEND_PORT),
                 "KANGAS_BACKEND_PORT": str(KANGAS_BACKEND_PORT),
                 "KANGAS_HOST": str(KANGAS_HOST),
+                "KANGAS_PROTOCOL": KANGAS_PROTOCOL,
             }
         )
         if parsed_args.backend_proxy is not None:
@@ -233,9 +235,16 @@ def server(parsed_args, remaining=None):
             "Kangas backend is now running on %s://%s:%s/..."
             % (KANGAS_PROTOCOL, KANGAS_HOST, KANGAS_BACKEND_PORT)
         )
-        kangas.server.start_tornado_server(
-            port=KANGAS_BACKEND_PORT, debug=parsed_args.debug
-        )
+        try:
+            kangas.server.start_tornado_server(
+                port=KANGAS_BACKEND_PORT, debug=parsed_args.debug
+            )
+        except Exception:
+            print("Unable to start backend; perhaps already running")
+            if parsed_args.frontend != "no":
+                node_process.wait()
+            return
+
         print("Stopping backend...")
         if parsed_args.frontend != "no":
             print("Stopping frontend...")

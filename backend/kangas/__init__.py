@@ -23,7 +23,6 @@ from ._version import __version__  # noqa
 from .datatypes import Audio, Curve, DataGrid, Image, Text, Video  # noqa
 from .utils import _in_colab_environment, _in_jupyter_environment, get_localhost
 
-KANGAS_PROCESS = None
 KANGAS_BACKEND_PROXY = None
 
 
@@ -44,7 +43,12 @@ def _process_method(name, command, method):
             process = psutil.Process(pid)
         except Exception:
             continue
-        if process.name().startswith(name) and command in " ".join(process.cmdline()):
+        cmdline = " ".join(process.cmdline())
+        if (
+            process.name().startswith(name)
+            and command in cmdline
+            and "--terminate" not in cmdline
+        ):
             return getattr(process, method)()
 
 
@@ -59,16 +63,12 @@ def terminate():
     >>> kangas.terminate()
     ```
     """
-    global KANGAS_PROCESS
     _process_method("node", "kangas", "terminate")
-    if KANGAS_PROCESS:
-        KANGAS_PROCESS.terminate()
-        KANGAS_PROCESS = None
-    # If started from outside of notebook, also kill:
     _process_method("kangas", "server", "terminate")
+    _process_method("python", "kangas", "terminate")
 
 
-def launch(host=None, port=4000, debug=False, protocol='http'):
+def launch(host=None, port=4000, debug=False, protocol="http"):
     """
     Launch the Kangas servers.
 
@@ -90,11 +90,12 @@ def launch(host=None, port=4000, debug=False, protocol='http'):
     >>> kangas.launch()
     ```
     """
-    global KANGAS_PROCESS, KANGAS_BACKEND_PROXY
+    global KANGAS_BACKEND_PROXY
 
     host = host if host is not None else get_localhost()
 
     if not _is_running("node", "kangas"):
+        terminate()
         if _in_colab_environment():
             from google.colab import output
 
@@ -103,7 +104,7 @@ def launch(host=None, port=4000, debug=False, protocol='http'):
                 % str(port + 1)
             )
 
-        KANGAS_PROCESS = subprocess.Popen(
+        subprocess.Popen(
             (
                 [
                     sys.executable,
@@ -115,6 +116,8 @@ def launch(host=None, port=4000, debug=False, protocol='http'):
                     str(port + 1),
                     "--open",
                     "no",
+                    "--protocol",
+                    protocol,
                 ]
                 + (["--host", host] if host is not None else [])
                 + (
@@ -131,7 +134,13 @@ def launch(host=None, port=4000, debug=False, protocol='http'):
 
 
 def show(
-    datagrid=None, host=None, port=4000, debug=False, height="750px", width="100%", protocol="http"
+    datagrid=None,
+    host=None,
+    port=4000,
+    debug=False,
+    height="750px",
+    width="100%",
+    protocol="http",
 ):
     """
     Start the Kangas servers and show the DatGrid UI
@@ -164,8 +173,8 @@ def show(
 
     if datagrid:
         query_vars = {"datagrid": datagrid}
-        qvs = urllib.parse.urlencode(query_vars)
-        url = "%s?%s" % (url, qvs)
+        qvs = "?" + urllib.parse.urlencode(query_vars)
+        url = "%s%s" % (url, qvs)
     else:
         qvs = ""
 
@@ -173,16 +182,17 @@ def show(
         display(
             Javascript(
                 """
-(async ()=>{
+(async ()=>{{
     fm = document.createElement('iframe');
-    fm.src = (await google.colab.kernel.proxyPort(%s));
-    fm.width = '%s';
-    fm.height = '%s';
+    fm.src = (await google.colab.kernel.proxyPort({port})) + '{qvs}';
+    fm.width = '{width}';
+    fm.height = '{height}';
     fm.frameBorder = 0;
     document.body.append(fm);
-})();
-"""
-                % (port, width, height)
+}})();
+""".format(
+                    port=port, width=width, height=height, qvs=qvs
+                )
             )
         )
 
