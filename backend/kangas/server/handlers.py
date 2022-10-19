@@ -442,6 +442,7 @@ class StatusHandler(BaseHandler):
     def get(self):
         result = {
             "Kangas version": __version__,
+            "Kangas license": "Apache Version 2.0",
             "Kangas root": os.path.abspath(KANGAS_ROOT),
             "Python version": platform.python_version(),
             "Node version": get_node_version(),
