@@ -12,7 +12,7 @@
 ######################################################
 
 """
-Uses KANGAS_PATH environment variable to load
+Uses KANGAS_ROOT environment variable to load
 datagrids from. Defaults to the directory
 where datagrid server was started.
 """
@@ -20,12 +20,17 @@ where datagrid server was started.
 import json
 import logging
 import os
+import platform
+import subprocess
+import sys
 
 import tornado
 from tornado.web import RequestHandler
 
+from .._version import __version__
 from ..datatypes.utils import THUMBNAIL_SIZE
 from .queries import (
+    KANGAS_ROOT,
     custom_output,
     get_datagrid_timestamp,
     get_dg_path,
@@ -52,6 +57,22 @@ else:
 
     def auth_wrapper(function):
         return function
+
+
+def get_node_version():
+    try:
+        import nodejs
+    except Exception:
+        nodejs = None
+
+    if nodejs is not None:
+        return nodejs.__version__
+
+    output = subprocess.check_output(["node", "--version"])
+    if output:
+        return output.decode("utf-8").strip()
+
+    return "unknown"
 
 
 def get_column_value(column_value):
@@ -416,6 +437,21 @@ class GetDataGridTimestampHandler(BaseHandler):
             self.write_json(result)
 
 
+class StatusHandler(BaseHandler):
+    @auth_wrapper
+    def get(self):
+        result = {
+            "Kangas version": __version__,
+            "Kangas root": os.path.abspath(KANGAS_ROOT),
+            "Python version": platform.python_version(),
+            "Node version": get_node_version(),
+            "OS version": "%s %s %s"
+            % (platform.system(), platform.release(), platform.version()),
+            "OS details": "%s (%s)" % (sys.platform, platform.platform()),
+        }
+        self.write_json(result)
+
+
 class CustomOutputHandler(BaseHandler):
     @auth_wrapper
     def post(self):
@@ -444,4 +480,5 @@ datagrid_handlers = [
     #    ("/datagrid/output", CustomOutputHandler),
     ("/datagrid/verify-where", VerifyWhereHandler),
     ("/datagrid/timestamp", GetDataGridTimestampHandler),
+    ("/datagrid/status", StatusHandler),
 ]
