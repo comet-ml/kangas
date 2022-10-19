@@ -147,7 +147,8 @@ class DataGrid(object):
         is the column. For example, dg[5][2] would return the 6th row
         (zero-based) and the 3rd (zero-based) column's value.
 
-        Likewise, you can use `dg.append(ROW)` and `dg.extend(ROWS)`.
+        Likewise, you can use `dg.append(ROW)`, `dg.extend(ROWS)`, and
+        `dg.pop(INDEX)` methods.
 
         Rows can be either lists of values, or JSON-like dictionaries
         of the form `{"COLUMN NAME": VALUE, ...}`.
@@ -158,7 +159,7 @@ class DataGrid(object):
         * `dg.head()` - show the first few rows of a DataGrid
         * `dg.tail()` - show the last few rows of a DataGrid
         * `dg.show()` - open up an IFrame (if in a Jupyter Notebook) or
-            other a webbrowser page showing the DataGrid UI
+            a webbrowser page showing the DataGrid UI
 
         Examples:
 
@@ -169,7 +170,6 @@ class DataGrid(object):
         >>> for filename in glob.glob("*.jpg"):
         ...     score = model.predict()
         ...     dg.append([Image(filename), score])
-        >>> dg.save()
         >>> dg.show()
         ```
         """
@@ -234,6 +234,24 @@ class DataGrid(object):
     ):
         """
         Open DataGrid in an IFrame in the jupyter environment or browser.
+
+        Args:
+            host: (optional, str) the host name or IP number for the servers
+               to listen to
+            port: (optional, int) the port number for the servers to listen to
+            debug: (optional, bool) if True, will display additional information
+               from the server (may not be visible in a notebook)
+            height: (optional, str) the height of iframe in px or percentage
+            width: (optional, str) the width of iframe in px or percentage
+
+        Example:
+
+        ```python
+        >>> import kangas as kg
+        >>> dg = kg.DataGrid()
+        >>> # append data to DataGrid
+        >>> dg.show()
+        ```
         """
         from IPython.display import IFrame, Javascript, display
 
@@ -278,6 +296,13 @@ class DataGrid(object):
         dict where the key is the column name, and the value is a DataGrid
         type. Vaild DataGrid types are: "INTEGER", "FLOAT", "BOOLEAN",
         "DATETIME", "TEXT", "JSON", or "IMAGE-ASSET".
+
+        Example:
+
+        ```python
+        >>> dg = DataGrid()
+        >>> dg.set_columns(["Column 1", "Column 2"])
+        ```
         """
         if self._on_disk:
             raise Exception("unable to change columns in a saved DataGrid")
@@ -596,7 +621,11 @@ class DataGrid(object):
         for c, column in enumerate(self.get_columns()):
             if not self._on_disk:
                 not_null_count = len(
-                    [1 for row in self._data if not is_null(row[column])]
+                    [
+                        1
+                        for row in self._data
+                        if column in row and not is_null(row[column])
+                    ]
                 )
             else:
                 not_null_count = self.select_count(where="{'%s'} is not None" % column)
