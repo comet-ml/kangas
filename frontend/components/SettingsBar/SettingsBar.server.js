@@ -1,9 +1,7 @@
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 // Util
-import { useData } from '../../lib/useData';
-import fetchTable from '../../lib/fetchTable';
-import hashQuery from '../../lib/hashQuery';
+
 // Client Components
 import GroupBy from './GroupBy.client';
 import MatrixSelect from './MatrixSelect.client';
@@ -36,20 +34,43 @@ const SelectButton = () => (
     </div>
 );
 
-const SettingsBarServer = ({ query, matrices, columns, options }) => {
+const KangasButton = () => (
+    <div className="button-outline">
+        <img src="/favicon.png" />
+        <span>Kangas</span>
+    </div>
+);
+
+const StatusText = ({ status }) => {
+    const items = Object.keys(status.data).map(item => (
+	    <li className="kangas-list-item">
+	      <span className="kangas-item">{item}</span>: <span className="kangas-value">{status.data[item]}</span>
+	    </li>));
+
+    return(
+	    <div>
+	       <h1 className="kangas-title">Kangas DataGrid</h1>
+	       <hr/>
+	       <div>
+	         {items}
+	       </div>
+            <p>For help, contributions, examples, and discussions, see: <a href="https://www.github.com/comet-ml/kangas" target="_blank">github.com/comet-ml/kangas</a></p>
+	    <p>Consider giving us a &#127775;!</p>
+	   </div>
+	  );
+};
+
+const SettingsBarServer = ({ query, matrices, columns, options, status }) => {
     return (
         <div id="settings-bar">
-            <div id="matrix-select" className="select-row">
-                <a href="https://www.github.com/comet-ml/kangas" target="_blank">
-                    <div style={{ width: 'auto' }}>
-                        <div className="button-outline">
-                            <img src="/favicon.png" />
-                            <span>Kangas</span>
-                        </div>
-                    </div>
-                </a>
-                <MatrixSelect query={query} options={matrices} />
-                <RefreshButton query={query} />
+            <div id="nav-bar-1">
+                <DialogueModal fullScreen={false} toggleElement={<KangasButton />}>
+                    <StatusText status={status} />
+                </DialogueModal>
+                <div id="matrix-select" className="select-row">
+                    <MatrixSelect query={query} options={matrices} />
+                    <RefreshButton query={query} />
+                </div>
             </div>
             <div id="nav-bar">
                 <SelectRow columns={columns} query={query} options={options} />

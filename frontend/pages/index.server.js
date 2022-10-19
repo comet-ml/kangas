@@ -16,6 +16,7 @@ import { useData, updateExpiration } from '../lib/useData';
 import Skeletons from '../components/skeletons';
 import hashQuery from '../lib/hashQuery';
 import fetchTable from '../lib/fetchTable';
+import fetchStatus from '../lib/fetchStatus';
 import { EMPTY_TABLE } from '../stubs';
 import { columnTypeMap } from '../lib/makeComponentMap';
 import FooterRow from '../components/FooterRow.server';
@@ -32,6 +33,11 @@ const Root = ({ query, matrices, expiration }) => {
         () => fetchTable(query),
     );
 
+    const status = useData(
+        `status`,
+        () => fetchStatus(),
+    );
+
     const { data: allColumns, colError } = useData(
         `query-${hashQuery({
             query: {
@@ -42,7 +48,7 @@ const Root = ({ query, matrices, expiration }) => {
         })}`,
         () => fetchTable(query),
     );
-    
+
     /* eslint-enable no-unused-vars */
     const { dgid } = query;
     const { columnTypes, columns, rows, total } = table ?? EMPTY_TABLE;
@@ -79,6 +85,7 @@ const Root = ({ query, matrices, expiration }) => {
                     matrices={matrices}
                     columns={filteredColumns}
                     options={columnOptions}
+                    status={status}
                 />
             </Suspense>
             <Suspense fallback={<Skeletons />}>

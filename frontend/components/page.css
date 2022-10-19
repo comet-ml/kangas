@@ -53,6 +53,13 @@ body {
     align-items: baseline;
 }
 
+#nav-bar-1 {
+    display: flex;
+    width: fit-content;
+    align-items: baseline;
+    column-gap: 12px;
+}
+
 .pages {
     padding-right: 25px;
 }
@@ -451,4 +458,18 @@ button {
 .cached-icon {
     cursor: pointer;
     color: #3438d0;
+}
+
+.kangas-title {
+    text-align: center;
+}
+
+.kangas-list-item {
+}
+
+.kangas-item {
+    font-weight: bold;
+}
+
+.kangas-value {
 }
