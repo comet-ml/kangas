@@ -183,7 +183,7 @@ const ImageCanvas = ({ url, metadata, dgid, assetId, urls }) => {
             body: JSON.stringify({
                 assetId: assetId || new URL(url).searchParams.get('assetId'),
                 dgid,
-                url: `${appConfig.apiProxyUrl}asset-metadata`,
+                url: `../4001/asset-metadata`,
             }),
             method: 'post',
         });

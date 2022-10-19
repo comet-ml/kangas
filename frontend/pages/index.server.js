@@ -68,7 +68,6 @@ const Root = ({ query, matrices, expiration }) => {
             : 'column cell';
     const headerClass = colClass.includes('group') ? 'column-group' : 'column';
     return (
-        <div>
         <Page>
             <Suspense fallback={<Skeletons />}>
                 <Imports />
@@ -202,7 +201,6 @@ const Root = ({ query, matrices, expiration }) => {
                 <FooterRow query={query} total={total} />
             </Suspense>
         </Page>
-        </div>
     );
 };
 
