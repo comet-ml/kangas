@@ -55,10 +55,11 @@ import math
 def parse_comma_separated_values(string):
     retval = []
     for value in string.split(","):
-        if value in ["", "null"]:
-            retval.append(None)
-
         value = value.replace("&comma;", ",")
+
+        if value in ["", "null", "None"]:
+            retval.append(None)
+            continue
 
         # Scientific notation
         match = re.match(r"^([-+]?[\d]+\.?[\d]*[Ee](?:[-+]?[\d]+)?)$", value)
@@ -181,12 +182,12 @@ def histogram(cur, metadata, values, column):
     name = stats.get("name", column)
 
     if values:
-        np_values = np.array(values)
+        np_values = np.array(values, dtype=np.float)
         np_values = np_values[~np.isnan(np_values)]
     else:
         # How can this happen? The field changed
         # probably using random.random()
-        np_values = np.array([])
+        np_values = np.array([], dtype=np.float)
 
     if stats["minimum"] is None:
         LOGGER.info(
