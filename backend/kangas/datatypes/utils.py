@@ -299,7 +299,10 @@ def convert_string_to_value(
         value = match.groups()[0]
         # remove commas:
         value = value.replace(",", "")
-        return int(value)
+        try:
+            return int(value)
+        except Exception:
+            return 0
 
     # floating point numbers, including currency
     match = re.match(r"^[\$]?([-+]?[,\d]+\.?[\d]*)$", value)
@@ -307,7 +310,10 @@ def convert_string_to_value(
         value = match.groups()[0]
         # remove commas:
         value = value.replace(",", "")
-        return float(value)
+        try:
+            return float(value)
+        except Exception:
+            return 0.0
 
     # specific datetime_format given
     if datetime_format:
