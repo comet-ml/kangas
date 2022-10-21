@@ -1314,8 +1314,8 @@ class DataGrid(object):
                 if match:
                     max_number = max(int(match.groups()[0]), max_number)
             max_number += 1
-            filename = "untitled-%d.datagrid" % max_number
-            self.name = "Untitled-%d" % max_number
+            filename = "untitled-%03d.datagrid" % max_number
+            self.name = "Untitled-%03d" % max_number
 
         self.create_thumbnails = (
             self.create_thumbnails if create_thumbnails is None else create_thumbnails
