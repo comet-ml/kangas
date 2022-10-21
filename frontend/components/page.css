@@ -290,6 +290,7 @@ pre code {
     cursor: pointer;
     max-height: 34px;
     box-sizing: border-box;
+    white-space: nowrap;
 }
 
 .active-button {
@@ -462,6 +463,7 @@ button {
 
 .kangas-title {
     text-align: center;
+    color: #3438d0;
 }
 
 .kangas-list-item {
@@ -469,6 +471,7 @@ button {
 
 .kangas-item {
     font-weight: bold;
+    color: #3438d0;
 }
 
 .kangas-value {

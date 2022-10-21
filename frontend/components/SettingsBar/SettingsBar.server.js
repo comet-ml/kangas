@@ -49,13 +49,14 @@ const StatusText = ({ status }) => {
 
     return(
 	    <div>
-	       <h1 className="kangas-title">Kangas DataGrid</h1>
+	       <h1 className="kangas-title">&#129432; Kangas DataGrid</h1>
 	       <hr/>
-	       <div>
+               <p className="kangas-text">© 2022 Kangas DataGrid Development Team</p>
+	       <div className="kangas-text">
 	         {items}
 	       </div>
-            <p>For help, contributions, examples, and discussions, see: <a href="https://www.github.com/comet-ml/kangas" target="_blank">github.com/comet-ml/kangas</a></p>
-	    <p>Consider giving us a &#127775;!</p>
+            <p className="kangas-text">For help, contributions, examples, and discussions, see: <a href="https://www.github.com/comet-ml/kangas" target="_blank">github.com/comet-ml/kangas</a></p>
+	    <p className="kangas-text">Consider giving us a github <span className="kangas-item">&#10029;</span>!</p>
 	   </div>
 	  );
 };
