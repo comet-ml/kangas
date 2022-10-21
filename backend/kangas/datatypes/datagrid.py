@@ -12,11 +12,13 @@
 ######################################################
 
 import csv
+import glob
 import json
 import logging
 import math
 import numbers
 import os
+import re
 import sqlite3
 import urllib
 import webbrowser
@@ -1304,6 +1306,17 @@ class DataGrid(object):
                 )
 
         filename = filename if filename else self.filename
+        if filename == "untitled.datagrid" and self.name == "Untitled":
+            # find the next numbered Untitled and rename this:
+            max_number = 0
+            for name in glob.glob("untitled-*.datagrid"):
+                match = re.match(r"^untitled-([\d]*).datagrid$", name)
+                if match:
+                    max_number = max(int(match.groups()[0]), max_number)
+            max_number += 1
+            filename = "untitled-%d.datagrid" % max_number
+            self.name = "Untitled-%d" % max_number
+
         self.create_thumbnails = (
             self.create_thumbnails if create_thumbnails is None else create_thumbnails
         )
