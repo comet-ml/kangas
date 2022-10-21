@@ -223,6 +223,50 @@ class DataGrid(object):
         if data:
             self.extend(data)
 
+    def __repr__(self, row=None):
+        nrows = self.nrows
+
+        if row is None:
+
+            def row(value):
+                return "%s\n" % value
+
+        if nrows == 0:
+            return "DataGrid is empty"
+        elif nrows <= 10:
+            output = self._display_rows_string(10, nrows, range(min(10, nrows)))
+        else:
+            output = self._display_rows_string(
+                5, nrows, range(min(5, nrows)), footer=False
+            )
+            output += row("...")
+            output += self._display_rows_string(
+                5,
+                nrows,
+                reversed(range(nrows - 1, max(nrows - 5 - 1, -1), -1)),
+                header=False,
+            )
+        output += row("")
+
+        if not self._on_disk:
+            output += row("*  Use DataGrid.save() to save to disk")
+            output += row("** Use DataGrid.show() to start user interface")
+        else:
+            output += row("*  Use DataGrid.show() to start user interface")
+
+        return output
+
+    def _repr_html_(self):
+        def row(value):
+            return "<tr><td colspan='%s' style='text-align: left;'>%s</td></tr>" % (
+                len(self.get_columns()) + 1,
+                value,
+            )
+
+        output = self.__repr__(row)
+
+        return "<table>%s</table>" % output
+
     def show(
         self,
         host=None,
@@ -393,11 +437,8 @@ class DataGrid(object):
             raise Exception("DataGrid.to_dataframe() requires pandas")
 
         print("Creating DataFrame...")
-        data = {
-            self._columns[col]: [row[col] for row in tqdm.tqdm(self._data)]
-            for col in range(len(self._columns))
-        }
-        return pandas.DataFrame(data=data, columns=self._columns)
+        data = self.to_dicts()
+        return pandas.DataFrame(data=data, columns=self.get_columns())
 
     def to_dicts(self):
         """
@@ -656,12 +697,23 @@ class DataGrid(object):
         )
 
     def _display_rows(self, n, nrows, enumerator):
+        output = self._display_rows_string(n, nrows, enumerator)
+
+        if output:
+            if _in_jupyter_environment():
+                from IPython.display import HTML, display
+
+                display(HTML("<table>%s</table>" % output))
+            else:
+                print(output)
+        else:
+            print("DataGrid is empty")
+
+    def _display_rows_string(self, n, nrows, enumerator, header=True, footer=True):
         if nrows == 0:
             return
 
         in_jupyter = _in_jupyter_environment()
-        if in_jupyter:
-            from IPython.display import HTML, display
 
         widths = []
         for column in ["row-id"] + self.get_columns():
@@ -673,18 +725,20 @@ class DataGrid(object):
                 self.output = []
                 self.accum = ""
 
-            def display(self, value, width, header=False):
+            def display(self, value, width, header=False, colspan=1, style=""):
                 if in_jupyter:
-                    self.output.append("<td>")
                     if header:
-                        self.output.append("<b>")
+                        self.output.append("<th colspan='%s' %s>" % (colspan, style))
+                    else:
+                        self.output.append("<td colspan='%s' %s>" % (colspan, style))
                 self.output.append(
                     ("%" + ("%s.%s" % (width, width)) + "s") % str(value)
                 )
                 if in_jupyter:
                     if header:
-                        self.output.append("</b>")
-                    self.output.append("</td>")
+                        self.output.append("</th>")
+                    else:
+                        self.output.append("</td>")
 
             def end_row(self):
                 if in_jupyter:
@@ -695,9 +749,10 @@ class DataGrid(object):
                 self.output = []
 
         output = Output()
-        for c, column in enumerate(["row-id"] + self.get_columns()):
-            output.display(column, widths[c], header=True)
-        output.end_row()
+        if header:
+            for c, column in enumerate(["row-id"] + self.get_columns()):
+                output.display(column, widths[c], header=True)
+            output.end_row()
 
         for i in enumerator:
             row = [i + 1] + self[i]
@@ -705,10 +760,18 @@ class DataGrid(object):
                 output.display(row[c], widths[c])
             output.end_row()
 
-        if in_jupyter:
-            display(HTML("<table>%s</table>" % output.accum))
-        else:
-            print(output.accum)
+        if footer:
+            output.end_row()
+            totals = "[%d rows x %d columns]" % (nrows, len(self.get_columns()))
+            output.display(
+                totals,
+                len(totals),
+                colspan=len(self.get_columns()) + 1,
+                style='style="text-align: left;"',
+            )
+            output.end_row()
+
+        return output.accum
 
     def get_columns(self):
         """
