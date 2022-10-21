@@ -254,8 +254,9 @@ class DataGrid(object):
         ```
         """
         from IPython.display import IFrame, Javascript, display
-
+        import json
         from kangas import launch
+        from kangas.server.queries import select_asset_metadata, select_asset
 
         url = launch(host, port, debug, protocol)
 
@@ -267,6 +268,20 @@ class DataGrid(object):
         url = "%s%s" % (url, qvs)
 
         if _in_colab_environment():
+            from google.colab import output
+            import base64
+
+            def _py_fetch_metadata(dgid, assetId):
+                result = select_asset_metadata(dgid, assetId)
+                return result
+            
+            def _py_fetch_asset(dgid, assetId):
+                result = select_asset(dgid, assetId, False)
+                encoded = base64.b64encode(result)
+                return encoded
+            
+            output.register_callback('_py_fetch_metadata', _py_fetch_metadata)
+            output.register_callback('_py_fetch_asset', _py_fetch_asset)
             display(
                 Javascript(
                     """
@@ -277,10 +292,31 @@ class DataGrid(object):
     fm.height = '{height}';
     fm.frameBorder = 0;
     document.body.append(fm);
+    window.addEventListener("message", async (e) => {{
+        const {{ type }} = e.data;
+        if (type === 'metadata') {{
+            const result = await google.colab.kernel.invokeFunction(
+                '_py_fetch_metadata',
+                [e.data.dgid, e.data.assetId],
+                {{}});
+            const message = JSON.parse(result.data?.['text/plain'].slice(1, -1));
+            message['messageType'] = 'metadata';
+            fm.contentWindow.postMessage(message, "*");
+        }} else if (type === 'asset') {{
+            const result = await google.colab.kernel.invokeFunction(
+                '_py_fetch_asset',
+                [e.data.dgid, e.data.assetId],
+                {{}});
+            const srcString = result.data?.['text/plain'].slice(2, -1);
+            const message = {{
+                src: srcString,
+                messageType: 'asset'
+            }};
+            fm.contentWindow.postMessage(message, "*");
+        }}
+    }}, false);
 }})();
-""".format(
-                        port=port, width=width, height=height, qvs=qvs
-                    )
+""".format(port=port, width=width, height=height, qvs=qvs)
                 )
             )
 
