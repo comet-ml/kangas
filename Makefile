@@ -13,3 +13,8 @@ build::
 wheel::
 	rm -rf backend/build/
 	cd backend; python -m build --wheel
+
+docs::
+	pydoc-markdown -m kangas > wiki/kangas.md
+	pydoc-markdown -m kangas.datatypes.datagrid > wiki/DataGrid.md
+	pydoc-markdown -m kangas.datatypes.image > wiki/Image.md
