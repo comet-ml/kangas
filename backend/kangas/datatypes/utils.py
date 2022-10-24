@@ -116,6 +116,8 @@ def make_dict_factory(column_name_map):
 
 
 def pytype_to_dgtype(item):
+    import PIL.Image
+
     from .serialize import DATAGRID_TYPES
 
     if is_null(item):
@@ -124,6 +126,9 @@ def pytype_to_dgtype(item):
     if hasattr(item, "item") and callable(item.item):
         ## numpy types
         item = item.item()
+
+    if isinstance(item, PIL.Image.Image):
+        return "IMAGE-ASSET"
 
     for ctype in DATAGRID_TYPES:
         if isinstance(item, tuple(DATAGRID_TYPES[ctype]["types"])):
@@ -179,6 +184,10 @@ def convert_to_type(value, dg_type):
     Convert to a type, allowing for
     possible later corercion.
     """
+    import PIL.Image
+
+    from .image import Image
+
     # FIXME: is this even needed?
     if dg_type is None or value is None:
         return value
@@ -212,6 +221,11 @@ def convert_to_type(value, dg_type):
         else:
             print("Invalid DATETIME: %r; ignoring" % value)
             return None
+    elif dg_type == "IMAGE-ASSET":
+        if isinstance(value, (PIL.Image.Image,)):
+            return Image(value)
+        else:
+            return value
     else:
         return value
 
