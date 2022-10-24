@@ -144,6 +144,13 @@ class Image(Asset):
     def to_pil(self):
         """
         Return the image as a Python Image Library (PIL) image.
+
+        Example:
+        ```
+        >>> import kangas as kg
+        >>> image = kg.Image("filename.jpg").to_pil()
+        >>> image.show()
+        ```
         """
         return generate_image(self.asset_data)
 
@@ -156,6 +163,8 @@ class Image(Asset):
     def convert_to_source(self, filename=None):
         """
         A PNG filename to save the loaded image.
+
+        Under development.
         """
         import PIL
 
@@ -196,7 +205,10 @@ class Image(Asset):
         Args:
             label: (str) the label for the regions
             regions: list or tuples of at least 3 points
+            score: (optional, number) a score associated
+               with the region.
 
+        Example:
         ```
         >>> image = Image()
         >>> image.add_regions("car", [(x1, y1), ...], [(x2, y2), ...])
@@ -221,7 +233,10 @@ class Image(Asset):
         Args:
             label: (str) the label for the regions
             boxes: list or tuples of exactly 2 points (top-left, bottom-right)
+            score: (optional, number) a score associated
+               with the region.
 
+        Example:
         ```
         >>> image = Image()
         >>> box1 = [(x1, y1), (x2, y2)]
@@ -247,6 +262,7 @@ class Image(Asset):
 
         Under development.
 
+        Example:
         ```
         >>> image = Image()
         >>> image.add_mask("attention", Image(MASK))
@@ -272,6 +288,7 @@ class Image(Asset):
 
         Under development.
 
+        Example:
         ```
         >>> image = Image()
         >>> image.add_annotations("Tumors", (50, 50), (100, 100), (200, 200), ...)
