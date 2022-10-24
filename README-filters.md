@@ -5,7 +5,7 @@ column name like `{"Column Name"}`. Some examples:
 To select all of the rows that have a fitness score less than 0.1,
 given that you have a column named "Fitness":
 
-```
+```python
 {"fitness"} < 0.1
 ```
 
@@ -15,7 +15,7 @@ the filter expression. For example, if you wanted to select all of the
 rows where column "Score 1" was greater than or equal to "Score 2",
 you would write:
 
-```
+```python
 {"score 1"} >= {"score 2"}
 ```
 
@@ -44,7 +44,7 @@ null values are ignored in most other uses.
 You can combine comparisons using Python's `and` and `or` (use parentheses to force
 evaluation order different from Python's defaults):
 
-```
+```python
 (({"loss"} - {"base line"}) < 0.5) or ({"loss"} > 0.95)
 ```
 
@@ -54,14 +54,14 @@ JSON attribute access
 For JSON and metdata columns, you can use the dot
 operator to access values:
 
-```
+```python
 {"Image"}.extension == "jpg"
 ```
 
 or nested values:
 
-```
-{"Image"}.overlay.labels.contains("dog")
+```python
+{"Image"}.labels.contains("dog")
 ```
 
 See below for more information on `contains()` and other string and JSON
@@ -91,7 +91,7 @@ Python if/else expression
 You can use Python's if/else expression to return one
 value or another.
 
-```
+```python
 ("low" if {"loss"} < 0.5 else "high") == "low"
 ```
 
@@ -125,7 +125,7 @@ Examples:
 
 Find all rows that have a loss value less than the average:
 
-```
+```python
 {"loss"} < AVG({"loss"})
 ```
 
