@@ -414,7 +414,21 @@ class DataGrid(object):
         converters=None,
     ):
         """
-        Save a DataGrid as a Comma Separated Values file.
+        Save a DataGrid as a Comma Separated Values (CSV) file.
+
+        Args:
+            filename: (str) the file to save the CSV data to
+            sep: (str) separator to use in CSV; default is ","
+            header: (bool) if True, write out the header; default is True
+            quotechar: (str) the character to use to surround text; default is '"'
+            encoding: (str) the encoding to use in the saved file; default is "utf8"
+            converters: (optional, dict) dictionary of functions to convert items
+                into values. Keys are str (to match column name)
+
+        Example:
+        ```
+        >>> dg.to_csv()
+        ```
         """
         print("Saving DataGrid to %r..." % filename)
         with open(filename, "w", encoding=encoding, newline="") as fp:
@@ -432,6 +446,11 @@ class DataGrid(object):
     def to_dataframe(self):
         """
         Convert a DataGrid into a pandas dataframe.
+
+        Example:
+        ```
+        >>> df = dg.to_dataframe()
+        ```
         """
         try:
             import pandas
@@ -442,10 +461,33 @@ class DataGrid(object):
         data = self.to_dicts()
         return pandas.DataFrame(data=data, columns=self.get_columns())
 
-    def to_dicts(self):
+    def to_dicts(self, column_names=None):
         """
         Iterate over data, returning dicts.
+
+        Args:
+            column_names: (optional, list of str) only return the given
+                column names
+
+        ```python
+        >>> dg = DataGrid(columns=["column 1", "column 2"])
+        >>> dg.append([1, "one"])
+        >>> dg.append([2, "two"])
+        >>> dg.to_dicts()
+        [
+         {"column 1": value1_1, "column 2": value1_2, ...},
+         {"column 1": value2_1, "column 2": value2_2, ...},
+        ]
+        >>> dg.to_dicts("column 2")
+        [
+         {"column two": value1_2, ...},
+         {"column two": value2_2, ...},
+        ]
+        ```
         """
+        if isinstance(column_names, str):
+            column_names = [column_names]
+        column_names = column_names if column_names else self.get_columns()
         if self._on_disk:
             sql = "SELECT * FROM datagrid;"
             schema = self.get_schema()
@@ -461,15 +503,13 @@ class DataGrid(object):
             for row in results:
                 yield {
                     column_name: self._value_to_asset(row, column_name)
-                    for column_name in self.get_columns()
+                    for column_name in column_names
                 }
             conn.row_factory = None
 
         else:
             for row in self._data:
-                yield {
-                    column_name: row[column_name] for column_name in self.get_columns()
-                }
+                yield {column_name: row[column_name] for column_name in column_names}
 
     def _value_to_asset(self, row, column_name):
         # if this is an asset column, return Object, with asset_id, asset_data,
@@ -478,15 +518,34 @@ class DataGrid(object):
         return DATAGRID_TYPES[dg_type]["unserialize"](self, row, column_name)
         return None
 
-    def __getitem__(self, row_index):
+    def __getitem__(self, item):
         """
-        Row-first order.
+        Get either a row or a column from the DataGrid.
+
+        Args:
+            item: (str or int) - if int, return the zero-based row; if str
+                then item is the column name to return
+
+        ```
+        >>> dg = DataGrid(columns=["column 1", "column 2"])
+        >>> dg.append([1, "one"])
+        >>> dg.append([2, "two"])
+        >>> dg[0]
+        [1, "one"]
+        >>> dg["column 1"]
+        [1, 2]
+        ```
         """
+        if isinstance(item, int):
+            row_index = item
+            column_name = None
+        elif isinstance(item, str):
+            row_index = None
+            column_name = item
+        else:
+            raise Exception("invalid DataGrid accessor: %r" % item)
+
         if self._on_disk:
-            rowid = row_index + 1
-            sql = ("SELECT * FROM datagrid WHERE column_0 = {rowid};").format(
-                rowid=rowid,
-            )
             schema = self.get_schema()
             column_name_map = {
                 schema[column_name]["field_name"]: column_name for column_name in schema
@@ -495,30 +554,55 @@ class DataGrid(object):
             self.conn.row_factory = make_dict_factory(column_name_map)
 
             cursor = self.conn.cursor()
-            results = cursor.execute(sql)
-            row = results.fetchone()
-            self.conn.row_factory = None
-            if row:
-                return [
-                    self._value_to_asset(row, column_name)
-                    for column_name in self.get_columns()
-                ]
-            else:
-                raise IndexError("row index out of range")
+            if row_index is not None:
+                rowid = row_index + 1
+                sql = ("SELECT * FROM datagrid WHERE column_0 = {rowid};").format(
+                    rowid=rowid,
+                )
+                results = cursor.execute(sql)
+                row = results.fetchone()
+                self.conn.row_factory = None
+                if row:
+                    return [
+                        self._value_to_asset(row, column_name)
+                        for column_name in self.get_columns()
+                    ]
+                else:
+                    raise IndexError("row index out of range")
+            else:  # column mode
+                sql = "SELECT * FROM datagrid;"
+                results = cursor.execute(sql)
+                # FIXME: make lazy by using yeild:
+                rows = results.fetchall()
+                self.conn.row_factory = None
+                return [self._value_to_asset(row, column_name) for row in rows]
         else:
-            if row_index < len(self._data):
-                return [
-                    self._data[row_index][column_name]
-                    for column_name in self.get_columns()
-                ]
+            if row_index is not None:
+                if row_index < len(self._data):
+                    return [
+                        self._data[row_index][column_name]
+                        for column_name in self.get_columns()
+                    ]
+                else:
+                    raise IndexError("row index out of range")
             else:
-                raise IndexError("row index out of range")
+                return [row[column_name] for row in self.to_dicts()]
 
     def __len__(self):
         return self.nrows
 
     @property
     def nrows(self):
+        """
+        The number of rows in the DataGrid.
+
+        Example:
+
+        ```
+        >>> dg.nrows
+        42
+        ```
+        """
         if self._on_disk:
             sql = "SELECT COUNT() FROM datagrid;"
             cursor = self.conn.cursor()
@@ -530,20 +614,53 @@ class DataGrid(object):
 
     @property
     def ncols(self):
+        """
+        The number of columns in the DataGrid.
+
+        Example:
+
+        ```
+        >>> dg.ncols
+        10
+        ```
+        """
         return len(self._columns)
 
     @property
     def shape(self):
+        """
+        The (rows, columns) in the DataGrid.
+
+        Example:
+
+        ```
+        >>> dg.shape
+        (10, 42)
+        ```
+        """
         return (self.nrows, self.ncols)
 
     @classmethod
     def download(cls, url, ext=None):
+        """
+        Download a file from a URL.
+
+        Example:
+        ```
+        >>> DataGrid.download("https://example.com/file.zip")
+        ```
+        """
         download_filename(url, ext)
 
     @classmethod
     def read_dataframe(cls, dataframe, **kwargs):
         """
         Takes a columnar pandas dataframe and returns a DataGrid.
+
+        Example:
+        ```
+        >>> dg = DataGrid.read_dataframe(df)
+        ```
         """
         print("Reading DataFrame...")
         columns = list(dataframe.columns)
@@ -555,6 +672,11 @@ class DataGrid(object):
         """
         Read JSON Line files.
         https://jsonlines.org/
+
+        Example:
+        ```
+        >>> dg = DataGrid.read_json("json_line_file.json")
+        ```
         """
         print("Reading JSON line file...")
         filename = download_filename(filename)
@@ -575,6 +697,17 @@ class DataGrid(object):
 
     @classmethod
     def read_datagrid(cls, filename, **kwargs):
+        """
+        Read (load) a datagrid file.
+
+        Args:
+            kwargs: any keyword to pass to the DataGrid constructor
+
+        Example:
+        ```
+        >>> dg = DataGrid.read_datagrid("mnist.datagrid")
+        ```
+        """
         filename = download_filename(filename)
         if os.path.isfile(filename):
             return DataGrid(filename=filename, **kwargs)
@@ -597,14 +730,19 @@ class DataGrid(object):
 
         Args:
             filename: the CSV file to import
-            header: if True, use the first row as column headings
-            sep:  used in the CSV parsing
-            quotechar: used in the CSV parsing
-            datetime_format: (str) the datetime format
-            heuristics: (bool) whether to guess that some float values are
+            header: (optional, bool) if True, use the first row as column headings
+            sep: (optional, str) used in the CSV parsing
+            quotechar: (optional, str) used in the CSV parsing
+            datetime_format: (optional, str) the datetime format
+            heuristics: (optional, bool) whether to guess that some float values are
                 datetime representations
-            converters: (dict, optional) A dictionary of functions for converting values
+            converters: (optional, dict) A dictionary of functions for converting values
                 in certain columns. Keys are column labels.
+
+        Example:
+        ```
+        >>> dg = DataGrid.read_csv("results.csv")
+        ```
         """
         columns = None
         read_header = False
@@ -650,6 +788,27 @@ class DataGrid(object):
         return dg
 
     def info(self):
+        """
+        Display information about the DataGrid.
+
+        Example:
+        ```
+        >>> dg.info()
+        DataGrid (on disk)
+            Name   : coco-500-with-bbox
+            Rows   : 500
+            Columns: 7
+        #   Column                Non-Null Count DataGrid Type
+        --- -------------------- --------------- --------------------
+        1   ID                               500 INTEGER
+        2   Image                            500 IMAGE-ASSET
+        3   Score                            500 FLOAT
+        4   Confidence                       500 FLOAT
+        5   Filename                         500 TEXT
+        6   Category 5                       500 TEXT
+        7   Category 10                      500 TEXT
+        ```
+        """
         widths = (3, 20, 15, 20)
         line_format = "%%-%ss %%-%ss %%%ss %%-%ss" % widths
         print("DataGrid (%s)" % tuple(["on disk" if self._on_disk else "in memory"]))
@@ -685,6 +844,22 @@ class DataGrid(object):
     def head(self, n=5):
         """
         Display the last n rows of the DataGrid.
+
+        Args:
+            n: (optional, int) number of rows to show
+
+        Example:
+        ```
+        >>> dg.head()
+                 row-id              ID           Score      Confidence        Filename
+                      1          391895 0.4974163872616 0.5726406230662 COCO_val2014_00
+                      2          522418 0.3612518386682 0.8539611863547 COCO_val2014_00
+                      3          184613 0.1060265192042 0.1809083103203 COCO_val2014_00
+                      4          318219 0.8879546879811 0.2918134509273 COCO_val2014_00
+                      5          554625 0.5889039105388 0.8253719528139 COCO_val2014_00
+        [500 rows x 4 columns]
+
+        ```
         """
         nrows = self.nrows
         return self._display_rows(n, nrows, range(min(n, nrows)))
@@ -692,6 +867,21 @@ class DataGrid(object):
     def tail(self, n=5):
         """
         Display the last n rows of the DataGrid.
+        Args:
+            n: (optional, int) number of rows to show
+
+        Example:
+        ```
+        >>> dg.tail()
+                 row-id              ID           Score      Confidence        Filename
+                    496          391895 0.4974163872616 0.5726406230662 COCO_val2014_00
+                    497          522418 0.3612518386682 0.8539611863547 COCO_val2014_00
+                    498          184613 0.1060265192042 0.1809083103203 COCO_val2014_00
+                    499          318219 0.8879546879811 0.2918134509273 COCO_val2014_00
+                    500          554625 0.5889039105388 0.8253719528139 COCO_val2014_00
+
+        [500 rows x 4 columns]
+        ```
         """
         nrows = self.nrows
         return self._display_rows(
@@ -777,7 +967,14 @@ class DataGrid(object):
 
     def get_columns(self):
         """
-        Get the public-facing, non-hidden columns.
+        Get the public-facing, non-hidden columns. Returns
+        a list of strings.
+
+        Example:
+        ```
+        >>> dg.get_columns()
+        ['ID', 'Image', 'Score', 'Confidence', 'Filename']
+        ```
         """
         return [
             column_name
@@ -815,9 +1012,13 @@ class DataGrid(object):
         Args:
             column_name: column name to append
             rows: list of values
+            verify: (optional, bool) if True, verify the data
 
+        NOTE: `rows` is a list of values, one for each row.
+
+        Example:
         ```
-        >>> dg.append_column("New", ["x", "x", "y", "z"])
+        >>> dg.append_column("New Column Name", ["row1", "row2", "row3", "row4"])
         ```
         """
         self.append_columns([column_name], [[value] for value in rows], verify=verify)
@@ -829,9 +1030,25 @@ class DataGrid(object):
         Args:
             column_names: list of column names to append
             rows: list of list of values per row
+            verify: (optional, bool) if True, verify the data
 
+        Example:
         ```
-        >>> dg.append_columns(["New"], [["x"], ["x"], ["y"], ["z"]])
+        >>> dg = kg.DataGrid(columns=["a", "b"])
+        >>> dg.append([1, 1])
+        >>> dg.append([2, 2])
+        >>> dg.append_columns(
+        ...     ["New Column 1", "New Column 2"],
+        ...     [
+        ...      ["row1 col1", "row1 col2"],
+        ...      ["row2 col1", "row2 col2"],
+        ...     ])
+        >>> dg.info()
+                 row-id               a               b    New Column 1    New Column 2
+                      1               1               1       row1 col1       row1 col2
+                      2               2               2       row2 col1       row2 col2
+
+        [2 rows x 4 columns]
         ```
         """
         ## FIXME: make sure not repeating column name
@@ -885,6 +1102,11 @@ class DataGrid(object):
 
         Args:
             index: (int) position (zero-based) of row to remove
+
+        Example:
+        ```
+        >>> row = dg.pop(0)
+        ```
         """
         if self._on_disk:
             raise Exception("Popping from a DataGrid on disk is not currently possible")
@@ -894,6 +1116,11 @@ class DataGrid(object):
     def append(self, row):
         """
         Append this row onto the datagrid data.
+
+        Example:
+        ```
+        >>> dg.append(["column 1 value", "column 2 value", ...])
+        ```
         """
         if self._on_disk:
             raise Exception(
@@ -905,6 +1132,8 @@ class DataGrid(object):
     def get_asset_ids(self):
         """
         Get all of the asset IDs from the DataGrid.
+
+        Returns a list of asset IDs.
         """
         if self._on_disk:
             sql = "SELECT asset_id FROM assets;"
@@ -917,7 +1146,14 @@ class DataGrid(object):
         """
         Extend the datagrid with the given rows.
 
-        All data must come through this
+        Example:
+        ```
+        >>> dg.extend([
+        ...     ["row 1, column 1 value", "row 1, column 2 value", ...],
+        ...     ["row 2, column 1 value", "row 2, column 2 value", ...],
+        ...     ...,
+        ... ])
+        ```
         """
         if len(rows) == 0:
             return
@@ -1029,6 +1265,20 @@ class DataGrid(object):
     def get_schema(self):
         """
         Get the DataGrid schema.
+
+        Example:
+        ```
+        >>> dg.get_schema()
+        {'row-id': {'field_name': 'column_0', 'type': 'ROW_ID'},
+         'ID': {'field_name': 'column_1', 'type': 'INTEGER'},
+         'Image': {'field_name': 'column_2', 'type': 'IMAGE-ASSET'},
+         'Score': {'field_name': 'column_3', 'type': 'FLOAT'},
+         'Confidence': {'field_name': 'column_4', 'type': 'FLOAT'},
+         'Filename': {'field_name': 'column_5', 'type': 'TEXT'},
+         'Category 5': {'field_name': 'column_6', 'type': 'TEXT'},
+         'Category 10': {'field_name': 'column_7', 'type': 'TEXT'},
+         'Image--metadata': {'field_name': 'column_8', 'type': 'JSON'}}
+        ```
         """
         if self._on_disk:
             if self._schema is None:
@@ -1237,6 +1487,16 @@ class DataGrid(object):
     def select_count(self, where="1"):
         """
         Get the count of items given a where expression.
+
+        Args:
+            where: a Python expression where column names are
+                written as {"Column Name"}.
+
+        Example:
+        ```
+        >>> dg.select_count("{'column 1'} > 0.5")
+        894
+        ```
         """
         if not self._on_disk:
             raise Exception("Unable to select_count before saving")
@@ -1254,12 +1514,23 @@ class DataGrid(object):
         query, and returning rows in various sort orderings.
 
         Args:
-            where: a Python expression where column names are
-                written as {Column Name}.
-            sort_by: name of column to sort on
-            sort_desc: sort descending?
-            to_dicts: if True, return the rows in dicts where
+            where: (optional, str) a Python expression where column names are
+                written as {"Column Name"}.
+            sort_by: (optional, str) name of column to sort on
+            sort_desc: (optional, bool) sort descending?
+            to_dicts: (optional, cool) if True, return the rows in dicts where
                 the keys are the column names.
+            count: (optional, bool) if True, return the count of matching rows
+
+        Example:
+        ```
+        >>> dg.select("{'column name 1'} == {'column name 2'} and {'score'} < -1")
+        [
+           ["row 1, column 1 value", "row 1, column 2 value", ...],
+           ["row 2, column 1 value", "row 2, column 2 value", ...],
+           ...
+        ]
+        ```
         """
         from ..server.queries import query_sql
 
@@ -1284,6 +1555,17 @@ class DataGrid(object):
     def save(self, filename=None, create_thumbnails=None):
         """
         Create the SQLite database on disk.
+
+        Args:
+            filename: (optional, str) the name of the filename
+                to save to
+            create_thumbnails: (optional, bool) if True, then
+                create thumbnail images for assets
+
+        Example:
+        ```
+        >>> dg.save()
+        ```
         """
         if self._on_disk:
             if filename is None or filename == self.filename:
