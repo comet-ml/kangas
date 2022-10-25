@@ -6,6 +6,11 @@ __pycache__/
 # C extensions
 *.so
 
+# Notebook support files
+notebooks/train/*
+notebooks/test/*
+notebooks/*.datagrid
+
 # Distribution / packaging
 .Python
 build/

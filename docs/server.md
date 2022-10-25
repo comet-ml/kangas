@@ -1,3 +1,0 @@
-::: datagrid.cli.server
-
-::: datagrid
