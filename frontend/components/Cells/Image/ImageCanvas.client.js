@@ -158,7 +158,7 @@ const Accordion = ({ label, children }) => {
 
 const ImageCanvas = ({ url, metadata, dgid, assetId, urls }) => {
     // This is the full image, not thumbnail
-    const {isIframe, appConfig} = useContext(ConfigContext);
+    const appConfig = useContext(ConfigContext);
     const [mask] = useState();
     const [smootheImage, setSmootheImage] = useState(true);
     const [grayscale, setGrayscale] = useState(false);
@@ -181,7 +181,8 @@ const ImageCanvas = ({ url, metadata, dgid, assetId, urls }) => {
 
 	let res;
 
-	if (isIframe) {
+	if (appConfig.isIframe) {
+	    // FIXME:
 	    res = await fetch(`/api/metadata?${new URLSearchParams({
                     assetId: assetId || new URL(url).searchParams.get('assetId'),
                     dgid,
@@ -189,19 +190,17 @@ const ImageCanvas = ({ url, metadata, dgid, assetId, urls }) => {
                   }).toString()}`
 	    );
 	} else {
-	    res = await fetch(`/api/metadata`, {
-		body: JSON.stringify({
+	    res = await fetch(`/api/metadata?${new URLSearchParams({
                     assetId: assetId || new URL(url).searchParams.get('assetId'),
                     dgid,
                     url: `${appConfig.apiUrl}asset-metadata`,
-		}),
-		method: 'post',
-	    });
+                  }).toString()}`
+			     );
 	}
 
         const parsed = await res.json();
         setParsedMeta(JSON.parse(parsed));
-    }, [appConfig?.apiUrl, assetId, dgid, metadata, url]);
+    }, [appConfig?.apiUrl, appConfig?.isIframe, assetId, dgid, metadata, url]);
 
 	// If metadata is passed in as a prop, we use it to set parsedMeta.
 	// If not, we fetch the metadata on the clientside
