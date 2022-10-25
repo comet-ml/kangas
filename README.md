@@ -35,9 +35,3 @@ dg.show()
 
 <img src="https://github.com/comet-ml/kangas/blob/main/imgs/short-example.png"></img>
 <img src="https://github.com/comet-ml/kangas/blob/main/imgs/short-example-group-by-category.png"></img>
-
-## Further Documentation
-
-1. <a href="https://github.com/comet-ml/kangas/blob/main/README.md">General README</a>
-2. <a href="https://github.com/comet-ml/kangas/blob/main/README-filters.md">DataGrid Filters</a>
-3. <a href="https://github.com/comet-ml/kangas/blob/main/notebooks/DataGrid-Getting%20Started.ipynb">Getting Started</a> - Jupyter Notebook
