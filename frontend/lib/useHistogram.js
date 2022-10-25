@@ -32,7 +32,7 @@ const useHistogram = (query) => {
 
         // non-iframe fetching
         else {
-            fetch(`${apiUrl}category`, {
+            fetch(`${apiUrl}histogram`, {
                 body: JSON.stringify(query),
                 method: 'post',
             })
