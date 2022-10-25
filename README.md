@@ -17,7 +17,7 @@ The key features of Kangas include:
 - **Interoperability**. Any data, any environment. Kangas can run in a notebook or as a standalone app, both locally and remotely.
 - **Integrated computer vision support**. Visualize and filter bounding boxes, labels, and metadata without any extra setup.
 
-Under the hood, Kangas is built on SQLLite, Tornado, and Next.js with React Server Components. 
+You can access a live demo of Kangas at <a href="https://kangas.comet.com" target="_blank">kangas.comet.com</a>. 
 
 ## Getting started
 
@@ -57,11 +57,12 @@ From the Kangas Viewer, you can group, sort, and filter data. In addition, Kanga
 
 And viola! Now you're started using Kangas. If you'd like to explore further, take a look at our example notebooks below:
 
-## Further Documentation
+## Documentation
 
-1. <a href="https://github.com/comet-ml/kangas/blob/main/notebooks/DataGrid-Getting%20Started.ipynb">Quickstart Notebook</a>
-2. <a href="https://github.com/comet-ml/kangas/blob/main/notebooks/Integrations.ipynb">Integrations Notebook</a>
-3. <a href="https://github.com/comet-ml/kangas/blob/main/README-filters.md">DataGrid Filters</a>
+1. <a href="https://github.com/comet-ml/kangas/wiki">Documentation Homepage</a>
+2. <a href="https://github.com/comet-ml/kangas/blob/main/notebooks/DataGrid-Getting%20Started.ipynb">Quickstart Notebook</a>
+3. <a href="https://github.com/comet-ml/kangas/blob/main/notebooks/Integrations.ipynb">Integrations Notebook</a>
+
 ## FAQ
 
 ### Is Kangas ready for public use?
