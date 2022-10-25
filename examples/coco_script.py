@@ -32,9 +32,15 @@ category columns (for playing with the grouping function in
 Kangas DataGrid).
 
 The images' metadata contains the labels so that you can use
-Kangas' filter functionality.
+Kangas' filter functionality in the UI.
 
-Example filters:
+After running the script, run this command at the prompt:
+
+```
+kangas server coco-dataset.datagrid
+```
+
+Example filters to try in the UI:
 
 1. Images containing cats and dogs: `{"image"}.labels.dog and {"image"}.labels.cat`
 2. Images with the same number of cats and dogs:  `{"image"}.labels.dog == {"image"}.labels.cat`
@@ -42,10 +48,6 @@ Example filters:
 4. Images of a certain size:  `{"image"}.image.width > 600`
 5. Images with exactly one segment in them: `{"image"}.count == 1`
 6. Image with the most toilets: `{"image"}.labels.toilet > 10`
-
-After running the script, run this command at the prompt:
-
-kangas server coco-dataset.datagrid
 """
 
 import json
