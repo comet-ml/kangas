@@ -29,9 +29,9 @@ const LazyImageGroup = ({ images, dgid, children }) => {
         [visible, setVisible]
     );
 
-    /* FIXME: The ref value 'scrollBoundary.current' will likely have changed 
-       by the time this effect cleanup function runs. If this ref points to a 
-       node rendered by React, copy 'scrollBoundary.current' to a variable 
+    /* FIXME: The ref value 'scrollBoundary.current' will likely have changed
+       by the time this effect cleanup function runs. If this ref points to a
+       node rendered by React, copy 'scrollBoundary.current' to a variable
        inside the effect, and use that variable in the cleanup function. */
 
     useEffect(() => {
@@ -62,7 +62,7 @@ const LazyImageGroup = ({ images, dgid, children }) => {
                             >
                                 <Image
                                     src={`/api/image?url=${encodeURIComponent(
-                                        `${appConfig.apiProxyUrl}download?assetId=${id}&dgid=${dgid}`
+                                        `${appConfig.apiUrl}download?assetId=${id}&dgid=${dgid}`
                                     )}`}
                                     lazyRoot={lazyRoot}
                                     layout={'fill'}

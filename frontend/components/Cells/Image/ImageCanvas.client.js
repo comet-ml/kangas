@@ -26,7 +26,7 @@ import DialogueModalContainer from '../../Modals/DialogueModalContainer.client';
 import CanvasWrapper from './CanvasWrapper.client';
 import Canvas from './Canvas.client';
 import { StatusTypes } from 'react-async';
-/* 
+/*
 
 In the below components, we have a potentially confusing distinction between "hidden labels" and "filtered labels".
 
@@ -47,7 +47,7 @@ const initialState = {
 const reducer = (state, action) => {
     switch (action.type) {
         case 'render-canvas':
-            
+
             return {
                 ...state,
                 canvasesRendered: state.canvasesRendered + 1,
@@ -158,7 +158,7 @@ const Accordion = ({ label, children }) => {
 
 const ImageCanvas = ({ url, metadata, dgid, assetId, urls }) => {
     // This is the full image, not thumbnail
-    const appConfig = useContext(ConfigContext);
+    const {isIframe, appConfig} = useContext(ConfigContext);
     const [mask] = useState();
     const [smootheImage, setSmootheImage] = useState(true);
     const [grayscale, setGrayscale] = useState(false);
@@ -179,18 +179,32 @@ const ImageCanvas = ({ url, metadata, dgid, assetId, urls }) => {
     const clientFetchMeta = useCallback(async () => {
         if (metadata) return;
 
-        const res = await fetch(`/api/metadata?${new URLSearchParams({
-                assetId: assetId || new URL(url).searchParams.get('assetId'),
-                dgid,
-                url: `../4001/asset-metadata`,
-            }).toString()}`
-        );
+	let res;
+
+	if (isIframe) {
+	    res = await fetch(`/api/metadata?${new URLSearchParams({
+                    assetId: assetId || new URL(url).searchParams.get('assetId'),
+                    dgid,
+                    url: '../4001/asset-metadata',
+                  }).toString()}`
+	    );
+	} else {
+	    res = await fetch(`/api/metadata`, {
+		body: JSON.stringify({
+                    assetId: assetId || new URL(url).searchParams.get('assetId'),
+                    dgid,
+                    url: `${appConfig.apiUrl}asset-metadata`,
+		}),
+		method: 'post',
+	    });
+	}
+
         const parsed = await res.json();
         setParsedMeta(JSON.parse(parsed));
-    }, [appConfig?.apiProxyUrl, assetId, dgid, metadata, url]);
+    }, [appConfig?.apiUrl, assetId, dgid, metadata, url]);
 
 	// If metadata is passed in as a prop, we use it to set parsedMeta.
-	// If not, we fetch the metadata on the clientside 
+	// If not, we fetch the metadata on the clientside
     useEffect(() => {
         if (metadata) {
             const parsed = JSON.parse(metadata);

@@ -23,8 +23,6 @@ from ._version import __version__  # noqa
 from .datatypes import Audio, Curve, DataGrid, Image, Text, Video  # noqa
 from .utils import _in_colab_environment, _in_jupyter_environment, get_localhost
 
-KANGAS_BACKEND_PROXY = None
-
 
 def _is_running(name, command):
     for pid in psutil.pids():
@@ -90,20 +88,10 @@ def launch(host=None, port=4000, debug=False, protocol="http"):
     >>> kangas.launch()
     ```
     """
-    global KANGAS_BACKEND_PROXY
-
     host = host if host is not None else get_localhost()
 
     if not _is_running("node", "kangas"):
         terminate()
-        if _in_colab_environment():
-            from google.colab import output
-
-            KANGAS_BACKEND_PROXY = output.eval_js(
-                "(async () => {return await google.colab.kernel.proxyPort(%s)})()"
-                % str(port + 1)
-            )
-
         subprocess.Popen(
             (
                 [
@@ -120,11 +108,6 @@ def launch(host=None, port=4000, debug=False, protocol="http"):
                     protocol,
                 ]
                 + (["--host", host] if host is not None else [])
-                + (
-                    ["--backend-proxy", KANGAS_BACKEND_PROXY]
-                    if KANGAS_BACKEND_PROXY is not None
-                    else []
-                )
                 + (["--colab", "True"] if _in_colab_environment() else [])
                 + (["--debug"] if debug else [])
             )

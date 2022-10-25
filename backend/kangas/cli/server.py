@@ -21,7 +21,7 @@ import webbrowser
 
 import kangas.server
 
-from kangas import get_localhost, terminate, _in_colab_environment
+from kangas import _in_colab_environment, get_localhost, terminate
 
 ADDITIONAL_ARGS = False
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -54,12 +54,6 @@ def get_parser_arguments(parser):
         "--backend-port",
         help="The backend port to use; default is frontend port + 1",
         type=int,
-        default=None,
-    )
-    parser.add_argument(
-        "--backend-proxy",
-        help="The backend proxy URL to use",
-        type=str,
         default=None,
     )
     parser.add_argument(
@@ -125,7 +119,9 @@ def server(parsed_args, remaining=None):
     KANGAS_FRONTEND_PORT = parsed_args.frontend_port
     KANGAS_HOST = parsed_args.host if parsed_args.host is not None else get_localhost()
     KANGAS_PROTOCOL = parsed_args.protocol
-    IN_COLAB = parsed_args.colab if parsed_args.colab is not False else _in_colab_environment()
+    IN_COLAB = (
+        parsed_args.colab if parsed_args.colab is not False else _in_colab_environment()
+    )
     if parsed_args.backend_port is None:
         KANGAS_BACKEND_PORT = parsed_args.frontend_port + 1
     else:
@@ -157,12 +153,9 @@ def server(parsed_args, remaining=None):
                 "KANGAS_BACKEND_PORT": str(KANGAS_BACKEND_PORT),
                 "KANGAS_HOST": str(KANGAS_HOST),
                 "KANGAS_PROTOCOL": KANGAS_PROTOCOL,
-                "IN_COLAB": str(IN_COLAB)
+                "IN_COLAB": str(IN_COLAB),
             }
         )
-        if parsed_args.backend_proxy is not None:
-            env["KANGAS_BACKEND_PROXY"] = parsed_args.backend_proxy
-
         # first, check to see if nodejs is good:
         if nodejs is not None:
             if hasattr(nodejs, "node"):  # version 18
