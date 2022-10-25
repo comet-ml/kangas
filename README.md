@@ -33,8 +33,8 @@ for index in range(len(x_test)):
 dg.show()
 ```
 
-<img src="https://github.com/comet-ml/kangas/blob/main/docs/imgs/short-example.png"></img>
-<img src="https://github.com/comet-ml/kangas/blob/main/docs/imgs/short-example-group-by-category.png"></img>
+<img src="https://github.com/comet-ml/kangas/blob/main/imgs/short-example.png"></img>
+<img src="https://github.com/comet-ml/kangas/blob/main/imgs/short-example-group-by-category.png"></img>
 
 ## Further Documentation
 
