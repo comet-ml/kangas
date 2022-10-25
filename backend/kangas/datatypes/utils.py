@@ -58,9 +58,10 @@ def contain(image, size, method=None):
 
 
 def download(url, filename):
-    g = urllib.request.urlopen(url)
-    with open(filename, "wb") as f:
-        f.write(g.read())
+    if not os.path.isfile(filename):
+        g = urllib.request.urlopen(url)
+        with open(filename, "wb") as f:
+            f.write(g.read())
 
 
 def unpack_archive(archive_filename, ext=None):
@@ -69,18 +70,19 @@ def unpack_archive(archive_filename, ext=None):
     elif "." in archive_filename:
         filename, ext = archive_filename.rsplit(".", 1)
 
-    if ext == "gz":
-        with open(filename, "wb") as fp:
-            with gzip.open(archive_filename, "rb") as fp_gz:
-                fp.write(fp_gz.read())
-    elif ext == "zip":
-        shutil.unpack_archive(archive_filename, filename, "zip")
-    elif ext == "tar":
-        shutil.unpack_archive(archive_filename, filename, "tar")
-    elif ext == "tgz":
-        shutil.unpack_archive(archive_filename, filename, "gztar")
-    else:
-        filename = archive_filename
+    if not os.path.isfile(filename):
+        if ext == "gz":
+            with open(filename, "wb") as fp:
+                with gzip.open(archive_filename, "rb") as fp_gz:
+                    fp.write(fp_gz.read())
+        elif ext == "zip":
+            shutil.unpack_archive(archive_filename, ".", "zip")
+        elif ext == "tar":
+            shutil.unpack_archive(archive_filename, ".", "tar")
+        elif ext == "tgz":
+            shutil.unpack_archive(archive_filename, ".", "gztar")
+        else:
+            filename = archive_filename
 
     return filename
 
