@@ -68,7 +68,7 @@ def terminate():
     _process_method("python", "kangas", "terminate")
 
 
-def launch(host=None, port=4000, debug=False, protocol="http", in_colab=False):
+def launch(host=None, port=4000, debug=False, protocol="http"):
     """
     Launch the Kangas servers.
 
@@ -168,7 +168,7 @@ def show(
     >>> kangas.show("./example.datagrid")
     ```
     """
-    from IPython.display import IFrame, Javascript, display
+    from IPython.display import IFrame, clear_output, display
 
     url = launch(host, port, debug, protocol)
 
@@ -180,24 +180,12 @@ def show(
         qvs = ""
 
     if _in_colab_environment():
-        display(
-            Javascript(
-                """
-(async ()=>{{
-    fm = document.createElement('iframe');
-    fm.src = (await google.colab.kernel.proxyPort({port})) + '{qvs}';
-    fm.width = '{width}';
-    fm.height = '{height}';
-    fm.frameBorder = 0;
-    document.body.append(fm);
-}})();
-""".format(
-                    port=port, width=width, height=height, qvs=qvs
-                )
-            )
-        )
+        from .colab_env import init_colab
+
+        init_colab(port, width, height, qvs)
 
     elif _in_jupyter_environment():
+        clear_output(wait=True)
         display(IFrame(src=url, width=width, height=height))
 
     else:
