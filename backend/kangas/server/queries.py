@@ -578,13 +578,16 @@ def select_category(
                 if length == ulength:
                     results_json = {
                         "type": "verbatim",
-                        "value": plural(length, column_name) + ", 1 count each",
+                        "value": plural(length, column_name) + " unique values",
                         "columnType": column_type,
                     }
                 else:
                     results_json = {
                         "type": "verbatim",
-                        "value": plural(ulength, column_name) + ", various counts each",
+                        "value": plural(length, column_name)
+                        + ", "
+                        + str(ulength)
+                        + " unique values",
                         "columnType": column_type,
                     }
             else:
