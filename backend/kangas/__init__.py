@@ -125,11 +125,7 @@ def launch(host=None, port=4000, debug=False, protocol="http", in_colab=False):
                     if KANGAS_BACKEND_PROXY is not None
                     else []
                 )
-                + (
-                    ["--colab", "True"]
-                    if _in_colab_environment()
-                    else []
-                )
+                + (["--colab", "True"] if _in_colab_environment() else [])
                 + (["--debug"] if debug else [])
             )
         )
@@ -249,7 +245,7 @@ def read_dataframe(dataframe, **kwargs):
 
 def read_datagrid(filename, **kwargs):
     """
-    Reads a DataGrid from a filename. Returns
+    Reads a DataGrid from a filename or URL. Returns
     the DataGrid.
 
     Args:
