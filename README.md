@@ -10,16 +10,15 @@
 Kangas is a tool for exploring, analyzing, and visualizing large-scale multimedia data. It provides a straightforward Python API
 for logging large tables of data, along with an intuitive visual interface for performing complex queries against your dataset.
 
-<img width="1789" alt="image" src="https://user-images.githubusercontent.com/42076840/197875668-5519d504-2209-472f-952e-ed09554ecb7a.png">
-
 The key features of Kangas include:
 
-- *Scale*. Kangas DataGrid, the fundamental class for representing datasets, can easily store millions of rows of data.
-- *Performance*. Group, sort, and filter across millions of data points in seconds with a simple, fast UI.
-- *Integrated computer vision support*. Visualize and filter bounding boxes, labels, and metadata without any extra setup.
-- *Interoperability*. Any data, any environment. Kangas can run in a notebook or as a standalone app, both locally and remotely.
+- **Scalability**. Kangas DataGrid, the fundamental class for representing datasets, can easily store millions of rows of data.
+- **Performance**. Group, sort, and filter across millions of data points in seconds with a simple, fast UI.
+- **Interoperability**. Any data, any environment. Kangas can run in a notebook or as a standalone app, both locally and remotely.
+- **Integrated computer vision support**. Visualize and filter bounding boxes, labels, and metadata without any extra setup.
 
 Under the hood, Kangas is built on SQLLite, Tornado, and Next.js with React Server Components. 
+
 ## Getting started
 
 Kangas is accessible as a Python library via pip
@@ -50,13 +49,13 @@ After your DataGrid is initialized, you can render it within the Kangas Viewer d
 ```python
 dg.show()
 ```
-<img width="1788" alt="image" src="https://user-images.githubusercontent.com/42076840/197877118-186f8976-9187-4867-90d8-2af634245b3c.png">
+<img width="1789" alt="image" src="https://user-images.githubusercontent.com/42076840/197875668-5519d504-2209-472f-952e-ed09554ecb7a.png">
 
-Within the Kangas Viewer, you can perform a variety of operations, including complex filtering logic, grouping, and sorting. In addition, Kangas will do its best to parse any metadata attached to your assets, incorporating it into the display. For example, if you're using the COCO-500 DataGrid linked above, Kangas will automatically parse labels for each image, allowing you to view bounding boxes and overlays, and to filter them according to their respective scores:
+From the Kangas Viewer, you can group, sort, and filter data. In addition, Kangas will do its best to parse any metadata attached to your assets. For example, if you're using the COCO-500 DataGrid from the quickstart above, Kangas will automatically parse labels and scores for each image:
 
 <img src="https://github.com/caleb-kaiser/kangas_examples/blob/master/Oct-25-2022%2016-43-56.gif">
 
-And viola! Now you're started using Kangas. If you'd like to explore further, take a look at our example notebooks below for a deeper look at what you can do with Kangas.
+And viola! Now you're started using Kangas. If you'd like to explore further, take a look at our example notebooks below:
 
 ## Further Documentation
 
@@ -66,7 +65,7 @@ And viola! Now you're started using Kangas. If you'd like to explore further, ta
 ## FAQ
 
 ### Is Kangas ready for public use?
-Kangas is currently in an open beta. We stress test Kangas heavily and often, and are confident in sharing with the public. That being said, it is a very young project, and there will be bugs and rough edges. Additionally, new features will be added at a fast pace, so if you find a bug or have a request, please do not hesitate to open a ticket or start a discussion on this repo.
+Kangas is currently in an open beta. We stress test Kangas heavily and often, and are confident in sharing with the public. That being said, it is a very young project, and there will be bugs and rough edges. Additionally, new features will be added at a fast pace, so if you find a bug or have a request, please do not hesitate to open a ticket or start a discussion.
 
 ### Does Kangas support _____ system?
 Kangas can be run as a standalone application on newer version of Windows, MacOS, and most popular Linux distributions. In addition, Kangas can run remotely via Google Colab, or within any Jupyter notebook environment.
