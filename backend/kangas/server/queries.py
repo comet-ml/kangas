@@ -36,7 +36,7 @@ from .computed_columns import update_state
 
 LOGGER = logging.getLogger(__name__)
 KANGAS_ROOT = os.environ.get("KANGAS_ROOT", ".")
-MAX_CATEGORIES = 10
+MAX_CATEGORIES = 20
 HISTOGRAM_BINS = 10
 
 CUSTOM_CODE_INIT = """

@@ -899,6 +899,12 @@ class DataGrid(object):
                 self.output = []
                 self.accum = ""
 
+            def escape(self, value):
+                if in_jupyter:
+                    return html.escape(str(value))
+                else:
+                    return str(value)
+
             def display(self, value, width, header=False, colspan=1, style=""):
                 if in_jupyter:
                     if header:
@@ -906,7 +912,7 @@ class DataGrid(object):
                     else:
                         self.output.append("<td colspan='%s' %s>" % (colspan, style))
                 self.output.append(
-                    ("%" + ("%s.%s" % (width, width)) + "s") % html.escape(str(value))
+                    ("%" + ("%s.%s" % (width, width)) + "s") % self.escape(value)
                 )
                 if in_jupyter:
                     if header:
