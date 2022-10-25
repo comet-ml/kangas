@@ -12,6 +12,7 @@ import {
 } from 'react';
 import formatChartText from '../../../lib/formatChartText';
 import { getColor } from '../../../lib/generateChartColor';
+import useCategory from '../../../lib/useCategory';
 
 // Config
 import { ConfigContext } from '../ClientContext.client';
@@ -22,24 +23,9 @@ const Plot = dynamic(() => import('react-plotly.js'), {
 
 // It spiritually hurts me that this cannot be a server component - Caleb
 const CategoryGroupClient = ({ value }) => {
-    const appConfig = useContext(ConfigContext);
-    const [data, setData] = useState(null);
     const [dimensions, setDimensions] = useState(null);
 
-    const id = useRef(Math.random());
-
-    const fetchData = useCallback(async () => {
-        const res = await fetch(`${appConfig.apiUrl}category`, {
-            body: JSON.stringify(value),
-            method: 'post',
-        });
-        const parsed = await res.json();
-        setData(parsed);
-    }, [value]);
-
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+    const data = useCategory(value)
 
     useLayoutEffect(() => {
         const viewport = window.visualViewport;

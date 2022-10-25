@@ -11,29 +11,13 @@ import {
 } from 'react';
 import formatChartText from '../../../lib/formatChartText';
 import { getColor } from '../../../lib/generateChartColor';
-import { ConfigContext } from '../ClientContext.client';
+import useCategory from '../../../lib/useCategory';
 const Plot = dynamic(() => import('react-plotly.js'), {
     ssr: false,
 });
 const CategoryGroupClient = ({ value }) => {
-    const [data, setData] = useState(null);
     const [dimensions, setDimensions] = useState(null);
-    const appConfig = useContext(ConfigContext);
-
-    const id = useRef(Math.random());
-
-    const fetchData = useCallback(async () => {
-        const res = await fetch(`${appConfig.apiUrl}category`, {
-            body: JSON.stringify(value),
-            method: 'post',
-        });
-        const parsed = await res.json();
-        setData(parsed);
-    }, [value]);
-
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+    const data = useCategory(value)
 
     /*
     useLayoutEffect(() => {

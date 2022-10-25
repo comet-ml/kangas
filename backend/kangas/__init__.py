@@ -68,7 +68,7 @@ def terminate():
     _process_method("python", "kangas", "terminate")
 
 
-def launch(host=None, port=4000, debug=False, protocol="http"):
+def launch(host=None, port=4000, debug=False, protocol="http", in_colab=False):
     """
     Launch the Kangas servers.
 
@@ -123,6 +123,11 @@ def launch(host=None, port=4000, debug=False, protocol="http"):
                 + (
                     ["--backend-proxy", KANGAS_BACKEND_PROXY]
                     if KANGAS_BACKEND_PROXY is not None
+                    else []
+                )
+                + (
+                    ["--colab", "True"]
+                    if _in_colab_environment()
                     else []
                 )
                 + (["--debug"] if debug else [])

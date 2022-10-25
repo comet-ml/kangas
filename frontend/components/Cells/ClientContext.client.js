@@ -7,21 +7,21 @@ export const ConfigContext = createContext({
     isIframe: false
 });
 
-const ClientContext = ({ apiUrl, otherUrl, apiProxyUrl, children }) => {
-    const [isIframe, setIsIframe] = useState(false);
+const ClientContext = ({ apiUrl, otherUrl, apiProxyUrl, inColab, children }) => {
+    // const [isIframe, setIsIframe] = useState(false);
 
-    useEffect(() => {
+    /*useEffect(() => {
         if (window !== window.parent) {
             setIsIframe(true);
         }
-    }, [])
+    }, [])*/
     return (
         <ConfigContext.Provider
             value={{
                 apiUrl,
                 otherUrl,
                 apiProxyUrl,
-                isIframe
+                isIframe: inColab
             }}
         >
             {children}

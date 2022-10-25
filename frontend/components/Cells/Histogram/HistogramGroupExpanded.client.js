@@ -13,26 +13,15 @@ import truncateValue from '../../../lib/truncateValue';
 import { getColor } from '../../../lib/generateChartColor';
 
 import { ConfigContext } from '../ClientContext.client';
+import useHistogram from '../../../lib/useHistogram';
 
 const Plot = dynamic(() => import('react-plotly.js'), {
     ssr: false,
 });
 
 const HistogramGroupClient = ({ value, dgid }) => {
-    const [data, setData] = useState(null);
     const appConfig = useContext(ConfigContext);
-    const fetchData = useCallback(async () => {
-        const res = await fetch(`${appConfig.apiUrl}histogram`, {
-            body: JSON.stringify(value),
-            method: 'post',
-        });
-        const parsed = await res.json();
-        setData(parsed);
-    }, [value]);
-
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+    const data = useHistogram(value);
 
     // TODO Clean this up as a subcomponent
     const makeStatsTable = (statistics) => {

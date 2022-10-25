@@ -10,27 +10,16 @@ import {
 import formatValue from '../../../lib/formatValue';
 import { getColor } from '../../../lib/generateChartColor';
 import { ConfigContext } from '../ClientContext.client';
-
+import useHistogram from '../../../lib/useHistogram';
 const Plot = dynamic(() => import('react-plotly.js'), {
     ssr: false,
 });
 
 const HistogramGroupClient = ({ value, dgid }) => {
-    const [data, setData] = useState(null);
     const appConfig = useContext(ConfigContext);
-    const fetchData = useCallback(async () => {
-        const res = await fetch(`${appConfig.apiUrl}histogram`, {
-            body: JSON.stringify(value),
-            method: 'post',
-        });
-        const parsed = await res.json();
-        setData(parsed);
-    }, [value]);
+    const data = useHistogram(value)
 
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
-
+    // TODO: Move into useHistogram
     const histogramData = useMemo(() => {
         if (!data) return null;
         else

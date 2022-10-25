@@ -81,7 +81,7 @@ const Root = ({ query, matrices, expiration }) => {
                 />
             </Suspense>
             <Suspense fallback={<Skeletons />}>
-                <ClientContext apiUrl={config.apiUrl} otherUrl={config.apiUrl} apiProxyUrl={config.apiProxyUrl} >
+                <ClientContext apiUrl={config.apiUrl} otherUrl={config.apiUrl} apiProxyUrl={config.apiProxyUrl} inColab={config.inColab} >
                     <div className="table-root">
                         <div id="header-row" className={`${rowClass}`}>
                             {filteredColumns.map((col) => (
