@@ -33,6 +33,7 @@
     "react-table": "^7.8.0",
     "sharp": "^0.31.0",
     "use-debounce": "^8.0.4",
+    "uuid": "^9.0.0",
     "wavesurfer.js": "^6.2.0"
   },
   "pkg": {

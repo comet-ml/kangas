@@ -74,7 +74,6 @@ const Root = ({ query, matrices, expiration }) => {
             : 'column cell';
     const headerClass = colClass.includes('group') ? 'column-group' : 'column';
     return (
-        <div>
         <Page>
             <Suspense fallback={<Skeletons />}>
                 <Imports />
@@ -89,7 +88,7 @@ const Root = ({ query, matrices, expiration }) => {
                 />
             </Suspense>
             <Suspense fallback={<Skeletons />}>
-                <ClientContext apiUrl={config.apiUrl} otherUrl={config.apiUrl} apiProxyUrl={config.apiProxyUrl} >
+                <ClientContext apiUrl={config.apiUrl} otherUrl={config.apiUrl} apiProxyUrl={config.apiProxyUrl} inColab={config.inColab} >
                     <div className="table-root">
                         <div id="header-row" className={`${rowClass}`}>
                             {filteredColumns.map((col) => (
@@ -209,7 +208,6 @@ const Root = ({ query, matrices, expiration }) => {
                 <FooterRow query={query} total={total} />
             </Suspense>
         </Page>
-        </div>
     );
 };
 

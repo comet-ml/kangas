@@ -179,14 +179,12 @@ const ImageCanvas = ({ url, metadata, dgid, assetId, urls }) => {
     const clientFetchMeta = useCallback(async () => {
         if (metadata) return;
 
-        const res = await fetch(`/api/metadata`, {
-            body: JSON.stringify({
+        const res = await fetch(`/api/metadata?${new URLSearchParams({
                 assetId: assetId || new URL(url).searchParams.get('assetId'),
                 dgid,
-                url: `${appConfig.apiProxyUrl}asset-metadata`,
-            }),
-            method: 'post',
-        });
+                url: `../4001/asset-metadata`,
+            }).toString()}`
+        );
         const parsed = await res.json();
         setParsedMeta(JSON.parse(parsed));
     }, [appConfig?.apiProxyUrl, assetId, dgid, metadata, url]);

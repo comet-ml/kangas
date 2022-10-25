@@ -300,8 +300,9 @@ class DataGrid(object):
         ```
         """
         from IPython.display import IFrame, Javascript, display
-
+        import json
         from kangas import launch
+        from kangas.server.queries import select_asset_metadata, select_asset, select_histogram, select_category
 
         url = launch(host, port, debug, protocol)
 
@@ -313,6 +314,68 @@ class DataGrid(object):
         url = "%s%s" % (url, qvs)
 
         if _in_colab_environment():
+            from google.colab import output
+            import base64
+
+            def _py_fetch_metadata(dgid, assetId):
+                result = select_asset_metadata(dgid, assetId)
+                return result
+            
+            def _py_fetch_asset(dgid, assetId):
+                result = select_asset(dgid, assetId, False)
+                encoded = base64.b64encode(result)
+                return encoded
+
+            def _py_fetch_histogram(
+                dgid,
+                group_by,
+                where,
+                column_name,
+                column_value,
+                where_description,
+                computed_columns,
+                where_expr
+            ):
+                result = select_histogram(
+                            dgid,
+                            group_by,
+                            where,
+                            column_name,
+                            column_value,
+                            where_description,
+                            computed_columns,
+                            where_expr
+                        )
+                return result
+
+            def _py_fetch_category(
+                dgid,
+                group_by,
+                where,
+                column_name,
+                column_value,
+                where_description,
+                computed_columns,
+                where_expr
+            ):
+                result = select_category(
+                            dgid,
+                            group_by,
+                            where,
+                            column_name,
+                            column_value,
+                            where_description,
+                            computed_columns,
+                            where_expr
+                        )
+                return result
+
+
+            
+            output.register_callback('_py_fetch_metadata', _py_fetch_metadata)
+            output.register_callback('_py_fetch_asset', _py_fetch_asset)
+            output.register_callback('_py_fetch_histogram', _py_fetch_histogram)
+            output.register_callback('_py_fetch_category', _py_fetch_category)
             display(
                 Javascript(
                     """
@@ -323,10 +386,60 @@ class DataGrid(object):
     fm.height = '{height}';
     fm.frameBorder = 0;
     document.body.append(fm);
+    window.addEventListener("message", async (e) => {{
+        const {{ type, targetId }} = e.data;
+        if (type === 'metadata') {{
+            const result = await google.colab.kernel.invokeFunction(
+                '_py_fetch_metadata',
+                [e.data.dgid, e.data.assetId],
+                {{}});
+            const message = JSON.parse(result.data?.['text/plain'].slice(1, -1));
+            message['messageType'] = 'metadata';
+            message['targetId'] = targetId;
+            fm.contentWindow.postMessage(message, "*");
+        }} else if (type === 'asset') {{
+            const result = await google.colab.kernel.invokeFunction(
+                '_py_fetch_asset',
+                [e.data.dgid, e.data.assetId],
+                {{}});
+            const srcString = result.data?.['text/plain'].slice(2, -1);
+            const message = {{
+                src: srcString,
+                messageType: 'asset',
+                targetId
+            }};
+            fm.contentWindow.postMessage(message, "*");
+        }} else if (type === 'histogram') {{
+            const {{ dgid, groupBy, where, columnName, columnValue, where_description, computed_columns, whereExpr }} = e.data
+            const result = await google.colab.kernel.invokeFunction(
+                '_py_fetch_histogram',
+                [dgid, groupBy, where, columnName, columnValue, where_description, computed_columns, whereExpr],
+                {{}}
+            )
+            const message = {{
+                raw: result.data?.['text/plain'],
+                messageType: 'histogram',
+                targetId
+            }};
+            fm.contentWindow.postMessage(message, "*");
+        }} else if (type === 'category') {{
+            const {{ dgid, groupBy, where, columnName, columnValue, where_description, computed_columns, whereExpr }} = e.data
+            const result = await google.colab.kernel.invokeFunction(
+                '_py_fetch_category',
+                [dgid, groupBy, where, columnName, columnValue, where_description, computed_columns, whereExpr],
+                {{}}
+            )
+            const message = {{
+                raw: result.data?.['text/plain'],
+                messageType: 'category',
+                targetId
+            }};
+            fm.contentWindow.postMessage(message, "*");
+        }}
+
+    }}, false);
 }})();
-""".format(
-                        port=port, width=width, height=height, qvs=qvs
-                    )
+""".format(port=port, width=width, height=height, qvs=qvs)
                 )
             )
 

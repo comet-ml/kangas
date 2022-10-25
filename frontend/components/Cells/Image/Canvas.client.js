@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef, useContext, useMemo, useCallback } from 'react';
 import { ConfigContext } from '../ClientContext.client';
-
+import useMetadata from '../../../lib/useMetadata';
+import useAsset from '../../../lib/useAsset';
 const Canvas = ({ url, drawImage, dgid, scoreBound, ref }) => {
     const canvas = useRef();
     const image = useRef();
-    const [parsedMeta, setParsedMeta] = useState();
     const [filteredLabels, setFilteredLabels] = useState([]);
     const assetId = useMemo(() => {
         const searchParams = new URL(url).searchParams;
@@ -12,20 +12,8 @@ const Canvas = ({ url, drawImage, dgid, scoreBound, ref }) => {
     }, [url]);
     const appConfig = useContext(ConfigContext);
 
-
-
-    useEffect(() => {
-        fetch(`/api/metadata`, {
-            body: JSON.stringify({
-                assetId,
-                dgid,
-                url: `${appConfig.apiProxyUrl}asset-metadata`,
-            }),
-            method: 'POST',
-        })
-            .then((res) => res.json())
-            .then((data) => setParsedMeta(JSON.parse(data)));
-    }, [appConfig?.apiProxyUrl, assetId, dgid]);
+    const parsedMeta = useMetadata(dgid, assetId);
+    const imageSrc = useAsset(url);
 
     useEffect(() => {
         if (!scoreBound || !parsedMeta?.overlays) return;
@@ -49,7 +37,7 @@ const Canvas = ({ url, drawImage, dgid, scoreBound, ref }) => {
             <canvas ref={canvas} className="image-canvas" />
             <img
                 ref={image}
-                src={url}
+                src={imageSrc}
                 crossOrigin={'Anonymous'}
                 style={{ display: 'none' }}
                 onLoad={load}

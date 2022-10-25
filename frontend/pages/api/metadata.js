@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export default async function handler(req, res) {
-    const body = JSON.parse(req.body);
+    const body = Object.fromEntries(new URLSearchParams(req.query));
     const { url, ...query } = body;
     const metadata = await axios.request({
         url,
@@ -11,6 +11,6 @@ export default async function handler(req, res) {
     if (metadata.status === 200) {
         return res.status(200).json(metadata.data);
     } else {
-        return res.status(metadata.status);
+        return res.status(531).json(metadata.data);
     }
 }
