@@ -12,14 +12,14 @@
 ######################################################
 
 import csv
-import glob
+import html
 import json
 import logging
 import math
 import numbers
 import os
-import re
 import sqlite3
+import tempfile
 import urllib
 import webbrowser
 from collections import defaultdict
@@ -119,7 +119,6 @@ class DataGrid(object):
         name="Untitled",
         datetime_format="%Y/%m/%d",
         heuristics=False,
-        filename=None,
         converters=None,
     ):
         """
@@ -133,7 +132,6 @@ class DataGrid(object):
                 are read. For example, use "%Y/%m/%d" for dates like
                 "2022/12/01".
             heuristics: if True, guess that some numbers might be dates
-            filename: (optional, str) filename or URL to load DataGrid from
             converters: (optional, dict) dictionary of functions to convert items
                 into values. Keys are str (to match column name)
 
@@ -186,9 +184,10 @@ class DataGrid(object):
         # Cached:
         self._schema = None
 
-        if filename:
-            self.filename = download_filename(filename)
-            self.conn = sqlite3.connect(filename)
+        if isinstance(data, str):
+            self.filename = download_filename(data)
+            data = None
+            self.conn = sqlite3.connect(self.filename)
 
             self._on_disk = True
             schema = self.get_schema()
@@ -262,7 +261,7 @@ class DataGrid(object):
         def row(value):
             return "<tr><td colspan='%s' style='text-align: left;'>%s</td></tr>" % (
                 len(self.get_columns()) + 1,
-                value,
+                html.escape(value),
             )
 
         output = self.__repr__(row)
@@ -300,9 +299,14 @@ class DataGrid(object):
         ```
         """
         from IPython.display import IFrame, Javascript, display
-        import json
+
         from kangas import launch
-        from kangas.server.queries import select_asset_metadata, select_asset, select_histogram, select_category
+        from kangas.server.queries import (
+            select_asset,
+            select_asset_metadata,
+            select_category,
+            select_histogram,
+        )
 
         url = launch(host, port, debug, protocol)
 
@@ -314,13 +318,14 @@ class DataGrid(object):
         url = "%s%s" % (url, qvs)
 
         if _in_colab_environment():
-            from google.colab import output
             import base64
+
+            from google.colab import output
 
             def _py_fetch_metadata(dgid, assetId):
                 result = select_asset_metadata(dgid, assetId)
                 return result
-            
+
             def _py_fetch_asset(dgid, assetId):
                 result = select_asset(dgid, assetId, False)
                 encoded = base64.b64encode(result)
@@ -334,18 +339,18 @@ class DataGrid(object):
                 column_value,
                 where_description,
                 computed_columns,
-                where_expr
+                where_expr,
             ):
                 result = select_histogram(
-                            dgid,
-                            group_by,
-                            where,
-                            column_name,
-                            column_value,
-                            where_description,
-                            computed_columns,
-                            where_expr
-                        )
+                    dgid,
+                    group_by,
+                    where,
+                    column_name,
+                    column_value,
+                    where_description,
+                    computed_columns,
+                    where_expr,
+                )
                 return result
 
             def _py_fetch_category(
@@ -356,26 +361,24 @@ class DataGrid(object):
                 column_value,
                 where_description,
                 computed_columns,
-                where_expr
+                where_expr,
             ):
                 result = select_category(
-                            dgid,
-                            group_by,
-                            where,
-                            column_name,
-                            column_value,
-                            where_description,
-                            computed_columns,
-                            where_expr
-                        )
+                    dgid,
+                    group_by,
+                    where,
+                    column_name,
+                    column_value,
+                    where_description,
+                    computed_columns,
+                    where_expr,
+                )
                 return result
 
-
-            
-            output.register_callback('_py_fetch_metadata', _py_fetch_metadata)
-            output.register_callback('_py_fetch_asset', _py_fetch_asset)
-            output.register_callback('_py_fetch_histogram', _py_fetch_histogram)
-            output.register_callback('_py_fetch_category', _py_fetch_category)
+            output.register_callback("_py_fetch_metadata", _py_fetch_metadata)
+            output.register_callback("_py_fetch_asset", _py_fetch_asset)
+            output.register_callback("_py_fetch_histogram", _py_fetch_histogram)
+            output.register_callback("_py_fetch_category", _py_fetch_category)
             display(
                 Javascript(
                     """
@@ -439,7 +442,9 @@ class DataGrid(object):
 
     }}, false);
 }})();
-""".format(port=port, width=width, height=height, qvs=qvs)
+""".format(
+                        port=port, width=width, height=height, qvs=qvs
+                    )
                 )
             )
 
@@ -821,11 +826,7 @@ class DataGrid(object):
         >>> dg = DataGrid.read_datagrid("mnist.datagrid")
         ```
         """
-        filename = download_filename(filename)
-        if os.path.isfile(filename):
-            return DataGrid(filename=filename, **kwargs)
-        else:
-            raise Exception("DataGrid file not found: %r" % filename)
+        return DataGrid(filename, **kwargs)
 
     @classmethod
     def read_csv(
@@ -1037,7 +1038,7 @@ class DataGrid(object):
                     else:
                         self.output.append("<td colspan='%s' %s>" % (colspan, style))
                 self.output.append(
-                    ("%" + ("%s.%s" % (width, width)) + "s") % str(value)
+                    ("%" + ("%s.%s" % (width, width)) + "s") % html.escape(str(value))
                 )
                 if in_jupyter:
                     if header:
@@ -1702,15 +1703,7 @@ class DataGrid(object):
 
         filename = filename if filename else self.filename
         if filename == "untitled.datagrid" and self.name == "Untitled":
-            # find the next numbered Untitled and rename this:
-            max_number = 0
-            for name in glob.glob("untitled-*.datagrid"):
-                match = re.match(r"^untitled-([\d]*).datagrid$", name)
-                if match:
-                    max_number = max(int(match.groups()[0]), max_number)
-            max_number += 1
-            filename = "untitled-%03d.datagrid" % max_number
-            self.name = "Untitled-%03d" % max_number
+            filename = os.path.join(tempfile.mkdtemp(), "untitled.datagrid")
 
         self.create_thumbnails = (
             self.create_thumbnails if create_thumbnails is None else create_thumbnails
