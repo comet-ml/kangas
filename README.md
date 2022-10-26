@@ -69,7 +69,7 @@ And viola! Now you're started using Kangas. If you'd like to explore further, ta
 Kangas is currently in an open beta. We stress test Kangas heavily and often, and are confident in sharing with the public. That being said, it is a very young project, and there will be bugs and rough edges. Additionally, new features will be added at a fast pace, so if you find a bug or have a request, please do not hesitate to open a ticket or start a discussion.
 
 ### Does Kangas support _____ system?
-Kangas can be run as a standalone application on newer version of Windows, MacOS, and most popular Linux distributions. In addition, Kangas can run remotely via Google Colab, or within any Jupyter notebook environment.
+Kangas can be run as a standalone application on newer versions of Windows, MacOS, and most popular Linux distributions. In addition, Kangas can run remotely via Google Colab, or within any Jupyter notebook environment.
 
 ### When should I use Kangas instead of _____?
 #### Pandas
