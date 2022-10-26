@@ -1,20 +1,13 @@
 /* eslint-disable react/jsx-key */
 
 import { useCallback, useEffect, useRef, useState, useContext } from 'react';
-
 import Image from 'next/image';
-
-// Config
 import { ConfigContext } from '../ClientContext.client';
-
-// Client:
 import ImageCanvas from './ImageCanvas.client';
 import DialogueModalContainer from '../../Modals/DialogueModalContainer.client';
 
-// Utils
-
 const LazyImageGroup = ({ images, dgid, children }) => {
-    const appConfig = useContext(ConfigContext);
+    const { apiUrl } = useContext(ConfigContext);
     const [visible, setVisible] = useState(20);
     const lazyRoot = useRef(null);
     const scrollBoundary = useRef();
@@ -62,7 +55,7 @@ const LazyImageGroup = ({ images, dgid, children }) => {
                             >
                                 <Image
                                     src={`/api/image?url=${encodeURIComponent(
-                                        `${appConfig.apiUrl}download?assetId=${id}&dgid=${dgid}`
+                                        `${apiUrl}download?assetId=${id}&dgid=${dgid}`
                                     )}`}
                                     lazyRoot={lazyRoot}
                                     layout={'fill'}
@@ -73,8 +66,7 @@ const LazyImageGroup = ({ images, dgid, children }) => {
                         }
                     >
                         <ImageCanvas
-                            url={`${appConfig.apiUrl}download?assetId=${id}&dgid=${dgid}`}
-                            metadata={null}
+                            url={`${apiUrl}download?assetId=${id}&dgid=${dgid}`}
                             dgid={dgid}
                             assetId={id}
                         />

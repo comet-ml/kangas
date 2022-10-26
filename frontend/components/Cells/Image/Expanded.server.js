@@ -22,7 +22,7 @@ const ExpandedImageCell = ({ value, dgid }) => {
                 url={url}
                 dgid={dgid}
                 assetId={assetId}
-                metadata={metadata}
+                inheritedMetadata={metadata}
             />
         </Suspense>
     );

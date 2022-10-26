@@ -11,12 +11,11 @@ Outside of an iframe, Kangas will fetch against the relevant endpoint directly, 
 of Next.js api routes
 */
 
-const useMetadata = (dgid, assetId) => {
+const useMetadata = (dgid, assetId, inheritedMetadata) => {
     const { isIframe, apiUrl } = useContext(ConfigContext);
     const [metadata, setMetadata] = useState();
     const listenerAttached = useRef(false);
     const listenerId = useMemo(() => uuid(), []);
-    console.log(`api url: ${apiUrl}`)
 
     useEffect(() => {
         // Handle Iframes (Jupyter notebooks/Colab etc.)
@@ -41,7 +40,7 @@ const useMetadata = (dgid, assetId) => {
         // Non-iframe fetching
         else if (!isIframe) {
             fetch(`/api/metadata?${new URLSearchParams({
-                assetId: assetId || new URL(url).searchParams.get('assetId'),
+                assetId,
                 dgid,
                 url: `${apiUrl}asset-metadata`,
             })}`)
@@ -51,6 +50,7 @@ const useMetadata = (dgid, assetId) => {
         }
     }, [dgid, assetId, listenerId]);
 
+    if (inheritedMetadata) return JSON.parse(inheritedMetadata); // TODO: Remove this escape hatch when we fix the clientFetchMeta mess in ImageCanvas 
     return metadata;
 }
 

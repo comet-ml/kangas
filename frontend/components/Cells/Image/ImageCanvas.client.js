@@ -6,26 +6,17 @@ import {
     useEffect,
     useCallback,
     useMemo,
-    useContext,
     createContext,
-    useReducer,
 } from 'react';
-import dynamic from 'next/dynamic';
 import { useInView } from 'react-intersection-observer';
 import { useDebouncedCallback } from 'use-debounce';
-
-// Config
-import { ConfigContext } from '../ClientContext.client';
-
-// Utils
-
 import { getColor } from '../../../lib/generateChartColor';
 
 import Label from './Label.client';
 import DialogueModalContainer from '../../Modals/DialogueModalContainer.client';
 import CanvasWrapper from './CanvasWrapper.client';
 import Canvas from './Canvas.client';
-import { StatusTypes } from 'react-async';
+import useMetadata from '../../../lib/useMetadata';
 /*
 
 In the below components, we have a potentially confusing distinction between "hidden labels" and "filtered labels".
@@ -38,23 +29,6 @@ Hidden labels are set at the parent ImageCanvas level, while each canvas individ
 */
 
 export const CanvasContext = createContext();
-
-const initialState = {
-    canvasesRendered: 0,
-    canvasesRemaining: 0,
-}
-
-const reducer = (state, action) => {
-    switch (action.type) {
-        case 'render-canvas':
-
-            return {
-                ...state,
-                canvasesRendered: state.canvasesRendered + 1,
-                canvasesRemaining: state.canvasesRemaining - 1,
-            }
-    }
-}
 
 // TODO Memoize these props into a canvasProps style object
 const CanvasContainer = ({ urls, url, isMulti, strValue, drawImage, assetId, dgid, filterLabels, scoreBound }) => {
@@ -156,16 +130,16 @@ const Accordion = ({ label, children }) => {
 };
 
 
-const ImageCanvas = ({ url, metadata, dgid, assetId, urls }) => {
+
+const ImageCanvas = ({ url, inheritedMetadata, dgid, assetId, urls }) => {
     // This is the full image, not thumbnail
-    const appConfig = useContext(ConfigContext);
+    const metadata = useMetadata(dgid, assetId, inheritedMetadata);
     const [mask] = useState();
     const [smootheImage, setSmootheImage] = useState(true);
     const [grayscale, setGrayscale] = useState(false);
     const [invert] = useState(false);
     const [imageAlpha] = useState(1.0);
     const [overlayAlpha] = useState(1.0);
-    const [parsedMeta, setParsedMeta] = useState();
     const [scoreRange, setScoreRange] = useState({ min: 0, max: 1 });
     const [scoreBound, setScoreBound] = useState();
 
@@ -175,45 +149,6 @@ const ImageCanvas = ({ url, metadata, dgid, assetId, urls }) => {
     const isMulti = useMemo(() => !!urls?.length, [urls]);
 
     const scoreRef = useRef();
-
-    const clientFetchMeta = useCallback(async () => {
-        if (metadata) return;
-
-	let res;
-
-	if (appConfig.isIframe) {
-	    // FIXME:
-	    res = await fetch(`/api/metadata?${new URLSearchParams({
-                    assetId: assetId || new URL(url).searchParams.get('assetId'),
-                    dgid,
-                    url: '../4001/asset-metadata',
-                  }).toString()}`
-	    );
-	} else {
-	    res = await fetch(`/api/metadata?${new URLSearchParams({
-                    assetId: assetId || new URL(url).searchParams.get('assetId'),
-                    dgid,
-                    url: `${appConfig.apiUrl}asset-metadata`,
-                  }).toString()}`
-			     );
-	}
-
-        const parsed = await res.json();
-        setParsedMeta(JSON.parse(parsed));
-    }, [appConfig?.apiUrl, appConfig?.isIframe, assetId, dgid, metadata, url]);
-
-	// If metadata is passed in as a prop, we use it to set parsedMeta.
-	// If not, we fetch the metadata on the clientside
-    useEffect(() => {
-        if (metadata) {
-            const parsed = JSON.parse(metadata);
-            if (parsed) {
-                setParsedMeta(parsed);
-            }
-        } else {
-            clientFetchMeta();
-        }
-    }, [metadata, clientFetchMeta]);
 
     const updateSmoothing = useCallback((value) => {
         // checkbox is for pixelated, so true means not smoothe:
@@ -423,11 +358,11 @@ const ImageCanvas = ({ url, metadata, dgid, assetId, urls }) => {
     );
 
     const formattedLabels = useMemo(() => {
-        if (!parsedMeta?.labels) return null;
+        if (!metadata?.labels) return null;
         // TODO: Remove when all DGs are updated. Old DGs used a raw array data structure for labels.
-        if (Array.isArray(parsedMeta?.labels)) return parsedMeta?.labels.sort();
-        return Object.keys(parsedMeta?.labels).sort();
-    }, [parsedMeta]);
+        if (Array.isArray(metadata?.labels)) return metadata?.labels.sort();
+        return Object.keys(metadata?.labels).sort();
+    }, [metadata]);
 
     const strValue = useMemo(
         () => metadata?.name || metadata?.filename || assetId,
@@ -435,16 +370,16 @@ const ImageCanvas = ({ url, metadata, dgid, assetId, urls }) => {
     );
 
     const displayMeta = useMemo(() => {
-        if (!parsedMeta || isMulti) return null;
-        if (!parsedMeta?.overlays) return parsedMeta;
-        const { ...display } = parsedMeta;
+        if (!metadata || isMulti) return null;
+        if (!metadata?.overlays) return metadata;
+        const { ...display } = metadata;
         return display;
-    }, [parsedMeta, isMulti]);
+    }, [metadata, isMulti]);
 
     useEffect(() => {
-        if (parsedMeta?.overlays && !!scoreBound) {
+        if (metadata?.overlays && !!scoreBound) {
             let newHiddenLabels = new Set(hiddenLabels);
-            for (const overlay of parsedMeta?.overlays || {}) {
+            for (const overlay of metadata?.overlays || {}) {
                 if (overlay?.score) {
                     if (overlay?.score <= scoreBound) {
                         newHiddenLabels.add(overlay?.label);
@@ -464,7 +399,7 @@ const ImageCanvas = ({ url, metadata, dgid, assetId, urls }) => {
                 setHiddenLabels(newHiddenLabels);
             }
         }
-    }, [parsedMeta, scoreBound, hiddenLabels]);
+    }, [metadata, scoreBound, hiddenLabels]);
 
     return (
         <div className="editor-container">
@@ -555,7 +490,7 @@ const ImageCanvas = ({ url, metadata, dgid, assetId, urls }) => {
             <div className={`right-column ${isMulti && 'multi-canvas'}`}>
 				<CanvasContainer
 					urls={urls}
-					url={url}
+					url={url || ''}
 					dgid={dgid}
 					assetId={assetId}
 					isMulti={isMulti}

@@ -29,7 +29,7 @@ const ExpandedGroupImageCell = ({ value, dgid }) => {
 
     return (
         <Suspense fallback={<div>loading</div>}>
-            <ImageCanvas urls={urls} metadata={metadata} dgid={dgid} />
+            <ImageCanvas urls={urls} inheritedMetadata={metadata} dgid={dgid} />
         </Suspense>
     );
 };
