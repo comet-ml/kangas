@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useContext, useMemo, useCallback } from 'react';
-import { ConfigContext } from '../ClientContext.client';
 import useMetadata from '../../../lib/useMetadata';
 import useAsset from '../../../lib/useAsset';
 const Canvas = ({ url, drawImage, dgid, scoreBound, ref }) => {
@@ -10,7 +9,6 @@ const Canvas = ({ url, drawImage, dgid, scoreBound, ref }) => {
         const searchParams = new URL(url).searchParams;
         return searchParams.get('assetId');
     }, [url]);
-    const appConfig = useContext(ConfigContext);
 
     const parsedMeta = useMetadata(dgid, assetId);
     const imageSrc = useAsset(url);

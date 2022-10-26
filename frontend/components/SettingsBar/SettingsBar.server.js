@@ -1,38 +1,9 @@
-import { Suspense } from 'react';
-import dynamic from 'next/dynamic';
-// Util
-
-// Client Components
-import GroupBy from './GroupBy.client';
 import MatrixSelect from './MatrixSelect.client';
-import SortBy from './SortBy.client';
-import FilterExpr from './FilterExpr.client';
 import DialogueModal from '../Modals/DialogueModalContainer.client';
-import CustomizeColumnsModal from './CustomizeColumns.client';
-import { Pages } from '@material-ui/icons';
-import Paging from './Paging.client';
-import Skeletons from '../skeletons';
 import SelectRow from './SelectRow.client';
 import RefreshButton from './RefreshButton.client';
+import config from '../../config';
 
-
-const SortButton = () => (
-    <div className="button-outline">
-        <img src="/sort_icon.png" /> <span>Sort</span>
-    </div>
-);
-
-const GroupButton = () => (
-    <div className="button-outline">
-        <img src="/group_placeholder.png" /> <span>Group by</span>
-    </div>
-);
-
-const SelectButton = () => (
-    <div className="button-outline">
-        <img src="/columns_placeholder.png" /> <span>Columns</span>
-    </div>
-);
 
 const KangasButton = () => (
     <div className="button-outline">
@@ -68,10 +39,12 @@ const SettingsBarServer = ({ query, matrices, columns, options, status }) => {
                 <DialogueModal fullScreen={false} toggleElement={<KangasButton />}>
                     <StatusText status={status} />
                 </DialogueModal>
-                <div id="matrix-select" className="select-row">
-                    <MatrixSelect query={query} options={matrices} />
-                    <RefreshButton query={query} />
-                </div>
+                { !config.inColab && (
+                    <div id="matrix-select" className="select-row">
+                        <MatrixSelect query={query} options={matrices} />
+                        <RefreshButton query={query} />
+                    </div>
+                ) }
             </div>
             <div id="nav-bar">
                 <SelectRow columns={columns} query={query} options={options} />
