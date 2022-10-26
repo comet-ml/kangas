@@ -17,7 +17,7 @@ The key features of Kangas include:
 - **Interoperability**. Any data, any environment. Kangas can run in a notebook or as a standalone app, both locally and remotely.
 - **Integrated computer vision support**. Visualize and filter bounding boxes, labels, and metadata without any extra setup.
 
-You can access a live demo of Kangas at <a href="https://kangas.comet.com">kangas.comet.com</a>. 
+You can access a live demo of Kangas at <a href="https://kangas.comet.com?datagrid=/data/coco-500.datagrid">kangas.comet.com</a>. 
 
 ## Getting started
 
