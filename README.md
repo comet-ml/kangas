@@ -4,7 +4,16 @@
 
 -----------------
 
-# Kangas: Explore multimedia datasets at scale
+<p align="center">
+    <a href="https://opensource.org/licenses/Apache-2.0">
+        <img alt="GitHub" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg">
+    </a>
+    <a href="https://colab.research.google.com/github/comet-ml/kangas/blob/main/notebooks/DataGrid-Getting%20Started.ipynb">
+    <img src="https://colab.research.google.com/assets/colab-badge.svg">
+    </a>
+</p>
+
+# Kangas: Explore Multimedia Datasets at Scale :kangaroo:
 
 
 Kangas is a tool for exploring, analyzing, and visualizing large-scale multimedia data. It provides a straightforward Python API
@@ -19,7 +28,7 @@ The key features of Kangas include:
 
 You can access a live demo of Kangas at <a href="https://kangas.comet.com?datagrid=/data/coco-500.datagrid">kangas.comet.com</a>. 
 
-## Getting started
+## Getting Started
 
 Kangas is accessible as a Python library via pip
 ```
@@ -67,10 +76,10 @@ Kangas can be run as a standalone application on newer versions of Windows, MacO
 Kangas and Pandas are complimentary tools. When you've wrangled your data into a Pandas DataFrame, Kangas can ingest that DataFrame via the `DataGrid.read_dataframe()` method, making it easy to visualize and explore your tabular data. Additionally, if your data is too large to process in Pandas or involves multimedia assets, Kangas is a strong alternative.
 
 #### Tensorboard
-TensorBoard is one of several tools (including Kangas parent organization, [Comet](https://comet.com)) that specializes in experiment managment. Like Kangas, it provides charting and visualizations out of the box, but is specifically designed for analyzing training workflows. Kangas, in contrast, is designed to analyze any dataset. For example, even if you use a tool like TensorBoard for analyzing training runs, you may still use Kangas before training for exploratory data analysis, or for prediction analysis post-deployment.
+TensorBoard is one of several tools (including Kangas parent organization, [Comet](https://www.comet.com/site/?utm_source=datagrid&utm_medium=partner&utm_campaign=AMS_US_EN_SNUP_Kangas_DataGrid) that specializes in experiment managment. Like Kangas, it provides charting and visualizations out of the box, but is specifically designed for analyzing training workflows. Kangas, in contrast, is designed to analyze any dataset. For example, even if you use a tool like TensorBoard for analyzing training runs, you may still use Kangas before training for exploratory data analysis, or for prediction analysis post-deployment.
 
 ### What is Kangas relationship with Comet?
-Kangas is developed and maintained by the Research team at [Comet](https://comet.com). It began life as a prototype for Comet users who needed to visualize large computer vision datasets, and was later spun out into a standalone open source project. Kangas is and always will be free and open source software, and we are more than happy to accept community contributions.
+Kangas is developed and maintained by the Research team at [Comet](https://www.comet.com/site/?utm_source=datagrid&utm_medium=partner&utm_campaign=AMS_US_EN_SNUP_Kangas_DataGrid). It began life as a prototype for Comet users who needed to visualize large computer vision datasets, and was later spun out into a standalone open source project. Kangas is and always will be free and open source software, and we are more than happy to accept community contributions.
 
 ## Contributing
 Kangas has only recently been released, and as such, we don't have much of a formal process for contributions. If you have an idea or would like to make a contribution, we recommend opening a ticket describing your proposed contribution so that we can collaborate directly. We love working with community contributors.
