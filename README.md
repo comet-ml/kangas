@@ -51,8 +51,8 @@ And viola! Now you're started using Kangas. If you'd like to explore further, ta
 ## Documentation
 
 1. <a href="https://github.com/comet-ml/kangas/wiki">Documentation Homepage</a>
-2. <a href="https://github.com/comet-ml/kangas/blob/main/notebooks/DataGrid-Getting%20Started.ipynb">Quickstart Notebook</a>
-3. <a href="https://github.com/comet-ml/kangas/blob/main/notebooks/Integrations.ipynb">Integrations Notebook</a>
+2. <a href="https://github.com/comet-ml/kangas/blob/main/notebooks/DataGrid-Getting%20Started.ipynb">Quickstart Notebook</a> <a href="https://colab.research.google.com/github/comet-ml/kangas/blob/main/notebooks/DataGrid-Getting%20Started.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg"></a>
+3. <a href="https://github.com/comet-ml/kangas/blob/main/notebooks/Integrations.ipynb">Integrations Notebook</a> <a href="https://colab.research.google.com/github/comet-ml/kangas/blob/main/notebooks/Integrations.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg"></a>
 
 ## FAQ
 
