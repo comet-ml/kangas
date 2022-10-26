@@ -1,5 +1,5 @@
 <div align="center">
-<img src="https://user-images.githubusercontent.com/42076840/197875783-35aef4d3-9381-447f-b5a9-20296dfacd51.png"><br>
+<img src="https://user-images.githubusercontent.com/42076840/198122822-560030a1-36e2-41c9-9a17-c57f3fc57014.png"><br>
 </div>
 
 -----------------
@@ -17,7 +17,7 @@ The key features of Kangas include:
 - **Interoperability**. Any data, any environment. Kangas can run in a notebook or as a standalone app, both locally and remotely.
 - **Integrated computer vision support**. Visualize and filter bounding boxes, labels, and metadata without any extra setup.
 
-You can access a live demo of Kangas at <a href="https://kangas.comet.com" target="_blank">kangas.comet.com</a>. 
+You can access a live demo of Kangas at <a href="https://kangas.comet.com">kangas.comet.com</a>. 
 
 ## Getting started
 
@@ -26,22 +26,13 @@ Kangas is accessible as a Python library via pip
 pip install kangas
 ```
 
-Once installed, there are many ways to load or create a DataGrid:
+Once installed, there are many ways to load or create a DataGrid. Here, we load a publicly available DataGrid file, but the Kangas API also provides methods for ingesting CSVs, Pandas DataFrames, and for manually constructing a new DataGrid:
 
 ```python
 import kangas as kg
 
 # Load an existing DataGrid
 dg = kg.read_datagrid("https://github.com/caleb-kaiser/kangas_examples/raw/master/coco-500.datagrid")
-
-# Build a DataGrid from a CSV
-dg = kg.read_csv("/path/to/your.csv")
-
-# Build a DataGrid from a Pandas DataFrame
-dg = kg.read_dataframe(your_dataframe)
-
-# Construct a DataGrid manually
-dg = kg.DataGrid(name="Example 1", columns=["Category", "Loss", "Fitness", "Timestamp"])
 ```
 
 After your DataGrid is initialized, you can render it within the Kangas Viewer directly from Python:
@@ -79,7 +70,7 @@ Kangas and Pandas are complimentary tools. When you've wrangled your data into a
 TensorBoard is one of several tools (including Kangas parent organization, [Comet](https://comet.com)) that specializes in experiment managment. Like Kangas, it provides charting and visualizations out of the box, but is specifically designed for analyzing training workflows. Kangas, in contrast, is designed to analyze any dataset. For example, even if you use a tool like TensorBoard for analyzing training runs, you may still use Kangas before training for exploratory data analysis, or for prediction analysis post-deployment.
 
 ### What is Kangas relationship with Comet?
-Kangas is developed and maintained by the Research team at [Comet ML](https://comet.com). It began life as a prototype for Comet users who needed to visualize large computer vision datasets, and was later spun out into a standalone open source project. Kangas is and always will be free and open source software, and we are more than happy to accept community contributions.
+Kangas is developed and maintained by the Research team at [Comet](https://comet.com). It began life as a prototype for Comet users who needed to visualize large computer vision datasets, and was later spun out into a standalone open source project. Kangas is and always will be free and open source software, and we are more than happy to accept community contributions.
 
 ## Contributing
 Kangas has only recently been released, and as such, we don't have much of a formal process for contributions. If you have an idea or would like to make a contribution, we recommend opening a ticket describing your proposed contribution so that we can collaborate directly. We love working with community contributors.
