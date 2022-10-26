@@ -62,7 +62,6 @@ const CanvasContainer = ({ urls, url, isMulti, strValue, drawImage, assetId, dgi
                                     <CanvasWrapper
                                         url={x}
                                         drawImage={drawImage}
-                                        assetId={assetId}
                                         dgid={dgid}
                                         filterLabels={filterLabels}
                                         scoreBound={scoreBound}
@@ -73,7 +72,7 @@ const CanvasContainer = ({ urls, url, isMulti, strValue, drawImage, assetId, dgi
                                 <ImageCanvas
                                     url={x}
                                     dgid={dgid}
-                                    assetId={assetId}
+                                    assetId={new URL(x).searchParams.get('assetId')}
                                 />
                             </DialogueModalContainer>
                         ))}
@@ -490,7 +489,7 @@ const ImageCanvas = ({ url, inheritedMetadata, dgid, assetId, urls }) => {
             <div className={`right-column ${isMulti && 'multi-canvas'}`}>
 				<CanvasContainer
 					urls={urls}
-					url={url || ''}
+					url={url}
 					dgid={dgid}
 					assetId={assetId}
 					isMulti={isMulti}
