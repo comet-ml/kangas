@@ -1,10 +1,20 @@
 <div align="center">
-<img src="https://user-images.githubusercontent.com/42076840/197875783-35aef4d3-9381-447f-b5a9-20296dfacd51.png"><br>
+<img src="https://user-images.githubusercontent.com/42076840/198122822-560030a1-36e2-41c9-9a17-c57f3fc57014.png"><br>
 </div>
 
 -----------------
 
-# Kangas: Explore multimedia datasets at scale
+<p align="center">
+    <a href="https://opensource.org/licenses/Apache-2.0">
+        <img alt="GitHub" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg">
+    </a>
+    <a href="https://colab.research.google.com/github/comet-ml/kangas/blob/main/notebooks/DataGrid-Getting%20Started.ipynb">
+    <img src="https://colab.research.google.com/assets/colab-badge.svg">
+    </a>
+    <a href="https://kangas.comet.com?datagrid=/data/coco-500.datagrid" rel="nofollow"><img src="https://camo.githubusercontent.com/31c3fad2db001d9015357522b271caef3a40b49e99a3f4879cf488da07448054/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f4b616e6761732d4c69766525323044656d6f2d626c75652e737667" alt="Kangas Live Demo" data-canonical-src="https://img.shields.io/badge/Kangas-Live%20Demo-blue.svg" style="max-width: 100%;"></a>
+</p>
+
+# Kangas: Explore Multimedia Datasets at Scale :kangaroo:
 
 
 Kangas is a tool for exploring, analyzing, and visualizing large-scale multimedia data. It provides a straightforward Python API
@@ -17,31 +27,22 @@ The key features of Kangas include:
 - **Interoperability**. Any data, any environment. Kangas can run in a notebook or as a standalone app, both locally and remotely.
 - **Integrated computer vision support**. Visualize and filter bounding boxes, labels, and metadata without any extra setup.
 
-You can access a live demo of Kangas at <a href="https://kangas.comet.com" target="_blank">kangas.comet.com</a>. 
+You can access a live demo of Kangas at <a href="https://kangas.comet.com?datagrid=/data/coco-500.datagrid">kangas.comet.com</a>. 
 
-## Getting started
+## Getting Started
 
 Kangas is accessible as a Python library via pip
 ```
 pip install kangas
 ```
 
-Once installed, there are many ways to load or create a DataGrid:
+Once installed, there are many ways to load or create a DataGrid. Here, we load a publicly available DataGrid file, but the Kangas API also provides methods for ingesting CSVs, Pandas DataFrames, and for manually constructing a new DataGrid:
 
 ```python
 import kangas as kg
 
 # Load an existing DataGrid
 dg = kg.read_datagrid("https://github.com/caleb-kaiser/kangas_examples/raw/master/coco-500.datagrid")
-
-# Build a DataGrid from a CSV
-dg = kg.read_csv("/path/to/your.csv")
-
-# Build a DataGrid from a Pandas DataFrame
-dg = kg.read_dataframe(your_dataframe)
-
-# Construct a DataGrid manually
-dg = kg.DataGrid(name="Example 1", columns=["Category", "Loss", "Fitness", "Timestamp"])
 ```
 
 After your DataGrid is initialized, you can render it within the Kangas Viewer directly from Python:
@@ -60,8 +61,8 @@ And viola! Now you're started using Kangas. If you'd like to explore further, ta
 ## Documentation
 
 1. <a href="https://github.com/comet-ml/kangas/wiki">Documentation Homepage</a>
-2. <a href="https://github.com/comet-ml/kangas/blob/main/notebooks/DataGrid-Getting%20Started.ipynb">Quickstart Notebook</a>
-3. <a href="https://github.com/comet-ml/kangas/blob/main/notebooks/Integrations.ipynb">Integrations Notebook</a>
+2. <a href="https://github.com/comet-ml/kangas/blob/main/notebooks/DataGrid-Getting%20Started.ipynb">Quickstart Notebook</a> <a href="https://colab.research.google.com/github/comet-ml/kangas/blob/main/notebooks/DataGrid-Getting%20Started.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg"></a>
+3. <a href="https://github.com/comet-ml/kangas/blob/main/notebooks/Integrations.ipynb">Integrations Notebook</a> <a href="https://colab.research.google.com/github/comet-ml/kangas/blob/main/notebooks/Integrations.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg"></a>
 
 ## FAQ
 
@@ -69,17 +70,17 @@ And viola! Now you're started using Kangas. If you'd like to explore further, ta
 Kangas is currently in an open beta. We stress test Kangas heavily and often, and are confident in sharing with the public. That being said, it is a very young project, and there will be bugs and rough edges. Additionally, new features will be added at a fast pace, so if you find a bug or have a request, please do not hesitate to open a ticket or start a discussion.
 
 ### Does Kangas support _____ system?
-Kangas can be run as a standalone application on newer version of Windows, MacOS, and most popular Linux distributions. In addition, Kangas can run remotely via Google Colab, or within any Jupyter notebook environment.
+Kangas can be run as a standalone application on newer versions of Windows, MacOS, and most popular Linux distributions. In addition, Kangas can run remotely via Google Colab, or within any Jupyter notebook environment.
 
 ### When should I use Kangas instead of _____?
 #### Pandas
 Kangas and Pandas are complimentary tools. When you've wrangled your data into a Pandas DataFrame, Kangas can ingest that DataFrame via the `DataGrid.read_dataframe()` method, making it easy to visualize and explore your tabular data. Additionally, if your data is too large to process in Pandas or involves multimedia assets, Kangas is a strong alternative.
 
 #### Tensorboard
-TensorBoard is one of several tools (including Kangas parent organization, [Comet](https://comet.com)) that specializes in experiment managment. Like Kangas, it provides charting and visualizations out of the box, but is specifically designed for analyzing training workflows. Kangas, in contrast, is designed to analyze any dataset. For example, even if you use a tool like TensorBoard for analyzing training runs, you may still use Kangas before training for exploratory data analysis, or for prediction analysis post-deployment.
+TensorBoard is one of several tools (including Kangas parent organization, [Comet](https://www.comet.com/site/?utm_source=github&utm_medium=referral&utm_campaign=AMS_US_EN_AWA_Kangas_DataGrid) that specializes in experiment managment. Like Kangas, it provides charting and visualizations out of the box, but is specifically designed for analyzing training workflows. Kangas, in contrast, is designed to analyze any dataset. For example, even if you use a tool like TensorBoard for analyzing training runs, you may still use Kangas before training for exploratory data analysis, or for prediction analysis post-deployment.
 
 ### What is Kangas relationship with Comet?
-Kangas is developed and maintained by the Research team at [Comet ML](https://comet.com). It began life as a prototype for Comet users who needed to visualize large computer vision datasets, and was later spun out into a standalone open source project. Kangas is and always will be free and open source software, and we are more than happy to accept community contributions.
+Kangas is developed and maintained by the Research team at [Comet](https://www.comet.com/site/?utm_source=github&utm_medium=referral&utm_campaign=AMS_US_EN_AWA_Kangas_DataGrid). It began life as a prototype for Comet users who needed to visualize large computer vision datasets, and was later spun out into a standalone open source project. Kangas is and always will be free and open source software, and we are more than happy to accept community contributions.
 
 ## Contributing
 Kangas has only recently been released, and as such, we don't have much of a formal process for contributions. If you have an idea or would like to make a contribution, we recommend opening a ticket describing your proposed contribution so that we can collaborate directly. We love working with community contributors.
