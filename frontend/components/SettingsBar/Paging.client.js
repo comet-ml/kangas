@@ -5,6 +5,7 @@ import { useCallback, useMemo } from 'react';
 
 const Paging = ({ query, pagination, total }) => {
     const refresh = useRefreshRoot();
+    const max = useMemo(() => Math.ceil(total / query?.limit), [total, query?.limit]);
 
     const changePage = useCallback(
         (page) => {
@@ -25,6 +26,13 @@ const Paging = ({ query, pagination, total }) => {
         [query]
     );
 
+    const enter = useCallback((e) => {
+        if (e?.keyCode === 13 || e?.code === 'Enter') {
+            const page = parseInt(e.target.value);
+            if (page) changePage(page);
+        }
+    }, [changePage]);
+
     const currentPage = useMemo(() => {
         if (!query?.offset) return 1;
         const ratio = Math.ceil(query?.offset / query?.limit);
@@ -39,52 +47,44 @@ const Paging = ({ query, pagination, total }) => {
         changePage(currentPage - 1);
     }, [currentPage, changePage]);
 
-    const totalString = total.toLocaleString(config.locale);
-    let showingMessage;
-    if (total == 0) {
-        showingMessage = 'No matching rows';
-    } else if (total == 1) {
-        showingMessage = 'Showing 1 matching row';
-    } else if (pagination.length > 1) {
-        const startRow = ((query?.offset || 0) + 1).toLocaleString(
-            config.locale
-        );
-        const endRow = Math.min(
-            (query?.offset || 0) + query?.limit,
-            total
-        ).toLocaleString(config.locale);
-        showingMessage = (
-            <>
-                Showing{' '}
-                <span
-                    style={{ fontWeight: '500' }}
-                >{`${startRow} - ${endRow}`}</span>{' '}
-                rows of {totalString} &nbsp;&nbsp;|&nbsp;&nbsp;{' '}
-            </>
-        );
-    } else {
-        showingMessage = `Showing all ${totalString} matching rows`;
-    }
+    const rowsMessage = useMemo(() => {
+        if (!total) return 'No matching rows';
+        if (total === 1) return 'Showing 1 matching row';
+
+        if (pagination?.length > 1) {
+            const startRow = ((query?.offset || 0) + 1).toLocaleString(config.locale);
+            const endRow = Math.min(
+                (query?.offset || 0) + query?.limit,
+                total
+            ).toLocaleString(config.locale);
+
+            return `Showing ${startRow} - ${endRow} rows of ${total.toLocaleString(config.locale)}`
+        }
+
+        return `Showing all matching rows`
+    }, [total, config, query, pagination]);
+
 
     return (
-        <div className="pages">
-            {showingMessage}
+        <div className="pagination">
+            {`${rowsMessage} `}
             {pagination.length > 1 && (
-                <>
-                    Page: &nbsp;
+                <div>
+                    Page:
                     <span
                         style={{ cursor: 'pointer' }}
                         onClick={() => changePage(1)}
-                    >{`|<`}</span>{' '}
-                    &nbsp;
+                    >{` |< `}</span>
                     <span
                         style={{ cursor: 'pointer' }}
                         onClick={pageBack}
                     >{`<`}</span>
                     <input
                         type="text"
-                        onChange={(e) => changePage(e.target.value || 1)}
-                        value={currentPage}
+                        inputMode='numeric'
+                        pattern="[0-9]*"
+                        onKeyDown={(e) => enter(e)}
+                        defaultValue={currentPage}
                         style={{
                             width: '50px',
                             margin: '0 8px',
@@ -96,15 +96,14 @@ const Paging = ({ query, pagination, total }) => {
                     <span
                         style={{ cursor: 'pointer' }}
                         onClick={pageForward}
-                    >{`>`}</span>{' '}
-                    &nbsp;
+                    >{`> `}</span>
                     <span
                         style={{ cursor: 'pointer' }}
                         onClick={() =>
                             changePage(Math.ceil(total / query?.limit))
                         }
                     >{`>|`}</span>
-                </>
+                </div>
             )}
         </div>
     );

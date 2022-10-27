@@ -60,8 +60,19 @@ body {
     column-gap: 12px;
 }
 
-.pages {
+.pagination {
+    display: flex;
+    align-items: baseline;
     padding-right: 25px;
+    font-family: 'Roboto';
+    color: #5f677e;
+    line-height: 14px;
+    font-weight: 400;
+    font-size: 12px;
+}
+
+.pagination > div {
+    padding-left: 0.25em;
 }
 
 /* Table level */
@@ -136,14 +147,6 @@ body {
     bottom: 0;
     background: white;
     z-index: 900;
-}
-
-.pages {
-    font-family: 'Roboto';
-    color: #5f677e;
-    line-height: 14px;
-    font-weight: 400;
-    font-size: 12px;
 }
 
 /* Cells */
