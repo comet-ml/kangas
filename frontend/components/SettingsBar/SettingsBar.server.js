@@ -39,12 +39,10 @@ const SettingsBarServer = ({ query, matrices, columns, options, status }) => {
                 <DialogueModal fullScreen={false} toggleElement={<KangasButton />}>
                     <StatusText status={status} />
                 </DialogueModal>
-                { !config.inColab && (
-                    <div id="matrix-select" className="select-row">
-                        <MatrixSelect query={query} options={matrices} />
-                        <RefreshButton query={query} />
-                    </div>
-                ) }
+                <div id="matrix-select" className="select-row">
+                    <MatrixSelect query={query} options={matrices} />
+                    <RefreshButton query={query} />
+                </div>
             </div>
             <div id="nav-bar">
                 <SelectRow columns={columns} query={query} options={options} />

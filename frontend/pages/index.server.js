@@ -88,7 +88,7 @@ const Root = ({ query, matrices, expiration }) => {
                 />
             </Suspense>
             <Suspense fallback={<Skeletons />}>
-                <ClientContext apiUrl={config.apiUrl} otherUrl={config.apiUrl} inColab={config.inColab} >
+                <ClientContext apiUrl={config.apiUrl} otherUrl={config.apiUrl} isColab={config.isColab} >
                     <div className="table-root">
                         <div id="header-row" className={`${rowClass}`}>
                             {filteredColumns.map((col) => (

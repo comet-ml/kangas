@@ -12,15 +12,16 @@ of Next.js api routes
 */
 
 const useMetadata = (dgid, assetId, inheritedMetadata) => {
-    const { isIframe, apiUrl } = useContext(ConfigContext);
+    const { isColab, apiUrl } = useContext(ConfigContext);
     const [metadata, setMetadata] = useState();
     const listenerAttached = useRef(false);
     const listenerId = useMemo(() => uuid(), []);
 
     useEffect(() => {
-        // Handle Iframes (Jupyter notebooks/Colab etc.)
+        // Handle Colab
+
         // Attach metadata listener
-        if (isIframe && !listenerAttached.current && listenerId) {
+        if (isColab && !listenerAttached.current && listenerId) {
             window.addEventListener("message", e => {
                 const { messageType, targetId, ...data } = e.data;
                 if (messageType === 'metadata' && targetId === listenerId) {
@@ -30,7 +31,7 @@ const useMetadata = (dgid, assetId, inheritedMetadata) => {
             listenerAttached.current = true;
         }
 
-        if (isIframe && listenerId) {
+        if (isColab && listenerId) {
             // Fire postMessage request for metadata
             if (assetId && dgid) {
                 window.parent.postMessage({dgid, assetId, targetId: listenerId, type: 'metadata'}, "*");
@@ -38,7 +39,7 @@ const useMetadata = (dgid, assetId, inheritedMetadata) => {
         }
 
         // Non-iframe fetching
-        else if (!isIframe) {
+        else if (!isColab) {
             fetch(`/api/metadata?${new URLSearchParams({
                 assetId,
                 dgid,
@@ -48,7 +49,7 @@ const useMetadata = (dgid, assetId, inheritedMetadata) => {
             .then((data) => setMetadata(JSON.parse(data)));
 
         }
-    }, [dgid, assetId, listenerId]);
+    }, [dgid, assetId, listenerId, isColab]);
 
     if (inheritedMetadata) return JSON.parse(inheritedMetadata); // TODO: Remove this escape hatch when we fix the clientFetchMeta mess in ImageCanvas 
     return metadata;

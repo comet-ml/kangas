@@ -4,7 +4,7 @@ import { v4 as uuid } from 'uuid';
 
 // Returns a URL that can be used as the src for assets like images.
 const useAsset = (url) => {
-    const { isIframe, apiUrl } = useContext(ConfigContext);
+    const { isColab, apiUrl } = useContext(ConfigContext);
     const [asset, setAsset] = useState();
     const listenerAttached = useRef(false);
     const listenerId = useMemo(() => uuid(), []);
@@ -17,10 +17,10 @@ const useAsset = (url) => {
     }, [url]);
 
     useEffect(() => {
-        // Handle Iframes (Jupyter notebooks/Colab etc.)
+        // Handle Colab
 
         // Attach asset listener
-        if (isIframe && !listenerAttached.current && listenerId) {
+        if (isColab && !listenerAttached.current && listenerId) {
             window.addEventListener("message", e => {
                 const { messageType, targetId, ...data } = e.data;
                 if (messageType === 'asset' && targetId === listenerId) {
@@ -30,7 +30,7 @@ const useAsset = (url) => {
             listenerAttached.current = true;
         }
 
-        if (isIframe) {
+        if (isColab) {
             // Fire postMessage request for asset
             if (assetId && dgid && listenerId) {
                 window.parent.postMessage({dgid, assetId, targetId: listenerId, type: 'asset'}, "*");
@@ -41,7 +41,7 @@ const useAsset = (url) => {
         else {
             setAsset(url);
         }
-    }, [url, assetId, dgid, isIframe, listenerId]);
+    }, [url, assetId, dgid, isColab, listenerId]);
 
     return asset;
 }
