@@ -169,6 +169,14 @@ def convert_string_to_date(string, datetime_format):
         return None
 
 
+def convert_row_dict(row_dict, converters):
+    """
+    For use in doing row-level conversions
+    """
+    if converters and "row" in converters:
+        converters["row"](row_dict)
+
+
 def apply_converters(value, colname, converters):
     """
     For use in conversion to CSV output
