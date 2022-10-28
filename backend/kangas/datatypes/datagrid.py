@@ -222,7 +222,7 @@ class DataGrid(object):
         # Else, will have to add columns on the fly when we get some data
 
         if data:
-            self.extend(data)
+            self.extend(tqdm.tqdm(data))
 
     def __repr__(self, row=None):
         nrows = self.nrows
