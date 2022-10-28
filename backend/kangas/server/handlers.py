@@ -23,6 +23,7 @@ import os
 import platform
 import subprocess
 import sys
+import urllib
 
 import tornado
 from tornado.web import RequestHandler
@@ -105,6 +106,10 @@ class BaseHandler(RequestHandler):
         self.set_status(204)
         self.finish()
 
+    def unquote(self, value):
+        if value:
+            return urllib.parse.unquote(value)
+
     def ensure_datagrid_path(self, dgid):
         if dgid is not None:
             db_path = get_dg_path(dgid)
@@ -123,7 +128,7 @@ class HistogramHandler(BaseHandler):
     def post(self):
         # Required:
         data = tornado.escape.json_decode(self.request.body)
-        dgid = data.get("dgid", None)
+        dgid = self.unquote(data.get("dgid", None))
 
         # Optional selections:
         group_by = data.get("groupBy", None)
@@ -153,7 +158,7 @@ class DescriptionHandler(BaseHandler):
     def post(self):
         # Required:
         data = tornado.escape.json_decode(self.request.body)
-        dgid = data.get("dgid", None)
+        dgid = self.unquote(data.get("dgid", None))
 
         # Optional selections:
         group_by = data.get("groupBy", None)
@@ -183,7 +188,7 @@ class CategoryHandler(BaseHandler):
     def post(self):
         # Required:
         data = tornado.escape.json_decode(self.request.body)
-        dgid = data.get("dgid", None)
+        dgid = self.unquote(data.get("dgid", None))
 
         # Optional selections:
         group_by = data.get("groupBy", None)
@@ -213,7 +218,7 @@ class AssetGroupHandler(BaseHandler):
     def post(self):
         # Required:
         data = tornado.escape.json_decode(self.request.body)
-        dgid = data.get("dgid", None)
+        dgid = self.unquote(data.get("dgid", None))
 
         # Optional selections:
         group_by = data.get("groupBy", None)
@@ -246,7 +251,7 @@ class AssetGroupMetadataHandler(BaseHandler):
     def post(self):
         # Required:
         data = tornado.escape.json_decode(self.request.body)
-        dgid = data.get("dgid", None)
+        dgid = self.unquote(data.get("dgid", None))
 
         # Optional selections:
         group_by = data.get("groupBy", None)
@@ -282,7 +287,7 @@ class AssetGroupThumbnailHandler(BaseHandler):
     def post(self):
         # Required:
         data = tornado.escape.json_decode(self.request.body)
-        dgid = data.get("dgid", None)
+        dgid = self.unquote(data.get("dgid", None))
 
         # Optional selections:
         group_by = data.get("groupBy", None)
@@ -321,7 +326,7 @@ class QueryHandler(BaseHandler):
     def post(self):
         # Required:
         data = tornado.escape.json_decode(self.request.body)
-        dgid = data.get("dgid", None)
+        dgid = self.unquote(data.get("dgid", None))
 
         # Optional selections:
         offset = data.get("offset", 0)
@@ -355,7 +360,7 @@ class VerifyWhereHandler(BaseHandler):
     def post(self):
         # Required:
         data = tornado.escape.json_decode(self.request.body)
-        dgid = data.get("dgid", None)
+        dgid = self.unquote(data.get("dgid", None))
         computed_columns = data.get("computedColumns", None)
         where_expr = data.get("whereExpr", None)
 
@@ -373,7 +378,7 @@ class MetadataHandler(BaseHandler):
     def post(self):
         # Required:
         data = tornado.escape.json_decode(self.request.body)
-        dgid = data.get("dgid", None)
+        dgid = self.unquote(data.get("dgid", None))
 
         if self.ensure_datagrid_path(dgid):
             result = select_metadata(dgid)
@@ -386,7 +391,7 @@ class AssetMetadataHandler(BaseHandler):
         # Required:
         data = tornado.escape.json_decode(self.request.body)
         asset_id = data.get("assetId", None)
-        dgid = data.get("dgid", None)
+        dgid = self.unquote(data.get("dgid", None))
 
         if self.ensure_datagrid_path(dgid):
             result = select_asset_metadata(dgid, asset_id)
@@ -398,7 +403,7 @@ class FieldsHandler(BaseHandler):
     def post(self):
         # Required:
         data = tornado.escape.json_decode(self.request.body)
-        dgid = data.get("dgid", None)
+        dgid = self.unquote(data.get("dgid", None))
         computed_columns = data.get("computedColumns", None)
 
         if self.ensure_datagrid_path(dgid):
@@ -410,7 +415,9 @@ class DownloadHandler(BaseHandler):
     @auth_wrapper
     def get(self):
         # Required:
-        dgid = tornado.escape.url_unescape(self.get_query_argument("dgid", ""))
+        dgid = self.unquote(
+            tornado.escape.url_unescape(self.get_query_argument("dgid", ""))
+        )
         asset_id = tornado.escape.url_unescape(self.get_query_argument("assetId", ""))
         thumbnail = json.loads(
             tornado.escape.url_unescape(self.get_query_argument("thumbnail", "false"))
@@ -431,7 +438,9 @@ class ListDataGridsHandler(BaseHandler):
 class GetDataGridTimestampHandler(BaseHandler):
     @auth_wrapper
     def get(self):
-        dgid = tornado.escape.url_unescape(self.get_query_argument("dgid", ""))
+        dgid = self.unquote(
+            tornado.escape.url_unescape(self.get_query_argument("dgid", ""))
+        )
         if dgid:
             result = get_datagrid_timestamp(dgid)
             self.write_json(result)
