@@ -17,6 +17,7 @@ const MatrixSelect = ({ query, options }) => {
     // FIXME: don't use endsWith, but something smarter
     return (
         <Select
+	    id={'matrix-select-pulldown'}
             defaultValue={
                 options.find((item) => item.value.endsWith(query?.dgid)) || ''
             }
