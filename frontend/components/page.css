@@ -155,6 +155,8 @@ body {
     text-overflow: ellipsis;
     position: relative;
     min-height: 55px;
+    display: flex;
+    align-items: center;
 }
 
 .cell-group {
@@ -163,10 +165,11 @@ body {
     position: relative;
     min-height: 110px;
     max-width: 150px;
+    display: flex;
+    align-items: center;
 }
 
 .cell-content {
-    height: 100%;
     width: 100%;
 
     justify-content: center;
