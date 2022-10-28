@@ -24,6 +24,12 @@ from kangas.datatypes.utils import download_filename
 
 from kangas import _in_colab_environment, get_localhost, terminate
 
+try:
+    from datasets import load_dataset as huggingface_load_dataset
+except Exception:
+    huggingface_load_dataset = None
+
+
 ADDITIONAL_ARGS = False
 HERE = os.path.abspath(os.path.dirname(__file__))
 
@@ -107,6 +113,18 @@ def get_parser_arguments(parser):
         "--colab",
         help="Use this flag to specify if Kangas is in a Colab environment. Defaults to false",
         default=False,
+    )
+    parser.add_argument(
+        "--type",
+        help="If you are viewing a non-datagrid filename that doesn't have appropriate extension, set the type",
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
+        "--split",
+        help="If you are viewing a HuggingFace dataset, set the split name",
+        type=str,
+        default=None,
     )
 
 
@@ -223,6 +241,42 @@ def server(parsed_args, remaining=None):
         query_vars = {}
         if parsed_args.DATAGRID is not None:
             filename = download_filename(parsed_args.DATAGRID)
+            if parsed_args.type is not None:
+                file_type = parsed_args.type
+            elif "." in filename:
+                basefile, file_type = filename.rsplit(".", 1)
+            else:
+                file_type = "huggingface"
+
+            if file_type == "datagrid":
+                # Nothing to do; already a datagrid
+                pass
+            elif file_type == "csv":
+                dg = kangas.read_csv(filename)
+                dg.save()
+                filename = dg.filename
+            elif file_type == "huggingface":
+                if huggingface_load_dataset is None:
+                    raise Exception(
+                        "unable to load a huggingface dataset, or invalid filename: %r"
+                        % filename
+                    )
+
+                if parsed_args.split is not None:
+                    dataset = huggingface_load_dataset(
+                        filename, split=parsed_args.split
+                    )
+                else:
+                    dataset_splits = huggingface_load_dataset(filename)
+                    split = list(dataset_splits.keys())[0]
+                    dataset = huggingface_load_dataset(filename, split=split)
+
+                dg = kangas.DataGrid(dataset)
+                dg.save()
+                filename = dg.filename
+            else:
+                raise Exception("Unknown file type: %r" % file_type)
+
             query_vars["datagrid"] = filename
         if query_vars:
             url = "%s?%s" % (host, urllib.parse.urlencode(query_vars))
