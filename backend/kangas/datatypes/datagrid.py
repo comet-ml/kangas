@@ -32,6 +32,7 @@ from .serialize import DATAGRID_TYPES
 from .utils import (
     RESERVED_NAMES,
     apply_converters,
+    convert_row_dict,
     convert_string_to_value,
     convert_to_type,
     convert_to_value,
@@ -173,7 +174,7 @@ class DataGrid(object):
         >>> dg.show()
         ```
         """
-        self.converters = converters
+        self.converters = converters if converters else self._get_default_converters()
         self.datetime_format = datetime_format
         self.heuristics = heuristics
         self.create_thumbnails = False
@@ -267,6 +268,34 @@ class DataGrid(object):
         output = self.__repr__(row)
 
         return "<table>%s</table>" % output
+
+    def _get_default_converters(self):
+        from .image import Image
+
+        def huggingface_annotations(row):
+            cppe_labels = ["Coverall", "Face Shield", " Gloves", "Goggles", "Mask"]
+            if "image" in row and "objects" in row:
+                # cppe
+                if isinstance(row["image"], Image) and isinstance(row["objects"], dict):
+                    if ("bbox" in row["objects"]) and ("category" in row["objects"]):
+                        boxes = row["objects"]["bbox"]
+                        labels = row["objects"]["category"]
+                        for box, label in zip(boxes, labels):
+                            x, y, w, h = box
+                            row["image"].add_bounding_boxes(
+                                cppe_labels[label], [[x, y], [x + w, y + h]]
+                            )
+                elif isinstance(row["image"], Image) and isinstance(row["faces"], dict):
+                    if ("bbox" in row["faces"]) and ("blur" in row["faces"]):
+                        boxes = row["faces"]["bbox"]
+                        labels = row["faces"]["blur"]
+                        for box, label in zip(boxes, labels):
+                            x, y, w, h = box
+                            row["image"].add_bounding_boxes(
+                                "blur-%s" % label, [[x, y], [x + w, y + h]]
+                            )
+
+        return {"row": huggingface_annotations}
 
     def show(
         self,
@@ -982,6 +1011,9 @@ class DataGrid(object):
                 column_name,
                 self.converters,
             )
+            # Get the first element of a row with type:
+            if self._columns[column_name] is None:
+                self._columns[column_name] = pytype_to_dgtype(new_value)
             # Then, make sure it is correct type
             try:
                 row_dict[column_name] = convert_to_type(
@@ -992,6 +1024,8 @@ class DataGrid(object):
                     "Invalid type for column %r: value was %r, but should have been type %r"
                     % (column_name, value, self._columns[column_name])
                 ) from None
+        # After conversion, apply a row-level conversion:
+        convert_row_dict(row_dict, self.converters)
 
     def append_column(self, column_name, rows, verify=True):
         """
