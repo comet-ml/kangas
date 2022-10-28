@@ -56,7 +56,6 @@ body {
 #nav-bar-1 {
     display: flex;
     width: fit-content;
-    align-items: baseline;
     column-gap: 12px;
 }
 

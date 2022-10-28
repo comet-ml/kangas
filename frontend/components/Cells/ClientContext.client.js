@@ -18,7 +18,7 @@ const ClientContext = ({ apiUrl, otherUrl, isColab, children }) => {
         // This is a hacky workaround
         // TODO Clean up when we upgrade Next
         if (window !== window.parent) {
-            document.getElementById('matrix-select')?.setAttribute('style', 'display: none');
+            document.getElementById('matrix-select-pulldown')?.setAttribute('style', 'display: none');
         }
     }, []);
 

@@ -115,6 +115,8 @@ const HelpText = () => (
         <div className="snippet-clipboard-content notranslate position-relative overflow-auto">
             <pre className="notranslate">
                 <code>&#123;"Image"}.labels.contains("dog")</code>
+            </pre>
+            <pre className="notranslate">
                 <code>&#123;"Image"}.labels.dog and &#123;"Image"}.labels.cat</code>
             </pre>
             <div className="zeroclipboard-container position-absolute right-0 top-0"></div>
