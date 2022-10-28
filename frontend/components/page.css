@@ -337,8 +337,15 @@ pre code {
 .select-modal-title > .enabled {
     color: #5155f5;
 }
+
 .select-modal-body {
     border-top: 1px solid #f0f2f6;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.select-modal-body > div:first-child {
     width: 100%;
 }
 
@@ -359,6 +366,7 @@ pre code {
 
 .arrow-toggle {
     cursor: pointer;
+    padding-left: 0.75em;
 }
 
 .arrow-toggle > svg {

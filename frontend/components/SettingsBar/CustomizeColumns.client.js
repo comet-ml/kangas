@@ -167,7 +167,7 @@ const CustomizeColumnsModal = ({
     return (
         <div>
             <div className="select-modal-title">
-                <div>Select a column { !!query?.sortBy && <SortArrow toggle={toggleDesc} sortDesc={query?.sortDesc} /> }</div>
+                <div>Select a column</div>
                 <div
                     className={`reset-button ${
                         selectedOption ? 'enabled' : 'disabled'
@@ -184,6 +184,7 @@ const CustomizeColumnsModal = ({
                     onChange={handleUpdateColumn}
 
                 />
+                { !!query?.sortBy && <SortArrow toggle={toggleDesc} sortDesc={query?.sortDesc} /> }
             </div>
         </div>
     );
