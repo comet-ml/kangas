@@ -356,6 +356,9 @@ def _image_data_to_file_like_object(
         )
         return results
     elif isinstance(image_data, PIL.Image.Image):  # PIL.Image
+        # If CMYK, then needs a conversion:
+        if image_data.mode == "CMYK":
+            image_data = image_data.convert("RGB")
         ## filename tells us what format to use:
         if file_name is not None and "." in file_name:
             _, image_format = file_name.rsplit(".", 1)
