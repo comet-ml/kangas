@@ -20,6 +20,7 @@ import urllib
 import webbrowser
 
 import kangas.server
+from kangas.datatypes.utils import download_filename
 
 from kangas import _in_colab_environment, get_localhost, terminate
 
@@ -221,7 +222,8 @@ def server(parsed_args, remaining=None):
         host = "%s://%s:%s/" % (KANGAS_PROTOCOL, KANGAS_HOST, KANGAS_FRONTEND_PORT)
         query_vars = {}
         if parsed_args.DATAGRID is not None:
-            query_vars["datagrid"] = parsed_args.DATAGRID
+            filename = download_filename(parsed_args.DATAGRID)
+            query_vars["datagrid"] = filename
         if query_vars:
             url = "%s?%s" % (host, urllib.parse.urlencode(query_vars))
         else:
