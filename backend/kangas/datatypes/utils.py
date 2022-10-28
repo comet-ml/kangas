@@ -69,6 +69,8 @@ def unpack_archive(archive_filename, ext=None):
         filename = archive_filename
     elif "." in archive_filename:
         filename, ext = archive_filename.rsplit(".", 1)
+    else:
+        filename = archive_filename
 
     if not os.path.isfile(filename):
         if ext == "gz":
