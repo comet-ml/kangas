@@ -489,3 +489,10 @@ button {
 
 .kangas-value {
 }
+
+#filter {
+    resize: none;
+    white-space: nowrap;
+    overflow-x: hidden;
+    height: 25px;
+}

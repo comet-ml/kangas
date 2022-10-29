@@ -65,7 +65,7 @@ const SelectRow = ({ columns, query, options }) => {
                     defaultOptions={options}
                 />
             </DialogueModal>
-            <FilterExpr query={query} />
+            <FilterExpr query={query} columns={columns} />
         </div>
     );
 };

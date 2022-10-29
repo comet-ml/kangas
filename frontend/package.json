@@ -26,6 +26,7 @@
     "plotly.js": "^2.13.2",
     "react": "18.1.0",
     "react-async": "^10.0.1",
+    "react-autocomplete-input": "^1.0.19",
     "react-dom": "18.1.0",
     "react-intersection-observer": "^9.4.0",
     "react-plotly.js": "^2.5.1",

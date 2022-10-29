@@ -1,5 +1,6 @@
 import { unstable_useRefreshRoot as useRefreshRoot } from 'next/streaming';
-import TextField from '@mui/material/TextField';
+//import TextField from '@mui/material/TextField';
+import TextField from 'react-autocomplete-input';
 import InputAdornment from '@mui/material/InputAdornment';
 import { useCallback, useEffect } from 'react';
 import DialogueModal from '../Modals/DialogueModalContainer.client';
@@ -18,7 +19,7 @@ const HelpButton = () => (
     </div>
 );
 
-const FilterExpr = ({ query }) => {
+const FilterExpr = ({ query, columns }) => {
     const refresh = useRefreshRoot();
 
     const onKeyPress = useCallback(
@@ -57,6 +58,10 @@ const FilterExpr = ({ query }) => {
     return (
         <>
             <TextField
+                trigger={["{"]} options={{"{": columns.map(name => `"${name}"`)}}
+                regex={'^[a-zA-Z0-9_\\-\\"]+$'}
+                Component={'textarea'}
+	        spacer={'}'}
                 placeholder={`e.g.: {"column name"} > 0.5`}
                 id="filter"
                 sx={{
