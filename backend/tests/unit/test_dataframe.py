@@ -1,5 +1,5 @@
 import kangas
-from pandas.util.testing import (
+from pandas._testing import (
     makeCustomDataframe,
     makeDataFrame,
     makeMissingDataframe,
