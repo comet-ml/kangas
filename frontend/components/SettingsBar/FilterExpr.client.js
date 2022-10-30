@@ -59,9 +59,13 @@ const FilterExpr = ({ query, columns }) => {
         <>
             <TextField
                 trigger={["{"]} options={{"{": columns.map(name => `"${name}"`)}}
-                regex={'^[a-zA-Z0-9_\\-\\"]+$'}
+	        changeOnSelect={(trigger, slug) => `{${slug}}`}
+	        matchAny={true}
+                regex={'^[a-zA-Z0-9_\\-\\"\\ ]+$'}
                 Component={'textarea'}
-	        spacer={'}'}
+	        spacer={' '}
+	        maxOptions={0}
+	        spaceRemovers={['.']}
                 placeholder={`e.g.: {"column name"} > 0.5`}
                 id="filter"
                 sx={{
