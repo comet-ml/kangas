@@ -93,6 +93,9 @@ def download_filename(filename, ext=None):
     """
     Download and/or unzip/un-gzip/un-tar file.
     """
+    if not isinstance(filename, str):
+        return filename
+
     if filename.startswith("http"):
         url = filename
         parts = urllib.parse.urlsplit(url)

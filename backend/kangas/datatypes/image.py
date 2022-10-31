@@ -24,6 +24,7 @@ from .._typing import IO, Any, Optional, Sequence, Union
 from .base import Asset
 from .utils import (
     convert_tensor_to_numpy,
+    download_filename,
     flatten,
     generate_image,
     get_file_extension,
@@ -324,6 +325,8 @@ def _image_data_to_file_like_object(
     """
     ## Conversion from standard objects to image
     ## Allow file-like objects, numpy arrays, etc.
+
+    image_data = download_filename(image_data)
 
     if is_valid_file_path(image_data):
         metadata["extension"] = get_file_extension(image_data)
