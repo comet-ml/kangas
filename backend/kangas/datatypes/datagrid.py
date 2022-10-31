@@ -273,7 +273,7 @@ class DataGrid(object):
         from .image import Image
 
         def huggingface_annotations(row):
-            cppe_labels = ["Coverall", "Face Shield", " Gloves", "Goggles", "Mask"]
+            cppe_labels = ["Coverall", "FaceShield", "Gloves", "Goggles", "Mask"]
             if "image" in row and "objects" in row:
                 # cppe
                 if isinstance(row["image"], Image) and isinstance(row["objects"], dict):

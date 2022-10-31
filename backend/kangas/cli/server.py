@@ -257,10 +257,7 @@ def server(parsed_args, remaining=None):
                 filename = dg.filename
             elif file_type == "huggingface":
                 if huggingface_load_dataset is None:
-                    raise Exception(
-                        "unable to load a huggingface dataset, or invalid filename: %r"
-                        % filename
-                    )
+                    raise Exception("requires `pip install datasets`")
 
                 if parsed_args.split is not None:
                     dataset = huggingface_load_dataset(
