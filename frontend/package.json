@@ -20,6 +20,7 @@
     "@mui/material": "^5.9.2",
     "@react-hook/resize-observer": "^1.2.6",
     "axios": "^0.27.2",
+    "get-input-selection": "^1.1.4",
     "highlight.js": "^11.6.0",
     "ms": "2.1.3",
     "next": "12.2.1-canary.1",
@@ -32,6 +33,7 @@
     "react-select": "^5.4.0",
     "react-table": "^7.8.0",
     "sharp": "^0.31.0",
+    "textarea-caret": "^3.0.2",
     "use-debounce": "^8.0.4",
     "uuid": "^9.0.0",
     "wavesurfer.js": "^6.2.0"
