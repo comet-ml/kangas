@@ -503,6 +503,7 @@ class AutocompleteTextField extends React.Component {
     return (
       <div style={{ position: 'relative ', display: 'flex' }}>
         <TextField
+          autoComplete={'off'}
           disabled={disabled}
           onBlur={onBlur}
           onChange={this.handleChange}

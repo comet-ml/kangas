@@ -1275,11 +1275,6 @@ core-js-pure@^3.25.1:
   resolved "https://registry.yarnpkg.com/core-js-pure/-/core-js-pure-3.25.5.tgz#79716ba54240c6aa9ceba6eee08cf79471ba184d"
   integrity sha512-oml3M22pHM+igfWHDfdLVq2ShWmjM2V4L+dQEBs0DWVIqEm9WHCwGAlZ6BmyBQGy5sFrJmcx+856D9lVKyGWYg==
 
-core-js@3:
-  version "3.26.0"
-  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.26.0.tgz#a516db0ed0811be10eac5d94f3b8463d03faccfe"
-  integrity sha512-+DkDrhoR4Y0PxDz6rurahuB+I45OsEUv8E1maPTB6OuHRohMMcznBq9TMpdpDMm/hUPob/mJJS3PqgbHpMTQgw==
-
 core-util-is@~1.0.0:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/core-util-is/-/core-util-is-1.0.3.tgz#a6042d3634c2b27e9328f837b965fac83808db85"
@@ -3613,16 +3608,6 @@ react-async@^10.0.1:
   version "10.0.1"
   resolved "https://registry.yarnpkg.com/react-async/-/react-async-10.0.1.tgz#575c083f808303d2f6ca52d11ec7554dbdbd9fcd"
   integrity sha512-ORUz5ca0B57QgBIzEZM5SuhJ6xFjkvEEs0gylLNlWf06vuVcLZsjIw3wx58jJkZG38p+0nUAxRgFW2b7mnVZzA==
-
-react-autocomplete-input@^1.0.19:
-  version "1.0.19"
-  resolved "https://registry.yarnpkg.com/react-autocomplete-input/-/react-autocomplete-input-1.0.19.tgz#18734e40ffde00495eb56d41d9317ff840d09dc6"
-  integrity sha512-AcdWK5cCNEkh4iVRilgONRviiw2tO6j5ps93D3mZUl6HhLVIMmJb4PspcuiZx7qsdT0BdWgOjLPtfCch7HT+rw==
-  dependencies:
-    core-js "3"
-    get-input-selection "^1.1.4"
-    prop-types "^15.7.2"
-    textarea-caret "^3.0.2"
 
 react-dom@18.1.0:
   version "18.1.0"
