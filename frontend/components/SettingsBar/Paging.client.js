@@ -1,11 +1,12 @@
 import config from '../../config';
 
 import { unstable_useRefreshRoot as useRefreshRoot } from 'next/streaming';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef, useEffect } from 'react';
 
 const Paging = ({ query, pagination, total }) => {
     const refresh = useRefreshRoot();
     const max = useMemo(() => Math.ceil(total / query?.limit), [total, query?.limit]);
+    const pageInput = useRef();
 
     const changePage = useCallback(
         (page) => {
@@ -64,6 +65,10 @@ const Paging = ({ query, pagination, total }) => {
         return `Showing all matching rows`
     }, [total, config, query, pagination]);
 
+    useEffect(() => {
+        if (pageInput?.current) pageInput.current.value = currentPage;
+    }, [currentPage])
+
 
     return (
         <div className="pagination">
@@ -84,6 +89,7 @@ const Paging = ({ query, pagination, total }) => {
                         inputMode='numeric'
                         pattern="[0-9]*"
                         onKeyDown={(e) => enter(e)}
+                        ref={pageInput}
                         defaultValue={currentPage}
                         style={{
                             width: '50px',
