@@ -52,7 +52,7 @@ setup_args = dict(
         "matplotlib",
         "Pillow",
         "scipy",
-        "nodejs-bin>=16.15.1a4",
+        "nodejs-bin==16.15.1a4",
         "requests",
         "tqdm",
         "psutil",
