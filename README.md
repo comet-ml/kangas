@@ -11,7 +11,8 @@
     <a href="https://colab.research.google.com/github/comet-ml/kangas/blob/main/notebooks/DataGrid-Getting%20Started.ipynb">
     <img src="https://colab.research.google.com/assets/colab-badge.svg">
     </a>
-    <a href="https://kangas.comet.com?datagrid=/data/coco-500.datagrid" rel="nofollow"><img src="https://camo.githubusercontent.com/31c3fad2db001d9015357522b271caef3a40b49e99a3f4879cf488da07448054/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f4b616e6761732d4c69766525323044656d6f2d626c75652e737667" alt="Kangas Live Demo" data-canonical-src="https://img.shields.io/badge/Kangas-Live%20Demo-blue.svg" style="max-width: 100%;"></a>
+    <a href="https://kangas.comet.com?datagrid=/data/coco-500.datagrid" rel="nofollow"><img src="https://img.shields.io/badge/Kangas-Live%20Demo-blue.svg" alt="Kangas Live Demo"></a>
+        <a href="https://github.com/comet-ml/kangas/wiki" rel="nofollow"><img src="https://img.shields.io/badge/Kangas-Docs-blue.svg" alt="Kangas Documentation"></a>
 </p>
 
 # Kangas: Explore Multimedia Datasets at Scale :kangaroo:
