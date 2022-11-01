@@ -11,6 +11,9 @@ notebooks/train/*
 notebooks/test/*
 notebooks/*.datagrid
 
+# Examples
+examples/**/*.jpg
+
 # Distribution / packaging
 .Python
 build/
