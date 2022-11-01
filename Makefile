@@ -2,7 +2,7 @@ test::
 	pytest -vvv backend/tests
 
 clean::
-	rm -fr *.datagrid dist build
+	rm -fr *.datagrid backend/dist backend/build
 
 build::
 	cd frontend; yarn; yarn build
