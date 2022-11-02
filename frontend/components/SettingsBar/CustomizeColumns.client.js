@@ -24,6 +24,7 @@ const CustomizeColumnsModal = ({
     columns,
     query,
     defaultOptions,
+    onColumnChange = () => {},
     subtree = '',
     isMulti = false,
     subtrees = [], // Optional: Some buttons might need to update multiple fields (e.g. grouping should also sort)
@@ -114,8 +115,10 @@ const CustomizeColumnsModal = ({
                     query: makeQuery(query, subtree, column),
                 });
             }
+
+            onColumnChange();
         },
-        [subtrees, subtree, query, sortDesc]
+        [subtrees, subtree, query, sortDesc, onColumnChange]
     );
 
     const handleClearColumn = useCallback(() => {
@@ -134,6 +137,7 @@ const CustomizeColumnsModal = ({
         refresh({
             query: newQuery,
         });
+        onColumnChange();
     }, [query, subtree, subtrees]);
 
     const toggleDesc = useCallback(() => {
@@ -144,7 +148,7 @@ const CustomizeColumnsModal = ({
                 sortDesc: !query?.sortDesc
             }
         });
-
+        onColumnChange();
     }, [query])
     
     // FIXME: remove this height: 320px when we find solution for standalone height

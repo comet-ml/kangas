@@ -1,23 +1,42 @@
-import { unstable_useRefreshRoot as useRefreshRoot } from 'next/streaming';
+import CustomizeColumnsModal from './CustomizeColumns.client';
+import usePopover from '../../lib/usePopover';
+import { Popover } from '@mui/material';
 
-const SortBy = ({ query, children }) => {
-    const refresh = useRefreshRoot();
+const SortButton = ({ active }) => (
+    <div className={`button-outline ${active && 'active-button'}`}>
+        <img src="/sort_icon.png" /> <span>Sort</span>
+    </div>
+);
+
+const SortBy = ({ query, columns }) => {
+    const { open, toggleOpen, anchor } = usePopover();
     return (
-        <select
-            name="Sort"
-            id="sort"
-            onChange={(e) => {
-                refresh({
-                    query: {
-                        ...query,
-                        sortBy: e.target.value,
-                        offset: 0,
-                    },
-                });
-            }}
-        >
-            {children}
-        </select>
+        <>
+            <div onClick={toggleOpen} ref={anchor}>
+                <SortButton active={open} />
+            </div>
+            <Popover
+                open={open}
+                onClose={toggleOpen}
+                anchorEl={anchor.current}
+                anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'right',
+                }}
+                transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                }}
+                className={'popover-select'}
+            >
+                <CustomizeColumnsModal
+                    query={query}
+                    subtree={'sortBy'}
+                    columns={columns}
+                    onColumnChange={toggleOpen}
+                />
+            </Popover>            
+        </>
     );
 };
 
