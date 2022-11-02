@@ -1,7 +1,7 @@
 const JSONCell = ({ value }) => {
     const jsonValue = value;
 
-    const strValue = "(" + Object.keys(jsonValue)
+    const strValue = "{" + Object.keys(jsonValue)
         .filter((key) => ['string', 'number', 'boolean'].includes(typeof key))
         .map((key) => `"${key}": ${jsonValue[key]}`)
         .join(', ') + "}";
