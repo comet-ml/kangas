@@ -1,11 +1,11 @@
 import { Html, Head, Main, NextScript } from 'next/document';
-import config from '../config';
-
+import Script from 'next/script';
+// TODO Remove this kangas.comet.com specific code when we migrate to Next 13
 export default function Document() {
     return (
         <Html>
             <Head>
-                { config?.scripts?.map(script => <script src={`/scripts/${script}`} />) }
+                <Script src='/scripts/ga.js' strategy='afterInteractive' />
             </Head>
             <body>
                 <Main />

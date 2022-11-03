@@ -5,7 +5,6 @@ const localConfig = {
     defaultDecimalPrecision: 5,
     locale: 'en-US',
     isColab: env.IN_COLAB === 'True',
-    scripts: env.SCRIPTS?.split(" ") || []
 };
 
 export default localConfig;
