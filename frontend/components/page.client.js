@@ -1,4 +1,5 @@
 import { StyledEngineProvider } from "@mui/material"
+
 const Page = ({ children }) => {
     return (
         <StyledEngineProvider injectFirst>
