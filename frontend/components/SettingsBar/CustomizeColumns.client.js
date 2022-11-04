@@ -155,9 +155,12 @@ const CustomizeColumnsModal = ({
     // in select:
     if (isMulti) {
         return (
-            <div>
-                <div className="alert">
-                    You can drag and drop columns to sort them in the DataGrid
+            <div className="multi-select-columns">
+                <div className="title">
+                    {`Column Selection & Ordering`}
+                </div>
+                <div className="subtitle">
+                    Add and remove column tags to update the table
                 </div>
                 <MultiSelectSort
                     options={options}

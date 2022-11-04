@@ -1,4 +1,4 @@
-import React, { MouseEventHandler, useCallback } from 'react';
+import React, { MouseEventHandler, useCallback, useState } from 'react';
 import Select, { components } from 'react-select';
 import { DndContext, DragEndEvent, useDroppable } from '@dnd-kit/core';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
@@ -29,7 +29,7 @@ const MultiValue = (props) => {
         });
     const style = {
         transform: CSS.Transform.toString(transform),
-        transition,
+        transition
     };
 
     return (
@@ -46,6 +46,7 @@ const MultiValueContainer = (props) => {
 
     const style = {
         color: isOver ? 'green' : undefined,
+        
     };
 
     return (
@@ -63,7 +64,19 @@ const MultiValueRemove = (props) => {
                 onPointerDown: (e) => e.stopPropagation(),
                 ...props.innerProps,
             }}
-        />
+        >
+            <div style={{ 
+                width: '100%', 
+                height: '100%', 
+                textAlign: 'center', 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center'
+                }}
+            >
+                x
+            </div>
+        </components.MultiValueRemove>
     );
 };
 
@@ -72,7 +85,7 @@ const Menu = (props) => (
 );
 
 const MultiSelectSort = ({ options, update, defaults }) => {
-    const [selected, setSelected] = React.useState(options);
+    const [selected, setSelected] = useState(options);
 
     const onChange = (selectedOptions) => setSelected([...selectedOptions]);
 
@@ -90,15 +103,41 @@ const MultiSelectSort = ({ options, update, defaults }) => {
 
     const updated = useCallback(() => update(selected), [selected]);
 
+    // Note: react-select styling: https://react-select.com/styles
     const customStyles = {
         valueContainer: (provided, state) => ({
             ...provided,
             overflow: 'auto',
         }),
-    };
+        multiValue: (provided, state) => ({
+            ...provided,
+            backgroundColor: '#E5E5FE',
+            alignItems: 'center'
+        }),
+        multiValueLabel: (provided, state) => ({
+            ...provided,
+            color: '#5155F5',
+            fontSize: '12px',
+            fontWeight: '400',
+            textTransform: 'uppercase'
+        }),
+        multiValueRemove: (provided, state) => ({
+            ...provided,
+            backgroundColor: '#AFB0FB',
+            borderRadius: '100%',
+            height: '14px',
+            width: '14px',
+            marginLeft: '8px',
+            marginRight: '8px',
+            fontSize: '10px',
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center'
+        })
+     };
 
     return (
-        <>
+        <div className="multi-select-columns-body">
             <DndContext
                 modifiers={[restrictToParentElement]}
                 onDragEnd={onSortEnd}
@@ -124,8 +163,11 @@ const MultiSelectSort = ({ options, update, defaults }) => {
                     />
                 </SortableContext>
             </DndContext>
-            <button onClick={updated}>Save Changes</button>
-        </>
+            <div className="button-row">
+                <div className="reset">Reset Defaults</div>
+                <button className='button' onClick={updated}>Done</button>
+            </div>
+        </div>
     );
 };
 
