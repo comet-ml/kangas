@@ -87,7 +87,8 @@ const Menu = (props) => (
 const MultiSelectSort = ({ options, update, defaults }) => {
     const [selected, setSelected] = useState(options);
 
-    const onChange = (selectedOptions) => setSelected([...selectedOptions]);
+    const onChange = useCallback((selectedOptions) => setSelected([...selectedOptions], []));
+    const resetSelected = useCallback(() => setSelected(options), [options]);
 
     const onSortEnd = (event) => {
         const { active, over } = event;
@@ -108,6 +109,7 @@ const MultiSelectSort = ({ options, update, defaults }) => {
         valueContainer: (provided, state) => ({
             ...provided,
             overflow: 'auto',
+            padding: '5px 6px'
         }),
         multiValue: (provided, state) => ({
             ...provided,
@@ -164,7 +166,7 @@ const MultiSelectSort = ({ options, update, defaults }) => {
                 </SortableContext>
             </DndContext>
             <div className="button-row">
-                <div className="reset">Reset Defaults</div>
+                <div className="reset" onClick={resetSelected}>Reset Defaults</div>
                 <button className='button' onClick={updated}>Done</button>
             </div>
         </div>

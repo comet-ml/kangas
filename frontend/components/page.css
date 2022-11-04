@@ -270,6 +270,7 @@ pre code {
 .multi-select-columns {
     display: flex;
     flex-direction: column;
+    padding: 16px 14px 10px 14px;
 }
 
 .multi-select-columns > .title {
@@ -298,12 +299,13 @@ pre code {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    align-items: end;
+    align-items: baseline;
 }
 
 .multi-select-columns-body .reset {
     font-size: 14px;
     color: #5155F5;
+    cursor: pointer;
 }
 
 .button-outline {
