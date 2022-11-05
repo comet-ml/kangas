@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+.DS_Store
 
 # C extensions
 *.so
@@ -142,9 +143,9 @@ dmypy.json
 /frontend/.vercel
 /frontend/server.js
 /frontend/.swc
+/frontend/public/scripts/*
 node_modules
 yarn.lock
-
 
 # Examples
 

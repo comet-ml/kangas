@@ -1,11 +1,11 @@
 import { Html, Head, Main, NextScript } from 'next/document';
-
+import Script from 'next/script';
+// TODO Refactor this hard-coded injection point when we migrate to Next 13
 export default function Document() {
     return (
         <Html>
             <Head>
-                <link rel="icon" type="image/png" href="/favicon.png" />
-                <title>Kangas - Data and Model Analysis</title>
+                <Script src='/scripts/ga.js' strategy='afterInteractive' />
             </Head>
             <body>
                 <Main />
