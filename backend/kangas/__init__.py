@@ -30,8 +30,15 @@ def _is_running(name, command):
             process = psutil.Process(pid)
         except Exception:
             continue
-        if process.name().startswith(name) and command in " ".join(process.cmdline()):
+
+        try:
+            cmdline = " ".join(process.cmdline())
+        except Exception:
+            continue
+
+        if process.name().startswith(name) and command in cmdline:
             return process.is_running() and process.status() != psutil.STATUS_ZOMBIE
+
     return False
 
 
@@ -41,17 +48,18 @@ def _process_method(name, command, method):
             process = psutil.Process(pid)
         except Exception:
             continue
-        try: 
+
+        try:
             cmdline = " ".join(process.cmdline())
-            if (
-                process.name().startswith(name)
-                and command in cmdline
-                and "--terminate" not in cmdline
-            ):
-                return getattr(process, method)()
-        except Exception as e:
-            print(e)
+        except Exception:
             continue
+
+        if (
+            process.name().startswith(name)
+            and command in cmdline
+            and "--terminate" not in cmdline
+        ):
+            return getattr(process, method)()
 
 
 def terminate():
