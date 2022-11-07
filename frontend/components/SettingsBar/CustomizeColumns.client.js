@@ -33,10 +33,7 @@ const CustomizeColumnsModal = ({
     const [menuIsOpen, setMenuIsOpen] = useState(false);
     const [newOptions, setNewOptions] = useState(null);
     // Should the reset button be active
-    const [active, setActive] = useState(false);
     const [sortDesc, setSortDesc] = useState(false);
-
-    const CLEAR_CHOICE = { id: 0, label: '', value: null };
 
     // React select requires an array of dictionaries as input
     const options = useMemo(

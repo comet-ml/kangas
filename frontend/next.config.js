@@ -5,7 +5,7 @@ module.exports = {
   },
   experimental: {
     runtime: 'nodejs',
-    serverComponents: true,
+    appDir: true,
   },
   eslint: {
     ignoreDuringBuilds: true,
