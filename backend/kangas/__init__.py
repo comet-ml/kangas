@@ -41,13 +41,17 @@ def _process_method(name, command, method):
             process = psutil.Process(pid)
         except Exception:
             continue
-        cmdline = " ".join(process.cmdline())
-        if (
-            process.name().startswith(name)
-            and command in cmdline
-            and "--terminate" not in cmdline
-        ):
-            return getattr(process, method)()
+        try: 
+            cmdline = " ".join(process.cmdline())
+            if (
+                process.name().startswith(name)
+                and command in cmdline
+                and "--terminate" not in cmdline
+            ):
+                return getattr(process, method)()
+        except Exception as e:
+            print(e)
+            continue
 
 
 def terminate():
