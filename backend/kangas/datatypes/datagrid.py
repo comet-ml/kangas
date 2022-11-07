@@ -741,7 +741,7 @@ class DataGrid(object):
 
         Args:
             filename: the CSV file to import
-            header: (optional, bool) if True, use the first row as column headings
+            header: (optional, int) row number (zero-based) of column headings
             sep: (optional, str) used in the CSV parsing
             quotechar: (optional, str) used in the CSV parsing
             datetime_format: (optional, str) the datetime format
@@ -755,6 +755,11 @@ class DataGrid(object):
         >>> dg = DataGrid.read_csv("results.csv")
         ```
         """
+        if not isinstance(header, int) or isinstance(header, bool):
+            raise ValueError(
+                "header should be an int indicating header row (zero-based)"
+            )
+
         columns = None
         read_header = False
         data = []

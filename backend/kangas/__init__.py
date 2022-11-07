@@ -330,7 +330,7 @@ def read_csv(
 
     Args:
         filename: the CSV file or URL to import
-        header: if True, use the first row as column headings
+        header: (optional, int) row number (zero-based) of column headings
         sep:  used in the CSV parsing
         quotechar: used in the CSV parsing
         heuristics: if True, guess that some numbers might be dates
