@@ -43,6 +43,8 @@ class AttributeNode:
 class Evaluator:
     def __init__(self):
         # Selections keep track of aggregate select clauses
+        self.name_suffix = None
+        self._gensym = 0
         self.selections = {}
         self.selections_standalone = {}
         self.operators = {
@@ -64,6 +66,10 @@ class Evaluator:
         node = ast.parse(pyexp, mode="eval").body
         return str(self.eval_node(node))
 
+    def gensym(self):
+        self._gensym += 1
+        return str(self._gensym)
+
     def eval_node(self, node):
         """
         Given an AST node, evaluate it and return as an SQL expression
@@ -84,7 +90,10 @@ class Evaluator:
             }
             return template.format(**args)
         elif isinstance(node, ast.Name):
-            return str(node.id)
+            if self.name_suffix:
+                return str(node.id) + self.name_suffix
+            else:
+                return str(node.id)
         elif isinstance(node, (ast.Constant, ast.NameConstant)):
             if node.value is None:
                 return "null"
@@ -424,15 +433,13 @@ class Evaluator:
             if node.generators[0].ifs:
                 raise SyntaxError("if not allowed in list comprehension")
 
-            # inject a ".value" on end of value:
-            node.elt.left.value.id += ".value"
+            gensym = self.gensym()
+            y = self.eval_node(node.generators[0].target) + gensym
+            # inject a "23.value" on end of all y's:
+            self.name_suffix = "%s.value" % gensym
             x = self.eval_node(node.elt)
-            y = self.eval_node(node.generators[0].target)
+            self.name_suffix = None
             json_list = self.eval_node(node.generators[0].iter)
-
-            ## select distinct count(column_0) from datagrid,
-            ##        json_each(json_extract(column_8, '$.overlays')) as x
-            ##    WHERE json_extract(x.value, '$.label') = 'car';
 
             if isinstance(json_list, AttributeNode):
                 name, path = json_list.obj, "." + json_list.attr
