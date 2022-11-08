@@ -44,6 +44,7 @@ class Evaluator:
     def __init__(self):
         # Selections keep track of aggregate select clauses
         self.name_suffix = None
+        self.name_match = None
         self._gensym = 0
         self.selections = {}
         self.selections_standalone = {}
@@ -90,10 +91,11 @@ class Evaluator:
             }
             return template.format(**args)
         elif isinstance(node, ast.Name):
-            if self.name_suffix:
-                return str(node.id) + self.name_suffix
+            name_id = str(node.id)
+            if self.name_match == name_id:
+                return  name_id + self.name_suffix
             else:
-                return str(node.id)
+                return name_id
         elif isinstance(node, (ast.Constant, ast.NameConstant)):
             if node.value is None:
                 return "null"
@@ -434,11 +436,14 @@ class Evaluator:
                 raise SyntaxError("if not allowed in list comprehension")
 
             gensym = self.gensym()
-            y = self.eval_node(node.generators[0].target) + gensym
+            y = self.eval_node(node.generators[0].target)
+            self.name_match = y
+            y += gensym
             # inject a "23.value" on end of all y's:
             self.name_suffix = "%s.value" % gensym
             x = self.eval_node(node.elt)
             self.name_suffix = None
+            self.name_match = None
             json_list = self.eval_node(node.generators[0].iter)
 
             if isinstance(json_list, AttributeNode):
