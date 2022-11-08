@@ -17,7 +17,6 @@ import ast
 ## 1. No support for substrings, or [:]
 ## 2. No support for JSON lists
 
-
 class AttributeNode:
     def __init__(self, obj, attr):
         self.obj = obj
@@ -45,6 +44,7 @@ class Evaluator:
     def __init__(self):
         # Selections keep track of aggregate select clauses
         self.selections = {}
+        self.selections_standalone = {}
         self.operators = {
             ast.Add: "({leftOperand} + {rightOperand})",
             ast.Sub: "({leftOperand} - {rightOperand})",
@@ -416,12 +416,39 @@ class Evaluator:
         elif isinstance(node, ast.Str):
             ## Python 3.7
             return repr(node.s)
+        elif isinstance(node, ast.ListComp):
+            # [x.label == 'hello' for y in {"image"}.overlays]
+            ## "x.label" is node.elt
+            ## y: node.generators[0].iter.id
+
+            if node.generators[0].ifs:
+                raise SyntaxError("if not allowed in list comprehension")
+
+            # inject a ".value" on end of value:
+            node.elt.left.value.id += ".value"
+            x = self.eval_node(node.elt)
+            y = self.eval_node(node.generators[0].target)
+            json_list = self.eval_node(node.generators[0].iter)
+
+            ## select distinct count(column_0) from datagrid,
+            ##        json_each(json_extract(column_8, '$.overlays')) as x
+            ##    WHERE json_extract(x.value, '$.label') = 'car';
+
+            if isinstance(json_list, AttributeNode):
+                name, path = json_list.obj, "." + json_list.attr
+            else:
+                name, path = json_list, ""
+                
+            self.selections_standalone[y] = "json_each(json_extract(%s, '$%s'))" % (name, path)
+
+            return x
+        
         raise TypeError(node)
 
 
 def eval_computed_columns(computed_columns, where_expr=None):
     """
-    Takes: list of computed_columns '{
+    Takes: list of computed_columns: {
       "New date": {
          "field_expr": "{'date'} + 7",
          "field_name": "cc1"
@@ -461,7 +488,7 @@ def eval_computed_columns(computed_columns, where_expr=None):
     if where_expr:
         where_sql = evaluator.eval_expr(where_expr)
 
-    return (new_columns, evaluator.selections, where_sql)
+    return (new_columns, evaluator.selections, where_sql, evaluator.selections_standalone)
 
 
 def update_state(
@@ -484,7 +511,7 @@ def update_state(
 
     Returns the SQL where clause, if `where_expr` is provided.
     """
-    new_columns, select_map, where_sql = eval_computed_columns(
+    new_columns, select_map, where_sql, select_alone_map = eval_computed_columns(
         computed_columns, where_expr
     )
 
@@ -517,6 +544,15 @@ def update_state(
     for select_name in select_map:
         select_expr = select_map[select_name]
         database = "(SELECT rowid, %s AS %s FROM datagrid)" % (
+            select_expr,
+            select_name,
+        )
+        database = database.format(**columns_to_field_expr)
+        databases.append(database)
+    for select_name in select_alone_map:
+        # These are not SELECTS, but additional expressions
+        select_expr = select_alone_map[select_name]
+        database = "%s AS %s" % (
             select_expr,
             select_name,
         )

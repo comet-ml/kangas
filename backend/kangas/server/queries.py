@@ -325,7 +325,7 @@ def get_group_by_rows(
         "distinct": "DISTINCT " if distinct else "",
     }
 
-    select_sql = "SELECT value FROM (SELECT {select_expr_as}, {group_by_field_expr} AS {group_by_field_name}, GROUP_CONCAT({distinct}REPLACE(IFNULL({field_expr},'None'), ',', '&comma;')) as value FROM {databases} WHERE {where} GROUP BY {group_by_field_name}) WHERE {group_by_field_name} is {column_value}"
+    select_sql = "SELECT value FROM (SELECT DISTINCT {select_expr_as}, {group_by_field_expr} AS {group_by_field_name}, GROUP_CONCAT({distinct}REPLACE(IFNULL({field_expr},'None'), ',', '&comma;')) as value FROM {databases} WHERE {where} GROUP BY {group_by_field_name}) WHERE {group_by_field_name} is {column_value}"
     selection_sql = select_sql.format(**env)
     LOGGER.info("SQL %s", selection_sql)
     start_time = time.time()
@@ -746,7 +746,7 @@ def select_asset_group(
         "select_expr_as": ", ".join(select_expr_as),
     }
     # These are assetIds (strings):
-    select_sql = "SELECT value FROM (SELECT {select_expr_as}, COUNT({field_name}) as value FROM {databases} WHERE {where} GROUP BY {group_by_field_name}) WHERE {group_by_field_name} is {column_value};"
+    select_sql = "SELECT value FROM (SELECT DISTINCT {select_expr_as}, COUNT({field_name}) as value FROM {databases} WHERE {where} GROUP BY {group_by_field_name}) WHERE {group_by_field_name} is {column_value};"
     selection_sql = select_sql.format(**env)
     LOGGER.info("SQL %s", selection_sql)
     start_time = time.time()
@@ -906,7 +906,7 @@ def query_sql(
         select_expr_as,
         where_expr,
     )
-    sort_by_field_name = get_field_name(sort_by, metadata) if sort_by else "rowid"
+    sort_by_field_name = get_field_name(sort_by, metadata) if sort_by else "column_0"
     sort_desc = "DESC" if sort_desc else "ASC"
 
     if not count:
@@ -915,7 +915,7 @@ def query_sql(
     if count:
         sql = "SELECT COUNT(*) FROM {databases} WHERE {where};"
     else:
-        sql = "SELECT {select_expr_as} FROM {databases} WHERE {where} ORDER BY {sort_by_field_name} {sort_desc};"
+        sql = "SELECT DISTINCT {select_expr_as} FROM {databases} WHERE {where} ORDER BY {sort_by_field_name} {sort_desc};"
     env = {
         "select_expr_as": ", ".join(select_expr_as),
         "where": where_sql,
@@ -987,7 +987,7 @@ def verify_where(
         "select_expr_as": ", ".join(select_expr_as),
         "databases": ", ".join(databases),
     }
-    select_sql = "SELECT {select_expr_as} FROM {databases} WHERE {where} LIMIT 1;"
+    select_sql = "SELECT DISTINCT {select_expr_as} FROM {databases} WHERE {where} LIMIT 1;"
 
     selection_sql = select_sql.format(**env)
     LOGGER.info("SQL %s", selection_sql)
@@ -1049,7 +1049,7 @@ def select_query(
         select_fields = [get_field_name(column, metadata) for column in columns]
         select_columns = columns
 
-    sort_by_field_name = get_field_name(sort_by, metadata) if sort_by else "rowid"
+    sort_by_field_name = get_field_name(sort_by, metadata) if sort_by else "column_0"
     remove_columns = []
 
     if group_by:
@@ -1070,7 +1070,7 @@ def select_query(
             "select_fields": ", ".join(select_fields),
             "databases": ", ".join(databases),
         }
-        select_sql = "SELECT {select_expr_as} FROM {databases} WHERE {where} GROUP BY {group_by_field_name} ORDER BY {sort_by_field_name} {sort_desc} LIMIT {limit} OFFSET {offset}"
+        select_sql = "SELECT DISTINCT {select_expr_as} FROM {databases} WHERE {where} GROUP BY {group_by_field_name} ORDER BY {sort_by_field_name} {sort_desc} LIMIT {limit} OFFSET {offset}"
     else:
         env = {
             "limit": limit,
@@ -1082,7 +1082,7 @@ def select_query(
             "select_fields": ", ".join(select_fields),
             "databases": ", ".join(databases),
         }
-        select_sql = "SELECT {select_expr_as} FROM {databases} WHERE {where} ORDER BY {sort_by_field_name} {sort_desc} LIMIT {limit} OFFSET {offset}"
+        select_sql = "SELECT DISTINCT {select_expr_as} FROM {databases} WHERE {where} ORDER BY {sort_by_field_name} {sort_desc} LIMIT {limit} OFFSET {offset}"
 
     if len(select_columns) != len(columns):
         select_sql = "SELECT {select_fields} FROM (%s);" % select_sql
@@ -1101,7 +1101,7 @@ def select_query(
     rows = cur.fetchall()
 
     if group_by:
-        total_sql = "SELECT COUNT() from (SELECT {select_expr_as} FROM {databases} GROUP BY {group_by_field_name});"
+        total_sql = "SELECT COUNT() from (SELECT DISTINCT {select_expr_as} FROM {databases} GROUP BY {group_by_field_name});"
         group_by_field_name = get_field_name(group_by, metadata)
         # Add cell messages for groups and assets:
         rows = list(rows)
@@ -1155,7 +1155,7 @@ def select_query(
 
             rows[r] = row
     else:
-        total_sql = "SELECT COUNT() FROM (SELECT {select_expr_as} FROM {databases} WHERE {where});"
+        total_sql = "SELECT COUNT() FROM (SELECT DISTINCT {select_expr_as} FROM {databases} WHERE {where});"
         # Add asset messages:
         rows = list(rows)
         for r in range(len((rows))):
