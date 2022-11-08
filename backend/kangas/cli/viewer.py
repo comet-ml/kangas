@@ -265,6 +265,8 @@ def query(parsed_args):
                         "columnName"
                     ].endswith("--metadata"):
                         table["rows"][r][c] = "N/A"
+                    elif table["rows"][r][c]["columnName"].startswith("_"):
+                        table["rows"][r][c] = "N/A"
                     else:
                         json_value = table["rows"][r][c]
                         if "type" in json_value and json_value["type"].endswith(

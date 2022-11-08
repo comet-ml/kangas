@@ -17,6 +17,7 @@ import ast
 ## 1. No support for substrings, or [:]
 ## 2. No support for JSON lists
 
+
 class AttributeNode:
     def __init__(self, obj, attr):
         self.obj = obj
@@ -41,13 +42,15 @@ class AttributeNode:
 
 
 class Evaluator:
-    def __init__(self):
+    def __init__(self, new_columns):
         # Selections keep track of aggregate select clauses
+        # FIXME: turn name munging into a stack:
         self.name_suffix = None
         self.name_match = None
         self._gensym = 0
         self.selections = {}
         self.selections_standalone = {}
+        self.new_columns = new_columns
         self.operators = {
             ast.Add: "({leftOperand} + {rightOperand})",
             ast.Sub: "({leftOperand} - {rightOperand})",
@@ -93,7 +96,7 @@ class Evaluator:
         elif isinstance(node, ast.Name):
             name_id = str(node.id)
             if self.name_match == name_id:
-                return  name_id + self.name_suffix
+                return name_id + self.name_suffix
             else:
                 return name_id
         elif isinstance(node, (ast.Constant, ast.NameConstant)):
@@ -132,6 +135,19 @@ class Evaluator:
                 aggregate_selection_name = "%s_aggregate_column_%s" % (function_name, 1)
                 self.selections[aggregate_selection_name] = expr
                 return aggregate_selection_name
+            elif function_name in ["any", "all", "len"]:
+                ## Sqlite functions
+                function_map = {
+                    "any": "ANY_IN_GROUP",
+                    "all": "ALL_IN_GROUP",
+                    "len": "length",
+                }
+                sargs = ", ".join([str(arg) for arg in args])
+                expr = "{function_name}({sargs})".format(
+                    function_name=function_map[function_name],
+                    sargs=sargs,
+                )
+                return expr
             elif function_name in ["abs", "round", "max", "min"]:
                 # Special case to deal with Python's min([...]), max([...])
                 # to turn into SQL's min(...), max(...)
@@ -146,12 +162,6 @@ class Evaluator:
                     return "CAST(%s AS int)" % expr
                 else:
                     return expr
-            elif function_name == "len":
-                sargs = ", ".join([str(arg) for arg in args])
-                expr = "length({sargs})".format(
-                    sargs=sargs,
-                )
-                return expr
             elif isinstance(function_name, AttributeNode):
                 if function_name.obj == "random":
                     if function_name.attr == "random":
@@ -450,11 +460,20 @@ class Evaluator:
                 name, path = json_list.obj, "." + json_list.attr
             else:
                 name, path = json_list, ""
-                
-            self.selections_standalone[y] = "json_each(json_extract(%s, '$%s'))" % (name, path)
 
-            return x
-        
+            x_var = "_group" + self.gensym()
+            self.selections_standalone[y] = "json_each(json_extract(%s, '$%s'))" % (
+                name,
+                path,
+            )
+            self.new_columns[x_var] = {
+                "field_expr": "json_group_array(%s)" % x,
+                "type": "TEXT",
+                "field_name": x_var,
+            }
+
+            return x_var
+
         raise TypeError(node)
 
 
@@ -482,10 +501,10 @@ def eval_computed_columns(computed_columns, where_expr=None):
         * type is a DATAGRID types (INTEGER, IMAGE-ASSET, etc)
         * SELECTIONS is a dict of NAME mapped to SQL sub selects
     """
-    evaluator = Evaluator()
+    new_columns = {}
+    evaluator = Evaluator(new_columns)
     where_sql = None
     # new columns:
-    new_columns = {}
     if computed_columns:
         for name in computed_columns:
             expr = computed_columns[name]["field_expr"]
@@ -500,7 +519,12 @@ def eval_computed_columns(computed_columns, where_expr=None):
     if where_expr:
         where_sql = evaluator.eval_expr(where_expr)
 
-    return (new_columns, evaluator.selections, where_sql, evaluator.selections_standalone)
+    return (
+        new_columns,
+        evaluator.selections,
+        where_sql,
+        evaluator.selections_standalone,
+    )
 
 
 def update_state(
