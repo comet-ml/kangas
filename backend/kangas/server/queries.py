@@ -21,6 +21,7 @@ import sqlite3
 import time
 from collections import Counter
 
+import jmespath
 import numpy as np
 from PIL import Image
 
@@ -111,10 +112,85 @@ class StdevFunc:
         return math.sqrt(self.S / (self.k - 1))  # To use MySQL version, change to k-2
 
 
+def ANY_IN_GROUP(group):
+    group = group[1:-1]
+    if group:
+        return any((False if x == "0" else True) for x in group.split(","))
+    else:
+        return False
+
+
+def ALL_IN_GROUP(group):
+    group = group[1:-1]
+    if group:
+        return all((False if x == "0" else True) for x in group.split(","))
+    else:
+        return True
+
+
+def json_extract(json_obj, path):
+    ## json_extract(x, '$')
+    ## json_extract(x, '$.label')
+    if path.startswith("$"):
+        path = path[1:]
+
+    if path.startswith("."):
+        path = path[1:]
+
+    if path and json_obj:
+        return jmespath.search(path, json_obj)
+    else:
+        return json_obj
+
+
+def process_results(value):
+    if value is True:
+        return "1"
+    elif value is False:
+        return "0"
+    else:
+        # FIXME: no commas
+        return str(value)
+
+
+class AttributeDict:
+    def __init__(self, dictionary):
+        self.dictionary = dictionary
+
+    def __getattr__(self, item):
+        if item in self.dictionary:
+            return self.dictionary[item]
+
+    def __repr__(self):
+        return repr(self.dictionary)
+
+
+def ListComprehension(x, y, gen, ifs):
+    ## [x for y in gen ifs]
+    results = []
+    if gen:
+        for row in json.loads(gen):
+            env = {
+                y: AttributeDict(row),
+                "json_extract": json_extract,
+            }
+            try:
+                result = eval(x, {}, env)
+            except Exception:
+                print("Error in eval:", x, env)
+                result = None
+            if result is not None:
+                results.append(process_results(result))
+    return "[" + (",".join(results)) + "]"
+
+
 def get_database_connection(dgid):
     db_path = get_dg_path(dgid)
     conn = sqlite3.connect(db_path)
     conn.create_aggregate("STDEV", 1, StdevFunc)
+    conn.create_function("ANY_IN_GROUP", 1, ANY_IN_GROUP)
+    conn.create_function("ALL_IN_GROUP", 1, ALL_IN_GROUP)
+    conn.create_function("ListComprehension", 4, ListComprehension)
     return conn
 
 
