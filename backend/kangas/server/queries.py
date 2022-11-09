@@ -121,11 +121,14 @@ def ANY_IN_GROUP(group):
 
 
 def ALL_IN_GROUP(group):
+    ## This varies from Python semantics: if you are looking for all
+    ## then it doesn't make sense to return True if the list
+    ## is empty
     group = group[1:-1]
     if group:
         return all((False if x == "0" else True) for x in group.split(","))
     else:
-        return True
+        return False
 
 
 def json_extract(json_obj, path):
