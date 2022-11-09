@@ -42,15 +42,9 @@ class AttributeNode:
 
 
 class Evaluator:
-    def __init__(self, new_columns):
+    def __init__(self):
         # Selections keep track of aggregate select clauses
-        # FIXME: turn name munging into a stack:
-        self.name_suffix = None
-        self.name_match = None
-        self._gensym = 0
         self.selections = {}
-        self.selections_standalone = {}
-        self.new_columns = new_columns
         self.operators = {
             ast.Add: "({leftOperand} + {rightOperand})",
             ast.Sub: "({leftOperand} - {rightOperand})",
@@ -69,10 +63,6 @@ class Evaluator:
         """
         node = ast.parse(pyexp, mode="eval").body
         return str(self.eval_node(node))
-
-    def gensym(self):
-        self._gensym += 1
-        return str(self._gensym)
 
     def eval_node(self, node):
         """
@@ -94,11 +84,7 @@ class Evaluator:
             }
             return template.format(**args)
         elif isinstance(node, ast.Name):
-            name_id = str(node.id)
-            if self.name_match == name_id:
-                return name_id + self.name_suffix
-            else:
-                return name_id
+            return str(node.id)
         elif isinstance(node, (ast.Constant, ast.NameConstant)):
             if node.value is None:
                 return "null"
@@ -135,19 +121,6 @@ class Evaluator:
                 aggregate_selection_name = "%s_aggregate_column_%s" % (function_name, 1)
                 self.selections[aggregate_selection_name] = expr
                 return aggregate_selection_name
-            elif function_name in ["any", "all", "len"]:
-                ## Sqlite functions
-                function_map = {
-                    "any": "ANY_IN_GROUP",
-                    "all": "ALL_IN_GROUP",
-                    "len": "length",
-                }
-                sargs = ", ".join([str(arg) for arg in args])
-                expr = "{function_name}({sargs})".format(
-                    function_name=function_map[function_name],
-                    sargs=sargs,
-                )
-                return expr
             elif function_name in ["abs", "round", "max", "min"]:
                 # Special case to deal with Python's min([...]), max([...])
                 # to turn into SQL's min(...), max(...)
@@ -162,6 +135,12 @@ class Evaluator:
                     return "CAST(%s AS int)" % expr
                 else:
                     return expr
+            elif function_name == "len":
+                sargs = ", ".join([str(arg) for arg in args])
+                expr = "length({sargs})".format(
+                    sargs=sargs,
+                )
+                return expr
             elif isinstance(function_name, AttributeNode):
                 if function_name.obj == "random":
                     if function_name.attr == "random":
@@ -437,49 +416,12 @@ class Evaluator:
         elif isinstance(node, ast.Str):
             ## Python 3.7
             return repr(node.s)
-        elif isinstance(node, ast.ListComp):
-            # [x.label == 'hello' for y in {"image"}.overlays]
-            ## "x.label" is node.elt
-            ## y: node.generators[0].iter.id
-
-            if node.generators[0].ifs:
-                raise SyntaxError("if not allowed in list comprehension")
-
-            gensym = self.gensym()
-            y = self.eval_node(node.generators[0].target)
-            self.name_match = y
-            y += gensym
-            # inject a "23.value" on end of all y's:
-            self.name_suffix = "%s.value" % gensym
-            x = self.eval_node(node.elt)
-            self.name_suffix = None
-            self.name_match = None
-            json_list = self.eval_node(node.generators[0].iter)
-
-            if isinstance(json_list, AttributeNode):
-                name, path = json_list.obj, "." + json_list.attr
-            else:
-                name, path = json_list, ""
-
-            x_var = "_group" + self.gensym()
-            self.selections_standalone[y] = "json_each(json_extract(%s, '$%s'))" % (
-                name,
-                path,
-            )
-            self.new_columns[x_var] = {
-                "field_expr": "json_group_array(%s)" % x,
-                "type": "TEXT",
-                "field_name": x_var,
-            }
-
-            return x_var
-
         raise TypeError(node)
 
 
 def eval_computed_columns(computed_columns, where_expr=None):
     """
-    Takes: list of computed_columns: {
+    Takes: list of computed_columns '{
       "New date": {
          "field_expr": "{'date'} + 7",
          "field_name": "cc1"
@@ -501,10 +443,10 @@ def eval_computed_columns(computed_columns, where_expr=None):
         * type is a DATAGRID types (INTEGER, IMAGE-ASSET, etc)
         * SELECTIONS is a dict of NAME mapped to SQL sub selects
     """
-    new_columns = {}
-    evaluator = Evaluator(new_columns)
+    evaluator = Evaluator()
     where_sql = None
     # new columns:
+    new_columns = {}
     if computed_columns:
         for name in computed_columns:
             expr = computed_columns[name]["field_expr"]
@@ -519,12 +461,7 @@ def eval_computed_columns(computed_columns, where_expr=None):
     if where_expr:
         where_sql = evaluator.eval_expr(where_expr)
 
-    return (
-        new_columns,
-        evaluator.selections,
-        where_sql,
-        evaluator.selections_standalone,
-    )
+    return (new_columns, evaluator.selections, where_sql)
 
 
 def update_state(
@@ -547,7 +484,7 @@ def update_state(
 
     Returns the SQL where clause, if `where_expr` is provided.
     """
-    new_columns, select_map, where_sql, select_alone_map = eval_computed_columns(
+    new_columns, select_map, where_sql = eval_computed_columns(
         computed_columns, where_expr
     )
 
@@ -580,15 +517,6 @@ def update_state(
     for select_name in select_map:
         select_expr = select_map[select_name]
         database = "(SELECT rowid, %s AS %s FROM datagrid)" % (
-            select_expr,
-            select_name,
-        )
-        database = database.format(**columns_to_field_expr)
-        databases.append(database)
-    for select_name in select_alone_map:
-        # These are not SELECTS, but additional expressions
-        select_expr = select_alone_map[select_name]
-        database = "%s AS %s" % (
             select_expr,
             select_name,
         )

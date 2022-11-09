@@ -265,10 +265,6 @@ def query(parsed_args):
                         "columnName"
                     ].endswith("--metadata"):
                         table["rows"][r][c] = "N/A"
-                    elif "columnName" in table["rows"][r][c] and table["rows"][r][c][
-                        "columnName"
-                    ].startswith("_"):
-                        table["rows"][r][c] = "N/A"
                     else:
                         json_value = table["rows"][r][c]
                         if "type" in json_value and json_value["type"].endswith(
@@ -565,7 +561,7 @@ def format_width(text, width):
 
 
 def display(column, width, row=0, f=""):
-    if isinstance(column, dict) and "type" in column:
+    if isinstance(column, dict):
         column = column["type"].upper()
     elif column in ["None", None]:
         column = ""
