@@ -1421,7 +1421,7 @@ class DataGrid(object):
             name = "Column %s" % (index + 1)
 
         if len(name) > self.MAX_COL_NAME_LENGTH:
-            raise Exception("DataGrid column name %r is too long" % name)
+            raise Exception("DataGrid column name %r is too long")
 
         return name
 
