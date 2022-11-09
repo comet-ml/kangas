@@ -111,10 +111,20 @@ class StdevFunc:
         return math.sqrt(self.S / (self.k - 1))  # To use MySQL version, change to k-2
 
 
+def ANY_IN_GROUP(group):
+    return any(x == "1" for x in group[1:-1].split(","))
+
+
+def ALL_IN_GROUP(group):
+    return all(x == "1" for x in group[1:-1].split(","))
+
+
 def get_database_connection(dgid):
     db_path = get_dg_path(dgid)
     conn = sqlite3.connect(db_path)
     conn.create_aggregate("STDEV", 1, StdevFunc)
+    conn.create_function("ANY_IN_GROUP", 1, ANY_IN_GROUP)
+    conn.create_function("ALL_IN_GROUP", 1, ALL_IN_GROUP)
     return conn
 
 
@@ -312,6 +322,7 @@ def get_group_by_rows(
     databases,
     select_expr_as,
     distinct=False,
+    having="",
 ):
     env = {
         "group_by_field_name": group_by_field_name,
@@ -320,12 +331,13 @@ def get_group_by_rows(
         "field_expr": field_expr,
         "column_value": get_column_value(column_value),
         "where": where,
+        "having": having,
         "databases": ", ".join(databases),
         "select_expr_as": ", ".join(select_expr_as),
         "distinct": "DISTINCT " if distinct else "",
     }
 
-    select_sql = "SELECT value FROM (SELECT {select_expr_as}, {group_by_field_expr} AS {group_by_field_name}, GROUP_CONCAT({distinct}REPLACE(IFNULL({field_expr},'None'), ',', '&comma;')) as value FROM {databases} WHERE {where} GROUP BY {group_by_field_name}) WHERE {group_by_field_name} is {column_value}"
+    select_sql = "SELECT value FROM (SELECT {select_expr_as}, {group_by_field_expr} AS {group_by_field_name}, GROUP_CONCAT({distinct}REPLACE(IFNULL({field_expr},'None'), ',', '&comma;')) as value FROM {databases} WHERE {where} GROUP BY {group_by_field_name} {having}) WHERE {group_by_field_name} is {column_value}"
     selection_sql = select_sql.format(**env)
     LOGGER.info("SQL %s", selection_sql)
     start_time = time.time()
@@ -352,6 +364,7 @@ def select_histogram(
     columns = list(metadata.keys())
     select_expr_as = [get_field_name(column, metadata) for column in columns]
     databases = ["datagrid"]
+    having = ""
 
     if computed_columns or where_expr:
         where_sql = update_state(
@@ -364,7 +377,11 @@ def select_histogram(
             where_expr,
         )
         if where_sql:
-            where = where_sql
+            if "_IN_GROUP" in where_sql:
+                having = "HAVING %s" % where_sql
+                where = "1"
+            else:
+                where = where_sql
 
     where = where if where else "1"
 
@@ -384,6 +401,7 @@ def select_histogram(
             where,
             databases,
             select_expr_as,
+            having=having,
         )
     except sqlite3.OperationalError as exc:
         LOGGER.error("SQL: %s", exc)
@@ -435,6 +453,7 @@ def select_description(
     columns = list(metadata.keys())
     select_expr_as = [get_field_name(column, metadata) for column in columns]
     databases = ["datagrid"]
+    having = ""
 
     if computed_columns or where_expr:
         where_sql = update_state(
@@ -447,7 +466,11 @@ def select_description(
             where_expr,
         )
         if where_sql:
-            where = where_sql
+            if "_IN_GROUP" in where_sql:
+                having = "HAVING %s" % where_sql
+                where = "1"
+            else:
+                where = where_sql
 
     where = where if where else "1"
 
@@ -468,6 +491,7 @@ def select_description(
             where,
             databases,
             select_expr_as,
+            having=having,
         )
     except sqlite3.OperationalError as exc:
         LOGGER.error("SQL: %s", exc)
@@ -508,6 +532,7 @@ def select_category(
     columns = list(metadata.keys())
     select_expr_as = [get_field_name(column, metadata) for column in columns]
     databases = ["datagrid"]
+    having = ""
 
     if computed_columns or where_expr:
         where_sql = update_state(
@@ -520,7 +545,11 @@ def select_category(
             where_expr,
         )
         if where_sql:
-            where = where_sql
+            if "_IN_GROUP" in where_sql:
+                having = "HAVING %s" % where_sql
+                where = "1"
+            else:
+                where = where_sql
 
     where = where if where else "1"
 
@@ -541,6 +570,7 @@ def select_category(
             where,
             databases,
             select_expr_as,
+            having=having,
         )
     except sqlite3.OperationalError as exc:
         LOGGER.error("SQL: %s", exc)
@@ -698,6 +728,7 @@ def select_asset_group(
     columns = list(metadata.keys())
     select_expr_as = [get_field_name(column, metadata) for column in columns]
     databases = ["datagrid"]
+    having = ""
 
     if computed_columns or where_expr:
         where_sql = update_state(
@@ -710,7 +741,11 @@ def select_asset_group(
             where_expr,
         )
         if where_sql:
-            where = where_sql
+            if "_IN_GROUP" in where_sql:
+                having = "HAVING %s" % where_sql
+                where = "1"
+            else:
+                where = where_sql
 
     where = where if where else "1"
 
@@ -732,6 +767,7 @@ def select_asset_group(
             databases,
             select_expr_as,
             distinct,
+            having=having,
         )
     except sqlite3.OperationalError as exc:
         LOGGER.error("SQL: %s", exc)
@@ -742,11 +778,12 @@ def select_asset_group(
         "field_name": field_name,
         "column_value": get_column_value(column_value),
         "where": where,
+        "having": having,
         "databases": ", ".join(databases),
         "select_expr_as": ", ".join(select_expr_as),
     }
     # These are assetIds (strings):
-    select_sql = "SELECT value FROM (SELECT {select_expr_as}, COUNT({field_name}) as value FROM {databases} WHERE {where} GROUP BY {group_by_field_name}) WHERE {group_by_field_name} is {column_value};"
+    select_sql = "SELECT value FROM (SELECT {select_expr_as}, COUNT({field_name}) as value FROM {databases} WHERE {where} GROUP BY {group_by_field_name} {having}) WHERE {group_by_field_name} is {column_value};"
     selection_sql = select_sql.format(**env)
     LOGGER.info("SQL %s", selection_sql)
     start_time = time.time()
@@ -805,6 +842,7 @@ def select_asset_group_metadata(
     columns = list(metadata.keys())
     select_expr_as = [get_field_name(column, metadata) for column in columns]
     databases = ["datagrid"]
+    having = ""
 
     if computed_columns or where_expr:
         where_sql = update_state(
@@ -817,7 +855,11 @@ def select_asset_group_metadata(
             where_expr,
         )
         if where_sql:
-            where = where_sql
+            if "_IN_GROUP" in where_sql:
+                having = "HAVING %s" % where_sql
+                where = "1"
+            else:
+                where = where_sql
 
     where = where if where else "1"
 
@@ -838,6 +880,7 @@ def select_asset_group_metadata(
             databases,
             select_expr_as,
             distinct,
+            having=having,
         )
     except sqlite3.OperationalError as exc:
         LOGGER.error("SQL: %s", exc)
@@ -896,6 +939,7 @@ def query_sql(
     select_expr_as = [get_field_name(column, metadata) for column in columns]
     databases = ["datagrid"]
     computed_columns = None
+    having = ""
 
     where_sql = update_state(
         dgid,
@@ -906,19 +950,29 @@ def query_sql(
         select_expr_as,
         where_expr,
     )
-    sort_by_field_name = get_field_name(sort_by, metadata) if sort_by else "rowid"
+    if where_sql:
+        if "_IN_GROUP" in where_sql:
+            having = "HAVING %s" % where_sql
+            where = "1"
+        else:
+            where = where_sql
+
+    sort_by_field_name = get_field_name(sort_by, metadata) if sort_by else "column_0"
     sort_desc = "DESC" if sort_desc else "ASC"
 
     if not count:
         conn.row_factory = make_dict_factory(column_name_map)
     cursor = conn.cursor()
     if count:
-        sql = "SELECT COUNT(*) FROM {databases} WHERE {where};"
+        sql = (
+            "SELECT COUNT(*) FROM {databases} WHERE {where} GROUP BY column_0 {having};"
+        )
     else:
-        sql = "SELECT {select_expr_as} FROM {databases} WHERE {where} ORDER BY {sort_by_field_name} {sort_desc};"
+        sql = "SELECT {select_expr_as} FROM {databases} WHERE {where} GROUP BY column_0 {having} ORDER BY {sort_by_field_name} {sort_desc};"
     env = {
         "select_expr_as": ", ".join(select_expr_as),
-        "where": where_sql,
+        "where": where,
+        "having": having,
         "sort_desc": sort_desc,
         "sort_by_field_name": sort_by_field_name,
         "databases": ", ".join(databases),
@@ -955,6 +1009,7 @@ def verify_where(
     select_expr_as = [get_field_name(column, metadata) for column in columns]
     databases = ["datagrid"]
     where = None
+    having = ""
 
     # FIXME:
     # Add the where_expr as a computed column, and return that
@@ -973,7 +1028,12 @@ def verify_where(
                 where_expr,
             )
             if where_sql:
-                where = where_sql
+                if "_IN_GROUP" in where_sql:
+                    having = "HAVING %s" % where_sql
+                    where = "1"
+                else:
+                    where = where_sql
+
         except Exception as exc:
             return {
                 "valid": False,
@@ -984,10 +1044,11 @@ def verify_where(
 
     env = {
         "where": where,
+        "having": having,
         "select_expr_as": ", ".join(select_expr_as),
         "databases": ", ".join(databases),
     }
-    select_sql = "SELECT {select_expr_as} FROM {databases} WHERE {where} LIMIT 1;"
+    select_sql = "SELECT {select_expr_as} FROM {databases} WHERE {where} GROUP BY column_0 {having} LIMIT 1;"
 
     selection_sql = select_sql.format(**env)
     LOGGER.info("SQL %s", selection_sql)
@@ -1023,6 +1084,7 @@ def select_query(
     columns = list(metadata.keys())
     select_expr_as = [get_field_name(column, metadata) for column in columns]
     databases = ["datagrid"]
+    having = ""
 
     # NOTE: use Image.attr to get metadata
 
@@ -1038,7 +1100,11 @@ def select_query(
             where_expr,
         )
         if where_sql:
-            where = where_sql
+            if "_IN_GROUP" in where_sql:
+                having = "HAVING %s" % where_sql
+                where = "1"
+            else:
+                where = where_sql
 
     where = where if where else "1"
 
@@ -1049,8 +1115,8 @@ def select_query(
         select_fields = [get_field_name(column, metadata) for column in columns]
         select_columns = columns
 
-    sort_by_field_name = get_field_name(sort_by, metadata) if sort_by else "rowid"
-    remove_columns = []
+    sort_by_field_name = get_field_name(sort_by, metadata) if sort_by else "column_0"
+    remove_columns = [column for column in columns if column.startswith("_")]
 
     if group_by:
         if group_by not in select_columns:
@@ -1065,24 +1131,26 @@ def select_query(
             "group_by_field_name": group_by_field_name,
             "sort_by_field_name": sort_by_field_name,
             "where": where,
+            "having": having,
             "sort_desc": sort_desc,
             "select_expr_as": ", ".join(select_expr_as),
             "select_fields": ", ".join(select_fields),
             "databases": ", ".join(databases),
         }
-        select_sql = "SELECT {select_expr_as} FROM {databases} WHERE {where} GROUP BY {group_by_field_name} ORDER BY {sort_by_field_name} {sort_desc} LIMIT {limit} OFFSET {offset}"
+        select_sql = "SELECT {select_expr_as} FROM {databases} WHERE {where} GROUP BY {group_by_field_name} {having} ORDER BY {sort_by_field_name} {sort_desc} LIMIT {limit} OFFSET {offset}"
     else:
         env = {
             "limit": limit,
             "offset": offset,
             "sort_by_field_name": sort_by_field_name,
             "where": where,
+            "having": having,
             "sort_desc": sort_desc,
             "select_expr_as": ", ".join(select_expr_as),
             "select_fields": ", ".join(select_fields),
             "databases": ", ".join(databases),
         }
-        select_sql = "SELECT {select_expr_as} FROM {databases} WHERE {where} ORDER BY {sort_by_field_name} {sort_desc} LIMIT {limit} OFFSET {offset}"
+        select_sql = "SELECT {select_expr_as} FROM {databases} WHERE {where} GROUP BY column_0 {having} ORDER BY {sort_by_field_name} {sort_desc} LIMIT {limit} OFFSET {offset}"
 
     if len(select_columns) != len(columns):
         select_sql = "SELECT {select_fields} FROM (%s);" % select_sql
@@ -1155,7 +1223,7 @@ def select_query(
 
             rows[r] = row
     else:
-        total_sql = "SELECT COUNT() FROM (SELECT {select_expr_as} FROM {databases} WHERE {where});"
+        total_sql = "SELECT COUNT() FROM (SELECT {select_expr_as} FROM {databases} WHERE {where} GROUP BY column_0 {having});"
         # Add asset messages:
         rows = list(rows)
         for r in range(len((rows))):
