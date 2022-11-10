@@ -21,7 +21,6 @@ import sqlite3
 import time
 from collections import Counter
 
-import jmespath
 import numpy as np
 from PIL import Image
 
