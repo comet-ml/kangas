@@ -199,7 +199,7 @@ class Image(Asset):
             else:
                 self.metadata["labels"][label] += count
 
-    def add_regions(self, label, *regions, score=None):
+    def add_regions(self, label, *regions, score=None, **metadata):
         """
         Add polygon regions to an image.
 
@@ -225,9 +225,11 @@ class Image(Asset):
                 "score": score,
             }
         )
+        if metadata:
+            self.metadata["overlays"][-1].update(metadata)
         return self
 
-    def add_bounding_boxes(self, label, *boxes, score=None):
+    def add_bounding_boxes(self, label, *boxes, score=None, **metadata):
         """
         Add bounding boxes to an image.
 
@@ -255,9 +257,11 @@ class Image(Asset):
                 "score": score,
             }
         )
+        if metadata:
+            self.metadata["overlays"][-1].update(metadata)
         return self
 
-    def add_mask(self, label, image):
+    def add_mask(self, label, image, **metadata):
         """
         Add a mask to an image.
 
@@ -281,9 +285,11 @@ class Image(Asset):
                 "data": image,
             }
         )
+        if metadata:
+            self.metadata["overlays"][-1].update(metadata)
         return self
 
-    def add_annotations(self, text, anchor, *points, score=None):
+    def add_annotations(self, text, anchor, *points, score=None, **metadata):
         """
         Add an annotation to an image.
 
@@ -304,6 +310,8 @@ class Image(Asset):
                 "score": score,
             }
         )
+        if metadata:
+            self.metadata["overlays"][-1].update(metadata)
         return self
 
 
