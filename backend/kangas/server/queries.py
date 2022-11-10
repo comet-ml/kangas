@@ -66,7 +66,7 @@ try:
             "_getitem_": RestrictedPython.Eval.default_guarded_getitem,
             "_getiter_": RestrictedPython.Eval.default_guarded_getiter,
             "_iter_unpack_sequence_": RestrictedPython.Guards.guarded_iter_unpack_sequence,
-            '__name__': 'restricted namespace',
+            "__name__": "restricted namespace",
             "__builtins__": safe_builtins(),
         }
         env.update(kwargs)
@@ -195,21 +195,30 @@ class StdevFunc:
 
 
 def FLATTEN(lists):
-    return str([item for sublist in ast.literal_eval(lists) for item in sublist])
+    if lists:
+        return str([item for sublist in ast.literal_eval(lists) for item in sublist])
+
+    return "[]"
+
 
 def ANY_IN_GROUP(group):
-    group_decoded = [x for x in ast.literal_eval(group)]
-    return any(group_decoded)
+    if group:
+        group_decoded = [x for x in ast.literal_eval(group)]
+        return any(group_decoded)
+
+    return False
+
 
 def ALL_IN_GROUP(group):
     ## This varies from Python semantics: if you are looking for all
     ## then it doesn't make sense to return True if the list
     ## is empty
-    group_decoded = [x for x in ast.literal_eval(group)]
-    if group_decoded:
-        return all(group_decoded)
-    else:
-        return False
+    if group:
+        group_decoded = [x for x in ast.literal_eval(group)]
+        if group_decoded:
+            return all(group_decoded)
+
+    return False
 
 
 def process_results(value):
