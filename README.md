@@ -1,5 +1,5 @@
 <div align="center">
-<img src="https://user-images.githubusercontent.com/42076840/198122822-560030a1-36e2-41c9-9a17-c57f3fc57014.png"><br>
+<img src="https://raw.githubusercontent.com/comet-ml/kangas/main/imgs/kangas-datagrid.png"><br>
 </div>
 
 -----------------
