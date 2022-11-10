@@ -50,7 +50,69 @@ from traceback import format_exc
 import math
 """
 
-# based on: https://stackoverflow.com/questions/2298339/standard-deviation-for-sqlite
+try:
+    import RestrictedPython.Guards
+    from RestrictedPython import compile_restricted_eval
+
+    def safe_compile(source):
+        return compile_restricted_eval(source).code
+
+    def safe_builtins():
+        return RestrictedPython.Guards.safe_builtins.copy()
+
+except Exception:
+
+    def safe_compile(source):
+        return compile(source, "<string>", "eval")
+
+    def safe_builtins():
+        return {
+            "abs": abs,
+            "all": all,
+            "any": any,
+            "ascii": ascii,
+            "bin": bin,
+            "bool": bool,
+            "bytes": bytes,
+            "callable": callable,
+            "chr": chr,
+            "complex": complex,
+            "dict": dict,
+            "dir": dir,
+            "divmod": divmod,
+            "enumerate": enumerate,
+            "filter": filter,
+            "float": float,
+            "format": format,
+            "hasattr": hasattr,
+            "hash": hash,
+            "hex": hex,
+            "id": id,
+            "int": int,
+            "isinstance": isinstance,
+            "issubclass": issubclass,
+            "iter": iter,
+            "len": len,
+            "list": list,
+            "map": map,
+            "max": max,
+            "min": min,
+            "oct": oct,
+            "ord": ord,
+            "pow": pow,
+            "range": range,
+            "repr": repr,
+            "reversed": reversed,
+            "round": round,
+            "set": set,
+            "slice": slice,
+            "sorted": sorted,
+            "str": str,
+            "sum": sum,
+            "tuple": tuple,
+            "type": type,
+            "zip": zip,
+        }
 
 
 def parse_comma_separated_values(string):
@@ -90,6 +152,7 @@ def parse_comma_separated_values(string):
     return retval
 
 
+# based on: https://stackoverflow.com/questions/2298339/standard-deviation-for-sqlite
 class StdevFunc:
     def __init__(self):
         self.M = 0.0
@@ -170,17 +233,18 @@ class AttributeDict:
 
 def ListComprehension(x, y, gen, ifs):
     ## [x for y in gen ifs]
+    ## FIXME: implement ifs
     results = []
     if gen:
+        code = safe_compile(x)
+        env = {"json_extract": json_extract, "__builtins__": safe_builtins()}
         for row in json.loads(gen):
-            env = {
-                y: AttributeDict(row),
-                "json_extract": json_extract,
-            }
+            env[y] = AttributeDict(row)
+
             try:
-                result = eval(x, {}, env)
-            except Exception:
-                print("Error in eval:", x, env)
+                result = eval(code, env)
+            except Exception as exc:
+                print("Error in eval: %s" % exc)
                 result = None
             if result is not None:
                 results.append(process_results(result))
