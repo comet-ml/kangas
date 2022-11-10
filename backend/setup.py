@@ -48,7 +48,6 @@ setup_args = dict(
     long_description_content_type="text/markdown",
     install_requires=[
         "astor",
-        "jmespath",
         "numpy",
         "tornado",
         "matplotlib",

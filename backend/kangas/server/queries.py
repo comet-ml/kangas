@@ -51,19 +51,39 @@ import math
 """
 
 try:
+    import RestrictedPython
+    import RestrictedPython.Eval
     import RestrictedPython.Guards
-    from RestrictedPython import compile_restricted_eval
 
     def safe_compile(source):
-        return compile_restricted_eval(source).code
+        return RestrictedPython.compile_restricted_eval(source).code
 
     def safe_builtins():
         return RestrictedPython.Guards.safe_builtins.copy()
+
+    def safe_env(**kwargs):
+        env = {
+            "_getattr_": getattr,
+            "_getitem_": RestrictedPython.Eval.default_guarded_getitem,
+            "_getiter_": RestrictedPython.Eval.default_guarded_getiter,
+            "_iter_unpack_sequence_": RestrictedPython.Guards.guarded_iter_unpack_sequence,
+            '__name__': 'restricted namespace',
+            "__builtins__": safe_builtins(),
+        }
+        env.update(kwargs)
+        return env
 
 except Exception:
 
     def safe_compile(source):
         return compile(source, "<string>", "eval")
+
+    def safe_env(**kwargs):
+        env = {
+            "__builtins__": safe_builtins(),
+        }
+        env.update(kwargs)
+        return env
 
     def safe_builtins():
         return {
@@ -175,39 +195,22 @@ class StdevFunc:
         return math.sqrt(self.S / (self.k - 1))  # To use MySQL version, change to k-2
 
 
-def ANY_IN_GROUP(group):
-    group = group[1:-1]
-    if group:
-        return any((False if x == "0" else True) for x in group.split(","))
-    else:
-        return False
+def FLATTEN(lists):
+    return str([item for sublist in ast.literal_eval(lists) for item in sublist])
 
+def ANY_IN_GROUP(group):
+    group_decoded = [x for x in ast.literal_eval(group)]
+    return any(group_decoded)
 
 def ALL_IN_GROUP(group):
     ## This varies from Python semantics: if you are looking for all
     ## then it doesn't make sense to return True if the list
     ## is empty
-    group = group[1:-1]
-    if group:
-        return all((False if x == "0" else True) for x in group.split(","))
+    group_decoded = [x for x in ast.literal_eval(group)]
+    if group_decoded:
+        return all(group_decoded)
     else:
         return False
-
-
-def json_extract(json_obj, path):
-    ## json_extract(x, '$')
-    ## json_extract(x, '$.label')
-    if path.startswith("$"):
-        path = path[1:]
-
-    if path.startswith("."):
-        path = path[1:]
-
-    if path and json_obj:
-        retval =  jmespath.search(path, json_obj)
-        return retval
-    else:
-        return json_obj
 
 
 def process_results(value):
@@ -216,38 +219,7 @@ def process_results(value):
     elif value is False:
         return "0"
     else:
-        # FIXME: no commas
-        return str(value)
-
-
-class AttributeDict:
-    def __init__(self, dictionary):
-        self.dictionary = dictionary
-
-    def __getattr__(self, item):
-        if item in self.dictionary:
-            return AttributeDict(self.dictionary[item])
-
-    def __eq__(self, item):
-        return self.dictionary == item
-
-    def __lt__(self, item):
-        return self.dictionary < item
-
-    def __le__(self, item):
-        return self.dictionary <= item
-
-    def __gt__(self, item):
-        return self.dictionary > item
-
-    def __ge__(self, item):
-        return self.dictionary >= item
-
-    def __ne__(self, item):
-        return self.dictionary != item
-
-    def __repr__(self):
-        return repr(self.dictionary)
+        return repr(value)
 
 
 def ListComprehension(x, y, gen, ifs):
@@ -256,23 +228,24 @@ def ListComprehension(x, y, gen, ifs):
     results = []
     if gen:
         code = safe_compile(x)
-        env = {"json_extract": json_extract, "__builtins__": safe_builtins()}
+        env = safe_env()
         decoded_gen = json.loads(gen)
         # dict:
         if isinstance(decoded_gen, dict):
-            env[y] = AttributeDict(decoded_gen)
+            env[y] = decoded_gen
 
             try:
                 result = eval(code, env)
             except Exception as exc:
                 print("Error in eval: %s" % exc)
                 result = None
-            results.append(process_results(result))
+            if result is not None:
+                results.append(process_results(result))
         else:
             # List of dicts:
             for row in decoded_gen:
                 # so that item.key will be found:
-                env[y] = AttributeDict(row)
+                env[y] = row
 
                 try:
                     result = eval(code, env)
@@ -291,6 +264,7 @@ def get_database_connection(dgid):
     conn.create_aggregate("STDEV", 1, StdevFunc)
     conn.create_function("ANY_IN_GROUP", 1, ANY_IN_GROUP)
     conn.create_function("ALL_IN_GROUP", 1, ALL_IN_GROUP)
+    conn.create_function("FLATTEN", 1, FLATTEN)
     conn.create_function("ListComprehension", 4, ListComprehension)
     return conn
 

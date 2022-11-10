@@ -123,12 +123,13 @@ class Evaluator:
                 aggregate_selection_name = "%s_aggregate_column_%s" % (function_name, 1)
                 self.selections[aggregate_selection_name] = expr
                 return aggregate_selection_name
-            elif function_name in ["any", "all", "len"]:
+            elif function_name in ["any", "all", "len", "flatten"]:
                 ## Sqlite functions
                 function_map = {
                     "any": "ANY_IN_GROUP",
                     "all": "ALL_IN_GROUP",
                     "len": "length",
+                    "flatten": "FLATTEN",
                 }
                 sargs = ", ".join([str(arg) for arg in args])
                 expr = "{function_name}({sargs})".format(
