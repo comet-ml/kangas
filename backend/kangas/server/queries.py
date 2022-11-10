@@ -204,7 +204,8 @@ def json_extract(json_obj, path):
         path = path[1:]
 
     if path and json_obj:
-        return jmespath.search(path, json_obj)
+        retval =  jmespath.search(path, json_obj)
+        return retval
     else:
         return json_obj
 
@@ -225,7 +226,25 @@ class AttributeDict:
 
     def __getattr__(self, item):
         if item in self.dictionary:
-            return self.dictionary[item]
+            return AttributeDict(self.dictionary[item])
+
+    def __eq__(self, item):
+        return self.dictionary == item
+
+    def __lt__(self, item):
+        return self.dictionary < item
+
+    def __le__(self, item):
+        return self.dictionary <= item
+
+    def __gt__(self, item):
+        return self.dictionary > item
+
+    def __ge__(self, item):
+        return self.dictionary >= item
+
+    def __ne__(self, item):
+        return self.dictionary != item
 
     def __repr__(self):
         return repr(self.dictionary)
@@ -238,17 +257,32 @@ def ListComprehension(x, y, gen, ifs):
     if gen:
         code = safe_compile(x)
         env = {"json_extract": json_extract, "__builtins__": safe_builtins()}
-        for row in json.loads(gen):
-            env[y] = AttributeDict(row)
+        decoded_gen = json.loads(gen)
+        # dict:
+        if isinstance(decoded_gen, dict):
+            env[y] = AttributeDict(decoded_gen)
 
             try:
                 result = eval(code, env)
             except Exception as exc:
                 print("Error in eval: %s" % exc)
                 result = None
-            if result is not None:
-                results.append(process_results(result))
-    return "[" + (",".join(results)) + "]"
+            results.append(process_results(result))
+        else:
+            # List of dicts:
+            for row in decoded_gen:
+                # so that item.key will be found:
+                env[y] = AttributeDict(row)
+
+                try:
+                    result = eval(code, env)
+                except Exception as exc:
+                    print("Error in eval: %s" % exc)
+                    result = None
+                if result is not None:
+                    results.append(process_results(result))
+    retval = "[" + (",".join(results)) + "]"
+    return retval
 
 
 def get_database_connection(dgid):
