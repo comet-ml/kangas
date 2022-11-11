@@ -1,5 +1,4 @@
 import { unstable_useRefreshRoot as useRefreshRoot } from 'next/streaming';
-//import TextField from '@mui/material/TextField';
 import Autocomplete from './ReactAutocomplete';
 import { TextField } from '@mui/material';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -17,33 +16,29 @@ const HelpButton = () => (
 const FilterExpr = ({ query, columns }) => {
     const refresh = useRefreshRoot();
 
-    const onKeyPress = useCallback(
-	(e) => {
-	    if (e.key === 'Enter') {
-		refresh({
-                    query: {
-			...query,
-			whereExpr: filter?.value,
-			offset: 0,
-                    },
-		});
-	    }
-	}, [query]
-    );
-
-    const applyFilter = useCallback(
-        (e) => {
-            const filter = document.getElementById('filter');
-            refresh({
+    const onKeyPress = (e) => {
+        const filter = document.getElementById('filter');
+	if (e.key === 'Enter') {
+	    refresh({
                 query: {
-                    ...query,
-                    whereExpr: filter?.value,
-                    offset: 0,
+		    ...query,
+		    whereExpr: filter?.value,
+		    offset: 0,
                 },
-            });
-        },
-        [query]
-    );
+	    });
+	}
+    };
+
+    const applyFilter = (e) => {
+        const filter = document.getElementById('filter');
+        refresh({
+            query: {
+                ...query,
+                whereExpr: filter?.value,
+                offset: 0,
+            },
+        });
+    };
 
     useEffect(() => {
         const filter = document.getElementById('filter');
@@ -53,13 +48,13 @@ const FilterExpr = ({ query, columns }) => {
     return (
         <>
             <Autocomplete
+                defaultValue={query?.whereExpr || ''}
                 trigger={["{"]} 
                 options={{"{": columns.map(name => `"${name}"`)}}
                 changeOnSelect={(trigger, slug) => `{${slug}}`}
                 matchAny={true}
                 regex={'^[a-zA-Z0-9_\\-\\"\\ ]+$'}
-                Component='textarea'
-                spacer={' '}
+                spacer={''}
                 maxOptions={0}
                 spaceRemovers={['.']}
                 placeholder={`e.g.: {"column name"} > 0.5`}
