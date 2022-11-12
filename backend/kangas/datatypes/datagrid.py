@@ -299,6 +299,7 @@ class DataGrid(object):
 
     def show(
         self,
+        filter=None,
         host=None,
         port=4000,
         debug=False,
@@ -337,6 +338,8 @@ class DataGrid(object):
             self.save()
 
         query_vars = {"datagrid": self.filename}
+        if filter:
+            query_vars["filter"] = filter
         qvs = "?" + urllib.parse.urlencode(query_vars)
         url = "%s%s" % (url, qvs)
 
