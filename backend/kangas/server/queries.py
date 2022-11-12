@@ -229,31 +229,49 @@ def process_results(value):
     else:
         return repr(value)
 
+def unescape(string):
+    return string.replace("&#39;", "'").replace("&#34;", '"').replace("&#44;", ",")
 
 def ListComprehension(x, y, gen, ifs):
     ## [x for y in gen ifs]
-    ## FIXME: implement ifs
     results = []
+    gen = unescape(gen)
     if gen:
+        x, y = unescape(x), unescape(y)
         code = safe_compile(x)
         env = safe_env()
         decoded_gen = json.loads(gen)
+
+        ## first, we prepare ifs
+        # Strip off list:
+        decoded_ifs = [unescape(exp)[1:-1] for exp in ifs[1:-1].split(",")]
+        compiled_ifs = [safe_compile(exp) for exp in decoded_ifs]
+
         # dict:
         if isinstance(decoded_gen, dict):
             env[y] = decoded_gen
 
-            try:
-                result = eval(code, env)
-            except Exception as exc:
-                print("Error in eval: %s" % exc)
-                result = None
-            if result is not None:
-                results.append(process_results(result))
+            # Short curcuit check:
+            doit = all(eval(exp, env) for exp in compiled_ifs)
+
+            if doit:
+                try:
+                    result = eval(code, env)
+                except Exception as exc:
+                    print("Error in eval: %s" % exc)
+                    result = None
+                if result is not None:
+                    results.append(process_results(result))
         else:
             # List of dicts:
             for row in decoded_gen:
                 # so that item.key will be found:
                 env[y] = row
+
+                doit = all([eval(exp, env) for exp in compiled_ifs])
+
+                if not doit:
+                    continue
 
                 try:
                     result = eval(code, env)

@@ -436,7 +436,7 @@ class Evaluator:
             return 'ListComprehension("%s", "%s", %s, "%s")' % (
                 escape(x),
                 escape(y),
-                escape(json_list),
+                json_list,
                 escape(ifs),
             )
 
@@ -444,7 +444,10 @@ class Evaluator:
 
 
 def escape(string):
-    return str(string).replace('"', "'")
+    s1 = str(string).replace("{'", "__lbrace__").replace("'}", "__rbrace__")
+    s2 = s1.replace("'", "&#39;").replace('"', "&#34;").replace(",", "&#44;")
+    s3 = s2.replace("__lbrace__", "{'").replace('__rbrace__', "'}")
+    return s3
 
 
 def eval_computed_columns(computed_columns, where_expr=None):
