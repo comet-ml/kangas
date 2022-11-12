@@ -313,6 +313,7 @@ class DataGrid(object):
         Args:
             host: (optional, str) the host name or IP number for the servers
                to listen to
+            filter: (optional, str) a filter to set on the DataGrid
             port: (optional, int) the port number for the servers to listen to
             debug: (optional, bool) if True, will display additional information
                from the server (may not be visible in a notebook)
@@ -326,6 +327,7 @@ class DataGrid(object):
         >>> dg = kg.DataGrid()
         >>> # append data to DataGrid
         >>> dg.show()
+        >>> dg.show("{'Column Name'} == 'category three'")
         ```
         """
         from IPython.display import IFrame, clear_output, display
