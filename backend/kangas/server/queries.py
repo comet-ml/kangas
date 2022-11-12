@@ -229,8 +229,10 @@ def process_results(value):
     else:
         return repr(value)
 
+
 def unescape(string):
     return string.replace("&#39;", "'").replace("&#34;", '"').replace("&#44;", ",")
+
 
 def ListComprehension(x, y, gen, ifs):
     ## [x for y in gen ifs]
@@ -242,16 +244,15 @@ def ListComprehension(x, y, gen, ifs):
         env = safe_env()
         decoded_gen = json.loads(gen)
 
-        ## first, we prepare ifs
-        # Strip off list:
-        decoded_ifs = [unescape(exp)[1:-1] for exp in ifs[1:-1].split(",")]
+        ## first, we prepare ifs:
+        decoded_ifs = [unescape(exp) for exp in ifs[1:-1].split(",")]
         compiled_ifs = [safe_compile(exp) for exp in decoded_ifs]
 
         # dict:
         if isinstance(decoded_gen, dict):
             env[y] = decoded_gen
 
-            # Short curcuit check:
+            # Short circuit logic:
             doit = all(eval(exp, env) for exp in compiled_ifs)
 
             if doit:
