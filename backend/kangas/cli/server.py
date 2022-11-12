@@ -43,6 +43,12 @@ def get_parser_arguments(parser):
         default=None,
     )
     parser.add_argument(
+        "--filter",
+        help="A filter to be applied to a given DataGrid",
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
         "-r",
         "--root",
         help="The directory from which to server datagrid files; also can use KANGAS_ROOT env variable",
@@ -275,6 +281,8 @@ def server(parsed_args, remaining=None):
                 raise Exception("Unknown file type: %r" % file_type)
 
             query_vars["datagrid"] = filename
+            if parsed_args.filter:
+                query_vars["filter"] = parsed_args.filter
         if query_vars:
             url = "%s?%s" % (host, urllib.parse.urlencode(query_vars))
         else:
