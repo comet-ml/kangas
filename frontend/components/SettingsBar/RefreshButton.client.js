@@ -1,3 +1,5 @@
+'use client';
+
 import CachedIcon from '@mui/icons-material/Cached';
 import { useRefreshRoot } from 'next/dist/client/streaming/refresh';
 import { useCallback } from 'react';
