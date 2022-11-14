@@ -1,8 +1,8 @@
 import { unstable_useRefreshRoot as useRefreshRoot } from 'next/streaming';
-import Autocomplete from './ReactAutocomplete';
+import Autocomplete from './ReactAutocomplete.client';
 import { TextField } from '@mui/material';
 import InputAdornment from '@mui/material/InputAdornment';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import DialogueModal from '../Modals/DialogueModalContainer.client';
 
 import HelpText from './HelpText.js';
@@ -15,34 +15,31 @@ const HelpButton = () => (
 
 const FilterExpr = ({ query, columns }) => {
     const refresh = useRefreshRoot();
+    const filter = useRef();
+    const onKeyPress = useCallback((e) => {
+        if (e.key === 'Enter') {
+            refresh({
+                    query: {
+                        ...query,
+                        whereExpr: filter?.current?.value,
+                        offset: 0,
+                    },
+            });
+        }
+    }, [query, refresh]);
 
-    const onKeyPress = (e) => {
-        const filter = document.getElementById('filter');
-	if (e.key === 'Enter') {
-	    refresh({
-                query: {
-		    ...query,
-		    whereExpr: filter?.value,
-		    offset: 0,
-                },
-	    });
-	}
-    };
-
-    const applyFilter = (e) => {
-        const filter = document.getElementById('filter');
+    const applyFilter = useCallback((e) => {
         refresh({
             query: {
                 ...query,
-                whereExpr: filter?.value,
+                whereExpr: filter?.current?.value,
                 offset: 0,
             },
         });
-    };
+    }, [query, refresh]);
 
     useEffect(() => {
-        const filter = document.getElementById('filter');
-        filter.value = query?.whereExpr || '';
+        filter.current.value = query?.whereExpr || '';
     }, [query]);
 
     return (
@@ -61,6 +58,7 @@ const FilterExpr = ({ query, columns }) => {
                 id="filter"
                 onKeyPress={onKeyPress}
                 applyFilter={applyFilter}
+                refInput={filter}
             />
             <DialogueModal fullScreen={false} toggleElement={<HelpButton />}>
                 <HelpText />

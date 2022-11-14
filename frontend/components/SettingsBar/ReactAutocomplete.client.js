@@ -55,6 +55,7 @@ const propTypes = {
   offsetX: PropTypes.number,
   offsetY: PropTypes.number,
   passThroughEnter: PropTypes.bool,
+  refInput: PropTypes.shape({ current: PropTypes.any })
 };
 
 const defaultProps = {
@@ -112,7 +113,7 @@ class AutocompleteTextField extends React.Component {
 
     this.recentValue = props.defaultValue;
     this.enableSpaceRemovers = false;
-    this.refInput = createRef();
+    this.refInput = props.refInput;
   }
 
   componentDidMount() {
