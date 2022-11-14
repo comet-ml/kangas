@@ -12,14 +12,21 @@
         <img alt="GitHub" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg">
     </a>
     <a href="https://colab.research.google.com/github/comet-ml/kangas/blob/main/notebooks/DataGrid-Getting%20Started.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg">
+        <img src="https://colab.research.google.com/assets/colab-badge.svg">
     </a>
-    <a href="https://kangas.comet.com?datagrid=/data/coco-500.datagrid" rel="nofollow"><img src="https://img.shields.io/badge/Kangas-Live%20Demo-blue.svg" alt="Kangas Live Demo"></a>
-        <a href="https://github.com/comet-ml/kangas/wiki" rel="nofollow"><img src="https://img.shields.io/badge/Kangas-Docs-blue.svg" alt="Kangas Documentation"></a>
+    <a href="https://kangas.comet.com?datagrid=/data/coco-500.datagrid" rel="nofollow">
+        <img src="https://img.shields.io/badge/Kangas-Live%20Demo-blue.svg" alt="Kangas Live Demo">
+    </a>
+    <a href="https://github.com/comet-ml/kangas/wiki" rel="nofollow">
+        <img src="https://img.shields.io/badge/Kangas-Docs-blue.svg" alt="Kangas Documentation">
+    </a>
+    <a rel="nofollow" href="https://pepy.tech/project/kangas">
+        <img style="max-width: 100%;" data-canonical-src="https://pepy.tech/badge/kangas" alt="Downloads" 
+             src="https://camo.githubusercontent.com/708e470ec83922035f2189544eb968c8c5bba5c8623b0ebb9cb88c5c370766c4/68747470733a2f2f706570792e746563682f62616467652f6b616e676173">
+    </a>
 </p>
 
 # Kangas: Explore Multimedia Datasets at Scale :kangaroo:
-
 
 Kangas is a tool for exploring, analyzing, and visualizing large-scale multimedia data. It provides a straightforward Python API
 for logging large tables of data, along with an intuitive visual interface for performing complex queries against your dataset.
