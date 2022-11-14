@@ -27,7 +27,12 @@ def get_localhost():
     Get the local IP number.
     """
     hostname = socket.gethostname()
-    return socket.gethostbyname(hostname)
+    try:
+        localhost = socket.gethostbyname(hostname)
+    except Exception:
+        localhost = socket.gethostbyname("localhost")
+
+    return localhost
 
 
 def _in_jupyter_environment():

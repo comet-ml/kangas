@@ -1,9 +1,8 @@
 import { unstable_useRefreshRoot as useRefreshRoot } from 'next/streaming';
-//import TextField from '@mui/material/TextField';
-import Autocomplete from './ReactAutocomplete';
+import Autocomplete from './ReactAutocomplete.client';
 import { TextField } from '@mui/material';
 import InputAdornment from '@mui/material/InputAdornment';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import DialogueModal from '../Modals/DialogueModalContainer.client';
 
 import HelpText from './HelpText.js';
@@ -16,56 +15,50 @@ const HelpButton = () => (
 
 const FilterExpr = ({ query, columns }) => {
     const refresh = useRefreshRoot();
-
-    const onKeyPress = useCallback(
-	(e) => {
-	    if (e.key === 'Enter') {
-		refresh({
-                    query: {
-			...query,
-			whereExpr: filter?.value,
-			offset: 0,
-                    },
-		});
-	    }
-	}, [query]
-    );
-
-    const applyFilter = useCallback(
-        (e) => {
-            const filter = document.getElementById('filter');
+    const filter = useRef();
+    const onKeyPress = useCallback((e) => {
+        if (e.key === 'Enter') {
             refresh({
-                query: {
-                    ...query,
-                    whereExpr: filter?.value,
-                    offset: 0,
-                },
+                    query: {
+                        ...query,
+                        whereExpr: filter?.current?.value,
+                        offset: 0,
+                    },
             });
-        },
-        [query]
-    );
+        }
+    }, [query, refresh]);
+
+    const applyFilter = useCallback((e) => {
+        refresh({
+            query: {
+                ...query,
+                whereExpr: filter?.current?.value,
+                offset: 0,
+            },
+        });
+    }, [query, refresh]);
 
     useEffect(() => {
-        const filter = document.getElementById('filter');
-        filter.value = query?.whereExpr || '';
+        filter.current.value = query?.whereExpr || '';
     }, [query]);
 
     return (
         <>
             <Autocomplete
+                defaultValue={query?.whereExpr || ''}
                 trigger={["{"]} 
                 options={{"{": columns.map(name => `"${name}"`)}}
                 changeOnSelect={(trigger, slug) => `{${slug}}`}
                 matchAny={true}
                 regex={'^[a-zA-Z0-9_\\-\\"\\ ]+$'}
-                Component='textarea'
-                spacer={' '}
+                spacer={''}
                 maxOptions={0}
                 spaceRemovers={['.']}
                 placeholder={`e.g.: {"column name"} > 0.5`}
                 id="filter"
                 onKeyPress={onKeyPress}
                 applyFilter={applyFilter}
+                refInput={filter}
             />
             <DialogueModal fullScreen={false} toggleElement={<HelpButton />}>
                 <HelpText />

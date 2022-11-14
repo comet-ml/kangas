@@ -13,9 +13,11 @@
 
 import ast
 
+import astor
+
 ## FIXME:
-## 1. No support for substrings, or [:]
-## 2. No support for JSON lists
+## 1. No support for substrings
+## 2. No support for slices, [:]
 
 
 class AttributeNode:
@@ -121,6 +123,20 @@ class Evaluator:
                 aggregate_selection_name = "%s_aggregate_column_%s" % (function_name, 1)
                 self.selections[aggregate_selection_name] = expr
                 return aggregate_selection_name
+            elif function_name in ["any", "all", "len", "flatten"]:
+                ## Sqlite functions
+                function_map = {
+                    "any": "ANY_IN_GROUP",
+                    "all": "ALL_IN_GROUP",
+                    "len": "length",
+                    "flatten": "FLATTEN",
+                }
+                sargs = ", ".join([str(arg) for arg in args])
+                expr = "{function_name}({sargs})".format(
+                    function_name=function_map[function_name],
+                    sargs=sargs,
+                )
+                return expr
             elif function_name in ["abs", "round", "max", "min"]:
                 # Special case to deal with Python's min([...]), max([...])
                 # to turn into SQL's min(...), max(...)
@@ -135,12 +151,6 @@ class Evaluator:
                     return "CAST(%s AS int)" % expr
                 else:
                     return expr
-            elif function_name == "len":
-                sargs = ", ".join([str(arg) for arg in args])
-                expr = "length({sargs})".format(
-                    sargs=sargs,
-                )
-                return expr
             elif isinstance(function_name, AttributeNode):
                 if function_name.obj == "random":
                     if function_name.attr == "random":
@@ -416,12 +426,35 @@ class Evaluator:
         elif isinstance(node, ast.Str):
             ## Python 3.7
             return repr(node.s)
+        elif isinstance(node, ast.ListComp):
+            # [x for y in json_list if ...]
+            # [x.label == 'hello' for x in {"image"}.overlays if ...]
+            x = astor.to_source(node.elt).strip()
+            y = astor.to_source(node.generators[0].target).strip()
+            json_list = self.eval_node(node.generators[0].iter)
+            ifs = ",".join(
+                escape(astor.to_source(node).strip()) for node in node.generators[0].ifs
+            )
+            return 'ListComprehension("%s", "%s", %s, "%s")' % (
+                escape(x),
+                escape(y),
+                json_list,
+                ifs,
+            )
+
         raise TypeError(node)
+
+
+def escape(string):
+    s1 = str(string).replace("{'", "__lbrace__").replace("'}", "__rbrace__")
+    s2 = s1.replace("'", "&#39;").replace('"', "&#34;").replace(",", "&#44;")
+    s3 = s2.replace("__lbrace__", "{'").replace("__rbrace__", "'}")
+    return s3
 
 
 def eval_computed_columns(computed_columns, where_expr=None):
     """
-    Takes: list of computed_columns '{
+    Takes: list of computed_columns: {
       "New date": {
          "field_expr": "{'date'} + 7",
          "field_name": "cc1"
@@ -461,7 +494,11 @@ def eval_computed_columns(computed_columns, where_expr=None):
     if where_expr:
         where_sql = evaluator.eval_expr(where_expr)
 
-    return (new_columns, evaluator.selections, where_sql)
+    return (
+        new_columns,
+        evaluator.selections,
+        where_sql,
+    )
 
 
 def update_state(

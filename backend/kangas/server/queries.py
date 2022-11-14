@@ -49,7 +49,89 @@ from traceback import format_exc
 import math
 """
 
-# based on: https://stackoverflow.com/questions/2298339/standard-deviation-for-sqlite
+try:
+    import RestrictedPython
+    import RestrictedPython.Eval
+    import RestrictedPython.Guards
+
+    def safe_compile(source):
+        return RestrictedPython.compile_restricted_eval(source).code
+
+    def safe_builtins():
+        return RestrictedPython.Guards.safe_builtins.copy()
+
+    def safe_env(**kwargs):
+        env = {
+            "_getattr_": getattr,
+            "_getitem_": RestrictedPython.Eval.default_guarded_getitem,
+            "_getiter_": RestrictedPython.Eval.default_guarded_getiter,
+            "_iter_unpack_sequence_": RestrictedPython.Guards.guarded_iter_unpack_sequence,
+            "__name__": "restricted namespace",
+            "__builtins__": safe_builtins(),
+        }
+        env.update(kwargs)
+        return env
+
+except Exception:
+
+    def safe_compile(source):
+        return compile(source, "<string>", "eval")
+
+    def safe_env(**kwargs):
+        env = {
+            "__builtins__": safe_builtins(),
+        }
+        env.update(kwargs)
+        return env
+
+    def safe_builtins():
+        return {
+            "abs": abs,
+            "all": all,
+            "any": any,
+            "ascii": ascii,
+            "bin": bin,
+            "bool": bool,
+            "bytes": bytes,
+            "callable": callable,
+            "chr": chr,
+            "complex": complex,
+            "dict": dict,
+            "dir": dir,
+            "divmod": divmod,
+            "enumerate": enumerate,
+            "filter": filter,
+            "float": float,
+            "format": format,
+            "hasattr": hasattr,
+            "hash": hash,
+            "hex": hex,
+            "id": id,
+            "int": int,
+            "isinstance": isinstance,
+            "issubclass": issubclass,
+            "iter": iter,
+            "len": len,
+            "list": list,
+            "map": map,
+            "max": max,
+            "min": min,
+            "oct": oct,
+            "ord": ord,
+            "pow": pow,
+            "range": range,
+            "repr": repr,
+            "reversed": reversed,
+            "round": round,
+            "set": set,
+            "slice": slice,
+            "sorted": sorted,
+            "str": str,
+            "sum": sum,
+            "tuple": tuple,
+            "type": type,
+            "zip": zip,
+        }
 
 
 def parse_comma_separated_values(string):
@@ -89,6 +171,7 @@ def parse_comma_separated_values(string):
     return retval
 
 
+# based on: https://stackoverflow.com/questions/2298339/standard-deviation-for-sqlite
 class StdevFunc:
     def __init__(self):
         self.M = 0.0
@@ -111,10 +194,122 @@ class StdevFunc:
         return math.sqrt(self.S / (self.k - 1))  # To use MySQL version, change to k-2
 
 
+def FLATTEN(lists):
+    if lists:
+        return str([item for sublist in ast.literal_eval(lists) for item in sublist])
+
+    return "[]"
+
+
+def ANY_IN_GROUP(group):
+    if group:
+        try:
+            decoded_group = ast.literal_eval(group)
+        except Exception:
+            decoded_group = None
+        if isinstance(decoded_group, list):
+            group_decoded = [x for x in decoded_group]
+            return any(group_decoded)
+
+    return False
+
+
+def ALL_IN_GROUP(group):
+    ## This varies from Python semantics: if you are looking for all
+    ## then it doesn't make sense to return True if the list
+    ## is empty
+    if group:
+        try:
+            decoded_group = ast.literal_eval(group)
+        except Exception:
+            decoded_group = None
+        if isinstance(decoded_group, list):
+            group_decoded = [x for x in decoded_group]
+        group_decoded = [x for x in decoded_group]
+        return all(group_decoded)
+
+    return False
+
+
+def process_results(value):
+    if value is True:
+        return "1"
+    elif value is False:
+        return "0"
+    else:
+        return repr(value)
+
+
+def unescape(string):
+    return string.replace("&#39;", "'").replace("&#34;", '"').replace("&#44;", ",")
+
+
+def ListComprehension(x, y, gen, ifs):
+    ## [x for y in gen ifs]
+    results = []
+    gen = unescape(gen)
+    if gen:
+        x, y = unescape(x), unescape(y)
+        code = safe_compile(x)
+        env = safe_env()
+        try:
+            ## FIXME: a string that is a number is json-loadable
+            decoded_gen = json.loads(gen)
+        except Exception:
+            decoded_gen = gen
+
+        ## first, we prepare ifs:
+        if ifs:
+            decoded_ifs = [unescape(exp) for exp in ifs.split(",")]
+        else:
+            decoded_ifs = []
+        compiled_ifs = [safe_compile(exp) for exp in decoded_ifs]
+
+        # dict:
+        if isinstance(decoded_gen, dict):
+            env[y] = decoded_gen
+
+            # Short circuit logic:
+            doit = all(eval(exp, env) for exp in compiled_ifs)
+
+            if doit:
+                try:
+                    result = eval(code, env)
+                except Exception as exc:
+                    print("Error in eval: %s" % exc)
+                    result = None
+                if result is not None:
+                    results.append(process_results(result))
+        else:
+            # List of dicts:
+            for row in decoded_gen:
+                # so that item.key will be found:
+                env[y] = row
+
+                doit = all([eval(exp, env) for exp in compiled_ifs])
+
+                if not doit:
+                    continue
+
+                try:
+                    result = eval(code, env)
+                except Exception as exc:
+                    print("Error in eval: %s" % exc)
+                    result = None
+                if result is not None:
+                    results.append(process_results(result))
+    retval = "[" + (",".join(results)) + "]"
+    return retval
+
+
 def get_database_connection(dgid):
     db_path = get_dg_path(dgid)
     conn = sqlite3.connect(db_path)
     conn.create_aggregate("STDEV", 1, StdevFunc)
+    conn.create_function("ANY_IN_GROUP", 1, ANY_IN_GROUP)
+    conn.create_function("ALL_IN_GROUP", 1, ALL_IN_GROUP)
+    conn.create_function("FLATTEN", 1, FLATTEN)
+    conn.create_function("ListComprehension", 4, ListComprehension)
     return conn
 
 
