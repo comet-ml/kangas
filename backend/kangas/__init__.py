@@ -131,6 +131,7 @@ def launch(host=None, port=4000, debug=False, protocol="http"):
 
 def show(
     datagrid=None,
+    filter=None,
     host=None,
     port=4000,
     debug=False,
@@ -145,6 +146,7 @@ def show(
     Args:
         datagrid: (str) the DataGrid's location from current
             directory
+        filter: (str) a filter to set on the DataGrid
         host: (str) the name or IP of the machine the
             servers should listen on.
         port: (int) the port of the Kangas frontend server. The
@@ -161,6 +163,7 @@ def show(
     ```python
     >>> import kangas
     >>> kangas.show("./example.datagrid")
+    >>> kangas.show("./example.datagrid", "{'Column Name'} < 0.5")
     ```
     """
     from IPython.display import IFrame, clear_output, display
@@ -169,6 +172,8 @@ def show(
 
     if datagrid:
         query_vars = {"datagrid": datagrid}
+        if filter:
+            query_vars["filter"] = filter
         qvs = "?" + urllib.parse.urlencode(query_vars)
         url = "%s%s" % (url, qvs)
     else:
