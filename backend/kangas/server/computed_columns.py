@@ -432,19 +432,24 @@ class Evaluator:
             x = astor.to_source(node.elt).strip()
             y = astor.to_source(node.generators[0].target).strip()
             json_list = self.eval_node(node.generators[0].iter)
-            ifs = [astor.to_source(node).strip() for node in node.generators[0].ifs]
+            ifs = ",".join(
+                escape(astor.to_source(node).strip()) for node in node.generators[0].ifs
+            )
             return 'ListComprehension("%s", "%s", %s, "%s")' % (
                 escape(x),
                 escape(y),
-                escape(json_list),
-                escape(ifs),
+                json_list,
+                ifs,
             )
 
         raise TypeError(node)
 
 
 def escape(string):
-    return str(string).replace('"', "'")
+    s1 = str(string).replace("{'", "__lbrace__").replace("'}", "__rbrace__")
+    s2 = s1.replace("'", "&#39;").replace('"', "&#34;").replace(",", "&#44;")
+    s3 = s2.replace("__lbrace__", "{'").replace("__rbrace__", "'}")
+    return s3
 
 
 def eval_computed_columns(computed_columns, where_expr=None):
