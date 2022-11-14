@@ -203,8 +203,13 @@ def FLATTEN(lists):
 
 def ANY_IN_GROUP(group):
     if group:
-        group_decoded = [x for x in ast.literal_eval(group)]
-        return any(group_decoded)
+        try:
+            decoded_group = ast.literal_eval(group)
+        except Exception:
+            decoded_group = None
+        if isinstance(decoded_group, list):
+            group_decoded = [x for x in decoded_group]
+            return any(group_decoded)
 
     return False
 
@@ -214,9 +219,14 @@ def ALL_IN_GROUP(group):
     ## then it doesn't make sense to return True if the list
     ## is empty
     if group:
-        group_decoded = [x for x in ast.literal_eval(group)]
-        if group_decoded:
-            return all(group_decoded)
+        try:
+            decoded_group = ast.literal_eval(group)
+        except Exception:
+            decoded_group = None
+        if isinstance(decoded_group, list):
+            group_decoded = [x for x in decoded_group]
+        group_decoded = [x for x in decoded_group]
+        return all(group_decoded)
 
     return False
 
@@ -242,10 +252,17 @@ def ListComprehension(x, y, gen, ifs):
         x, y = unescape(x), unescape(y)
         code = safe_compile(x)
         env = safe_env()
-        decoded_gen = json.loads(gen)
+        try:
+            ## FIXME: a string that is a number is json-loadable
+            decoded_gen = json.loads(gen)
+        except Exception:
+            decoded_gen = gen
 
         ## first, we prepare ifs:
-        decoded_ifs = [unescape(exp) for exp in ifs[1:-1].split(",")]
+        if ifs:
+            decoded_ifs = [unescape(exp) for exp in ifs.split(",")]
+        else:
+            decoded_ifs = []
         compiled_ifs = [safe_compile(exp) for exp in decoded_ifs]
 
         # dict:
