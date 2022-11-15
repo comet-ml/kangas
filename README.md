@@ -69,6 +69,8 @@ From the Kangas Viewer, you can group, sort, and filter data. In addition, Kanga
 
 And viola! Now you're started using Kangas. 
 
+### Pandas DataFrames
+
 Kangas can also read Pandas DataFrame objects directly:
 
 ```python
@@ -78,6 +80,8 @@ import pandas as pd
 df = pd.DataFrame({"hidden_layer_size": [8, 16, 64], "loss": [0.97, 0.53, 0.12]})
 dg = kg.read_dataframe(df)
 ```
+### HuggingFace Datasets
+
 HuggingFace's datasets can also be loaded into DataGrid directly because they use
 rows of dictionaries, and images are represented by PIL images. DataGrid will
 automatically convert PIL images into a [Kangas Image](https://github.com/comet-ml/kangas/wiki/Image#image):
