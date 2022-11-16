@@ -67,7 +67,7 @@ From the Kangas Viewer, you can group, sort, and filter data. In addition, Kanga
 
 <img src="https://github.com/caleb-kaiser/kangas_examples/blob/master/Oct-25-2022%2016-43-56.gif">
 
-And viola! Now you're started using Kangas. 
+And voil&agrave;! Now you're started using Kangas. 
 
 ### Pandas DataFrames
 
