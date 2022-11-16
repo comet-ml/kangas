@@ -29,7 +29,6 @@ from ..datatypes.utils import (
     generate_thumbnail,
     image_to_fp,
     is_nan,
-    make_dict_factory,
     pytype_to_dgtype,
 )
 from .computed_columns import update_state
@@ -275,8 +274,7 @@ def ListComprehension(x, y, gen, ifs):
             if doit:
                 try:
                     result = eval(code, env)
-                except Exception as exc:
-                    print("Error in eval: %s" % exc)
+                except Exception:
                     result = None
                 if result is not None:
                     results.append(process_results(result))
@@ -293,8 +291,7 @@ def ListComprehension(x, y, gen, ifs):
 
                 try:
                     result = eval(code, env)
-                except Exception as exc:
-                    print("Error in eval: %s" % exc)
+                except Exception:
                     result = None
                 if result is not None:
                     results.append(process_results(result))
@@ -1073,70 +1070,6 @@ def select_asset_group_metadata(
     return sorted(list(results))
 
 
-def query_sql(
-    datagrid,
-    column_name_map,
-    where_expr,
-    sort_by,
-    sort_desc,
-    to_dicts,
-    count,
-):
-    dgid = datagrid.filename
-    public_columns = datagrid.get_columns()
-
-    conn = sqlite3.connect(dgid)
-    metadata = get_metadata(conn)
-    columns = list(metadata.keys())
-    select_expr_as = [get_field_name(column, metadata) for column in columns]
-    databases = ["datagrid"]
-    computed_columns = None
-
-    where_sql = update_state(
-        dgid,
-        computed_columns,
-        metadata,
-        databases,
-        columns,
-        select_expr_as,
-        where_expr,
-    )
-    sort_by_field_name = get_field_name(sort_by, metadata) if sort_by else "rowid"
-    sort_desc = "DESC" if sort_desc else "ASC"
-
-    if not count:
-        conn.row_factory = make_dict_factory(column_name_map)
-    cursor = conn.cursor()
-    if count:
-        sql = "SELECT COUNT(*) FROM {databases} WHERE {where};"
-    else:
-        sql = "SELECT {select_expr_as} FROM {databases} WHERE {where} ORDER BY {sort_by_field_name} {sort_desc};"
-    env = {
-        "select_expr_as": ", ".join(select_expr_as),
-        "where": where_sql,
-        "sort_desc": sort_desc,
-        "sort_by_field_name": sort_by_field_name,
-        "databases": ", ".join(databases),
-    }
-    sql_expr = sql.format(**env)
-    results = cursor.execute(sql_expr)
-    if count:
-        for row in results:
-            yield row
-    else:
-        for row in results:
-            if to_dicts:
-                yield {
-                    column_name: datagrid._value_to_asset(row, column_name)
-                    for column_name in public_columns
-                }
-            else:
-                yield [
-                    datagrid._value_to_asset(row, column_name)
-                    for column_name in public_columns
-                ]
-
-
 def verify_where(
     dgid,
     computed_columns,
@@ -1198,6 +1131,49 @@ def verify_where(
     return {"valid": True, "message": "Query is valid"}
 
 
+def query_sql(
+    datagrid,
+    column_name_map,
+    where_expr,
+    sort_by,
+    sort_desc,
+    to_dicts,
+    count,
+    computed_columns=None,
+):
+    dgid = datagrid.filename
+    select_columns = datagrid.get_columns()
+    if computed_columns:
+        computed_columns = {
+            key: {"field_expr": value, "field_name": "cc%d" % i, "type": "STRING"}
+            for i, (key, value) in enumerate(computed_columns.items())
+        }
+        select_columns.extend(list(computed_columns.keys()))
+    else:
+        computed_columns = {}
+
+    results = select_query(
+        dgid=dgid,
+        offset=0,
+        group_by=None,
+        sort_by=sort_by,
+        sort_desc=sort_desc,
+        where=None,
+        limit=None,
+        select_columns=select_columns,
+        computed_columns=computed_columns,
+        where_expr=where_expr,
+    )
+
+    if count:
+        return results["nrows"]
+    else:
+        if to_dicts:
+            return results["rows"]
+        else:
+            return [list(row.values()) for row in results["rows"]]
+
+
 def select_query(
     dgid,
     offset,
@@ -1236,6 +1212,7 @@ def select_query(
             where = where_sql
 
     where = where if where else "1"
+    limit = ("LIMIT %s OFFSET %s" % (limit, offset)) if limit is not None else ""
 
     # Metadata now has computed_columns:
     if select_columns:
@@ -1256,7 +1233,6 @@ def select_query(
         group_by_field_name = get_field_name(group_by, metadata)
         env = {
             "limit": limit,
-            "offset": offset,
             "group_by_field_name": group_by_field_name,
             "sort_by_field_name": sort_by_field_name,
             "where": where,
@@ -1265,11 +1241,10 @@ def select_query(
             "select_fields": ", ".join(select_fields),
             "databases": ", ".join(databases),
         }
-        select_sql = "SELECT {select_expr_as} FROM {databases} WHERE {where} GROUP BY {group_by_field_name} ORDER BY {sort_by_field_name} {sort_desc} LIMIT {limit} OFFSET {offset}"
+        select_sql = "SELECT {select_expr_as} FROM {databases} WHERE {where} GROUP BY {group_by_field_name} ORDER BY {sort_by_field_name} {sort_desc} {limit}"
     else:
         env = {
             "limit": limit,
-            "offset": offset,
             "sort_by_field_name": sort_by_field_name,
             "where": where,
             "sort_desc": sort_desc,
@@ -1277,7 +1252,7 @@ def select_query(
             "select_fields": ", ".join(select_fields),
             "databases": ", ".join(databases),
         }
-        select_sql = "SELECT {select_expr_as} FROM {databases} WHERE {where} ORDER BY {sort_by_field_name} {sort_desc} LIMIT {limit} OFFSET {offset}"
+        select_sql = "SELECT {select_expr_as} FROM {databases} WHERE {where} ORDER BY {sort_by_field_name} {sort_desc} {limit}"
 
     if len(select_columns) != len(columns):
         select_sql = "SELECT {select_fields} FROM (%s);" % select_sql

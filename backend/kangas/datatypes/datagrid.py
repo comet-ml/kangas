@@ -111,7 +111,7 @@ class DataGrid(object):
     MAX_ROWS = 1000000
     MAX_COLS = 101
     MAX_COL_NAME_LENGTH = 50
-    MAX_COL_STRING_LENGTH = 100
+    MAX_COL_STRING_LENGTH = 10000
 
     def __init__(
         self,
@@ -1533,13 +1533,16 @@ class DataGrid(object):
         if not self._on_disk:
             raise Exception("Unable to select_count before saving")
 
-        result = list(self.select(where, count=True))
-        if len(result) == 0:
-            return 0
-        return result[0][0]
+        return self.select(where, count=True)
 
     def select(
-        self, where="1", sort_by=None, sort_desc=False, to_dicts=False, count=False
+        self,
+        where="1",
+        sort_by=None,
+        sort_desc=False,
+        to_dicts=False,
+        count=False,
+        computed_columns=None,
     ):
         """
         Perform a selection on the database, including possibly a
@@ -1574,7 +1577,7 @@ class DataGrid(object):
             schema[column_name]["field_name"]: column_name for column_name in schema
         }
 
-        yield from query_sql(
+        return query_sql(
             self,
             column_name_map,
             where,
@@ -1582,6 +1585,7 @@ class DataGrid(object):
             sort_desc,
             to_dicts,
             count,
+            computed_columns,
         )
 
     def save(self, filename=None, create_thumbnails=None):
