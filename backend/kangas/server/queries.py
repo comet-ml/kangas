@@ -240,7 +240,10 @@ def process_results(value):
 
 
 def unescape(string):
-    return string.replace("&#39;", "'").replace("&#34;", '"').replace("&#44;", ",")
+    if string:
+        return string.replace("&#39;", "'").replace("&#34;", '"').replace("&#44;", ",")
+    else:
+        return ""
 
 
 def ListComprehension(x, y, gen, ifs):
