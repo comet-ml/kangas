@@ -208,6 +208,9 @@ class DataGrid(object):
         if columns:
             self.set_columns(columns)
         elif data:
+            if hasattr(data, "__iter__"):
+                data = list(data)
+
             if isinstance(data[0], dict):
                 column_names = self._verify_column_list(data[0].keys())
                 self._columns = {"row-id": "ROW_ID"}
