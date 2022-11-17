@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef, useContext, useMemo, useCallback } from 'react';
 import useMetadata from '../../../lib/useMetadata';
 import useAsset from '../../../lib/useAsset';
+import { CircularProgress } from '@mui/material';
 const Canvas = ({ url, drawImage, dgid, scoreBound, ref }) => {
+    const [loaded, setLoaded] = useState(false);
     const canvas = useRef();
     const image = useRef();
     const [filteredLabels, setFilteredLabels] = useState([]);
@@ -24,6 +26,7 @@ const Canvas = ({ url, drawImage, dgid, scoreBound, ref }) => {
     const load = useCallback(() => {
         if (!canvas || !image || !parsedMeta) return;
         drawImage(canvas, image, parsedMeta, filteredLabels);
+        setLoaded(true)
     }, [drawImage, parsedMeta, filteredLabels]);
 
     useEffect(() => {
@@ -32,12 +35,13 @@ const Canvas = ({ url, drawImage, dgid, scoreBound, ref }) => {
 
     return (
         <div className="canvas-container" ref={ref}>
-            <canvas ref={canvas} className="image-canvas" />
+            <canvas ref={canvas} className={`image-canvas ${!loaded && 'hidden'}`} />
+            { !loaded && <CircularProgress /> }
             <img
                 ref={image}
                 src={imageSrc}
                 crossOrigin={'Anonymous'}
-                style={{ display: 'none' }}
+                className='hidden'
                 onLoad={load}
                 alt="DataGrid Image"
             />
