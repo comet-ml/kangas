@@ -1140,7 +1140,6 @@ def query_sql(
     where_expr,
     sort_by,
     sort_desc,
-    to_dicts,
     count,
     computed_columns=None,
 ):
@@ -1171,10 +1170,7 @@ def query_sql(
     if count:
         return results["nrows"]
     else:
-        if to_dicts:
-            return results["rows"]
-        else:
-            return [list(row.values()) for row in results["rows"]]
+        return results["rows"]
 
 
 def select_query(

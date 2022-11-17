@@ -48,6 +48,8 @@ class Asset(object):
 
     @classmethod
     def unserialize(cls, datagrid, row, column_name):
+        ## FIXME: turn this into a lazy loading object
+        ## so that we only need items if we access them
         obj = cls(unserialize=True)
         asset_id = row[column_name]
         row = datagrid.conn.execute(
