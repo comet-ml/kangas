@@ -1644,18 +1644,22 @@ class DataGrid(object):
             count,
             computed_columns,
         )
-        if to_dicts:
-            return [
-                {
-                    column_name: self._raw_value_to_asset(value)
-                    for column_name, value in row.items()
-                }
-                for row in results
-            ]
+        if count:
+            return results
         else:
-            return [
-                [self._raw_value_to_asset(value) for value in row] for row in results
-            ]
+            if to_dicts:
+                return [
+                    {
+                        column_name: self._raw_value_to_asset(value)
+                        for column_name, value in row.items()
+                    }
+                    for row in results
+                ]
+            else:
+                return [
+                    [self._raw_value_to_asset(value) for value in row.values()]
+                    for row in results
+                ]
 
     def save(self, filename=None, create_thumbnails=None):
         """

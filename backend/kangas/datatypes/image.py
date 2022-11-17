@@ -107,6 +107,8 @@ class Image(Asset):
         """
         super().__init__(source)
         if unserialize:
+            # A function that takes the object to lookup
+            self._unserialize = unserialize
             return
         if self.source is not None:
             filename = self.source["source"]

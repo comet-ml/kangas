@@ -1154,23 +1154,71 @@ def query_sql(
     else:
         computed_columns = {}
 
-    results = select_query(
-        dgid=dgid,
-        offset=0,
-        group_by=None,
-        sort_by=sort_by,
-        sort_desc=sort_desc,
-        where=None,
-        limit=None,
-        select_columns=select_columns,
-        computed_columns=computed_columns,
-        where_expr=where_expr,
-    )
-
     if count:
-        return results["nrows"]
+        results = select_query_count(
+            dgid=dgid,
+            computed_columns=computed_columns,
+            where_expr=where_expr,
+        )
+        return results
     else:
+        results = select_query(
+            dgid=dgid,
+            offset=0,
+            group_by=None,
+            sort_by=sort_by,
+            sort_desc=sort_desc,
+            where=None,
+            limit=None,
+            select_columns=select_columns,
+            computed_columns=computed_columns,
+            where_expr=where_expr,
+        )
         return results["rows"]
+
+
+def select_query_count(
+    dgid,
+    computed_columns,
+    where_expr=None,
+):
+    conn = get_database_connection(dgid)
+    cur = conn.cursor()
+    metadata = get_metadata(conn)
+    columns = list(metadata.keys())
+    select_expr_as = [get_field_name(column, metadata) for column in columns]
+    databases = ["datagrid"]
+    where = None
+
+    if computed_columns or where_expr:
+        where_sql = update_state(
+            dgid,
+            computed_columns,
+            metadata,
+            databases,
+            columns,
+            select_expr_as,
+            where_expr,
+        )
+        if where_sql:
+            where = where_sql
+
+    where = where if where else "1"
+
+    env = {
+        "where": where,
+        "select_expr_as": ", ".join(select_expr_as),
+        "databases": ", ".join(databases),
+    }
+    total_sql = (
+        "SELECT COUNT() FROM (SELECT {select_expr_as} FROM {databases} WHERE {where});"
+    )
+    selection_sql = total_sql.format(**env)
+    LOGGER.info("SQL %s", selection_sql)
+    start_time = time.time()
+    total_rows = cur.execute(selection_sql).fetchone()[0]
+    LOGGER.info("SQL %s seconds", time.time() - start_time)
+    return total_rows
 
 
 def select_query(
