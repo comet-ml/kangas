@@ -26,7 +26,7 @@ const Canvas = ({ url, drawImage, dgid, scoreBound, ref }) => {
     const load = useCallback(() => {
         if (!canvas || !image || !parsedMeta) return;
         drawImage(canvas, image, parsedMeta, filteredLabels);
-        setLoaded(true)
+        setLoaded(true);
     }, [drawImage, parsedMeta, filteredLabels]);
 
     useEffect(() => {
