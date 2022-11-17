@@ -46,6 +46,8 @@ def serialize_string_function(datagrid, item):
         return None
 
     item = str(item)
+    if len(item) > datagrid.MAX_COL_STRING_LENGTH:
+        print("Truncating string: %r" % item)
     return item[: datagrid.MAX_COL_STRING_LENGTH]
 
 

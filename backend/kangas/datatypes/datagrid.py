@@ -28,7 +28,7 @@ import tqdm
 
 from ..utils import _in_colab_environment, _in_jupyter_environment
 from .base import Asset
-from .serialize import DATAGRID_TYPES
+from .serialize import ASSET_TYPE_MAP, DATAGRID_TYPES
 from .utils import (
     RESERVED_NAMES,
     apply_converters,
@@ -111,7 +111,7 @@ class DataGrid(object):
     MAX_ROWS = 1000000
     MAX_COLS = 101
     MAX_COL_NAME_LENGTH = 50
-    MAX_COL_STRING_LENGTH = 100
+    MAX_COL_STRING_LENGTH = 10000
 
     def __init__(
         self,
@@ -531,12 +531,23 @@ class DataGrid(object):
             for row in self._data:
                 yield {column_name: row[column_name] for column_name in column_names}
 
+    def _raw_value_to_asset(self, value):
+        if isinstance(value, dict):
+            if "assetType" in value and "assetId" in value:
+                row = {"value": value["assetId"]}
+                return ASSET_TYPE_MAP[value["assetType"]].unserialize(
+                    self, row, "value"
+                )
+
+        return value
+
     def _value_to_asset(self, row, column_name):
         # if this is an asset column, return Object, with asset_id, asset_data,
         # and asset_metadata
-        dg_type = self._columns[column_name]
-        return DATAGRID_TYPES[dg_type]["unserialize"](self, row, column_name)
-        return None
+        if column_name in self._columns:
+            dg_type = self._columns[column_name]
+            return DATAGRID_TYPES[dg_type]["unserialize"](self, row, column_name)
+        return row[column_name]
 
     def __getitem__(self, item):
         """
@@ -1533,13 +1544,59 @@ class DataGrid(object):
         if not self._on_disk:
             raise Exception("Unable to select_count before saving")
 
-        result = list(self.select(where, count=True))
-        if len(result) == 0:
-            return 0
-        return result[0][0]
+        return self.select(where, count=True)
+
+    def select_dataframe(
+        self,
+        where="1",
+        sort_by=None,
+        sort_desc=False,
+        computed_columns=None,
+    ):
+        """
+        Perform a selection on the database, including possibly a
+        query, and returning rows in various sort orderings.
+
+        Args:
+            where: (optional, str) a Python expression where column names are
+                written as {"Column Name"}.
+            sort_by: (optional, str) name of column to sort on
+            sort_desc: (optional, bool) sort descending?
+            computed_columns: (optional, dict) a dictionary with the keys
+                being the column name, and value is a string describing the
+                expression of the column. Uses same syntax and semantics
+                as the filter query expressions.
+
+        Example:
+        ```
+        >>> df = dg.select_dataframe("{'column name 1'} == {'column name 2'} and {'score'} < -1")
+        ```
+        """
+        try:
+            import pandas
+        except ImportError:
+            raise Exception("DataGrid.select_dataframe() requires pandas")
+
+        results = self.select(
+            where=where,
+            sort_by=sort_by,
+            sort_desc=sort_desc,
+            to_dicts=True,
+            count=False,
+            computed_columns=computed_columns,
+        )
+        if results:
+            columns = results[0].keys()
+            return pandas.DataFrame(data=results, columns=columns)
 
     def select(
-        self, where="1", sort_by=None, sort_desc=False, to_dicts=False, count=False
+        self,
+        where="1",
+        sort_by=None,
+        sort_desc=False,
+        to_dicts=False,
+        count=False,
+        computed_columns=None,
     ):
         """
         Perform a selection on the database, including possibly a
@@ -1553,6 +1610,10 @@ class DataGrid(object):
             to_dicts: (optional, cool) if True, return the rows in dicts where
                 the keys are the column names.
             count: (optional, bool) if True, return the count of matching rows
+            computed_columns: (optional, dict) a dictionary with the keys
+                being the column name, and value is a string describing the
+                expression of the column. Uses same syntax and semantics
+                as the filter query expressions.
 
         Example:
         ```
@@ -1574,15 +1635,31 @@ class DataGrid(object):
             schema[column_name]["field_name"]: column_name for column_name in schema
         }
 
-        yield from query_sql(
+        results = query_sql(
             self,
             column_name_map,
             where,
             sort_by,
             sort_desc,
-            to_dicts,
             count,
+            computed_columns,
         )
+        if count:
+            return results
+        else:
+            if to_dicts:
+                return [
+                    {
+                        column_name: self._raw_value_to_asset(value)
+                        for column_name, value in row.items()
+                    }
+                    for row in results
+                ]
+            else:
+                return [
+                    [self._raw_value_to_asset(value) for value in row.values()]
+                    for row in results
+                ]
 
     def save(self, filename=None, create_thumbnails=None):
         """
