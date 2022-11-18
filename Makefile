@@ -15,6 +15,7 @@ wheel::
 	cd backend; python -m build --wheel
 
 docs::
+# git clone git@github.com:comet-ml/kangas.wiki.git wiki
 	pydoc-markdown -m kangas > wiki/kangas.md
 	pydoc-markdown -m kangas.datatypes.datagrid > wiki/DataGrid.md
 	pydoc-markdown -m kangas.datatypes.image > wiki/Image.md
