@@ -192,6 +192,20 @@ def show(
         webbrowser.open(url, autoraise=True)
 
 
+def read_parquet(filename, **kwargs):
+    """
+    Takes a parquet filename or URL and returns a DataGrid.
+
+    Note: requires pyarrow to be installed.
+
+    Example:
+    ```
+    >>> dg = DataGrid.read_parquet("userdata1.parquet")
+    ```
+    """
+    return DataGrid.read_parquet(filename, **kwargs)
+
+
 def read_dataframe(dataframe, **kwargs):
     """
     Takes a columnar pandas dataframe and returns a DataGrid.

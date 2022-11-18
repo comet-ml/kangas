@@ -32,6 +32,7 @@ THUMBNAIL_SIZE = (100, 55)  # width, height
 RESERVED_NAMES = ["ROW-ID"]
 LOGGER = logging.getLogger(__name__)
 INFINITY = float("inf")
+CONVERSION_METHODS = ["as_py", "to_pydatetime"]
 
 
 def contain(image, size, method=None):
@@ -140,6 +141,7 @@ def pytype_to_dgtype(item):
     for ctype in DATAGRID_TYPES:
         if isinstance(item, tuple(DATAGRID_TYPES[ctype]["types"])):
             return ctype
+
     raise ValueError("unknown type: %r" % type(item))
 
 
@@ -252,6 +254,11 @@ def convert_to_value(
         if colname in converters:
             converter = converters[colname]
             return converter(value)
+
+    while any([hasattr(value, method) for method in CONVERSION_METHODS]):
+        for method in CONVERSION_METHODS:
+            if hasattr(value, method):
+                value = getattr(value, method)()
 
     if isinstance(value, str):
         return convert_string_to_value(

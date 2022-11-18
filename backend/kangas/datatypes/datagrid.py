@@ -687,6 +687,36 @@ class DataGrid(object):
         download_filename(url, ext)
 
     @classmethod
+    def read_parquet(cls, filename, **kwargs):
+        """
+        Takes a parquet filename or URL and returns a DataGrid.
+
+        Note: requires pyarrow to be installed.
+
+        Example:
+        ```
+        >>> dg = DataGrid.read_parquet("userdata1.parquet")
+        ```
+        """
+        try:
+            import pyarrow.parquet
+        except Exception:
+            raise Exception("DataGrid.read_parquet() requires pyarrow") from None
+
+        filename = download_filename(filename)
+        table = pyarrow.parquet.read_table(filename, **kwargs)
+        data = table.to_pylist()
+        dg = DataGrid(data=data)
+        if "." in filename:
+            dg_filename, extension = filename.rsplit(".", 1)
+            dg.name = dg_filename
+            dg.filename = dg_filename + ".datagrid"
+        else:
+            dg.name = filename
+            dg.filename = filename + ".datagrid"
+        return dg
+
+    @classmethod
     def read_dataframe(cls, dataframe, **kwargs):
         """
         Takes a columnar pandas dataframe and returns a DataGrid.
@@ -1044,10 +1074,11 @@ class DataGrid(object):
                     new_value, self._columns[column_name]
                 )
             except Exception:
-                raise Exception(
+                print(
                     "Invalid type for column %r: value was %r, but should have been type %r"
                     % (column_name, value, self._columns[column_name])
-                ) from None
+                )
+
         # After conversion, apply a row-level conversion:
         convert_row_dict(row_dict, self.converters)
 
