@@ -200,6 +200,21 @@ def FLATTEN(lists):
     return "[]"
 
 
+def SPLIT(string, delim=None, maxsplit=-1):
+    return str(string.split(delim, maxsplit))
+
+
+def LENGTH(string_or_obj):
+    ## Comes in as a string, but
+    ## might be "[...]"
+    if string_or_obj:
+        try:
+            return len(ast.literal_eval(string_or_obj))
+        except Exception:
+            return len(string_or_obj)
+    return 0
+
+
 def ANY_IN_GROUP(group):
     if group:
         try:
@@ -309,6 +324,8 @@ def get_database_connection(dgid):
     conn.create_function("ANY_IN_GROUP", 1, ANY_IN_GROUP)
     conn.create_function("ALL_IN_GROUP", 1, ALL_IN_GROUP)
     conn.create_function("FLATTEN", 1, FLATTEN)
+    conn.create_function("SPLIT", -1, SPLIT)
+    conn.create_function("LENGTH", 1, LENGTH)
     conn.create_function("ListComprehension", 4, ListComprehension)
     return conn
 
@@ -1142,6 +1159,8 @@ def query_sql(
     sort_desc,
     count,
     computed_columns=None,
+    limit=None,
+    offset=0,
 ):
     dgid = datagrid.filename
     select_columns = datagrid.get_columns()
@@ -1164,12 +1183,12 @@ def query_sql(
     else:
         results = select_query(
             dgid=dgid,
-            offset=0,
+            offset=offset,
             group_by=None,
             sort_by=sort_by,
             sort_desc=sort_desc,
             where=None,
-            limit=None,
+            limit=limit,
             select_columns=select_columns,
             computed_columns=computed_columns,
             where_expr=where_expr,

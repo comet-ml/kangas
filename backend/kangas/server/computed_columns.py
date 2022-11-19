@@ -128,7 +128,7 @@ class Evaluator:
                 function_map = {
                     "any": "ANY_IN_GROUP",
                     "all": "ALL_IN_GROUP",
-                    "len": "length",
+                    "len": "LENGTH",
                     "flatten": "FLATTEN",
                 }
                 sargs = ", ".join([str(arg) for arg in args])
@@ -312,7 +312,11 @@ class Evaluator:
                     else:
                         raise Exception("unsupported method %r" % repr(function_name))
 
-                elif function_name.attr in ["contains", "endswith", "startswith"]:
+                elif function_name.attr in [
+                    "contains",
+                    "endswith",
+                    "startswith",
+                ]:
                     # FIXME: args[0] could be a string, or a field_name
                     # Assuming string for now in contains, startswith, endswith
                     # because of special form in SQL:
@@ -354,6 +358,8 @@ class Evaluator:
                     return "upper(%s)" % ", ".join([str(function_name.obj)] + args)
                 elif function_name.attr == "lower":
                     return "lower(%s)" % ", ".join([str(function_name.obj)] + args)
+                elif function_name.attr == "split":
+                    return "SPLIT(%s)" % ", ".join([str(function_name.obj)] + args)
                 else:
                     raise Exception("unknown method %r" % repr(function_name))
             else:
@@ -567,6 +573,10 @@ def update_state(
         )
         field_type = new_columns[column_name]["type"]
         field_name = new_columns[column_name]["field_name"]
+        ## Computed columns expr based on prior computed columns
+        ## names should replace {"prev column"} with prev column
+        ## expr_field:
+        columns_to_field_name[name_to_key(column_name)] = field_expr
         columns.append(column_name)
         metadata[column_name] = {
             "field_expr": field_expr,

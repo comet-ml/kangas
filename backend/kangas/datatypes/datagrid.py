@@ -1631,6 +1631,8 @@ class DataGrid(object):
         to_dicts=False,
         count=False,
         computed_columns=None,
+        limit=None,
+        offset=0,
     ):
         """
         Perform a selection on the database, including possibly a
@@ -1677,6 +1679,8 @@ class DataGrid(object):
             sort_desc,
             count,
             computed_columns,
+            limit,
+            offset,
         )
         if count:
             return results
