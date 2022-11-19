@@ -1586,6 +1586,8 @@ class DataGrid(object):
         sort_by=None,
         sort_desc=False,
         computed_columns=None,
+        limit=None,
+        offset=0,
     ):
         """
         Perform a selection on the database, including possibly a
@@ -1596,6 +1598,8 @@ class DataGrid(object):
                 written as {"Column Name"}.
             sort_by: (optional, str) name of column to sort on
             sort_desc: (optional, bool) sort descending?
+            limit: (optional, int) select at most this value
+            offset: (optional, int) start selection at this offset
             computed_columns: (optional, dict) a dictionary with the keys
                 being the column name, and value is a string describing the
                 expression of the column. Uses same syntax and semantics
@@ -1618,6 +1622,8 @@ class DataGrid(object):
             to_dicts=True,
             count=False,
             computed_columns=computed_columns,
+            limit=limit,
+            offset=offset,
         )
         if results:
             columns = results[0].keys()
@@ -1643,6 +1649,8 @@ class DataGrid(object):
                 written as {"Column Name"}.
             sort_by: (optional, str) name of column to sort on
             sort_desc: (optional, bool) sort descending?
+            limit: (optional, int) select at most this value
+            offset: (optional, int) start selection at this offset
             to_dicts: (optional, cool) if True, return the rows in dicts where
                 the keys are the column names.
             count: (optional, bool) if True, return the count of matching rows
