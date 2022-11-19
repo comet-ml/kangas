@@ -199,6 +199,9 @@ const HelpText = () => (
             <li>
                 <code>&#123;"Column Name"}.lower()</code>
             </li>
+            <li>
+                <code>&#123;"Column Name"}.split(DELIM[, MAXSPLITS])</code>
+            </li>
         </ul>
         <h3 dir="auto">Python if/else expression</h3>
         <p dir="auto">
