@@ -94,6 +94,16 @@ dataset = load_dataset("beans", split="train")
 dg = kg.DataGrid(dataset)
 ```
 
+### Parquet files
+
+> **Note**: You will need to have pyarrow installed to read parquet files.
+
+```python
+import kangas as kg
+
+dg = kg.read_parquet("https://github.com/Teradata/kylo/raw/master/samples/sample-data/parquet/userdata5.parquet")
+```
+
 If you'd like to explore further, take a look at our example notebooks below:
 
 ## Documentation
