@@ -11,5 +11,5 @@
 #    All rights reserved                             #
 ######################################################
 
-version_info = (1, 2, 2)
+version_info = (1, 2, 3)
 __version__ = ".".join(map(str, version_info))
