@@ -449,7 +449,7 @@ class DataGrid(object):
                 into values. Keys are str (to match column name)
 
         Example:
-        ```
+        ```python
         >>> dg.to_csv()
         ```
         """
@@ -471,7 +471,7 @@ class DataGrid(object):
         Convert a DataGrid into a pandas dataframe.
 
         Example:
-        ```
+        ```python
         >>> df = dg.to_dataframe()
         ```
         """
@@ -560,7 +560,7 @@ class DataGrid(object):
             item: (str or int) - if int, return the zero-based row; if str
                 then item is the column name to return
 
-        ```
+        ```python
         >>> dg = DataGrid(columns=["column 1", "column 2"])
         >>> dg.append([1, "one"])
         >>> dg.append([2, "two"])
@@ -632,7 +632,7 @@ class DataGrid(object):
 
         Example:
 
-        ```
+        ```python
         >>> dg.nrows
         42
         ```
@@ -653,7 +653,7 @@ class DataGrid(object):
 
         Example:
 
-        ```
+        ```python
         >>> dg.ncols
         10
         ```
@@ -667,7 +667,7 @@ class DataGrid(object):
 
         Example:
 
-        ```
+        ```python
         >>> dg.shape
         (10, 42)
         ```
@@ -680,7 +680,7 @@ class DataGrid(object):
         Download a file from a URL.
 
         Example:
-        ```
+        ```python
         >>> DataGrid.download("https://example.com/file.zip")
         ```
         """
@@ -694,7 +694,7 @@ class DataGrid(object):
         Note: requires pyarrow to be installed.
 
         Example:
-        ```
+        ```python
         >>> dg = DataGrid.read_parquet("userdata1.parquet")
         ```
         """
@@ -722,7 +722,7 @@ class DataGrid(object):
         Takes a columnar pandas dataframe and returns a DataGrid.
 
         Example:
-        ```
+        ```python
         >>> dg = DataGrid.read_dataframe(df)
         ```
         """
@@ -734,20 +734,52 @@ class DataGrid(object):
     @classmethod
     def read_json(cls, filename, **kwargs):
         """
-        Read JSON Line files.
-        https://jsonlines.org/
+        Read JSON or JSON Line files [1]. JSON should be a list of objects,
+        or a file with object on each line.
+
+        Args:
+            filename: the name of the file or URL to read the JSON from
+            datetime_format: (str) the Python date format that dates
+                are read. For example, use "%Y/%m/%d" for dates like
+                "2022/12/01".
+            heuristics: (bool) whether to guess that some float values are
+                datetime representations
+            name: (str) the name to use for the DataGrid
+            converters: (dict) dictionary of functions where the key
+                is the columns name, and the value is a function that
+                takes a value and converts it to the proper type and
+                form.
+
+        Note: the file or URL may end with ".zip", ".tgz", ".gz", or ".tar"
+            extension. If so, it will be downloaded and unarchived. The JSON
+            file is assumed to be in the archive with the same name as the
+            file/URL. If it is not, then please use the kangas.download()
+            function to download, and then read from the downloaded file.
+
+        [1] - https://jsonlines.org/
 
         Example:
-        ```
+        ```python
+        >>> from kangas import DataGrid
         >>> dg = DataGrid.read_json("json_line_file.json")
+        >>> dg = DataGrid.read_json("https://instances.social/instances.json")
+        >>> dg = DataGrid.read_json("https://company.com/data.json.zip")
+        >>> dg = DataGrid.read_json("https://company.com/data.json.gz")
+        >>> dg.save()
         ```
         """
         print("Reading JSON line file...")
         filename = download_filename(filename)
         if os.path.isfile(filename):
             dg = DataGrid(**kwargs)
-            for line in tqdm.tqdm(open(filename)):
-                dg.append(json.loads(line))
+            fp = open(filename)
+            json_lines = fp.read(1) == "{"
+            fp.seek(0)
+            if json_lines:
+                for line in tqdm.tqdm(fp):
+                    dg.append(json.loads(line))
+            else:
+                dg.extend(json.load(fp))
             if "." in filename:
                 dg_filename, extension = filename.rsplit(".", 1)
                 dg.name = dg_filename
@@ -768,7 +800,7 @@ class DataGrid(object):
             kwargs: any keyword to pass to the DataGrid constructor
 
         Example:
-        ```
+        ```python
         >>> dg = DataGrid.read_datagrid("mnist.datagrid")
         ```
         """
@@ -800,7 +832,7 @@ class DataGrid(object):
                 in certain columns. Keys are column labels.
 
         Example:
-        ```
+        ```python
         >>> dg = DataGrid.read_csv("results.csv")
         ```
         """
@@ -857,7 +889,7 @@ class DataGrid(object):
         Display information about the DataGrid.
 
         Example:
-        ```
+        ```python
         >>> dg.info()
         DataGrid (on disk)
             Name   : coco-500-with-bbox
@@ -914,7 +946,7 @@ class DataGrid(object):
             n: (optional, int) number of rows to show
 
         Example:
-        ```
+        ```python
         >>> dg.head()
                  row-id              ID           Score      Confidence        Filename
                       1          391895 0.4974163872616 0.5726406230662 COCO_val2014_00
@@ -923,7 +955,6 @@ class DataGrid(object):
                       4          318219 0.8879546879811 0.2918134509273 COCO_val2014_00
                       5          554625 0.5889039105388 0.8253719528139 COCO_val2014_00
         [500 rows x 4 columns]
-
         ```
         """
         nrows = self.nrows
@@ -936,7 +967,7 @@ class DataGrid(object):
             n: (optional, int) number of rows to show
 
         Example:
-        ```
+        ```python
         >>> dg.tail()
                  row-id              ID           Score      Confidence        Filename
                     496          391895 0.4974163872616 0.5726406230662 COCO_val2014_00
@@ -1042,7 +1073,7 @@ class DataGrid(object):
         a list of strings.
 
         Example:
-        ```
+        ```python
         >>> dg.get_columns()
         ['ID', 'Image', 'Score', 'Confidence', 'Filename']
         ```
@@ -1094,7 +1125,7 @@ class DataGrid(object):
         NOTE: `rows` is a list of values, one for each row.
 
         Example:
-        ```
+        ```python
         >>> dg.append_column("New Column Name", ["row1", "row2", "row3", "row4"])
         ```
         """
@@ -1110,7 +1141,7 @@ class DataGrid(object):
             verify: (optional, bool) if True, verify the data
 
         Example:
-        ```
+        ```python
         >>> dg = kg.DataGrid(columns=["a", "b"])
         >>> dg.append([1, 1])
         >>> dg.append([2, 2])
@@ -1181,7 +1212,7 @@ class DataGrid(object):
             index: (int) position (zero-based) of row to remove
 
         Example:
-        ```
+        ```python
         >>> row = dg.pop(0)
         ```
         """
@@ -1195,7 +1226,7 @@ class DataGrid(object):
         Append this row onto the datagrid data.
 
         Example:
-        ```
+        ```python
         >>> dg.append(["column 1 value", "column 2 value", ...])
         ```
         """
@@ -1224,7 +1255,7 @@ class DataGrid(object):
         Extend the datagrid with the given rows.
 
         Example:
-        ```
+        ```python
         >>> dg.extend([
         ...     ["row 1, column 1 value", "row 1, column 2 value", ...],
         ...     ["row 2, column 1 value", "row 2, column 2 value", ...],
@@ -1344,7 +1375,7 @@ class DataGrid(object):
         Get the DataGrid schema.
 
         Example:
-        ```
+        ```python
         >>> dg.get_schema()
         {'row-id': {'field_name': 'column_0', 'type': 'ROW_ID'},
          'ID': {'field_name': 'column_1', 'type': 'INTEGER'},
@@ -1570,7 +1601,7 @@ class DataGrid(object):
                 written as {"Column Name"}.
 
         Example:
-        ```
+        ```python
         >>> dg.select_count("{'column 1'} > 0.5")
         894
         ```
@@ -1606,7 +1637,7 @@ class DataGrid(object):
                 as the filter query expressions.
 
         Example:
-        ```
+        ```python
         >>> df = dg.select_dataframe("{'column name 1'} == {'column name 2'} and {'score'} < -1")
         ```
         """
@@ -1660,7 +1691,7 @@ class DataGrid(object):
                 as the filter query expressions.
 
         Example:
-        ```
+        ```python
         >>> dg.select("{'column name 1'} == {'column name 2'} and {'score'} < -1")
         [
            ["row 1, column 1 value", "row 1, column 2 value", ...],
@@ -1718,7 +1749,7 @@ class DataGrid(object):
                 create thumbnail images for assets
 
         Example:
-        ```
+        ```python
         >>> dg.save()
         ```
         """

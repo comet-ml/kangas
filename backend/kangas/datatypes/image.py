@@ -149,7 +149,7 @@ class Image(Asset):
         Return the image as a Python Image Library (PIL) image.
 
         Example:
-        ```
+        ```python
         >>> import kangas as kg
         >>> image = kg.Image("filename.jpg").to_pil()
         >>> image.show()
@@ -212,7 +212,7 @@ class Image(Asset):
                with the region.
 
         Example:
-        ```
+        ```python
         >>> image = Image()
         >>> image.add_regions("car", [(x1, y1), ...], [(x2, y2), ...])
         ```
@@ -242,7 +242,7 @@ class Image(Asset):
                with the region.
 
         Example:
-        ```
+        ```python
         >>> image = Image()
         >>> box1 = [(x1, y1), (x2, y2)]
         >>> box2 = [(x1, y1), (x2, y2)]
@@ -270,7 +270,7 @@ class Image(Asset):
         Under development.
 
         Example:
-        ```
+        ```python
         >>> image = Image()
         >>> image.add_mask("attention", Image(MASK))
         ```
@@ -298,7 +298,7 @@ class Image(Asset):
         Under development.
 
         Example:
-        ```
+        ```python
         >>> image = Image()
         >>> image.add_annotations("Tumors", (50, 50), (100, 100), (200, 200), ...)
         ```

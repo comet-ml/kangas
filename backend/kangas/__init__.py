@@ -199,7 +199,7 @@ def read_parquet(filename, **kwargs):
     Note: requires pyarrow to be installed.
 
     Example:
-    ```
+    ```python
     >>> dg = DataGrid.read_parquet("userdata1.parquet")
     ```
     """
@@ -275,11 +275,11 @@ def read_datagrid(filename, **kwargs):
 
 def read_json(filename, **kwargs):
     """
-    Reads JSON Lines from a filename. Returns
-    the DataGrid.
+    Read JSON or JSON Line files [1]. JSON should be a list of objects,
+    or a file with object on each line.
 
     Args:
-        filename: the name of the file or URL to read the DataGrid from
+        filename: the name of the file or URL to read the JSON from
         datetime_format: (str) the Python date format that dates
             are read. For example, use "%Y/%m/%d" for dates like
             "2022/12/01".
@@ -297,13 +297,15 @@ def read_json(filename, **kwargs):
         file/URL. If it is not, then please use the kangas.download()
         function to download, and then read from the downloaded file.
 
-    Examples:
+    [1] - https://jsonlines.org/
 
+    Example:
     ```python
-    >>> import kangas
-    >>> dg = kangas.read_json("data.json")
-    >>> dg = kangas.read_json("https://data.json.zip")
-    >>> dg = kangas.read_json("https://data.json.gz")
+    >>> import kangas as kg
+    >>> dg = kg.read_json("json_line_file.json")
+    >>> dg = kg.read_json("https://instances.social/instances.json")
+    >>> dg = kg.read_json("https://company.com/data.json.zip")
+    >>> dg = kg.read_json("https://company.com/data.json.gz")
     >>> dg.save()
     ```
     """

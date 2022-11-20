@@ -278,6 +278,10 @@ def server(parsed_args, remaining=None):
                 dg = kangas.read_csv(filename)
                 dg.save()
                 filename = dg.filename
+            elif file_type == "json":
+                dg = kangas.read_json(filename)
+                dg.save()
+                filename = dg.filename
             elif file_type == "huggingface":
                 if huggingface_load_dataset is None:
                     raise Exception("requires `pip install datasets`")
