@@ -12,7 +12,7 @@
 ######################################################
 
 import csv
-import html
+import io
 import json
 import logging
 import math
@@ -265,7 +265,7 @@ class DataGrid(object):
         def row(value):
             return "<tr><td colspan='%s' style='text-align: left;'>%s</td></tr>" % (
                 len(self.get_columns()) + 1,
-                html.escape(value),
+                value,
             )
 
         output = self.__repr__(row)
@@ -615,12 +615,17 @@ class DataGrid(object):
                 if row_index < len(self._data):
                     return [
                         self._data[row_index][column_name]
+                        if column_name in self._data[row_index]
+                        else None
                         for column_name in self.get_columns()
                     ]
                 else:
                     raise IndexError("row index out of range")
             else:
-                return [row[column_name] for row in self.to_dicts()]
+                return [
+                    row[column_name] if column_name in row else None
+                    for row in self.to_dicts()
+                ]
 
     def __len__(self):
         return self.nrows
@@ -734,11 +739,12 @@ class DataGrid(object):
     @classmethod
     def read_json(cls, filename, **kwargs):
         """
-        Read JSON or JSON Line files [1]. JSON should be a list of objects,
-        or a file with object on each line.
+        Read JSON data, or JSON or JSON Line files [1]. JSON should be a
+        list of objects, or a series of objects, one per line.
 
         Args:
-            filename: the name of the file or URL to read the JSON from
+            filename: the name of the file or URL to read the JSON from,
+                or the data
             datetime_format: (str) the Python date format that dates
                 are read. For example, use "%Y/%m/%d" for dates like
                 "2022/12/01".
@@ -768,11 +774,26 @@ class DataGrid(object):
         >>> dg.save()
         ```
         """
-        print("Reading JSON line file...")
+        print("Reading JSON data...")
         filename = download_filename(filename)
-        if os.path.isfile(filename):
+
+        try:
             dg = DataGrid(**kwargs)
-            fp = open(filename)
+
+            if os.path.isfile(filename):
+                fp = open(filename)
+
+                if "." in filename:
+                    dg_filename, extension = filename.rsplit(".", 1)
+                    dg.name = dg_filename
+                    dg.filename = dg_filename + ".datagrid"
+                else:
+                    dg.name = filename
+                    dg.filename = filename + ".datagrid"
+            else:
+                # filename is the data? Let's see:
+                fp = io.StringIO(filename)
+
             json_lines = fp.read(1) == "{"
             fp.seek(0)
             if json_lines:
@@ -780,16 +801,12 @@ class DataGrid(object):
                     dg.append(json.loads(line))
             else:
                 dg.extend(json.load(fp))
-            if "." in filename:
-                dg_filename, extension = filename.rsplit(".", 1)
-                dg.name = dg_filename
-                dg.filename = dg_filename + ".datagrid"
-            else:
-                dg.name = filename
-                dg.filename = filename + ".datagrid"
+
             return dg
-        else:
-            raise Exception("JSON-L file not found: %r" % filename)
+        except Exception:
+            raise Exception(
+                "Unable to find JSON file, or parse JSON data: %r" % filename
+            )
 
     @classmethod
     def read_datagrid(cls, filename, **kwargs):
@@ -1014,10 +1031,7 @@ class DataGrid(object):
                 self.accum = ""
 
             def escape(self, value):
-                if in_jupyter:
-                    return html.escape(str(value))
-                else:
-                    return str(value)
+                return str(value)
 
             def display(self, value, width, header=False, colspan=1, style=""):
                 if in_jupyter:
@@ -1097,7 +1111,7 @@ class DataGrid(object):
                 self.converters,
             )
             # Get the first element of a row with type:
-            if self._columns[column_name] is None:
+            if column_name not in self._columns or self._columns[column_name] is None:
                 self._columns[column_name] = pytype_to_dgtype(new_value)
             # Then, make sure it is correct type
             try:
@@ -1971,17 +1985,20 @@ class DataGrid(object):
                     if row[0]:
                         json_data = json.loads(row[0])
                         # FIXME: check if match previous uses
-                        # FIXME: better be a dict
-                        for key in json_data:
-                            qbtype = self._get_qbtype(json_data[key])
-                            if qbtype:
-                                # text, number, boolean, and list-of-text
-                                fields[key] = {"type": qbtype}
-                                if qbtype == "text":
-                                    values[key].add(json_data[key])
-                                elif qbtype == "list-of-text":
-                                    for text in json_data[key]:
-                                        values[key].add(text)
+                        if isinstance(json_data, dict):
+                            for key in json_data:
+                                qbtype = self._get_qbtype(json_data[key])
+                                if qbtype:
+                                    # text, number, boolean, and list-of-text
+                                    fields[key] = {"type": qbtype}
+                                    if qbtype == "text":
+                                        values[key].add(json_data[key])
+                                    elif qbtype == "list-of-text":
+                                        for text in json_data[key]:
+                                            values[key].add(text)
+                        elif isinstance(json_data, (list, tuple)):
+                            ## FIXME: stats for JSON lists?
+                            pass
 
                     for key in values:
                         fields[key]["values"] = sorted(list(values[key]))

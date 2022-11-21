@@ -69,7 +69,7 @@ def serialize_json_function(datagrid, item):
     if is_null(item):
         return None
 
-    if isinstance(item, (dict,)):
+    if isinstance(item, (dict, list, tuple)):
         return json.dumps(item)
     else:
         raise Exception("Can't convert %r to JSON" % item)
@@ -130,6 +130,11 @@ DATAGRID_TYPES = {
         "unserialize": unserialize_datetime,
     },
     "JSON": {
+        "types": [dict, list, tuple],
+        "serialize": serialize_json_function,
+        "unserialize": unserialize,
+    },
+    "VECTOR": {
         "types": [dict],
         "serialize": serialize_json_function,
         "unserialize": unserialize,
