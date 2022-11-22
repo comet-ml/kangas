@@ -12,6 +12,7 @@ import TextAssetCell from '../components/Cells/TextAssetCell.server';
 import CurveAssetCell from '../components/Cells/CurveAssetCell.server';
 import BooleanCell from '../components/Cells/BooleanCell.server';
 import JSONCell from '../components/Cells/JSONCell.server';
+import VectorCell from '../components/Cells/VectorCell.server';
 import PlaceholderCell from '../components/Cells/PlaceholderCell.server';
 import HistogramGroupCell from '../components/Cells/Histogram/HistogramGroupCell.server';
 import HistogramGroupExpanded from '../components/Cells/Histogram/HistogramGroupExpanded.server';
@@ -131,6 +132,14 @@ export const columnTypeMap = {
         groupedWidth: GROUPED_ASSET_WIDTH,
         isAsset: false,
     },
+    VECTOR: {
+        component: VectorCell,
+        expandedComponent: VectorCell,
+        groupComponent: PlaceholderCell,
+        expandedGroupComponent: PlaceholderCell,
+        singleWidth: 300,
+        groupedWidth: 300,
+    }
 };
 
 const makeComponentMap = (table) => {
