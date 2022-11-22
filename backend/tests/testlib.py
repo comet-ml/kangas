@@ -18,7 +18,7 @@ from contextlib import contextmanager
 MAX_TRY_SECONDS = 20
 
 
-class AlwaysEquals(object):
+class AlwaysEquals():
     def __eq__(self, other):
         return True
 
