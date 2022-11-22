@@ -1,5 +1,5 @@
 const VectorCell = ({ value }) => {
-    const stringValue = value ? value : "[]";
+    const stringValue = value ? value : "None";
 
     return <div className="cell-content json">{stringValue}</div>;
 };
