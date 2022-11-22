@@ -1144,7 +1144,46 @@ class DataGrid():
         >>> dg.append_column("New Column Name", ["row1", "row2", "row3", "row4"])
         ```
         """
-        self.append_columns([column_name], [[value] for value in rows], verify=verify)
+        ## FIXME: make sure not repeating column name
+        if self._on_disk:
+            if isinstance(rows, str):
+                expr = rows
+                rows = [
+                    row[column_name]
+                    for row in self.select(
+                        computed_columns={column_name: expr}, to_dicts=True
+                    )
+                ]
+
+            if self.nrows != len(rows):
+                raise Exception("invalid number of rows to append")
+
+            ## FIXME: ///
+
+        else:
+            if isinstance(rows, str):
+                raise Exception(
+                    "can't append a computed column to an in-memory DataGrid"
+                )
+
+            if len(self._data) != len(rows):
+                raise Exception("invalid number of rows to append")
+
+            # add to self._columns
+            self._columns.update(
+                {self._verify_column(column_name, len(self._columns) + 1): None}
+            )
+
+            # append to data
+            for r, row in enumerate(rows):
+                row_dict = {column_name: row}
+                if verify:
+                    # verify each and every row
+                    self._convert_values_row_dict(row_dict)
+                    column_types = self._verify_row_dict(row_dict, [column_name])
+                    self._check_column_types(column_types)
+
+                self._data[r].update(row_dict)
 
     def append_columns(self, column_names, rows, verify=True):
         """
@@ -1174,50 +1213,8 @@ class DataGrid():
         [2 rows x 4 columns]
         ```
         """
-        ## FIXME: make sure not repeating column name
-        if len(rows) == 0:
-            return
-
-        if self._on_disk:
-            raise Exception("currently unable to add a column on disk")
-
-            ## FIXME: update tables and append data
-            # Final check and conversion on column types:
-            # self._columns = {
-            #    column_name: (ctype if ctype is not None else "TEXT")
-            #    for column_name, ctype in self._columns.items()
-            # }
-
-        else:
-            if len(self._data) != len(rows):
-                raise Exception("invalid number of rows to append")
-
-            # add to self._columns
-            count = len(self._columns) + 1
-            self._columns.update(
-                {
-                    self._verify_column(column_name, count + i): None
-                    for i, column_name in enumerate(column_names)
-                }
-            )
-
-            # append to data
-            for r, row in enumerate(rows):
-                if not isinstance(row, (dict,)):
-                    # public columns will create columns, if it doesn't exist
-                    row_dict = {
-                        column_name: item
-                        for column_name, item in zip(column_names, row)
-                    }
-                else:
-                    row_dict = row.copy()
-                if verify:
-                    # verify each and every row
-                    self._convert_values_row_dict(row_dict)
-                    column_types = self._verify_row_dict(row_dict, column_names)
-                    self._check_column_types(column_types)
-
-                self._data[r].update(row_dict)
+        for column_name, rows in zip(column_names, rows):
+            self.append_column(column_name, rows, verify)
 
     def pop(self, index):
         """
@@ -1352,6 +1349,53 @@ class DataGrid():
                 row_dict["row-id"] = len(self._data) + 1
                 self._data.append(row_dict)
 
+    def _append_col_to_db(self, column_name, rows, verify=True):
+        schema = self.get_schema()
+        field_name_map = {name: schema[name]["field_name"] for name in schema}
+        # Get datagrid ready to append:
+        self._asset_id_cache = set(self.get_asset_ids())
+        self.cursor = self.conn.cursor()
+
+        for index, item in enumerate(rows):
+            row_dict = {column_name: item}
+            if verify:
+                # verify each and every row
+                self._convert_values_row_dict(row_dict)
+                column_types = self._verify_row_dict(row_dict)
+                self._check_column_types(column_types)
+
+            new_columns = {}
+            if hasattr(item, "metadata") and item.metadata:
+                metadata_json = _convert_with_assets_to_json(item.metadata, self)
+                metadata_column_name = "%s--metadata" % column_name
+                new_columns[metadata_column_name] = metadata_json
+
+            # Now we replace assets with asset_id:
+            new_columns[column_name] = self._log_and_serialize_item(item, column_name)
+
+            row_dict.update(new_columns)
+
+            # Add row-id:
+            row_dict["row-id"] = index + 1
+
+            # SQL insert as a dict:
+            settings = ", ".join(
+                [
+                    "%s = %r" % (field_name_map[column_name], value)
+                    for column_name, value in row_dict.items()
+                ]
+            )
+            self.cursor.execute(
+                "UPDATE datagrid SET (%s) WHERE column_0 = ?" % (settings,),
+                index + 1,
+            )
+
+        self.conn.commit()
+        self._asset_id_cache = None
+
+        # Deletes and recomputes metadata:
+        self._compute_stats()
+
     def _append_row_dict_to_db(self, index, row_dict, field_name_map):
         # Only for user-suppplied columns; collects column names
         # as a side efect, it logs the assets!
@@ -1363,7 +1407,6 @@ class DataGrid():
                 metadata_json = _convert_with_assets_to_json(item.metadata, self)
                 metadata_column_name = "%s--metadata" % column_name
                 new_columns[metadata_column_name] = metadata_json
-                new_columns[column_name] = item.asset_id
 
             # Now we replace assets with asset_id:
             new_columns[column_name] = self._log_and_serialize_item(item, column_name)
@@ -1933,7 +1976,7 @@ class DataGrid():
             cursor.execute(insert_metadata_sql, [column_name, field_name, column_type])
         self.conn.commit()
 
-    def _compute_stats(self):
+    def _compute_stats(self, columns=None):
         """
         Compute the stats and metadata for all columns.
         """
@@ -1941,7 +1984,7 @@ class DataGrid():
 
         insert_metadata_sql = """UPDATE metadata SET minimum = ?, maximum = ?, average = ?, variance = ?, total = ?, stddev= ? , other = ? WHERE name = ?;"""
 
-        columns = self.get_schema()
+        columns = columns if columns is not None else self.get_schema()
 
         data = []
         print("Computing statistics...")
