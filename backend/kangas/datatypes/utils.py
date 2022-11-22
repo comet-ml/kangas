@@ -125,7 +125,9 @@ def make_dict_factory(column_name_map):
 
 def all_numbers(item):
     # Possibly nested
-    if isinstance(item, numbers.Number):
+    if item is None:
+        return True
+    elif isinstance(item, numbers.Number):
         return True
     elif isinstance(item, (list, tuple)):
         return all(all_numbers(v) for v in item)
