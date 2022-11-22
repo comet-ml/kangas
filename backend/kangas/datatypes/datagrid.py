@@ -98,7 +98,7 @@ def _convert_with_assets_to_json(metadata, datagrid):
     return json.dumps(metadata, cls=_createAssetEncoder(datagrid))
 
 
-class DataGrid(object):
+class DataGrid():
     """
     DataGrid instances have the following atrributes:
 

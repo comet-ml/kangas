@@ -16,7 +16,7 @@ import json
 from .utils import generate_guid
 
 
-class Asset(object):
+class Asset():
     """
     The base class for any object that needs to be logged.
     """
