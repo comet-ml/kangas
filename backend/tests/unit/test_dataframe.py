@@ -1,4 +1,3 @@
-import kangas
 from pandas._testing import (
     makeCustomDataframe,
     makeDataFrame,
@@ -8,6 +7,8 @@ from pandas._testing import (
     makeTimeDataFrame,
 )
 
+import kangas
+
 
 def test_makeCustomDataframe():
     df = makeCustomDataframe(100, 25)
@@ -15,7 +16,7 @@ def test_makeCustomDataframe():
     assert len(dg) == 100
     assert len(dg[0]) == 25
     dg.save()
-    
+
 def test_makeDataFrame():
     df = makeDataFrame()
     dg = kangas.read_dataframe(df)
@@ -29,25 +30,24 @@ def test_makeMissingDataframe():
     assert len(dg) == 30
     assert len(dg[0]) == 4
     dg.save()
-    
+
 def test_makeMixedDataFrame():
     df = makeMixedDataFrame()
     dg = kangas.read_dataframe(df)
     assert len(dg) == 5
     assert len(dg[0]) == 4
     dg.save()
-    
+
 def test_makePeriodFrame():
     df = makePeriodFrame()
     dg = kangas.read_dataframe(df)
     assert len(dg) == 30
     assert len(dg[0]) == 4
     dg.save()
-    
+
 def test_makeTimeDataFrame():
     df = makeTimeDataFrame()
     dg = kangas.read_dataframe(df)
     assert len(dg) == 30
     assert len(dg[0]) == 4
     dg.save()
-    
