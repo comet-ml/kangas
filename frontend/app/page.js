@@ -1,5 +1,5 @@
 import config from '../config';
-import table from './table';
+import Table from './table';
 
 const fetchMatrices = async () => {
     const res = await fetch(`${config.apiUrl}list`)
@@ -32,7 +32,7 @@ const Page = async ({ searchParams }) => {
     const data = await fetchDataGrid(searchParams)
 
     return (
-        <div>Hello
+        <div>
             <Table 
                 query={{
                     dgid,

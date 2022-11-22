@@ -16,16 +16,13 @@ const Root = ({ query, matrices, data}) => {
     /* eslint-disable no-unused-vars */
 
     /* eslint-enable no-unused-vars */
-    const { dgid } = query;
     const { columnTypes, columns, rows, total } = data ?? EMPTY_TABLE;
+    const columnOptions = columns?.filter((col) => !col.endsWith('--metadata'));
 
-    const columnOptions = allColumns
-        ? allColumns?.columns?.filter((col) => !col.endsWith('--metadata'))
-        : [];
     // TODO Clean this up with .filter()
     const filteredColumns = [];
     const filteredColumnTypes = [];
-    columns.forEach((columnName, idx) => {
+    columns?.forEach((columnName, idx) => {
         if (!columnName.endsWith('--metadata')) {
             filteredColumnTypes.push(columnTypes[idx]);
             filteredColumns.push(columnName);
@@ -44,16 +41,16 @@ const Root = ({ query, matrices, data}) => {
             <Suspense fallback={<Skeletons />}>
                 <ClientContext apiUrl={config.apiUrl} otherUrl={config.apiUrl} isColab={config.isColab} >
                     <div className="table-root">
-                        <div id="header-row" className={`${rowClass}`}>
-                            {filteredColumns.map((col) => (
+                        <div style={{ display: 'flex' }} id="header-row" className={`${rowClass}`}>
+                            {filteredColumns?.map((col) => (
                                 <div className={headerClass} title={col}>
                                     {col}
                                 </div>
                             ))}
                         </div>
-                        {rows.map((row, ridx) => (
-                            <div className={`${rowClass}`} key={`row-${ridx}`}>
-                                {ridx}
+                        {rows?.map((row, ridx) => (
+                            <div style={{ display: 'flex' }} className={`${rowClass}`} key={`row-${ridx}`}>
+                                {Object.values(row).map( cell => <div>{`${cell}`}</div> )}
                             </div>
                         ))}
                     </div>
