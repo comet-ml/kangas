@@ -141,10 +141,6 @@ def pytype_to_dgtype(item):
     if is_null(item):
         return None
 
-    if hasattr(item, "item") and callable(item.item):
-        ## numpy types
-        item = item.item()
-
     if isinstance(item, PIL.Image.Image):
         return "IMAGE-ASSET"
 
@@ -155,7 +151,15 @@ def pytype_to_dgtype(item):
             return "JSON"
 
     if hasattr(item, "tolist"):
+        ## numpy arrays
         return "VECTOR"
+
+    if hasattr(item, "item") and callable(item.item):
+        ## numpy types
+        try:
+            item = item.item()
+        except Exception:
+            pass
 
     for ctype in DATAGRID_TYPES:
         if isinstance(item, tuple(DATAGRID_TYPES[ctype]["types"])):

@@ -11,6 +11,7 @@
 #    All rights reserved                             #
 ######################################################
 
+import ast
 import csv
 import io
 import json
@@ -364,7 +365,7 @@ class DataGrid(object):
         Set the columns. `columns` is either a list of column names, or a
         dict where the key is the column name, and the value is a DataGrid
         type. Vaild DataGrid types are: "INTEGER", "FLOAT", "BOOLEAN",
-        "DATETIME", "TEXT", "JSON", or "IMAGE-ASSET".
+        "DATETIME", "TEXT", "JSON", "VECTOR", or "IMAGE-ASSET".
 
         Example:
 
@@ -1446,6 +1447,10 @@ class DataGrid(object):
                 # They are different; will need to cast to proper type
                 # later if on_disk; ok
                 retval[column_name] = "FLOAT"
+            elif (column_type in ["JSON", "VECTOR"]) and (
+                self._columns[column_name] in ["JSON", "VECTOR"]
+            ):
+                retval[column_name] = "JSON"
             elif (column_type in ["BOOLEAN", "INTEGER"]) and (
                 self._columns[column_name] in ["BOOLEAN", "INTEGER"]
             ):
@@ -1932,6 +1937,8 @@ class DataGrid(object):
         """
         Compute the stats and metadata for all columns.
         """
+        import numpy as np
+
         insert_metadata_sql = """UPDATE metadata SET minimum = ?, maximum = ?, average = ?, variance = ?, total = ?, stddev= ? , other = ? WHERE name = ?;"""
 
         columns = self.get_schema()
@@ -1951,7 +1958,7 @@ class DataGrid(object):
                         field_name=field_name
                     )
                 ).fetchone()
-                min, max, avg, total, count = row
+                minimum, maximum, avg, total, count = row
 
                 ## FIXME: somebody check my math:
                 deviations = []
@@ -1968,11 +1975,62 @@ class DataGrid(object):
                     stddev = math.sqrt(variance)
                     # min, max, avg, variance, total, stddev, other, name
                     data.append(
-                        [min, max, avg, variance, total, stddev, None, col_name]
+                        [minimum, maximum, avg, variance, total, stddev, None, col_name]
                     )
                 else:
                     # min, max, avg, variance, total, stddev, other, name
-                    data.append([min, max, avg, variance, total, None, None, col_name])
+                    data.append(
+                        [minimum, maximum, avg, variance, total, None, None, col_name]
+                    )
+
+            elif col_type == "VECTOR":
+                rows = self.conn.execute(
+                    "SELECT {field_name} from datagrid;".format(field_name=field_name)
+                )
+                ragged = False
+                minimum = float("inf")
+                maximum = float("-inf")
+                other = {
+                    "shape": None,
+                }
+                for row in rows:
+                    array = None
+                    values = ast.literal_eval(row[0])
+                    try:
+                        array = np.array(values)
+                    except Exception:
+                        ragged = True
+
+                    if array is not None and array.dtype == object:
+                        ragged = True
+
+                    if ragged:
+                        break
+
+                    minimum = min(minimum, array.min())
+                    maximum = max(maximum, array.max())
+
+                    if other["shape"] is None:
+                        other["shape"] = array.shape
+                    elif other["shape"] == "various":
+                        pass
+                    elif other["shape"] != array.shape:
+                        other["shape"] = "various"
+
+                if not ragged:
+                    # min, max, avg, variance, total, stddev, other, name
+                    data.append(
+                        [
+                            minimum,
+                            maximum,
+                            None,
+                            None,
+                            None,
+                            None,
+                            json.dumps(other),
+                            col_name,
+                        ]
+                    )
 
             elif col_type == "JSON":
                 rows = self.conn.execute(
@@ -2068,7 +2126,7 @@ class DataGrid(object):
                         None,
                         None,
                         None,
-                        other,
+                        json.dumps(other),
                         col_name,
                     ]
                 )
