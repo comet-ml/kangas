@@ -64,8 +64,8 @@ export const columnTypeMap = {
     JSON: {
         component: JSONCell,
         expandedComponent: JSONCell,
-        groupComponent: JSONCell,
-        expandedGroupComponent: JSONCell,
+        groupComponent: PlaceholderCell,
+        expandedGroupComponent: PlaceholderCell,
         singleWidth: 300,
         groupedWidth: 300,
     },
