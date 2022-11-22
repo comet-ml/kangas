@@ -20,8 +20,9 @@ import urllib
 import webbrowser
 
 import kangas.server
-from kangas import _in_colab_environment, get_localhost, terminate
 from kangas.datatypes.utils import download_filename
+
+from kangas import _in_colab_environment, get_localhost, terminate
 
 try:
     from datasets import load_dataset as huggingface_load_dataset
