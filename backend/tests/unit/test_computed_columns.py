@@ -11,10 +11,9 @@
 #    All rights reserved                             #
 ######################################################
 
-from kangas.server.computed_columns import update_state
-from kangas.server.queries import select_query
-
 from kangas import DataGrid, Image
+from kangas.server.computed_columns import eval_computed_columns, update_state
+from kangas.server.queries import select_query
 
 from ..testlib import AlwaysEquals
 
@@ -537,3 +536,13 @@ def test_image_computed_column():
         "total": 0,
     }
     assert results == expected_results
+
+
+def test_shortcut_boolean_logic():
+    results = eval_computed_columns({}, "1 < 4 < 2")
+    assert results[2] == "1 < 4 and 4 < 2"
+
+
+def test_boolean_logic():
+    results = eval_computed_columns({}, "(1 < 4) and (4 < 2)")
+    assert results[2] == "(1 < 4 and 4 < 2)"
