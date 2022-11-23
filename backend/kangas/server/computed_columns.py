@@ -375,14 +375,18 @@ class Evaluator:
                 **args
             )
         elif isinstance(node, ast.Compare):
-            args = {
-                "comparators": [self.eval_node(arg) for arg in node.comparators],
-                "left": self.eval_node(node.left),
-                "ops": [self.eval_node(arg) for arg in node.ops],
-            }
-            args["right"] = args["comparators"][0]
-            args["op"] = args["ops"][0]
-            return "{left} {op} {right}".format(**args)
+            comparators = [self.eval_node(arg) for arg in node.comparators]
+            ops = [self.eval_node(arg) for arg in node.ops]
+            left = self.eval_node(node.left)
+
+            retval = ""
+            for op, right in zip(ops, comparators):
+                if retval:
+                    retval += " and "
+                retval += "{left} {op} {right}".format(left=left, op=op, right=right)
+                left = right
+            return retval
+
         elif isinstance(node, ast.Attribute):
             obj = self.eval_node(node.value)
             attr = node.attr
