@@ -378,5 +378,5 @@ def read_csv(
     ```
     """
     return DataGrid.read_csv(
-        filename, header, sep, quotechar, heuristics, datetime_format, converters
+        filename, header, sep, quotechar, datetime_format, heuristics, converters
     )
