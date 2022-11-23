@@ -327,7 +327,10 @@ def convert_string_to_value(
     match = re.match(r"^([-+]?[\d]+\.?[\d]*[Ee](?:[-+]?[\d]+)?)$", value)
     if match:
         value = match.groups()[0]
-        return float(value)
+        try:
+            return float(value)
+        except Exception:
+            return value
 
     # integers, including currency
     match = re.match(r"^[\$]?([-+]?[,\d]+)$", value)
