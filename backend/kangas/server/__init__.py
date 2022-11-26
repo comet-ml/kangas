@@ -13,6 +13,7 @@
 
 import asyncio
 import logging
+from concurrent.futures import ThreadPoolExecutor
 
 import tornado.log
 import tornado.web
@@ -21,7 +22,7 @@ from .handlers import datagrid_handlers
 from .queries import KANGAS_ROOT  # noqa
 
 
-def start_tornado_server(port, debug=False):
+def start_tornado_server(port, debug=False, max_workers=None):
     """
     Args:
         port: (int) the port to start the frontend server
@@ -41,6 +42,12 @@ def start_tornado_server(port, debug=False):
                 logging.getLogger(log_name).propagate = False
         else:
             tornado.log.enable_pretty_logging()
+
+        # set max_workers
+        executor = ThreadPoolExecutor(max_workers=max_workers)
+        print("Max workers:", executor._max_workers)
+        for handler in datagrid_handlers:
+            handler[1].executor = executor
 
         app = tornado.web.Application(datagrid_handlers)
         app.listen(port)
