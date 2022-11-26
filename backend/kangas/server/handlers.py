@@ -24,7 +24,6 @@ import platform
 import subprocess
 import sys
 import urllib
-from concurrent.futures import ThreadPoolExecutor
 
 import tornado
 from tornado.concurrent import run_on_executor
@@ -86,8 +85,6 @@ def get_column_value(column_value):
 
 
 class BaseHandler(RequestHandler):
-    executor = ThreadPoolExecutor(max_workers=4)
-
     def set_default_headers(self):
         self.set_header("Content-Type", "application/json")
         self.set_header("Access-Control-Allow-Origin", "*")
