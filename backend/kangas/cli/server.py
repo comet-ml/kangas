@@ -20,9 +20,8 @@ import urllib
 import webbrowser
 
 import kangas.server
-from kangas.datatypes.utils import download_filename
-
 from kangas import _in_colab_environment, get_localhost, terminate
+from kangas.datatypes.utils import download_filename
 
 try:
     from datasets import load_dataset as huggingface_load_dataset
@@ -95,6 +94,12 @@ def get_parser_arguments(parser):
         help="The name or IP the servers will listen on",
         type=str,
         default=None,
+    )
+    parser.add_argument(
+        "--max-workers",
+        help="Use this flag to set the tornado max_workers",
+        default=None,
+        type=int,
     )
     parser.add_argument(
         "--debug",
@@ -328,7 +333,9 @@ def server(parsed_args, remaining=None):
         )
         try:
             kangas.server.start_tornado_server(
-                port=KANGAS_BACKEND_PORT, debug=parsed_args.debug
+                port=KANGAS_BACKEND_PORT,
+                debug=parsed_args.debug,
+                max_workers=parsed_args.max_workers,
             )
         except Exception:
             print("Unable to start backend; perhaps already running")
