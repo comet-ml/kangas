@@ -123,6 +123,18 @@ def make_dict_factory(column_name_map):
     return dict_factory
 
 
+def all_numbers(item):
+    # Possibly nested
+    if item is None:
+        return True
+    elif isinstance(item, numbers.Number):
+        return True
+    elif isinstance(item, (list, tuple)):
+        return all(all_numbers(v) for v in item)
+    else:
+        return False
+
+
 def pytype_to_dgtype(item):
     import PIL.Image
 
@@ -131,12 +143,25 @@ def pytype_to_dgtype(item):
     if is_null(item):
         return None
 
-    if hasattr(item, "item") and callable(item.item):
-        ## numpy types
-        item = item.item()
-
     if isinstance(item, PIL.Image.Image):
         return "IMAGE-ASSET"
+
+    if isinstance(item, (list, tuple)):
+        if all_numbers(item):
+            return "VECTOR"
+        else:
+            return "JSON"
+
+    if hasattr(item, "tolist"):
+        ## numpy arrays
+        return "VECTOR"
+
+    if hasattr(item, "item") and callable(item.item):
+        ## numpy types
+        try:
+            item = item.item()
+        except Exception:
+            pass
 
     for ctype in DATAGRID_TYPES:
         if isinstance(item, tuple(DATAGRID_TYPES[ctype]["types"])):

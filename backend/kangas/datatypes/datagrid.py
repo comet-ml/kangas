@@ -11,8 +11,9 @@
 #    All rights reserved                             #
 ######################################################
 
+import ast
 import csv
-import html
+import io
 import json
 import logging
 import math
@@ -266,7 +267,7 @@ class DataGrid():
         def row(value):
             return "<tr><td colspan='%s' style='text-align: left;'>%s</td></tr>" % (
                 len(self.get_columns()) + 1,
-                html.escape(value),
+                value,
             )
 
         output = self.__repr__(row)
@@ -365,7 +366,7 @@ class DataGrid():
         Set the columns. `columns` is either a list of column names, or a
         dict where the key is the column name, and the value is a DataGrid
         type. Vaild DataGrid types are: "INTEGER", "FLOAT", "BOOLEAN",
-        "DATETIME", "TEXT", "JSON", or "IMAGE-ASSET".
+        "DATETIME", "TEXT", "JSON", "VECTOR", or "IMAGE-ASSET".
 
         Example:
 
@@ -616,12 +617,17 @@ class DataGrid():
                 if row_index < len(self._data):
                     return [
                         self._data[row_index][column_name]
+                        if column_name in self._data[row_index]
+                        else None
                         for column_name in self.get_columns()
                     ]
                 else:
                     raise IndexError("row index out of range")
             else:
-                return [row[column_name] for row in self.to_dicts()]
+                return [
+                    row[column_name] if column_name in row else None
+                    for row in self.to_dicts()
+                ]
 
     def __len__(self):
         return self.nrows
@@ -735,11 +741,12 @@ class DataGrid():
     @classmethod
     def read_json(cls, filename, **kwargs):
         """
-        Read JSON or JSON Line files [1]. JSON should be a list of objects,
-        or a file with object on each line.
+        Read JSON data, or JSON or JSON Line files [1]. JSON should be a
+        list of objects, or a series of objects, one per line.
 
         Args:
-            filename: the name of the file or URL to read the JSON from
+            filename: the name of the file or URL to read the JSON from,
+                or the data
             datetime_format: (str) the Python date format that dates
                 are read. For example, use "%Y/%m/%d" for dates like
                 "2022/12/01".
@@ -769,11 +776,26 @@ class DataGrid():
         >>> dg.save()
         ```
         """
-        print("Reading JSON line file...")
+        print("Reading JSON data...")
         filename = download_filename(filename)
-        if os.path.isfile(filename):
+
+        try:
             dg = DataGrid(**kwargs)
-            fp = open(filename)
+
+            if os.path.isfile(filename):
+                fp = open(filename)
+
+                if "." in filename:
+                    dg_filename, extension = filename.rsplit(".", 1)
+                    dg.name = dg_filename
+                    dg.filename = dg_filename + ".datagrid"
+                else:
+                    dg.name = filename
+                    dg.filename = filename + ".datagrid"
+            else:
+                # filename is the data? Let's see:
+                fp = io.StringIO(filename)
+
             json_lines = fp.read(1) == "{"
             fp.seek(0)
             if json_lines:
@@ -781,16 +803,12 @@ class DataGrid():
                     dg.append(json.loads(line))
             else:
                 dg.extend(json.load(fp))
-            if "." in filename:
-                dg_filename, extension = filename.rsplit(".", 1)
-                dg.name = dg_filename
-                dg.filename = dg_filename + ".datagrid"
-            else:
-                dg.name = filename
-                dg.filename = filename + ".datagrid"
+
             return dg
-        else:
-            raise Exception("JSON-L file not found: %r" % filename)
+        except Exception:
+            raise Exception(
+                "Unable to find JSON file, or parse JSON data: %r" % filename
+            )
 
     @classmethod
     def read_datagrid(cls, filename, **kwargs):
@@ -1015,10 +1033,7 @@ class DataGrid():
                 self.accum = ""
 
             def escape(self, value):
-                if in_jupyter:
-                    return html.escape(str(value))
-                else:
-                    return str(value)
+                return str(value)
 
             def display(self, value, width, header=False, colspan=1, style=""):
                 if in_jupyter:
@@ -1098,7 +1113,7 @@ class DataGrid():
                 self.converters,
             )
             # Get the first element of a row with type:
-            if self._columns[column_name] is None:
+            if column_name not in self._columns or self._columns[column_name] is None:
                 self._columns[column_name] = pytype_to_dgtype(new_value)
             # Then, make sure it is correct type
             try:
@@ -1509,6 +1524,10 @@ class DataGrid():
                 # They are different; will need to cast to proper type
                 # later if on_disk; ok
                 retval[column_name] = "FLOAT"
+            elif (column_type in ["JSON", "VECTOR"]) and (
+                self._columns[column_name] in ["JSON", "VECTOR"]
+            ):
+                retval[column_name] = "JSON"
             elif (column_type in ["BOOLEAN", "INTEGER"]) and (
                 self._columns[column_name] in ["BOOLEAN", "INTEGER"]
             ):
@@ -1996,6 +2015,8 @@ class DataGrid():
         """
         Compute the stats and metadata for all columns.
         """
+        import numpy as np
+
         insert_metadata_sql = """UPDATE metadata SET minimum = ?, maximum = ?, average = ?, variance = ?, total = ?, stddev= ? , other = ? WHERE name = ?;"""
 
         columns = columns if columns is not None else self.get_schema()
@@ -2015,7 +2036,7 @@ class DataGrid():
                         field_name=field_name
                     )
                 ).fetchone()
-                min, max, avg, total, count = row
+                minimum, maximum, avg, total, count = row
 
                 ## FIXME: somebody check my math:
                 deviations = []
@@ -2032,11 +2053,62 @@ class DataGrid():
                     stddev = math.sqrt(variance)
                     # min, max, avg, variance, total, stddev, other, name
                     data.append(
-                        [min, max, avg, variance, total, stddev, None, col_name]
+                        [minimum, maximum, avg, variance, total, stddev, None, col_name]
                     )
                 else:
                     # min, max, avg, variance, total, stddev, other, name
-                    data.append([min, max, avg, variance, total, None, None, col_name])
+                    data.append(
+                        [minimum, maximum, avg, variance, total, None, None, col_name]
+                    )
+
+            elif col_type == "VECTOR":
+                rows = self.conn.execute(
+                    "SELECT {field_name} from datagrid;".format(field_name=field_name)
+                )
+                ragged = False
+                minimum = float("inf")
+                maximum = float("-inf")
+                other = {
+                    "shape": None,
+                }
+                for row in rows:
+                    array = None
+                    values = ast.literal_eval(row[0])
+                    try:
+                        array = np.array(values)
+                    except Exception:
+                        ragged = True
+
+                    if array is not None and array.dtype == object:
+                        ragged = True
+
+                    if ragged:
+                        break
+
+                    minimum = min(minimum, array.min())
+                    maximum = max(maximum, array.max())
+
+                    if other["shape"] is None:
+                        other["shape"] = array.shape
+                    elif other["shape"] == "various":
+                        pass
+                    elif other["shape"] != array.shape:
+                        other["shape"] = "various"
+
+                if not ragged:
+                    # min, max, avg, variance, total, stddev, other, name
+                    data.append(
+                        [
+                            minimum,
+                            maximum,
+                            None,
+                            None,
+                            None,
+                            None,
+                            json.dumps(other),
+                            col_name,
+                        ]
+                    )
 
             elif col_type == "JSON":
                 if SAVE_JSON_METADATA:
@@ -2067,19 +2139,19 @@ class DataGrid():
                         for key in values:
                             fields[key]["values"] = sorted(list(values[key]))
 
-                    # min, max, avg, variance, total, stddev, other, name
-                    data.append(
-                        [
-                            None,
-                            None,
-                            None,
-                            None,
-                            None,
-                            None,
-                            str(fields),
-                            col_name,
-                        ]
-                    )
+                        # min, max, avg, variance, total, stddev, other, name
+                        data.append(
+                            [
+                                None,
+                                None,
+                                None,
+                                None,
+                                None,
+                                None,
+                                str(fields),
+                                col_name,
+                            ]
+                        )
 
             elif col_type == "DATETIME":
                 row = self.conn.execute(
@@ -2132,7 +2204,7 @@ class DataGrid():
                         None,
                         None,
                         None,
-                        other,
+                        json.dumps(other),
                         col_name,
                     ]
                 )
