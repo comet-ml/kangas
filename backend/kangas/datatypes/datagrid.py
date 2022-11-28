@@ -47,6 +47,7 @@ from .utils import (
 
 LOGGER = logging.getLogger(__name__)
 VERSION = 1
+SAVE_JSON_METADATA = False
 
 
 def _convert_setting(value, desired_type):
@@ -1129,7 +1130,46 @@ class DataGrid():
         >>> dg.append_column("New Column Name", ["row1", "row2", "row3", "row4"])
         ```
         """
-        self.append_columns([column_name], [[value] for value in rows], verify=verify)
+        ## FIXME: make sure not repeating column name
+        if self._on_disk:
+            if isinstance(rows, str):
+                expr = rows
+                rows = [
+                    row[column_name]
+                    for row in self.select(
+                        computed_columns={column_name: expr}, to_dicts=True
+                    )
+                ]
+
+            if self.nrows != len(rows):
+                raise Exception("invalid number of rows to append")
+
+            self._append_col_to_db(column_name, rows, verify)
+
+        else:
+            if isinstance(rows, str):
+                raise Exception(
+                    "can't append a computed column to an in-memory DataGrid"
+                )
+
+            if len(self._data) != len(rows):
+                raise Exception("invalid number of rows to append")
+
+            # add to self._columns
+            self._columns.update(
+                {self._verify_column(column_name, len(self._columns) + 1): None}
+            )
+
+            # append to data
+            for r, row in enumerate(rows):
+                row_dict = {column_name: row}
+                if verify:
+                    # verify each and every row
+                    self._convert_values_row_dict(row_dict)
+                    column_types = self._verify_row_dict(row_dict, [column_name])
+                    self._check_column_types(column_types)
+
+                self._data[r].update(row_dict)
 
     def append_columns(self, column_names, rows, verify=True):
         """
@@ -1159,50 +1199,8 @@ class DataGrid():
         [2 rows x 4 columns]
         ```
         """
-        ## FIXME: make sure not repeating column name
-        if len(rows) == 0:
-            return
-
-        if self._on_disk:
-            raise Exception("currently unable to add a column on disk")
-
-            ## FIXME: update tables and append data
-            # Final check and conversion on column types:
-            # self._columns = {
-            #    column_name: (ctype if ctype is not None else "TEXT")
-            #    for column_name, ctype in self._columns.items()
-            # }
-
-        else:
-            if len(self._data) != len(rows):
-                raise Exception("invalid number of rows to append")
-
-            # add to self._columns
-            count = len(self._columns) + 1
-            self._columns.update(
-                {
-                    self._verify_column(column_name, count + i): None
-                    for i, column_name in enumerate(column_names)
-                }
-            )
-
-            # append to data
-            for r, row in enumerate(rows):
-                if not isinstance(row, (dict,)):
-                    # public columns will create columns, if it doesn't exist
-                    row_dict = {
-                        column_name: item
-                        for column_name, item in zip(column_names, row)
-                    }
-                else:
-                    row_dict = row.copy()
-                if verify:
-                    # verify each and every row
-                    self._convert_values_row_dict(row_dict)
-                    column_types = self._verify_row_dict(row_dict, column_names)
-                    self._check_column_types(column_types)
-
-                self._data[r].update(row_dict)
+        for column_name, column_rows in zip(column_names, rows):
+            self.append_column(column_name, column_rows, verify)
 
     def pop(self, index):
         """
@@ -1337,6 +1335,86 @@ class DataGrid():
                 row_dict["row-id"] = len(self._data) + 1
                 self._data.append(row_dict)
 
+    def _append_col_to_db(self, column_name, rows, verify=True):
+        # Get datagrid ready to append:
+        self._asset_id_cache = set(self.get_asset_ids())
+        self.cursor = self.conn.cursor()
+
+        # 1. Add new columns for type inference:
+        self._columns[column_name] = None
+        new_column_names = set([column_name])
+
+        # 2. Log all new data:
+        data = []
+        for index, item in enumerate(rows):
+            # Join on rowid:
+            row_dict = {column_name: item}
+            if verify:
+                # verify each and every row
+                self._convert_values_row_dict(row_dict)
+                column_types = self._verify_row_dict(row_dict)
+                self._check_column_types(column_types)
+
+            if hasattr(item, "metadata") and item.metadata:
+                metadata_json = _convert_with_assets_to_json(item.metadata, self)
+                metadata_column_name = "%s--metadata" % column_name
+                row_dict[metadata_column_name] = metadata_json
+                self._columns[metadata_column_name] = "JSON"
+                new_column_names.add(metadata_column_name)
+
+            # Now we replace assets with asset_id:
+            row_dict[column_name] = self._log_and_serialize_item(item, column_name)
+            data.append(row_dict)
+
+        # 3. Final type check for new columns (checks all):
+        self._columns = {
+            column_name: (ctype if ctype is not None else "TEXT")
+            for column_name, ctype in self._columns.items()
+        }
+
+        # 4. re-create the schema
+        self._create_schema(self._columns)
+
+        # 5. create a temp in-memory table with data
+        new_columns = {}  # DG type
+        new_columns.update(
+            {
+                column_name: column_type
+                for column_name, column_type in self._columns.items()
+                if column_name in new_column_names
+            }
+        )
+
+        cursor = self.conn.cursor()
+        # use all columns to get proper field_name (eg, column_16):
+        field_names = self._get_fields(self._columns)[-len(new_columns) :]
+        field_types = self._sql_types(new_columns.values())
+        for (field_name, field_type) in zip(field_names, field_types):
+            add_column_sql = (
+                """ALTER TABLE datagrid ADD COLUMN {field_name} {field_type}""".format(
+                    field_name=field_name, field_type=field_type
+                )
+            )
+            cursor.execute(add_column_sql)
+        self.conn.commit()
+
+        # 6. copy the data into datagrid
+        for index, row in enumerate(data, start=1):
+            for column_name, field_name in zip(new_columns, field_names):
+                field_value = row[column_name]
+                sql_update = "UPDATE datagrid SET %s = ? where column_0 = ?" % (
+                    field_name,
+                )
+                cursor.execute(sql_update, [field_value, index])
+        self.conn.commit()
+
+        self._asset_id_cache = None
+
+        # Update and clear cache:
+        schema = self.get_schema()
+
+        self._compute_stats(columns={name: schema[name] for name in new_column_names})
+
     def _append_row_dict_to_db(self, index, row_dict, field_name_map):
         # Only for user-suppplied columns; collects column names
         # as a side efect, it logs the assets!
@@ -1348,7 +1426,6 @@ class DataGrid():
                 metadata_json = _convert_with_assets_to_json(item.metadata, self)
                 metadata_column_name = "%s--metadata" % column_name
                 new_columns[metadata_column_name] = metadata_json
-                new_columns[column_name] = item.asset_id
 
             # Now we replace assets with asset_id:
             new_columns[column_name] = self._log_and_serialize_item(item, column_name)
@@ -1913,14 +1990,15 @@ class DataGrid():
             field_name = "column_%s" % i
             cursor.execute(insert_metadata_sql, [column_name, field_name, column_type])
         self.conn.commit()
+        self._schema = None
 
-    def _compute_stats(self):
+    def _compute_stats(self, columns=None):
         """
         Compute the stats and metadata for all columns.
         """
         insert_metadata_sql = """UPDATE metadata SET minimum = ?, maximum = ?, average = ?, variance = ?, total = ?, stddev= ? , other = ? WHERE name = ?;"""
 
-        columns = self.get_schema()
+        columns = columns if columns is not None else self.get_schema()
 
         data = []
         print("Computing statistics...")
@@ -1961,44 +2039,47 @@ class DataGrid():
                     data.append([min, max, avg, variance, total, None, None, col_name])
 
             elif col_type == "JSON":
-                rows = self.conn.execute(
-                    "SELECT {field_name} from datagrid;".format(field_name=field_name)
-                )
-                fields = {}
-                values = defaultdict(set)
-                for row in rows:
-                    # get key, type from all rows for fields
-                    if row[0]:
-                        json_data = json.loads(row[0])
-                        # FIXME: check if match previous uses
-                        # FIXME: better be a dict
-                        for key in json_data:
-                            qbtype = self._get_qbtype(json_data[key])
-                            if qbtype:
-                                # text, number, boolean, and list-of-text
-                                fields[key] = {"type": qbtype}
-                                if qbtype == "text":
-                                    values[key].add(json_data[key])
-                                elif qbtype == "list-of-text":
-                                    for text in json_data[key]:
-                                        values[key].add(text)
+                if SAVE_JSON_METADATA:
+                    rows = self.conn.execute(
+                        "SELECT {field_name} from datagrid;".format(
+                            field_name=field_name
+                        )
+                    )
+                    fields = {}
+                    values = defaultdict(set)
+                    for row in rows:
+                        # get key, type from all rows for fields
+                        if row[0]:
+                            json_data = json.loads(row[0])
+                            # FIXME: check if match previous uses
+                            # FIXME: better be a dict
+                            for key in json_data:
+                                qbtype = self._get_qbtype(json_data[key])
+                                if qbtype:
+                                    # text, number, boolean, and list-of-text
+                                    fields[key] = {"type": qbtype}
+                                    if qbtype == "text":
+                                        values[key].add(json_data[key])
+                                    elif qbtype == "list-of-text":
+                                        for text in json_data[key]:
+                                            values[key].add(text)
 
-                    for key in values:
-                        fields[key]["values"] = sorted(list(values[key]))
+                        for key in values:
+                            fields[key]["values"] = sorted(list(values[key]))
 
-                # min, max, avg, variance, total, stddev, other, name
-                data.append(
-                    [
-                        None,
-                        None,
-                        None,
-                        None,
-                        None,
-                        None,
-                        str(fields),
-                        col_name,
-                    ]
-                )
+                    # min, max, avg, variance, total, stddev, other, name
+                    data.append(
+                        [
+                            None,
+                            None,
+                            None,
+                            None,
+                            None,
+                            None,
+                            str(fields),
+                            col_name,
+                        ]
+                    )
 
             elif col_type == "DATETIME":
                 row = self.conn.execute(
