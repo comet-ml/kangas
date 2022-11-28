@@ -26,6 +26,7 @@ import sys
 import urllib
 
 import tornado
+from tornado.concurrent import run_on_executor
 from tornado.web import RequestHandler
 
 from .._version import __version__
@@ -124,6 +125,7 @@ class BaseHandler(RequestHandler):
 
 
 class HistogramHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def post(self):
         # Required:
@@ -154,6 +156,7 @@ class HistogramHandler(BaseHandler):
 
 
 class DescriptionHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def post(self):
         # Required:
@@ -184,6 +187,7 @@ class DescriptionHandler(BaseHandler):
 
 
 class CategoryHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def post(self):
         # Required:
@@ -214,6 +218,7 @@ class CategoryHandler(BaseHandler):
 
 
 class AssetGroupHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def post(self):
         # Required:
@@ -247,6 +252,7 @@ class AssetGroupHandler(BaseHandler):
 
 
 class AssetGroupMetadataHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def post(self):
         # Required:
@@ -283,6 +289,7 @@ class AssetGroupMetadataHandler(BaseHandler):
 
 
 class AssetGroupThumbnailHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def post(self):
         # Required:
@@ -322,6 +329,7 @@ class AssetGroupThumbnailHandler(BaseHandler):
 
 
 class QueryHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def post(self):
         # Required:
@@ -356,6 +364,7 @@ class QueryHandler(BaseHandler):
 
 
 class VerifyWhereHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def post(self):
         # Required:
@@ -374,6 +383,7 @@ class VerifyWhereHandler(BaseHandler):
 
 
 class MetadataHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def post(self):
         # Required:
@@ -386,6 +396,7 @@ class MetadataHandler(BaseHandler):
 
 
 class AssetMetadataHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def post(self):
         # Required:
@@ -399,6 +410,7 @@ class AssetMetadataHandler(BaseHandler):
 
 
 class FieldsHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def post(self):
         # Required:
@@ -412,6 +424,7 @@ class FieldsHandler(BaseHandler):
 
 
 class DownloadHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def get(self):
         # Required:
@@ -429,6 +442,7 @@ class DownloadHandler(BaseHandler):
 
 
 class ListDataGridsHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def get(self):
         result = list_datagrids()
@@ -436,6 +450,7 @@ class ListDataGridsHandler(BaseHandler):
 
 
 class GetDataGridTimestampHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def get(self):
         dgid = self.unquote(
@@ -447,6 +462,7 @@ class GetDataGridTimestampHandler(BaseHandler):
 
 
 class StatusHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def get(self):
         result = {
@@ -463,6 +479,7 @@ class StatusHandler(BaseHandler):
 
 
 class CustomOutputHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def post(self):
         # Required:
