@@ -2139,19 +2139,19 @@ class DataGrid:
                         for key in values:
                             fields[key]["values"] = sorted(list(values[key]))
 
-                    # min, max, avg, variance, total, stddev, other, name
-                    data.append(
-                        [
-                            None,
-                            None,
-                            None,
-                            None,
-                            None,
-                            None,
-                            str(fields),
-                            col_name,
-                        ]
-                    )
+                        # min, max, avg, variance, total, stddev, other, name
+                        data.append(
+                            [
+                                None,
+                                None,
+                                None,
+                                None,
+                                None,
+                                None,
+                                str(fields),
+                                col_name,
+                            ]
+                        )
 
             elif col_type == "DATETIME":
                 row = self.conn.execute(
