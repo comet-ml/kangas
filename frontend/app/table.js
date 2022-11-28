@@ -1,64 +1,47 @@
 /* eslint-disable react/jsx-key */
 
-// React
-import { Suspense } from 'react';
+import fetchDataGrid from '../lib/fetchDatagrid';
+import FloatCell from './cells/float/FloatCell';
+import TextCell from './cells/text/TextCell';
+const cellMap = {
+    TEXT: {
+        component: TextCell,
+    },
+    FLOAT: {
+        component: FloatCell
+    }
+}
 
-
-// Utils
-import config from '../config';
-import Skeletons from '../components/skeletons';
-import { EMPTY_TABLE } from '../stubs';
-import ClientContext from '../components/Cells/ClientContext.client';
-// If not imported here, the import in page.client.js will fail
-import { StyledEngineProvider } from '@mui/material';
-
-const Root = ({ query, matrices, data}) => {
-    /* eslint-disable no-unused-vars */
-
-    /* eslint-enable no-unused-vars */
-    const { columnTypes, columns, rows, total } = data ?? EMPTY_TABLE;
-    const columnOptions = columns?.filter((col) => !col.endsWith('--metadata'));
-
-    // TODO Clean this up with .filter()
-    const filteredColumns = [];
-    const filteredColumnTypes = [];
-    columns?.forEach((columnName, idx) => {
-        if (!columnName.endsWith('--metadata')) {
-            filteredColumnTypes.push(columnTypes[idx]);
-            filteredColumns.push(columnName);
-        }
-    });
+const Table = async ({ query, matrices }) => {
+    const data = await fetchDataGrid(query)
+    const { columnTypes, columns, rows, total, typeMap, displayColumns } = data;
 
     // TODO Clean up
-    const rowClass = !!query?.groupBy && query?.groupBy ? 'row-group' : 'row';
-    const colClass =
-        !!query?.groupBy && query?.groupBy
-            ? 'column-group cell-group'
-            : 'column cell';
-    const headerClass = colClass.includes('group') ? 'column-group' : 'column';
+    const rowClass = !!query?.groupBy ? 'row-group' : 'row';
+    const colClass = !!query?.groupBy ? 'column-group cell-group' : 'column cell';
+    const headerClass = !!query?.groupBy ? 'column-group' : 'column';
+
     return (
-        <>
-            <Suspense fallback={<Skeletons />}>
-                <ClientContext apiUrl={config.apiUrl} otherUrl={config.apiUrl} isColab={config.isColab} >
-                    <div className="table-root">
-                        <div style={{ display: 'flex' }} id="header-row" className={`${rowClass}`}>
-                            {filteredColumns?.map((col) => (
-                                <div className={headerClass} title={col}>
-                                    {col}
-                                </div>
-                            ))}
+            <div className="table-root">
+                <div style={{ display: 'flex' }} id="header-row" className={`${rowClass}`}>
+                    {displayColumns?.map((col) => (
+                        <div className={headerClass} title={col}>
+                            {col}
                         </div>
-                        {rows?.map((row, ridx) => (
-                            <div style={{ display: 'flex' }} className={`${rowClass}`} key={`row-${ridx}`}>
-                                {Object.values(row).map( cell => <div>{`${cell}`}</div> )}
-                            </div>
-                        ))}
+                    ))}
+                </div>
+                {rows?.map((row, ridx) => (
+                    <div style={{ display: 'flex' }} className={`${rowClass}`} key={`row-${ridx}`}>
+                        {
+                            Object.values(row).map( (cell, cidx) => (
+                                !!cellMap?.[columnTypes[cidx]] ? cellMap?.[columnTypes[cidx]]?.component({cell}) : <div>{`${cell} - ${columnTypes[cidx]}`}</div> 
+                            ))
+                        }
                     </div>
-                </ClientContext>
-            </Suspense>
-        </>
+                ))}
+            </div>
     );
 };
 
-export default Root;
+export default Table;
 

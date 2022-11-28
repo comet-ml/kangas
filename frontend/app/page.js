@@ -1,23 +1,7 @@
 import config from '../config';
+import fetchDataGrid from '../lib/fetchDatagrid';
+import fetchAvailableMatrices from '../lib/fetchAvailableMatrices';
 import Table from './table';
-
-const fetchMatrices = async () => {
-    const res = await fetch(`${config.apiUrl}list`)
-    return res.json();
-}
-
-const fetchDataGrid = async (query) => {
-    const request = {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(query)
-    };
-
-    const res = await fetch(`${config.apiUrl}query`, request);
-    return res.json()
-}
 
 const Page = async ({ searchParams }) => {
     const { 
@@ -28,8 +12,7 @@ const Page = async ({ searchParams }) => {
         sortDesc 
     } = searchParams;
 
-    const matrices = await fetchMatrices();
-    const data = await fetchDataGrid(searchParams)
+    const matrices = await fetchAvailableMatrices();
 
     return (
         <div>
@@ -41,7 +24,6 @@ const Page = async ({ searchParams }) => {
                     sortBy,
                     sortDesc
                 }}
-                data={data}
                 matrices={matrices}
             />
         </div>
