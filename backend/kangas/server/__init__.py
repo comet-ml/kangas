@@ -45,7 +45,9 @@ def start_tornado_server(port, debug=False, max_workers=None):
 
         # set max_workers
         executor = ThreadPoolExecutor(max_workers=max_workers)
-        print("Max workers:", executor._max_workers)
+        print(
+            "Kangas backend server starting with %s max workers" % executor._max_workers
+        )
         for handler in datagrid_handlers:
             handler[1].executor = executor
 
