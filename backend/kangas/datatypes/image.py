@@ -66,6 +66,7 @@ class Image(Asset):
         metadata=None,
         source=None,
         unserialize=False,
+        color_order="rgb",
     ):
         """
         Logs the image.
@@ -104,6 +105,9 @@ class Image(Asset):
                 setting that indicates where the color information is in the format
                 of the 2D data. 'last' indicates that the data is in (rows, columns,
                 channels) where 'first' indicates (channels, rows, columns).
+            color_order: Optional. Default 'rgb'. The color order of the incoming
+                image data. Only applied when data is an array and color_order is
+                "bgr".
         """
         super().__init__(source)
         if unserialize:
@@ -135,6 +139,7 @@ class Image(Asset):
             minmax,
             channels,
             self.metadata,
+            color_order,
         )
         self.metadata["image"] = {"width": size[0], "height": size[1]}
         self.asset_data = file_like.read()
@@ -327,6 +332,7 @@ def _image_data_to_file_like_object(
     image_minmax,
     image_channels,
     metadata,
+    color_order,
 ):
     # type: (Union[IO[bytes], Any], Optional[str], str, float, Optional[Sequence[int]], Optional[str], Optional[Sequence[float]], str, Optional[Any]) -> Union[IO[bytes], None, Any]
     """
@@ -354,6 +360,7 @@ def _image_data_to_file_like_object(
             image_colormap,
             image_minmax,
             image_channels,
+            color_order,
         )
         return results
     elif hasattr(image_data, "eval"):  # tensorflow tensor
@@ -366,6 +373,7 @@ def _image_data_to_file_like_object(
             image_colormap,
             image_minmax,
             image_channels,
+            color_order,
         )
         return results
     elif isinstance(image_data, PIL.Image.Image):  # PIL.Image
@@ -386,6 +394,7 @@ def _image_data_to_file_like_object(
             image_colormap,
             image_minmax,
             image_channels,
+            color_order,
         )
         return results
     elif hasattr(image_data, "read"):  # file-like object
@@ -400,6 +409,7 @@ def _image_data_to_file_like_object(
             image_colormap,
             image_minmax,
             image_channels,
+            color_order,
         )
         return results
     else:
@@ -415,12 +425,15 @@ def _array_to_image_fp_size(
     image_colormap,
     image_minmax,
     image_channels,
+    color_order,
 ):
     # type: (Any, str, float, Optional[Sequence[int]], Optional[str], Optional[Sequence[float]], str) -> Optional[IO[bytes]]
     """
     Convert a numpy array to an in-memory image
     file pointer.
     """
+    if isinstance(color_order, str) and color_order.lower() == "bgr":
+        array = array[..., ::-1].copy()
     image = _array_to_image(
         array, image_scale, image_shape, image_colormap, image_minmax, image_channels
     )
