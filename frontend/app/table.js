@@ -10,7 +10,6 @@ const Table = async ({ query }) => {
     const rowClass = !!query?.groupBy ? 'row-group' : 'row';
     const colClass = !!query?.groupBy ? 'column-group cell-group' : 'column cell';
     const headerClass = !!query?.groupBy ? 'column-group' : 'column';
-
     return (
             <div className="table-root">
                 <div style={{ display: 'flex' }} id="header-row" className={`${rowClass}`}>

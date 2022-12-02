@@ -2,6 +2,7 @@
 
 import FloatCell from './float/FloatCell';
 import ImageCell from './image/ImageCell';
+import JSONCell from './json/JSONCell';
 import TextCell from './text/TextCell';
 
 const cellMap = {
@@ -13,6 +14,9 @@ const cellMap = {
     },
     'IMAGE-ASSET': {
         component: ImageCell
+    },
+    JSON: {
+        component: JSONCell
     }
 }
 
