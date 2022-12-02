@@ -48,6 +48,8 @@ from .queries import (
     select_histogram,
     select_metadata,
     select_query,
+    select_query_count,
+    select_query_page,
     verify_where,
 )
 
@@ -363,6 +365,61 @@ class QueryHandler(BaseHandler):
             self.write_json(result)
 
 
+class QueryPageHandler(BaseHandler):
+    @run_on_executor
+    @auth_wrapper
+    def post(self):
+        # Required:
+        data = tornado.escape.json_decode(self.request.body)
+        dgid = self.unquote(data.get("dgid", None))
+
+        # Optional selections:
+        offset = data.get("offset", 0)
+        group_by = data.get("groupBy", None)
+        sort_by = data.get("sortBy", None)
+        where = data.get("where", None)
+        limit = data.get("limit", 10)
+        sort_desc = data.get("sortDesc", False)
+        select = data.get("select", None)
+        computed_columns = data.get("computedColumns", None)
+        where_expr = data.get("whereExpr", None)
+
+        if self.ensure_datagrid_path(dgid):
+            result = select_query_page(
+                dgid,
+                offset,
+                group_by,
+                sort_by,
+                sort_desc,
+                where,
+                limit,
+                select,
+                computed_columns,
+                where_expr,
+            )
+            self.write_json(result)
+
+
+class QueryTotalHandler(BaseHandler):
+    @run_on_executor
+    @auth_wrapper
+    def post(self):
+        # Required:
+        data = tornado.escape.json_decode(self.request.body)
+        dgid = self.unquote(data.get("dgid", None))
+        computed_columns = data.get("computedColumns", None)
+        where_expr = data.get("whereExpr", None)
+
+        if self.ensure_datagrid_path(dgid):
+            total = select_query_count(
+                dgid,
+                computed_columns,
+                where_expr,
+            )
+            result = {"total": total}
+            self.write_json(result)
+
+
 class VerifyWhereHandler(BaseHandler):
     @run_on_executor
     @auth_wrapper
@@ -501,6 +558,8 @@ datagrid_handlers = [
     ("/datagrid/asset-group-thumbnail", AssetGroupThumbnailHandler),
     ("/datagrid/asset-metadata", AssetMetadataHandler),
     ("/datagrid/query", QueryHandler),
+    ("/datagrid/query-total", QueryTotalHandler),
+    ("/datagrid/query-page", QueryPageHandler),
     ("/datagrid/metadata", MetadataHandler),
     ("/datagrid/download", DownloadHandler),
     ("/datagrid/list", ListDataGridsHandler),
