@@ -1,9 +1,9 @@
 import formatValue from "../../../lib/formatValue"
 
-const TextCell = ({ cell }) => {
+const TextCell = ({ value }) => {
     return (
         <div className="cell-content">
-            {`${formatValue(cell, 'TEXT')}`}
+            {`${formatValue(value, 'TEXT')}`}
         </div>
     )
 

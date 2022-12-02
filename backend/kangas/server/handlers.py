@@ -324,6 +324,7 @@ class AssetGroupThumbnailHandler(BaseHandler):
 class QueryHandler(BaseHandler):
     @auth_wrapper
     def post(self):
+        print('trying')
         # Required:
         data = tornado.escape.json_decode(self.request.body)
         dgid = self.unquote(data.get("dgid", None))

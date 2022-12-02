@@ -1,26 +1,12 @@
-// Config
 import config from '../config';
-
-// Utils
-import fetchData from './fetchData';
 
 const fetchAsset = async ({
     assetId,
     dgid,
     returnUrl = false,
-    returnType = 'blob',
     thumbnail = false,
 }) => {
-    const data = await fetchData({
-        url: `${config.apiUrl}download`,
-        query: {
-            assetId,
-            dgid,
-            thumbnail,
-        },
-        method: 'GET',
-        returnType,
-    });
+    const data = await fetch(`${config.apiUrl}download?assetId=${assetId}&dgid=${dgid}&thumbnail=${thumbnail}`)
 
     if (returnUrl) {
         const arrayBuffer = await data.arrayBuffer();
