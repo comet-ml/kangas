@@ -1,7 +1,7 @@
 import config from '../config';
 import fetchDataGrid from '../lib/fetchDatagrid';
 import fetchAvailableMatrices from '../lib/fetchAvailableMatrices';
-import Table from './table';
+import Table from './Table/table';
 
 const Page = async ({ searchParams }) => {
     const { 

@@ -4,6 +4,7 @@ import FloatCell from './float/FloatCell';
 import ImageCell from './image/ImageCell';
 import JSONCell from './json/JSONCell';
 import TextCell from './text/TextCell';
+import styles from './Cell.module.scss';
 
 const cellMap = {
     TEXT: {
@@ -17,16 +18,19 @@ const cellMap = {
     },
     JSON: {
         component: JSONCell
+    },
+    INTEGER: {
+        component: TextCell,
     }
 }
 
 const Cell = async ({ value, type, dgid }) => {
     const Component = cellMap?.[type]?.component;
     return (
-        <>
+        <div className={styles.cell}>
             { !!Component && <Component value={value} dgid={dgid} />}
             { !Component && <div>{`${value} - ${type}`}</div> }
-        </>
+        </div>
     )
 }
 

@@ -1,0 +1,45 @@
+.tableRoot {
+    min-width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    min-height: 100%;
+
+    .row {
+        min-width: 100%;
+        width: fit-content;
+        display: flex;
+        max-height: 55px;
+        border-bottom: 1px solid rgb(224, 224, 224);
+        
+        &:hover {
+            background-color: #eaecf2;
+        }
+    }
+
+    .row-group {
+        min-width: 100%;
+        width: fit-content;
+        display: flex;
+        max-height: 110px;
+        border-bottom: 1px solid rgb(224, 224, 224);
+
+        &:hover {
+            background-color: #eaecf2;
+        }
+    }
+    
+}
+
+
+
+#headerRow {
+    div {
+        text-transform: uppercase;
+        font-size: 11px;
+        font-family: 'Roboto';
+        font-weight: 500;
+        font-style: normal;
+        color: #8c95a8;
+        min-height: 0px;
+    }
+}

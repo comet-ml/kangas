@@ -1,0 +1,18 @@
+.cell {
+    position: relative;
+    min-height: 55px;
+    min-width: 100px;
+    max-width: 100px;
+
+    margin-left: 12px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+
+    display: flex;
+    align-items: center;
+
+    &.header {
+        min-height: 0px;
+    }
+}
