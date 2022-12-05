@@ -47,9 +47,10 @@ def select_by_query(where_expr, computed_columns):
     )
 
 
-def select_by_query_count(where_expr, computed_columns):
+def select_by_query_count(where_expr, computed_columns, group_by=None):
     return select_query_count(
         DGID,
+        group_by,
         computed_columns=computed_columns,
         where_expr=where_expr,
     )

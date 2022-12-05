@@ -1176,6 +1176,7 @@ def query_sql(
     if count:
         results = select_query_count(
             dgid=dgid,
+            group_by=None,
             computed_columns=computed_columns,
             where_expr=where_expr,
         )
@@ -1198,6 +1199,7 @@ def query_sql(
 
 def select_query_count(
     dgid,
+    group_by,
     computed_columns,
     where_expr=None,
 ):
@@ -1229,9 +1231,12 @@ def select_query_count(
         "select_expr_as": ", ".join(select_expr_as),
         "databases": ", ".join(databases),
     }
-    total_sql = (
-        "SELECT COUNT() FROM (SELECT {select_expr_as} FROM {databases} WHERE {where});"
-    )
+
+    if group_by:
+        env["group_by_field_name"] = get_field_name(group_by, metadata)
+        total_sql = "SELECT COUNT() from (SELECT {select_expr_as} FROM {databases} GROUP BY {group_by_field_name});"
+    else:
+        total_sql = "SELECT COUNT() FROM (SELECT {select_expr_as} FROM {databases} WHERE {where});"
     selection_sql = total_sql.format(**env)
     LOGGER.info("SQL %s", selection_sql)
     start_time = time.time()
@@ -1266,6 +1271,7 @@ def select_query(
     )
     result["total"] = select_query_count(
         dgid,
+        group_by,
         computed_columns,
         where_expr,
     )

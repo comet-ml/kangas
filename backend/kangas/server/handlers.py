@@ -407,12 +407,14 @@ class QueryTotalHandler(BaseHandler):
         # Required:
         data = tornado.escape.json_decode(self.request.body)
         dgid = self.unquote(data.get("dgid", None))
+        group_by = data.get("groupBy", None)
         computed_columns = data.get("computedColumns", None)
         where_expr = data.get("whereExpr", None)
 
         if self.ensure_datagrid_path(dgid):
             total = select_query_count(
                 dgid,
+                group_by,
                 computed_columns,
                 where_expr,
             )
