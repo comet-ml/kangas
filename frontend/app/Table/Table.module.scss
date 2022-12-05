@@ -1,3 +1,5 @@
+@use '../cells/Cell.module.scss'; 
+
 .tableRoot {
     min-width: 100%;
     max-width: 100%;
@@ -13,6 +15,10 @@
         
         &:hover {
             background-color: #eaecf2;
+        }
+
+        &.group {
+            max-height: 110px;
         }
     }
 
@@ -32,7 +38,7 @@
 
 
 
-#headerRow {
+.headerRow {
     div {
         text-transform: uppercase;
         font-size: 11px;

@@ -20,6 +20,7 @@
     "@mui/material": "^5.9.2",
     "@react-hook/resize-observer": "^1.2.6",
     "axios": "^0.27.2",
+    "classnames": "^2.3.2",
     "get-input-selection": "^1.1.4",
     "highlight.js": "^11.6.0",
     "ms": "2.1.3",
