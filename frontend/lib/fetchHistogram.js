@@ -3,6 +3,8 @@ import config from '../config';
 
 // Utils
 import fetchData from './fetchData';
+import formatValue from './formatValue';
+import { getColor } from './generateChartColor';
 
 const fetchHistogram = async ({ query }) => {
     const data = await fetchData({
@@ -13,5 +15,45 @@ const fetchHistogram = async ({ query }) => {
 
     return data;
 };
+
+const fetchHistogramNew = async (query) => {
+    const request = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(query)
+    };
+
+    const res = await fetch(`${config.apiUrl}histogram`, request);
+    const data = await res.json();
+
+    const formattedData = [
+        {
+            type: 'bar',
+            x:
+                data.columnType === 'DATETIME'
+                    ? data.labels.map((v) => formatValue(v, 'DATETIME'))
+                    : data.labels,
+            y: data.bins,
+            text: data?.labels?.map(
+                (value) =>
+                    `${data.column}: ${formatValue(
+                        value,
+                        data.columnType
+                    )} ${data.message || ''}`
+            ),
+            marker: { color: getColor(data.column) },
+        },
+    ];
+
+
+
+    return formattedData;
+}
+
+export {
+    fetchHistogramNew
+}
 
 export default fetchHistogram;

@@ -21,7 +21,7 @@ const Table = async ({ query }) => {
                 {rows?.map((row, ridx) => (
                     <div className={cx('row', { group: !!query?.groupBy })} key={`row-${ridx}`}>
                         {
-                            Object.values(row).map( (cell, cidx) => <Cell value={cell} type={columnTypes[cidx]} dgid={query?.dgid} /> )
+                            Object.values(row).map( (cell, cidx) => <Cell value={cell} type={columnTypes[cidx]} dgid={query?.dgid} isGrouped={!!query?.groupBy} /> )
                         }
                     </div>
                 ))}

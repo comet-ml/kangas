@@ -1,9 +1,9 @@
 // This is the base cell class. Mostly, this is used for wrapping everything in <Suspense />
 
-import FloatCell from './float/FloatCell';
+import FloatCell from './float';
 import ImageCell from './image/ImageCell';
 import JSONCell from './json/JSONCell';
-import TextCell from './text/TextCell';
+import TextCell from './text';
 import styles from './Cell.module.scss';
 import classNames from 'classnames/bind';
 
@@ -27,11 +27,11 @@ const cellMap = {
     },
 }
 
-const Cell = async ({ value, type, dgid }) => {
+const Cell = async ({ value, type, dgid, isGrouped }) => {
     const Component = cellMap?.[type]?.component;
     return (
         <div className={cx('cell')}>
-            { !!Component && <Component value={value} dgid={dgid} />}
+            { !!Component && <Component value={value} dgid={dgid} isGrouped={isGrouped} />}
             { !Component && <div>{`${value} - ${type}`}</div> }
         </div>
     )

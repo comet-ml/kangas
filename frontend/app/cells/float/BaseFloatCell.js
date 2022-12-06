@@ -1,6 +1,6 @@
 import formatValue from "../../../lib/formatValue"
 
-const FloatCell = ({ value }) => {
+const BaseFloatCell = ({ value }) => {
     return (
         <div className="cell-content">
             {`${formatValue(value, 'FLOAT')}`}
@@ -9,4 +9,4 @@ const FloatCell = ({ value }) => {
 
 }
 
-export default FloatCell;
+export default BaseFloatCell;
