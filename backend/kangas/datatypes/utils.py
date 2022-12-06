@@ -152,16 +152,16 @@ def pytype_to_dgtype(item):
         else:
             return "JSON"
 
-    if hasattr(item, "tolist"):
-        ## numpy arrays
-        return "VECTOR"
-
     if hasattr(item, "item") and callable(item.item):
         ## numpy types
         try:
             item = item.item()
         except Exception:
             pass
+
+    if hasattr(item, "tolist") and not isinstance(item, numbers.Number):
+        ## numpy arrays
+        return "VECTOR"
 
     for ctype in DATAGRID_TYPES:
         if isinstance(item, tuple(DATAGRID_TYPES[ctype]["types"])):
