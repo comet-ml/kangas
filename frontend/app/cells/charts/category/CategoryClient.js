@@ -1,6 +1,10 @@
 'use client';
 
 import Plot from 'react-plotly.js'
+import classNames from 'classnames/bind';
+import styles from '../Charts.module.scss'
+
+const cx = classNames.bind(styles);
 
 const CategoryLayout = {
     paper_bgcolor: 'rgba(0,0,0,0)',
@@ -33,7 +37,7 @@ const CategoryConfig = {
 const CategoryClient = ({ data }) => {
     return (
         <Plot
-            style={{ height: '100%', width: '100%', maxHeight: '110px' }}
+            className={cx('plotly-chart')}
             data={data}
             layout={CategoryLayout}
             config={CategoryConfig}

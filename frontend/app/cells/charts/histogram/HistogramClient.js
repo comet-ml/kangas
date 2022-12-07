@@ -2,7 +2,7 @@
 
 import Plot from 'react-plotly.js'
 import classNames from 'classnames/bind';
-import styles from '../../Cell.module.scss'
+import styles from '../Charts.module.scss'
 
 const cx = classNames.bind(styles);
 
@@ -36,7 +36,7 @@ const HistogramConfig = {
 const HistogramClient = ({ data }) => {
     return (
         <Plot
-            style={{ height: '100%', width: '100%', maxHeight: '110px' }}
+            className={cx('plotly-chart')}
             data={data}
             layout={HistogramLayout}
             config={HistogramConfig}
