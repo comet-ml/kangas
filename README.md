@@ -5,13 +5,13 @@
 -----------------
 
 <p align="center">
-    <a href="https://badge.fury.io/py/kangas">
+    <a rel="nofollow" href="https://badge.fury.io/py/kangas">
        <img src="https://badge.fury.io/py/kangas.svg" alt="PyPI version" height="20">
     </a>
-    <a href="https://opensource.org/licenses/Apache-2.0">
+    <a rel="nofollow" href="https://opensource.org/licenses/Apache-2.0">
         <img alt="GitHub" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg">
     </a>
-    <a href="https://colab.research.google.com/github/comet-ml/kangas/blob/main/notebooks/DataGrid-Getting%20Started.ipynb">
+    <a rel="nofollow" href="https://colab.research.google.com/github/comet-ml/kangas/blob/main/notebooks/DataGrid-Getting%20Started.ipynb">
         <img src="https://colab.research.google.com/assets/colab-badge.svg">
     </a>
     <a href="https://kangas.comet.com?datagrid=/data/coco-500.datagrid" rel="nofollow">
@@ -23,6 +23,9 @@
     <a rel="nofollow" href="https://pepy.tech/project/kangas">
         <img style="max-width: 100%;" data-canonical-src="https://pepy.tech/badge/kangas" alt="Downloads" 
              src="https://camo.githubusercontent.com/708e470ec83922035f2189544eb968c8c5bba5c8623b0ebb9cb88c5c370766c4/68747470733a2f2f706570792e746563682f62616467652f6b616e676173">
+    </a>
+    <a rel="nofollow" href="https://doi.org/10.5281/zenodo.7410884">
+        <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.7410884.svg" alt="DOI">
     </a>
 </p>
 
