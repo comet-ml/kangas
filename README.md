@@ -114,6 +114,7 @@ If you'd like to explore further, take a look at our example notebooks below:
 1. <a href="https://github.com/comet-ml/kangas/wiki">Documentation Homepage</a>
 2. <a href="https://github.com/comet-ml/kangas/blob/main/notebooks/DataGrid-Getting%20Started.ipynb">Quickstart Notebook</a> <a href="https://colab.research.google.com/github/comet-ml/kangas/blob/main/notebooks/DataGrid-Getting%20Started.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg"></a>
 3. <a href="https://github.com/comet-ml/kangas/blob/main/notebooks/Integrations.ipynb">Integrations Notebook</a> <a href="https://colab.research.google.com/github/comet-ml/kangas/blob/main/notebooks/Integrations.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg"></a>
+4. <a href="https://github.com/comet-ml/kangas/blob/main/examples/mnist_script.py"> MNIST Classification Example</a>
 
 ## FAQ
 
