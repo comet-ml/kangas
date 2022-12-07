@@ -2,6 +2,7 @@
 
 import fetchDataGrid from '../../lib/fetchDatagrid';
 import Cell from '../cells/base';
+import DialogueModal from '../modals/DialogueModal/DialogueModalClient';
 import styles from './Table.module.scss';
 import classNames from 'classnames/bind';
 const cx = classNames.bind(styles)

@@ -1,0 +1,17 @@
+.dialogue {
+    div[role="dialog"] {
+            min-width: 300px;
+            max-width: 1400px;
+            max-height: 90%;        
+    }
+}
+
+.dialogue-toggle {
+    height: 100%;
+    width: 100%;
+    cursor: pointer;
+}
+
+.overlay {
+    opacity: 0;
+}
