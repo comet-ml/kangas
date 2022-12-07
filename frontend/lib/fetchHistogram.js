@@ -28,6 +28,13 @@ const fetchHistogramNew = async (query) => {
     const res = await fetch(`${config.apiUrl}histogram`, request);
     const data = await res.json();
 
+    if (data?.type === 'verbatim') {
+        return {
+            isVerbatim: true,
+            ...data
+        }
+    }
+
     const formattedData = [
         {
             type: 'bar',

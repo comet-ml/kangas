@@ -25,17 +25,7 @@ const fetchCategoryNew = async (query) => {
     };
 
     const res = await fetch(`${config.apiUrl}category`, request);
-    let data = {}
-    try {
-        data = await res.json();
-    } catch(e) {
-        console.log(query)
-        console.log(e);
-        console.timeLog(res);
-    }
-
-    console.log('data');
-    console.log(data);
+    const data = await res.json();
 
     if (data?.type === 'verbatim') {
         return {

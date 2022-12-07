@@ -1,6 +1,10 @@
 'use client';
 
 import Plot from 'react-plotly.js'
+import classNames from 'classnames/bind';
+import styles from '../../Cell.module.scss'
+
+const cx = classNames.bind(styles);
 
 const HistogramLayout = {
     paper_bgcolor: 'rgba(0,0,0,0)',

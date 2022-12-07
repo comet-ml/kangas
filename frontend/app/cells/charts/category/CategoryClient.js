@@ -35,8 +35,8 @@ const CategoryClient = ({ data }) => {
         <Plot
             style={{ height: '100%', width: '100%', maxHeight: '110px' }}
             data={data}
-            layout={HistogramLayout}
-            config={HistogramConfig}
+            layout={CategoryLayout}
+            config={CategoryConfig}
         />
     )
 }
