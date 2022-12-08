@@ -100,7 +100,7 @@ def _convert_with_assets_to_json(metadata, datagrid):
     return json.dumps(metadata, cls=_createAssetEncoder(datagrid))
 
 
-class DataGrid():
+class DataGrid:
     """
     DataGrid instances have the following atrributes:
 
@@ -1186,36 +1186,49 @@ class DataGrid():
 
                 self._data[r].update(row_dict)
 
-    def append_columns(self, column_names, rows, verify=True):
+    def append_columns(self, columns, rows=None, verify=True):
         """
         Append columns to the DataGrid.
 
         Args:
-            column_names: list of column names to append
-            rows: list of list of values per row
+            columns: list of column names to append if rows is given
+               or dictionary of column names as keys, and column
+               rows as values.
+            rows: (optional, list) list of list of values per row
             verify: (optional, bool) if True, verify the data
 
         Example:
         ```python
         >>> dg = kg.DataGrid(columns=["a", "b"])
-        >>> dg.append([1, 1])
-        >>> dg.append([2, 2])
+        >>> dg.append([11, 12])
+        >>> dg.append([21, 22])
         >>> dg.append_columns(
         ...     ["New Column 1", "New Column 2"],
         ...     [
-        ...      ["row1 col1", "row1 col2"],
-        ...      ["row2 col1", "row2 col2"],
+        ...      ["row1 col1",
+        ...       "row2 col1"],
+        ...      ["row1 col2",
+        ...       "row2 col2"],
         ...     ])
+        >>> dg.append_columns(
+        ...     {"New Column 3": ["row1 col3",
+        ...                       "row2 col3"],
+        ...      "New Column 4": ["row1 col4",
+        ...                       "row2 col4"],
+        ...     })
         >>> dg.info()
-                 row-id               a               b    New Column 1    New Column 2
-                      1               1               1       row1 col1       row1 col2
-                      2               2               2       row2 col1       row2 col2
-
-        [2 rows x 4 columns]
+        row-id   a   b  New Column 1  New Column 2  New Column 3  New Column 4
+             1  11  12     row1 col1     row1 col2     row1 col3     row1 col4
+             2  21  22     row2 col1     row2 col2     row2 col3     row2 col4
+        [2 rows x 6 columns]
         ```
         """
-        for column_name, column_rows in zip(column_names, rows):
-            self.append_column(column_name, column_rows, verify)
+        if rows is None:
+            for column_name, column_rows in columns.items():
+                self.append_column(column_name, column_rows, verify)
+        else:
+            for column_name, column_rows in zip(columns, rows):
+                self.append_column(column_name, column_rows, verify)
 
     def pop(self, index):
         """
