@@ -1,7 +1,7 @@
 import { fetchHistogramNew } from "../../../../lib/fetchHistogram"
 import HistogramClient from "./HistogramClient";
 
-const Histogram = async ({ value }) => {
+const Histogram = async ({ value, expanded }) => {
     const data = await fetchHistogramNew(value);
     
     if (data?.isVerbatim) {
@@ -10,7 +10,7 @@ const Histogram = async ({ value }) => {
         )
     }
 
-    return <HistogramClient data={data} />
+    return <HistogramClient data={data} expanded={expanded} />
 }
 
 export default Histogram;

@@ -7,7 +7,7 @@ const FloatCell = ({ value, isGrouped }) => {
         <DialogueModal toggleElement={<Base value={value} />}><Base value={value} /></DialogueModal>
     );
     else  return (
-        <DialogueModal toggleElement={<Grouped value={value} />}><Grouped value={value} /></DialogueModal>
+        <DialogueModal toggleElement={<Grouped value={value} />}><Grouped value={value} expanded={true} /></DialogueModal>
     );
 };
 

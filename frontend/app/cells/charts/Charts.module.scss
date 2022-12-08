@@ -6,4 +6,14 @@
     * {
         max-height: 110px;
     }
+
+    &.expanded {
+        max-height: unset;
+        min-width: 600px;
+        
+        div {
+            width: 75%;
+        }
+
+    }
 }

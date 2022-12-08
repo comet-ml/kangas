@@ -33,10 +33,10 @@ const HistogramConfig = {
     displayModeBar: false,
 };
 
-const HistogramClient = ({ data }) => {
+const HistogramClient = ({ data, expanded }) => {
     return (
         <Plot
-            className={cx('plotly-chart')}
+            className={cx('plotly-chart', { expanded })}
             data={data}
             layout={HistogramLayout}
             config={HistogramConfig}

@@ -6,12 +6,12 @@ import styles from '../Cell.module.scss'
 
 const cx = classNames.bind(styles);
 
-const GroupedFloatCell = ({ value }) => {
+const GroupedFloatCell = ({ value, expanded = false}) => {
     const primitive = isPrimitive(value);
     return (
-        <div className={cx(['cell', 'group'])}>
+        <div className={cx(['cell', 'group'], { expanded })}>
             { primitive && formatValue(value)}
-            { !primitive && <Histogram value={value} />}
+            { !primitive && <Histogram value={value} expanded={expanded} />}
         </div>
     )
 }
