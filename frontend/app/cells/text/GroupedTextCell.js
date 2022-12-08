@@ -6,13 +6,13 @@ import styles from '../Cell.module.scss'
 
 const cx = classNames.bind(styles);
 
-const GroupedTextCell = ({ value }) => {
+const GroupedTextCell = ({ value, expanded = false }) => {
     const primitive = isPrimitive(value);
 
     return (
-        <div className={cx(['cell', 'group'])}>
+        <div className={cx(['cell', 'group'], { expanded })}>
             { primitive && formatValue(value)}
-            { !primitive && <Category value={value} />}
+            { !primitive && <Category value={value} expanded={expanded} />}
         </div>
     )
 }

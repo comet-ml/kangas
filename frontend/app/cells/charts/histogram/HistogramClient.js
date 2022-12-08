@@ -3,6 +3,7 @@
 import Plot from 'react-plotly.js'
 import classNames from 'classnames/bind';
 import styles from '../Charts.module.scss'
+import { useMemo } from 'react';
 
 const cx = classNames.bind(styles);
 
@@ -33,14 +34,40 @@ const HistogramConfig = {
     displayModeBar: false,
 };
 
-const HistogramClient = ({ data, expanded }) => {
+const HistogramClient = ({ data, expanded, title }) => {
+    const ExpandedLayout = useMemo(() => {
+        return {
+            autosize: true,
+            title,
+            font: {
+                family: 'Roboto',
+                size: 22,
+                color: '#191A1C',
+            },
+            xaxis: {
+                font: {
+                    size: 13,
+                    color: '#3D4355',
+                },
+            },
+            yaxis: {
+                font: {
+                    size: 13,
+                    color: '#3D4355',
+                },
+            }
+        }
+    }, [title]);
+
     return (
-        <Plot
-            className={cx('plotly-chart', { expanded })}
-            data={data}
-            layout={HistogramLayout}
-            config={HistogramConfig}
-        />
+        <div className={cx('plotly-container', { expanded })}>
+            <Plot
+                className={cx('plotly-chart', { expanded })}
+                data={data}
+                layout={expanded ? ExpandedLayout : HistogramLayout}
+                config={HistogramConfig}
+            />
+        </div>
     )
 }
 

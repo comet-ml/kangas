@@ -4,7 +4,7 @@ import Plot from 'react-plotly.js'
 import classNames from 'classnames/bind';
 import { ModalContext } from '../../../modals/DialogueModal/DialogueModalClient';
 import styles from '../Charts.module.scss'
-import { useContext } from 'react';
+import { useContext, useMemo } from 'react';
 
 const cx = classNames.bind(styles);
 
@@ -37,16 +37,37 @@ const CategoryConfig = {
 };
 
 
-const CategoryClient = ({ data }) => {
-    const context = useContext(ModalContext);
-    
+const CategoryClient = ({ data, expanded, title }) => {    
+    const ExpandedLayout = useMemo(() => {
+        return {
+            autosize: true,
+            title,
+            font: {
+                family: 'Roboto',
+                size: 22,
+                color: '#191A1C',
+            },
+            xaxis: {
+                font: {
+                    size: 13,
+                    color: '#3D4355',
+                },
+            },
+            yaxis: {
+                type: 'category'
+	        },
+        };
+    }, [title]);
+
     return (
-        <Plot
-            className={cx('plotly-chart', { expanded: !!context?.expanded })}
-            data={data}
-            layout={CategoryLayout}
-            config={CategoryConfig}
-        />
+        <div className={cx('plotly-container', { expanded })}>
+            <Plot
+                className={cx('plotly-chart', { expanded })}
+                data={data}
+                layout={expanded ? ExpandedLayout : CategoryLayout}
+                config={CategoryConfig}
+            />
+        </div>
     )
 }
 

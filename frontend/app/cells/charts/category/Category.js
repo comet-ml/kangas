@@ -1,7 +1,7 @@
 import { fetchCategoryNew } from "../../../../lib/fetchCategory"
 import CategoryClient from "./CategoryClient";
 
-const Category = async ({ value }) => {
+const Category = async ({ value, expanded }) => {
     const data = await fetchCategoryNew(value);
 
     if (data?.isVerbatim) {
@@ -10,7 +10,7 @@ const Category = async ({ value }) => {
         )
     }
 
-    return <CategoryClient data={data} />
+    return <CategoryClient data={data} expanded={expanded} title={value?.columnName} />
 }
 
 export default Category;

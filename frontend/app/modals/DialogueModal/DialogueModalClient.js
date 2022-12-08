@@ -1,13 +1,12 @@
 'use client'
 
-import { useState, useCallback, createContext, useContext } from 'react';
+import { useState, useCallback } from 'react';
 import Dialogue from '@mui/material/Dialog';
 import classNames from 'classnames/bind';
 import styles from './DialogueModal.module.scss';
 
 const cx = classNames.bind(styles);
 
-export const ModalContext = createContext({});
 
 const DialogueModalContainer = ({ toggleElement, children, sx, tabIndex, fullScreen = false }) => {
     const [open, setOpen] = useState(false);
@@ -32,11 +31,9 @@ const DialogueModalContainer = ({ toggleElement, children, sx, tabIndex, fullScr
     return (
         <>
             <div className={cx('dialogue-toggle')} tabIndex={tabIndex} onClick={openModal}>{toggleElement}</div>
-            <ModalContext.Provider value={{ expanded: open }}>
-                <Dialogue className={cx('dialogue')} open={open} fullScreen={fullScreen} onClose={closeModal} sx={sx}>
-                    {children}
-                </Dialogue>
-            </ModalContext.Provider>
+            <Dialogue className={cx('dialogue')} open={open} fullScreen={fullScreen} onClose={closeModal} sx={sx}>
+                {children}
+            </Dialogue>
         </>
     );
 };
