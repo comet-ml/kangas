@@ -68,6 +68,7 @@ python upload_to_hub.py --repo_id <Your Repo ID> \
 --path <Path to the datagrid file> \
 --path_in_repo <The path for your datagrid in the dataset repo>
 ```
+<img width="600" alt="datagrid-hf-hub-example" src="https://user-images.githubusercontent.com/7529846/206374126-82fb60ab-dd68-4739-8655-153ad02930b7.png">
 
 ## Load your DataGrids from the Hub
 
@@ -112,4 +113,5 @@ python download_from_hub.py --repo_id <Your Repo ID> \
 
 Or run the snippet from a Colab notebook in the following way
 
+https://user-images.githubusercontent.com/7529846/206373126-829e56b7-a340-4300-ac23-1eca7f1768bc.mp4
 
