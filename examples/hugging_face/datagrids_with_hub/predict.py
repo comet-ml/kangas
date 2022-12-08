@@ -18,7 +18,7 @@ columns = ["id", "image", "label", "predicted_label"]
 columns.extend([f"score_{label_name}" for label_name in label_names])
 
 dg = DataGrid(
-    name="cifar10-test.datagrid",
+    name="cifar10-test",
     columns=columns,
 )
 
@@ -49,7 +49,7 @@ for idx, example in enumerate(tqdm(dataset, total=num_examples)):
         label_name,
         predicted_label_name,
     ]
-    row + list(probs)
+    row.extend(probs.tolist()[0])
     dg.append(row)
 
 dg.save()

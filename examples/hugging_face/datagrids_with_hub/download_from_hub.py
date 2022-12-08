@@ -9,6 +9,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo_id")
     parser.add_argument("--filename")
+    parser.add_argument("--port", type=int, default=4000)
 
     return parser.parse_args()
 
@@ -23,4 +24,4 @@ dg = DataGrid.read_datagrid(
         use_auth_token=True,
     )
 )
-dg.show(port=8892)
+dg.show(port=args.port)
