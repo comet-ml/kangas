@@ -82,6 +82,27 @@ const HelpText = () => (
             </li>
         </ul>
         <p dir="auto">
+            Also you can use Python's comparison operator chaining. That is, any
+            of the above operators can be used in a shorthand way as follows:
+        </p>
+        <div className="snippet-clipboard-content notranslate position-relative overflow-auto">
+            <pre className="notranslate">
+                <code>
+    &#123;"column a"} &lt; &#123;"column b"} &lt; &#123;"column c"}
+                </code>
+            </pre>
+        </div>
+        <p dir="auto">
+            which is shorthand for:
+        </p>
+        <div className="snippet-clipboard-content notranslate position-relative overflow-auto">
+            <pre className="notranslate">
+                <code>
+                  &#123;"column a"} &lt; &#123;"column b"} and &#123;"column b"} &lt; &#123;"column c"}
+                </code>
+            </pre>
+        </div>
+        <p dir="auto">
             Use <code>is None</code> and <code>is not None</code> for selecting
             rows that have null values. Otherwise, null values are ignored in
             most other uses.
