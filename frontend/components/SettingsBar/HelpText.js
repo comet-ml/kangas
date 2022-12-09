@@ -114,7 +114,7 @@ const HelpText = () => (
         <p dir="auto">or nested values:</p>
         <div className="snippet-clipboard-content notranslate position-relative overflow-auto">
             <pre className="notranslate">
-                <code>&#123;"Image"}.labels.contains("dog")</code>
+                <code>&#123;"Image"}.labels.dog &gt; 1</code>
             </pre>
             <pre className="notranslate">
                 <code>&#123;"Image"}.labels.dog and &#123;"Image"}.labels.cat</code>
@@ -165,8 +165,7 @@ const HelpText = () => (
     nested list comprehensions.
     </p>
         <p dir="auto">
-            See below for more information on <code>contains()</code> and other
-            string and JSON methods.
+            See below for more information on string and JSON methods.
         </p>
         <p dir="auto">
             Note that any mention of a column that contains an asset type (e.g.,
@@ -176,7 +175,7 @@ const HelpText = () => (
         <p dir="auto">These are mostly used with column values:</p>
         <ul dir="auto">
             <li>
-                <code>&#123;"Column Name"}.contains(STRING)</code>
+                <code>STRING in &#123;"Column Name"}</code>
             </li>
             <li>
                 <code>&#123;"Column Name"}.endswith(STRING)</code>
