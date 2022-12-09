@@ -379,6 +379,13 @@ class Evaluator:
             ops = [self.eval_node(arg) for arg in node.ops]
             left = self.eval_node(node.left)
 
+            if ops[0] == " IN ":
+                if left[0] == "'" and left[-1] == "'":
+                    return "like('%s', %s)" % (
+                        "%" + left[1:-1] + "%",
+                        comparators[0],
+                    )
+
             retval = ""
             for op, right in zip(ops, comparators):
                 if retval:
