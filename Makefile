@@ -5,6 +5,7 @@ clean::
 	rm -fr *.datagrid backend/dist backend/build
 
 build::
+	rm -rf frontend/.next
 	cd frontend; yarn; yarn build
 	rm -rf backend/kangas/frontend
 	cp -rf frontend/.next backend/kangas/frontend

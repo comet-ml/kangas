@@ -308,7 +308,10 @@ def server(parsed_args, remaining=None):
                 if parsed_args.seed is not None:
                     dataset = dataset.shuffle(seed=parsed_args.seed)
                 if parsed_args.samples is not None:
-                    dataset = dataset.take(parsed_args.samples)
+                    try:
+                        dataset = dataset.take(parsed_args.samples)
+                    except AttributeError:
+                        print("Unable to take samples; using entire dataset")
 
                 dg = kangas.DataGrid(dataset)
                 dg.save()
