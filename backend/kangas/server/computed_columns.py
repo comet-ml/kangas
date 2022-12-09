@@ -317,6 +317,8 @@ class Evaluator:
                     "endswith",
                     "startswith",
                 ]:
+                    # FIXME: remove contains... that was a mistake: use IN
+
                     # FIXME: args[0] could be a string, or a field_name
                     # Assuming string for now in contains, startswith, endswith
                     # because of special form in SQL:
@@ -342,7 +344,7 @@ class Evaluator:
                             function_name.obj,
                         )
                         pass
-                    elif function_name == "startswith":
+                    elif function_name.attr == "startswith":
                         return "like('%s', %s)" % (
                             args[0][1:-1] + "%",
                             function_name.obj,

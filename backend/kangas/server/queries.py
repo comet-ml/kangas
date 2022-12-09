@@ -1182,7 +1182,7 @@ def query_sql(
         )
         return results
     else:
-        results = select_query(
+        results = select_query_page(
             dgid=dgid,
             offset=offset,
             group_by=None,
