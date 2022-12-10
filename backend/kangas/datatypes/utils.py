@@ -20,7 +20,8 @@ import numbers
 import os
 import re
 import shutil
-import urllib
+import urllib.parse
+import urllib.request
 import uuid
 
 import numpy as np

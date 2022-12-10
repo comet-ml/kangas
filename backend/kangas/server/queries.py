@@ -48,6 +48,57 @@ from traceback import format_exc
 import math
 """
 
+
+def safe_builtin_funcs():
+    return {
+        "abs": abs,
+        "all": all,
+        "any": any,
+        "ascii": ascii,
+        "bin": bin,
+        "bool": bool,
+        "bytes": bytes,
+        "callable": callable,
+        "chr": chr,
+        "complex": complex,
+        "dict": dict,
+        "dir": dir,
+        "divmod": divmod,
+        "enumerate": enumerate,
+        "filter": filter,
+        "float": float,
+        "format": format,
+        "hasattr": hasattr,
+        "hash": hash,
+        "hex": hex,
+        "id": id,
+        "int": int,
+        "isinstance": isinstance,
+        "issubclass": issubclass,
+        "iter": iter,
+        "len": len,
+        "list": list,
+        "map": map,
+        "max": max,
+        "min": min,
+        "oct": oct,
+        "ord": ord,
+        "pow": pow,
+        "range": range,
+        "repr": repr,
+        "reversed": reversed,
+        "round": round,
+        "set": set,
+        "slice": slice,
+        "sorted": sorted,
+        "str": str,
+        "sum": sum,
+        "tuple": tuple,
+        "type": type,
+        "zip": zip,
+    }
+
+
 try:
     import RestrictedPython
     import RestrictedPython.Eval
@@ -57,7 +108,9 @@ try:
         return RestrictedPython.compile_restricted_eval(source).code
 
     def safe_builtins():
-        return RestrictedPython.Guards.safe_builtins.copy()
+        env = RestrictedPython.Guards.safe_builtins.copy()
+        env.update(safe_builtin_funcs())
+        return env
 
     def safe_env(**kwargs):
         env = {
@@ -84,53 +137,9 @@ except Exception:
         return env
 
     def safe_builtins():
-        return {
-            "abs": abs,
-            "all": all,
-            "any": any,
-            "ascii": ascii,
-            "bin": bin,
-            "bool": bool,
-            "bytes": bytes,
-            "callable": callable,
-            "chr": chr,
-            "complex": complex,
-            "dict": dict,
-            "dir": dir,
-            "divmod": divmod,
-            "enumerate": enumerate,
-            "filter": filter,
-            "float": float,
-            "format": format,
-            "hasattr": hasattr,
-            "hash": hash,
-            "hex": hex,
-            "id": id,
-            "int": int,
-            "isinstance": isinstance,
-            "issubclass": issubclass,
-            "iter": iter,
-            "len": len,
-            "list": list,
-            "map": map,
-            "max": max,
-            "min": min,
-            "oct": oct,
-            "ord": ord,
-            "pow": pow,
-            "range": range,
-            "repr": repr,
-            "reversed": reversed,
-            "round": round,
-            "set": set,
-            "slice": slice,
-            "sorted": sorted,
-            "str": str,
-            "sum": sum,
-            "tuple": tuple,
-            "type": type,
-            "zip": zip,
-        }
+        env = {}
+        env.update(safe_builtin_funcs())
+        return env
 
 
 def parse_comma_separated_values(string):
@@ -303,8 +312,8 @@ def ListComprehension(x, y, gen, ifs):
         code = safe_compile(x)
         env = safe_env()
         try:
-            ## FIXME: a string that is a number is json-loadable
-            decoded_gen = json.loads(gen)
+            ## FIXME: a string that is a number is json-like
+            decoded_gen = ast.literal_eval(gen)
         except Exception:
             decoded_gen = gen
 
