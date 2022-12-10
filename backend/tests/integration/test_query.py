@@ -97,3 +97,58 @@ def test_query_in_python_2():
         where='any({"x"})',
     )
     assert len(df) == 30
+
+
+def test_query_in_python_3():
+    df = dg.select_dataframe(
+        computed_columns={"x": '[x["label"] == "dog" for x in {"Image"}.overlays]'},
+        where='any({"x"})',
+    )
+    assert len(df) == 30
+
+
+def test_query_in_python_4():
+    df = dg.select_dataframe(
+        computed_columns={"x": '[x["label"] == "person" for x in {"Image"}.overlays]'},
+        where='any({"x"})',
+    )
+    assert len(df) == 212
+
+
+def test_query_in_python_5():
+    df = dg.select_dataframe(
+        computed_columns={
+            "x": '[x["label"] in ["car", "bicycle"] for x in {"Image"}.overlays]'
+        },
+        where='any({"x"})',
+    )
+    assert len(df) == 75
+
+
+def test_query_in_python_6():
+    df = dg.select_dataframe(
+        computed_columns={
+            "x": '[x["label"] == "cat" or x["label"] == "dog" for x in {"Image"}.overlays]'
+        },
+        where='any({"x"})',
+    )
+    assert len(df) == 66
+
+
+def test_query_in_python_7():
+    df = dg.select_dataframe(
+        computed_columns={
+            "cat": '[x["label"] == "cat" for x in {"Image"}.overlays]',
+            "dog": '[x["label"] == "dog" for x in {"Image"}.overlays]',
+        },
+        where='any({"cat"}) or any({"dog"})',
+    )
+    assert len(df) == 66
+
+
+def test_query_in_python_8():
+    df = dg.select_dataframe(
+        computed_columns={"x": '[x["score"] > 0.999 for x in {"Image"}.overlays]'},
+        where='any({"x"})',
+    )
+    assert len(df) == 5
