@@ -17,7 +17,6 @@ import io
 import json
 import logging
 import math
-import numbers
 import os
 import sqlite3
 import tempfile
@@ -1559,23 +1558,14 @@ class DataGrid:
                 retval[column_name] = "TEXT"
         return retval
 
-    def _get_qbtype(self, obj):
+    def _get_completions(self, obj, completions, path=""):
         """
-        Return the QueryBuilder type for this Python object.
-
-        Only return a type if it can be searched.
+        Return the nested keys of this object
         """
-        if isinstance(obj, str):
-            return "text"
-        elif isinstance(obj, numbers.Number):
-            return "number"
-        elif isinstance(obj, bool):
-            return "boolean"
-        elif isinstance(obj, list):
-            if len(obj) > 0 and isinstance(obj[0], str):
-                return "list-of-text"
-        else:
-            return None
+        completions[path].add(type(obj).__name__)
+        if isinstance(obj, dict):
+            for key in obj:
+                self._get_completions(obj[key], completions, path + "." + key)
 
     def _get_type(self, item):
         """
@@ -2124,47 +2114,33 @@ class DataGrid:
                     )
 
             elif col_type == "JSON":
-                if SAVE_JSON_METADATA:
-                    rows = self.conn.execute(
-                        "SELECT {field_name} from datagrid;".format(
-                            field_name=field_name
-                        )
-                    )
-                    fields = {}
-                    values = defaultdict(set)
-                    for row in rows:
-                        # get key, type from all rows for fields
-                        if row[0]:
-                            json_data = json.loads(row[0])
-                            # FIXME: check if match previous uses
-                            # FIXME: better be a dict
-                            for key in json_data:
-                                qbtype = self._get_qbtype(json_data[key])
-                                if qbtype:
-                                    # text, number, boolean, and list-of-text
-                                    fields[key] = {"type": qbtype}
-                                    if qbtype == "text":
-                                        values[key].add(json_data[key])
-                                    elif qbtype == "list-of-text":
-                                        for text in json_data[key]:
-                                            values[key].add(text)
+                rows = self.conn.execute(
+                    "SELECT {field_name} from datagrid;".format(field_name=field_name)
+                )
+                completions = defaultdict(set)
+                for row in rows:
+                    # get key, type from all rows for fields
+                    if row[0]:
+                        json_data = json.loads(row[0])
+                        self._get_completions(json_data, completions)
 
-                        for key in values:
-                            fields[key]["values"] = sorted(list(values[key]))
+                completions_serialized = str(
+                    {key: list(value) for key, value in completions.items()}
+                )
 
-                        # min, max, avg, variance, total, stddev, other, name
-                        data.append(
-                            [
-                                None,
-                                None,
-                                None,
-                                None,
-                                None,
-                                None,
-                                str(fields),
-                                col_name,
-                            ]
-                        )
+                # min, max, avg, variance, total, stddev, other, name
+                data.append(
+                    [
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        completions_serialized,
+                        col_name,
+                    ]
+                )
 
             elif col_type == "DATETIME":
                 row = self.conn.execute(
