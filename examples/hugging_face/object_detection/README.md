@@ -64,7 +64,7 @@ We have logged annotations and labels as metadata in our Images. Kangas lets you
 Let's take a look at images that contain bags and shoes. Simply add the following line to the filter section.
 
 ```
-{"Image"}.labels.contains("gt_bags") and {"Image"}.labels.contains("gt_shoes")
+"gt_bags" in {"Image"}.labels.keys() and "gt_shoes" in {"Image"}.labels.keys()
 ```
 
 https://user-images.githubusercontent.com/7529846/201147784-009906ac-e4fc-4436-a398-ac51cb0677c2.mov

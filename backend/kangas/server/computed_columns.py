@@ -362,6 +362,10 @@ class Evaluator:
                     return "lower(%s)" % ", ".join([str(function_name.obj)] + args)
                 elif function_name.attr == "split":
                     return "SPLIT(%s)" % ", ".join([str(function_name.obj)] + args)
+                elif function_name.attr == "keys":
+                    return "KEYS_OF(%s)" % ", ".join([str(function_name.obj)] + args)
+                elif function_name.attr == "values":
+                    return "VALUES_OF(%s)" % ", ".join([str(function_name.obj)] + args)
                 else:
                     raise Exception("unknown method %r" % repr(function_name))
             else:
@@ -382,11 +386,8 @@ class Evaluator:
             left = self.eval_node(node.left)
 
             if ops[0] == " IN ":
-                if left[0] == "'" and left[-1] == "'":
-                    return "like('%s', %s)" % (
-                        "%" + left[1:-1] + "%",
-                        comparators[0],
-                    )
+                if not comparators[0].startswith("("):
+                    return "IN_OBJ(%s, %s)" % (left, comparators[0])
 
             retval = ""
             for op, right in zip(ops, comparators):
@@ -436,6 +437,9 @@ class Evaluator:
             return " IN "
         elif isinstance(node, ast.List):
             args = [self.eval_node(arg) for arg in node.elts]
+            if len(args) == 0:
+                return "null"
+
             return "(" + (", ".join([str(arg) for arg in args])) + ")"
         elif isinstance(node, ast.Set):
             ## Special format for delayed evaluation of computed

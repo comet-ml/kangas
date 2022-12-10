@@ -195,7 +195,12 @@ class StdevFunc:
 
 def FLATTEN(lists):
     if lists:
-        return str([item for sublist in ast.literal_eval(lists) for item in sublist])
+        try:
+            return str(
+                [item for sublist in ast.literal_eval(lists) for item in sublist]
+            )
+        except Exception:
+            pass
 
     return "[]"
 
@@ -204,15 +209,43 @@ def SPLIT(string, delim=None, maxsplit=-1):
     return str(string.split(delim, maxsplit))
 
 
+def KEYS_OF(obj):
+    if obj:
+        try:
+            return str(list(ast.literal_eval(obj).keys()))
+        except Exception:
+            pass
+
+    return "[]"
+
+
+def VALUES_OF(obj):
+    if obj:
+        try:
+            return str(list(ast.literal_eval(obj).values()))
+        except Exception:
+            pass
+
+    return "[]"
+
+
 def LENGTH(string_or_obj):
-    ## Comes in as a string, but
-    ## might be "[...]"
+    ## Comes in as a string, but might be "[...]"
     if string_or_obj:
         try:
             return len(ast.literal_eval(string_or_obj))
         except Exception:
             return len(string_or_obj)
     return 0
+
+
+def IN_OBJ(item, string_or_obj):
+    if string_or_obj:
+        try:
+            return item in list(ast.literal_eval(string_or_obj))
+        except Exception:
+            return item in string_or_obj
+    return False
 
 
 def ANY_IN_GROUP(group):
@@ -326,6 +359,9 @@ def get_database_connection(dgid):
     conn.create_function("FLATTEN", 1, FLATTEN)
     conn.create_function("SPLIT", -1, SPLIT)
     conn.create_function("LENGTH", 1, LENGTH)
+    conn.create_function("KEYS_OF", 1, KEYS_OF)
+    conn.create_function("VALUES_OF", 1, VALUES_OF)
+    conn.create_function("IN_OBJ", 2, IN_OBJ)
     conn.create_function("ListComprehension", 4, ListComprehension)
     return conn
 
