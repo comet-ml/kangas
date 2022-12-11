@@ -386,7 +386,9 @@ class Evaluator:
             left = self.eval_node(node.left)
 
             if ops[0] == " IN ":
-                if not comparators[0].startswith("("):
+                if not (
+                    isinstance(comparators[0], str) and comparators[0].startswith("(")
+                ):
                     return "IN_OBJ(%s, %s)" % (left, comparators[0])
 
             retval = ""

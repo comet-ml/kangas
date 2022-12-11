@@ -2,7 +2,7 @@ import { unstable_useRefreshRoot as useRefreshRoot } from 'next/streaming';
 import Autocomplete from './ReactAutocomplete.client';
 import { TextField } from '@mui/material';
 import InputAdornment from '@mui/material/InputAdornment';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useMemo } from 'react';
 import DialogueModal from '../Modals/DialogueModalContainer.client';
 
 import HelpText from './HelpText.js';
@@ -13,7 +13,7 @@ const HelpButton = () => (
     </div>
 );
 
-const FilterExpr = ({ query, columns }) => {
+const FilterExpr = ({ query, columns, completions }) => {
     const refresh = useRefreshRoot();
     const filter = useRef();
     const onKeyPress = useCallback((e) => {
@@ -42,13 +42,31 @@ const FilterExpr = ({ query, columns }) => {
         filter.current.value = query?.whereExpr || '';
     }, [query]);
 
+    const onChangeSelect = useCallback((trigger, slug) => {
+	if (trigger === '{') {
+	    return `{${slug}}`;
+	}
+	else return `${trigger}${slug}`;
+    }, [query, refresh]);
+
+    const triggers = useMemo(() => {
+	return ["{"].concat(Object.keys(completions));
+    }, [completions]);
+
+    const options = useMemo(() => {
+	return {
+	    "{": columns.map(name => `"${name}"`),
+	    ...completions,
+	};
+    }, [completions, columns]);
+
     return (
         <>
             <Autocomplete
                 defaultValue={query?.whereExpr || ''}
-                trigger={["{"]} 
-                options={{"{": columns.map(name => `"${name}"`)}}
-                changeOnSelect={(trigger, slug) => `{${slug}}`}
+                trigger={triggers}
+                options={options}
+                changeOnSelect={onChangeSelect}
                 matchAny={true}
                 regex={'^[a-zA-Z0-9_\\-\\"\\ ]+$'}
                 spacer={''}

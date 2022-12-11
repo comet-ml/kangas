@@ -73,6 +73,13 @@ def test_query_in_sql_3():
     assert len(df) == 28
 
 
+def test_query_in_sql_4():
+    df = dg.select_dataframe(
+        computed_columns={"x": '"1895" in {"Image"}.filename'}, where='{"x"}'
+    )
+    assert len(df) == 2
+
+
 def test_query_in_python():
     df = dg.select_dataframe(
         computed_columns={"x": '[x == "dog" for x in {"image"}.labels.keys()]'},

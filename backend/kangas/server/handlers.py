@@ -34,6 +34,7 @@ from ..datatypes.utils import THUMBNAIL_SIZE
 from .queries import (
     KANGAS_ROOT,
     custom_output,
+    get_completions,
     get_datagrid_timestamp,
     get_dg_path,
     get_fields,
@@ -154,6 +155,19 @@ class HistogramHandler(BaseHandler):
                 computed_columns,
                 where_expr,
             )
+            self.write_json(results)
+
+
+class CompletionsHandler(BaseHandler):
+    @run_on_executor
+    @auth_wrapper
+    def post(self):
+        # Required:
+        data = tornado.escape.json_decode(self.request.body)
+        dgid = self.unquote(data.get("dgid", None))
+
+        if self.ensure_datagrid_path(dgid):
+            results = get_completions(dgid)
             self.write_json(results)
 
 
@@ -569,4 +583,5 @@ datagrid_handlers = [
     ("/datagrid/verify-where", VerifyWhereHandler),
     ("/datagrid/timestamp", GetDataGridTimestampHandler),
     ("/datagrid/status", StatusHandler),
+    ("/datagrid/completions", CompletionsHandler),
 ]

@@ -47,7 +47,6 @@ from .utils import (
 
 LOGGER = logging.getLogger(__name__)
 VERSION = 1
-SAVE_JSON_METADATA = False
 
 
 def _convert_setting(value, desired_type):
@@ -2124,8 +2123,12 @@ class DataGrid:
                         json_data = json.loads(row[0])
                         self._get_completions(json_data, completions)
 
-                completions_serialized = str(
-                    {key: list(value) for key, value in completions.items()}
+                completions_serialized = json.dumps(
+                    {
+                        "completions": {
+                            key: list(value) for key, value in completions.items()
+                        }
+                    }
                 )
 
                 # min, max, avg, variance, total, stddev, other, name
@@ -2173,14 +2176,12 @@ class DataGrid:
                         x_max = max(max(curve_instance.x), x_max)
                         y_min = min(min(curve_instance.y), y_min)
                         y_max = max(max(curve_instance.y), y_max)
-                    other = str(
-                        {
-                            "x_min": x_min,
-                            "x_max": x_max,
-                            "y_min": y_min,
-                            "y_max": y_max,
-                        }
-                    )
+                    other = {
+                        "x_min": x_min,
+                        "x_max": x_max,
+                        "y_min": y_min,
+                        "y_max": y_max,
+                    }
                 except Exception:
                     LOGGER.info("can't compute curve stats on row %s", col_name)
 
@@ -2193,7 +2194,7 @@ class DataGrid:
                         None,
                         None,
                         None,
-                        json.dumps(other),
+                        json.dumps(other) if other else None,
                         col_name,
                     ]
                 )

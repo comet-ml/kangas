@@ -10,13 +10,13 @@ const SelectButton = () => (
     </div>
 );
 
-const SelectRow = ({ columns, query, options }) => {
+const SelectRow = ({ columns, query, options, completions }) => {
     return (
         <div className="select-row">
             <GroupBy query={query} columns={columns} />
             <SortBy query={query} columns={columns} />
-            <DialogueModal 
-                toggleElement={<SelectButton />} 
+            <DialogueModal
+                toggleElement={<SelectButton />}
                 sx={{
                     "& .MuiDialog-container": {
                         "& .MuiPaper-root": {
@@ -33,7 +33,7 @@ const SelectRow = ({ columns, query, options }) => {
                     defaultOptions={options}
                 />
             </DialogueModal>
-            <FilterExpr query={query} columns={columns} />
+            <FilterExpr query={query} columns={columns} completions={completions} />
         </div>
     );
 };

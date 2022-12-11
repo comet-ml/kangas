@@ -18,8 +18,9 @@ import math
 import os
 import re
 import sqlite3
+import string
 import time
-from collections import Counter
+from collections import Counter, defaultdict
 
 import numpy as np
 from PIL import Image
@@ -47,6 +48,8 @@ import numpy as np
 from traceback import format_exc
 import math
 """
+
+VALID_CHARS = string.ascii_letters + string.digits + "_"
 
 
 def safe_builtin_funcs():
@@ -373,6 +376,33 @@ def get_database_connection(dgid):
     conn.create_function("IN_OBJ", 2, IN_OBJ)
     conn.create_function("ListComprehension", 4, ListComprehension)
     return conn
+
+
+def get_completions(dgid):
+    db_path = get_dg_path(dgid)
+    conn = sqlite3.connect(db_path)
+    rows = conn.execute("SELECT name, other from metadata;")
+    results = defaultdict(set)
+    for row in rows:
+        name, other = row
+        if other:
+            try:
+                other = json.loads(row[1])
+            except Exception:
+                continue
+            if "completions" in other:
+                all_comp = other["completions"].keys()
+                for comp in all_comp:
+                    comp = comp if comp != "" else "."
+                    name = name if not name.endswith("--metadata") else name[:-10]
+                    path, item = comp.rsplit(".", 1)
+                    if item and all(ch in VALID_CHARS for ch in item):
+                        if not path.startswith("."):
+                            path = "." + path
+                        if not path.endswith("."):
+                            path = path + "."
+                        results['{"%s"}%s' % (name, path)].add(item)
+    return {key: sorted(list(value)) for key, value in results.items()}
 
 
 def get_metadata(conn):
