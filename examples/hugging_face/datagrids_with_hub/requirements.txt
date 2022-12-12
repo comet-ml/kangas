@@ -1,0 +1,4 @@
+transformers
+kangas
+datasets
+huggingface_hub
