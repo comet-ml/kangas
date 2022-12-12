@@ -218,7 +218,10 @@ def FLATTEN(lists):
 
 
 def SPLIT(string, delim=None, maxsplit=-1):
-    return str(string.split(delim, maxsplit))
+    if string:
+        return str(string.split(delim, maxsplit))
+    else:
+        return ""
 
 
 def KEYS_OF(obj):
@@ -402,7 +405,10 @@ def get_completions(dgid):
                         if not path.endswith("."):
                             path = path + "."
                         results['{"%s"}%s' % (name, path)].add(item)
-    return {key: sorted(list(value)) for key, value in results.items()}
+    return {
+        key: sorted(["keys()", "values()"] + list(value))
+        for key, value in results.items()
+    }
 
 
 def get_metadata(conn):
