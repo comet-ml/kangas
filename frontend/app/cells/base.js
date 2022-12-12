@@ -27,11 +27,11 @@ const cellMap = {
     },
 }
 
-const Cell = async ({ value, type, dgid, groupBy }) => {
+const Cell = async ({ value, columnName, type, query }) => {
     const Component = cellMap?.[type]?.component;
     return (
         <div className={cx('cell')}>
-            { !!Component && <Component value={value} dgid={dgid} isGrouped={isGrouped} />}
+            { !!Component && <Component value={value} columnName={columnName} query={query} />}
             { !Component && <div>{`${value} - ${type}`}</div> }
         </div>
     )

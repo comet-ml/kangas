@@ -10,7 +10,7 @@ const replacer = (key, value) => {
         return undefined;
     }
 }
-const JSONCell = ({ value }) => {
+const JSONCell = ({ value, query }) => {
     return (
     <div className="cell-content">
         <pre>

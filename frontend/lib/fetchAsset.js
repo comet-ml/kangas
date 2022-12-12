@@ -7,12 +7,13 @@ const parseEndpoint = ({ thumbnail, group }) => {
         return 'download'
     }
 };
+
 const parseRequestType = (endpoint) => endpoint.includes('asset-group') ? 'POST' : 'GET';
+
 const fetchData = async ({ query, endpoint, requestType }) => {
-    console.log(query)
     if (requestType === 'GET') {
         const queryString = new URLSearchParams(query).toString();
-        const data = await fetch(`${config.apiUrl}${endpoint}${queryString}`);
+        const data = await fetch(`${config.apiUrl}${endpoint}?${queryString}`);
         return data;
     } else if (requestType === 'POST') {
         const data = await fetch(`${config.apiUrl}${endpoint}`, {
@@ -23,19 +24,21 @@ const fetchData = async ({ query, endpoint, requestType }) => {
             body: JSON.stringify(query)
         })
 
+        if (endpoint === 'asset-group-thumbnail') {
+            return data;
+        }
         return data;
     }
 }
+
 const fetchAsset = async ({
-    assetId,
-    dgid,
+    query,
     returnUrl = false,
     thumbnail = false,
-    group = false
 }) => {
-    const endpoint = parseEndpoint({ thumbnail, group });
+    const endpoint = parseEndpoint({ thumbnail, group: !!query?.groupBy });
     const requestType = parseRequestType(endpoint);
-    const data = await fetchData({ query: { dgid, assetId, thumbnail }, endpoint, requestType});
+    const data = await fetchData({ query, endpoint, requestType});
 
     if (returnUrl) {
         const arrayBuffer = await data.arrayBuffer();

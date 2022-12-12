@@ -1,11 +1,10 @@
 import fetchAsset from '../../../lib/fetchAsset';
 
 
-const ImageCell = async ({ value, dgid, expanded }) => {
+const ImageCell = async ({ value, query, expanded }) => {
     const { type, assetType, assetId } = value;
-
-    const image = await fetchAsset({ assetId, dgid, returnUrl: true, thumbnail: !expanded });
-    console.log(image)
+    const { dgid } = query;
+    const image = await fetchAsset({ query: { assetId, dgid }, returnUrl: true, thumbnail: !expanded });
 
     return (
             <div className="cell-content">
