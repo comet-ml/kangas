@@ -115,3 +115,19 @@ Or run the snippet from a Colab notebook in the following way
 
 https://user-images.githubusercontent.com/7529846/206373126-829e56b7-a340-4300-ac23-1eca7f1768bc.mp4
 
+## Using DataGrid with Existing Hugging Face Datasets
+
+If you already have a dataset hosted on the Hub, Kangas also supports directly loading the dataset for analysis from the CLI.
+
+```
+kangas server <dataset name> --split "val"
+```
+
+For example to load the `test` set of the `imdb` dataset, you would run
+
+```
+kangas server imdb --split "test"
+```
+
+This command will automatically download the dataset from the hub and start the Kangas UI with the dataset loaded into it.
+
