@@ -131,3 +131,4 @@ kangas server imdb --split "test"
 
 This command will automatically download the dataset from the hub and start the Kangas UI with the dataset loaded into it.
 
+https://user-images.githubusercontent.com/7529846/207111507-0671cbb5-e3b7-4e79-905b-b3032f25b0f9.mp4
