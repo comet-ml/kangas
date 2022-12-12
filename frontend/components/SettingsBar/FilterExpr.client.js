@@ -45,8 +45,11 @@ const FilterExpr = ({ query, columns, completions }) => {
     const onChangeSelect = useCallback((trigger, slug) => {
 	if (trigger === '{') {
 	    return `{${slug}}`;
+	} else if (trigger.endsWith('.')) {
+	    return `${trigger}${slug}`;
+	} else {
+	    return ` ${slug}`;
 	}
-	else return `${trigger}${slug}`;
     }, [query, refresh]);
 
     const triggers = useMemo(() => {

@@ -386,63 +386,69 @@ def get_completions(dgid):
     conn = sqlite3.connect(db_path)
     rows = conn.execute("SELECT name, other from metadata;")
     results = defaultdict(list)
-    results.update(
-        {
-            " a": [
-                "and",
-                "AVG()",
-                "any([])",
-                "all([])",
-                "abs()",
-            ],
-            " A": ["AVG()"],
-            " c": ["COUNT()"],
-            " C": ["COUNT()"],
-            " d": ["datetime.date()", "datetime.datetime()"],
-            " f": ["flatten()"],
-            " i": ["in", "is"],
-            " l": ["len()"],
-            " M": ["MAX()", "MIN()"],
-            " m": [
-                "MAX()",
-                "MIN()",
-                "max()",
-                "min()",
-                "math.pi",
-                "math.sqrt()",
-                "math.acos()",
-                "math.acosh()",
-                "math.asin()",
-                "math.asinh()",
-                "math.atan()",
-                "math.atan2()",
-                "math.atanh()",
-                "math.ceil()",
-                "math.cos()",
-                "math.cosh()",
-                "math.degrees()",
-                "math.exp()",
-                "math.floor()",
-                "math.log()",
-                "math.log10()",
-                "math.log2()",
-                "math.radians()",
-                "math.sin()",
-                "math.sinh()",
-                "math.tan()",
-                "math.tanh()",
-                "math.trunc()",
-            ],
-            " n": ["not", "None"],
-            " N": ["None"],
-            " o": ["or"],
-            " r": ["random.random()", "random.randint()", "round()"],
-            " s": ["SUM()", "STDEV()"],
-            " S": ["SUM()", "STDEV()"],
-            " t": ["TOTAL()"],
-            " T": ["TOTAL()"],
-        }
-    )
+    constructs = [
+        "AVG()",
+        "COUNT()",
+        "MAX()",
+        "MIN()",
+        "None",
+        "STDEV()",
+        "SUM()",
+        "TOTAL()",
+        "abs()",
+        "all([])",
+        "and",
+        "any([])",
+        "datetime",
+        "flatten()",
+        "len()",
+        "math",
+        "max()",
+        "min()",
+        "not",
+        "random",
+        "round()",
+    ]
+    for expr in constructs:
+        trigger = expr[:2]
+        results[" " + trigger].append(expr)
+        if trigger != trigger.lower():
+            results[" " + trigger.lower()].append(expr)
+
+    results["datetime."] = [
+        "date()",
+        "datetime()",
+    ]
+    results["random."] = [
+        "randint()",
+        "random()",
+    ]
+    results["math."] = [
+        "acos()",
+        "acosh()",
+        "asin()",
+        "asinh()",
+        "atan()",
+        "atan2()",
+        "atanh()",
+        "ceil()",
+        "cos()",
+        "cosh()",
+        "degrees()",
+        "exp()",
+        "floor()",
+        "log()",
+        "log10()",
+        "log2()",
+        "pi",
+        "radians()",
+        "sin()",
+        "sinh()",
+        "sqrt()",
+        "tan()",
+        "tanh()",
+        "trunc()",
+    ]
     for row in rows:
         name, other = row
         if other:
@@ -450,7 +456,6 @@ def get_completions(dgid):
                 other = json.loads(row[1])
             except Exception:
                 continue
-            print(other)
             if "completions" in other:
                 for comp in other["completions"].keys():
                     if comp == "" and "str" in other["completions"][comp]:
