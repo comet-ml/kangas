@@ -385,7 +385,64 @@ def get_completions(dgid):
     db_path = get_dg_path(dgid)
     conn = sqlite3.connect(db_path)
     rows = conn.execute("SELECT name, other from metadata;")
-    results = defaultdict(set)
+    results = defaultdict(list)
+    results.update(
+        {
+            " a": [
+                "and",
+                "AVG()",
+                "any([])",
+                "all([])",
+                "abs()",
+            ],
+            " A": ["AVG()"],
+            " c": ["COUNT()"],
+            " C": ["COUNT()"],
+            " d": ["datetime.date()", "datetime.datetime()"],
+            " f": ["flatten()"],
+            " i": ["in", "is"],
+            " l": ["len()"],
+            " M": ["MAX()", "MIN()"],
+            " m": [
+                "MAX()",
+                "MIN()",
+                "max()",
+                "min()",
+                "math.pi",
+                "math.sqrt()",
+                "math.acos()",
+                "math.acosh()",
+                "math.asin()",
+                "math.asinh()",
+                "math.atan()",
+                "math.atan2()",
+                "math.atanh()",
+                "math.ceil()",
+                "math.cos()",
+                "math.cosh()",
+                "math.degrees()",
+                "math.exp()",
+                "math.floor()",
+                "math.log()",
+                "math.log10()",
+                "math.log2()",
+                "math.radians()",
+                "math.sin()",
+                "math.sinh()",
+                "math.tan()",
+                "math.tanh()",
+                "math.trunc()",
+            ],
+            " n": ["not", "None"],
+            " N": ["None"],
+            " o": ["or"],
+            " r": ["random.random()", "random.randint()", "round()"],
+            " s": ["SUM()", "STDEV()"],
+            " S": ["SUM()", "STDEV()"],
+            " t": ["TOTAL()"],
+            " T": ["TOTAL()"],
+        }
+    )
     for row in rows:
         name, other = row
         if other:
@@ -393,22 +450,44 @@ def get_completions(dgid):
                 other = json.loads(row[1])
             except Exception:
                 continue
+            print(other)
             if "completions" in other:
-                all_comp = other["completions"].keys()
-                for comp in all_comp:
-                    comp = comp if comp != "" else "."
-                    name = name if not name.endswith("--metadata") else name[:-10]
-                    path, item = comp.rsplit(".", 1)
-                    if item and all(ch in VALID_CHARS for ch in item):
-                        if not path.startswith("."):
-                            path = "." + path
-                        if not path.endswith("."):
-                            path = path + "."
-                        results['{"%s"}%s' % (name, path)].add(item)
-    return {
-        key: sorted(["keys()", "values()"] + list(value))
-        for key, value in results.items()
-    }
+                for comp in other["completions"].keys():
+                    if comp == "" and "str" in other["completions"][comp]:
+                        results['{"%s"}.' % name].extend(
+                            [
+                                "split()",
+                                "upper()",
+                                "lower()",
+                                "strip()",
+                                "lsrtip()",
+                                "rstrip()",
+                                "endswith()",
+                                "startswith()",
+                            ]
+                        )
+                    else:
+                        comp = comp if comp != "" else "."
+                        name = name if not name.endswith("--metadata") else name[:-10]
+                        path, item = comp.rsplit(".", 1)
+                        if item and all(ch in VALID_CHARS for ch in item):
+                            if not path.startswith("."):
+                                path = "." + path
+                            if not path.endswith("."):
+                                path = path + "."
+                            if item not in results['{"%s"}%s' % (name, path)]:
+                                results['{"%s"}%s' % (name, path)].append(item)
+                            if "keys()" not in results['{"%s"}%s' % (name, path)]:
+                                results['{"%s"}%s' % (name, path)].append("keys()")
+                            if "values()" not in results['{"%s"}%s' % (name, path)]:
+                                results['{"%s"}%s' % (name, path)].append("values()")
+
+    return {key: sorted(list(value)) for key, value in results.items()}
+
+
+"""
+strings:
+"""
 
 
 def get_metadata(conn):

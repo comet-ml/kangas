@@ -2200,6 +2200,10 @@ class DataGrid:
                 )
             else:
                 # min, max, avg, variance, total, stddev, other, name
+                if col_type == "TEXT":
+                    completions_serialized = json.dumps({"completions": {"": ["str"]}})
+                else:
+                    completions_serialized = None
                 data.append(
                     [
                         None,
@@ -2208,7 +2212,7 @@ class DataGrid:
                         None,
                         None,
                         None,
-                        None,
+                        completions_serialized,
                         col_name,
                     ]
                 )
