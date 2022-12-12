@@ -6,6 +6,8 @@ For this example, we will use the OpenAI's CLIP model on the CIFAR10 dataset. On
 
 This workflow is a convenient way to save evaluations from your model across multiple datasets and have them accessible in a single location. Saving your datagrids to the Hub lets you share and access your model evaluations from any machine.
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/comet-ml/kangas/blob/main/notebooks/Using_Kangas_Datagrids_with_the_Hugging_Face_Hub.ipynb)
+
 ## Install Dependencies
 
 ```shell
