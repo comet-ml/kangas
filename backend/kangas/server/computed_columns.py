@@ -385,11 +385,14 @@ class Evaluator:
             ops = [self.eval_node(arg) for arg in node.ops]
             left = self.eval_node(node.left)
 
-            if ops[0] == " IN ":
+            if ops[0] in [" IN ", " NOT IN "]:
                 if not (
                     isinstance(comparators[0], str) and comparators[0].startswith("(")
                 ):
-                    return "IN_OBJ(%s, %s)" % (left, comparators[0])
+                    if ops[0] == " IN ":
+                        return "IN_OBJ(%s, %s)" % (left, comparators[0])
+                    elif ops[0] == " NOT IN ":
+                        return "NOT IN_OBJ(%s, %s)" % (left, comparators[0])
 
             retval = ""
             for op, right in zip(ops, comparators):
@@ -437,6 +440,8 @@ class Evaluator:
             return "(" + (", ".join([str(arg) for arg in args])) + ")"
         elif isinstance(node, ast.In):
             return " IN "
+        elif isinstance(node, ast.NotIn):
+            return " NOT IN "
         elif isinstance(node, ast.List):
             args = [self.eval_node(arg) for arg in node.elts]
             if len(args) == 0:

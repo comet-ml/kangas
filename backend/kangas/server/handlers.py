@@ -143,6 +143,7 @@ class HistogramHandler(BaseHandler):
         where_description = data.get("whereDescription", where)
         computed_columns = data.get("computedColumns", None)
         where_expr = data.get("whereExpr", None)
+        where_expr = where_expr.strip() if where_expr else None
 
         if self.ensure_datagrid_path(dgid):
             results = select_histogram(
@@ -187,6 +188,7 @@ class DescriptionHandler(BaseHandler):
         where_description = data.get("whereDescription", where)
         computed_columns = data.get("computedColumns", None)
         where_expr = data.get("whereExpr", None)
+        where_expr = where_expr.strip() if where_expr else None
 
         if self.ensure_datagrid_path(dgid):
             result = select_description(
@@ -218,6 +220,7 @@ class CategoryHandler(BaseHandler):
         where_description = data.get("whereDescription", where)
         computed_columns = data.get("computedColumns", None)
         where_expr = data.get("whereExpr", None)
+        where_expr = where_expr.strip() if where_expr else None
 
         if self.ensure_datagrid_path(dgid):
             result = select_category(
@@ -250,6 +253,7 @@ class AssetGroupHandler(BaseHandler):
         column_limit = data.get("columnLimit", None)
         computed_columns = data.get("computedColumns", None)
         where_expr = data.get("whereExpr", None)
+        where_expr = where_expr.strip() if where_expr else None
 
         if self.ensure_datagrid_path(dgid):
             result = select_asset_group(
@@ -284,6 +288,7 @@ class AssetGroupMetadataHandler(BaseHandler):
         column_limit = data.get("columnLimit", None)
         computed_columns = data.get("computedColumns", None)
         where_expr = data.get("whereExpr", None)
+        where_expr = where_expr.strip() if where_expr else None
         metadata_path = data.get("metadataPath", "labels")
         distinct = data.get("distinct", True)
 
@@ -324,6 +329,7 @@ class AssetGroupThumbnailHandler(BaseHandler):
         border_width = data.get("borderWidth", 1)
         computed_columns = data.get("computedColumns", None)
         where_expr = data.get("whereExpr", None)
+        where_expr = where_expr.strip() if where_expr else None
 
         if self.ensure_datagrid_path(dgid):
             result = select_asset_group_thumbnail(
@@ -362,6 +368,7 @@ class QueryHandler(BaseHandler):
         select = data.get("select", None)
         computed_columns = data.get("computedColumns", None)
         where_expr = data.get("whereExpr", None)
+        where_expr = where_expr.strip() if where_expr else None
 
         if self.ensure_datagrid_path(dgid):
             result = select_query(
@@ -397,6 +404,7 @@ class QueryPageHandler(BaseHandler):
         select = data.get("select", None)
         computed_columns = data.get("computedColumns", None)
         where_expr = data.get("whereExpr", None)
+        where_expr = where_expr.strip() if where_expr else None
 
         if self.ensure_datagrid_path(dgid):
             result = select_query_page(
@@ -424,6 +432,7 @@ class QueryTotalHandler(BaseHandler):
         group_by = data.get("groupBy", None)
         computed_columns = data.get("computedColumns", None)
         where_expr = data.get("whereExpr", None)
+        where_expr = where_expr.strip() if where_expr else None
 
         if self.ensure_datagrid_path(dgid):
             total = select_query_count(
@@ -445,6 +454,7 @@ class VerifyWhereHandler(BaseHandler):
         dgid = self.unquote(data.get("dgid", None))
         computed_columns = data.get("computedColumns", None)
         where_expr = data.get("whereExpr", None)
+        where_expr = where_expr.strip() if where_expr else None
 
         if self.ensure_datagrid_path(dgid):
             result = verify_where(

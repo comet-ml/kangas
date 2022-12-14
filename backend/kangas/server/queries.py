@@ -218,7 +218,10 @@ def FLATTEN(lists):
 
 
 def SPLIT(string, delim=None, maxsplit=-1):
-    return str(string.split(delim, maxsplit))
+    if string:
+        return str(string.split(delim, maxsplit))
+    else:
+        return ""
 
 
 def KEYS_OF(obj):
@@ -383,26 +386,146 @@ def get_completions(dgid):
     conn = sqlite3.connect(db_path)
     rows = conn.execute("SELECT name, other from metadata;")
     results = defaultdict(set)
+    constructs = [
+        "AVG()",
+        "COUNT()",
+        "MAX()",
+        "MIN()",
+        "None",
+        "STDEV()",
+        "SUM()",
+        "TOTAL()",
+        "abs()",
+        "all([])",
+        "and",
+        "any([])",
+        "datetime",
+        "flatten()",
+        "in",
+        "is",
+        "len()",
+        "math",
+        "max()",
+        "min()",
+        "not",
+        "or",
+        "random",
+        "round()",
+    ]
+    for expr in constructs:
+        trigger = expr[:1]
+        results[" " + trigger].add(expr)
+        if trigger != trigger.lower():
+            results[" " + trigger.lower()].add(expr)
+
+    results["datetime."] = [
+        "date()",
+        "datetime()",
+    ]
+    results["random."] = [
+        "randint()",
+        "random()",
+    ]
+    results["math."] = [
+        "acos()",
+        "acosh()",
+        "asin()",
+        "asinh()",
+        "atan()",
+        "atan2()",
+        "atanh()",
+        "ceil()",
+        "cos()",
+        "cosh()",
+        "degrees()",
+        "exp()",
+        "floor()",
+        "log()",
+        "log10()",
+        "log2()",
+        "pi",
+        "radians()",
+        "sin()",
+        "sinh()",
+        "sqrt()",
+        "tan()",
+        "tanh()",
+        "trunc()",
+    ]
+
     for row in rows:
         name, other = row
+        name = name if not name.endswith("--metadata") else name[:-10]
         if other:
             try:
                 other = json.loads(row[1])
             except Exception:
                 continue
             if "completions" in other:
-                all_comp = other["completions"].keys()
-                for comp in all_comp:
-                    comp = comp if comp != "" else "."
-                    name = name if not name.endswith("--metadata") else name[:-10]
-                    path, item = comp.rsplit(".", 1)
-                    if item and all(ch in VALID_CHARS for ch in item):
-                        if not path.startswith("."):
-                            path = "." + path
-                        if not path.endswith("."):
-                            path = path + "."
-                        results['{"%s"}%s' % (name, path)].add(item)
+                for comp in other["completions"].keys():
+                    types = other["completions"][comp]
+                    if comp == "":
+                        if "str" in types:
+                            results['{"%s"}.' % (name,)].update(
+                                [
+                                    "split()",
+                                    "upper()",
+                                    "lower()",
+                                    "strip()",
+                                    "lsrtip()",
+                                    "rstrip()",
+                                    "endswith()",
+                                    "startswith()",
+                                ]
+                            )
+                        if "dict" in types:
+                            results['{"%s"}.' % (name,)].add("keys()")
+                            results['{"%s"}.' % (name,)].add("values()")
+                        continue
+
+                    elif comp.count(".") == 1:
+                        path = "."
+                        item = comp[1:]
+                    else:
+                        path, item = comp.rsplit(".", 1)
+
+                    if not path.endswith("."):
+                        new_path = path + "."
+                    else:
+                        new_path = path
+
+                    if all(ch in VALID_CHARS for ch in item):
+                        results['{"%s"}%s' % (name, new_path)].add(item)
+                        results['{"%s"}%s' % (name, new_path)].add("keys()")
+                        results['{"%s"}%s' % (name, new_path)].add("values()")
+
+                        item_path = (path + "." + item) if path != "." else ("." + item)
+                        if not item_path.endswith("."):
+                            item_path += "."
+
+                        if "str" in types:
+                            results['{"%s"}%s' % (name, item_path)].update(
+                                [
+                                    "split()",
+                                    "upper()",
+                                    "lower()",
+                                    "strip()",
+                                    "lsrtip()",
+                                    "rstrip()",
+                                    "endswith()",
+                                    "startswith()",
+                                ]
+                            )
+                        elif "dict" in types:
+                            results['{"%s"}%s' % (name, item_path)].add("keys()")
+                            results['{"%s"}%s' % (name, item_path)].add("values()")
+
     return {key: sorted(list(value)) for key, value in results.items()}
+
+
+"""
+strings:
+"""
 
 
 def get_metadata(conn):
