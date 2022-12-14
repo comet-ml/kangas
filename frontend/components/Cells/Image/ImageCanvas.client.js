@@ -93,7 +93,7 @@ const CanvasContainer = ({ urls, url, isMulti, strValue, drawImage, assetId, dgi
 
 // TODO Simplify this component + move subcomponents/lib functions out
 
-function computeScale(canvasWidth, canvasHeight, width, height) {
+const computeScale = (canvasWidth, canvasHeight, width, height) => {
     if (width > height) {
         if (width < canvasWidth) {
             return Math.max(width / canvasWidth, canvasWidth / width);

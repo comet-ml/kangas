@@ -1,7 +1,7 @@
+import { Suspense } from "react";
 import config from "../../../config";
 import fetchAsset from "../../../lib/fetchAsset";
 import ImageCanvasClient from "./ImageCanvasClient";
-import { createCanvas, loadImage } from '../../../node_modules/canvas';
 
 const ImageCanvasCell = async ({ value, query, columnName, expanded }) => {
     const { type, assetType, assetId } = value;
@@ -18,7 +18,7 @@ const ImageCanvasCell = async ({ value, query, columnName, expanded }) => {
     })
     const metadata = await data.json()
 
-    return <ImageCanvasClient value={value} query={query} expanded={expanded} metadata={metadata} image={image} />
+    return <Suspense fallback={<>Loading</>}><ImageCanvasClient value={value} query={query} expanded={expanded} metadata={JSON.parse(metadata)} image={image} /></Suspense>
 }
 
 export default ImageCanvasCell;

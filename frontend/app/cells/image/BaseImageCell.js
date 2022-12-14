@@ -1,6 +1,6 @@
 import fetchAsset from '../../../lib/fetchAsset';
 import ImageCanvasCell from './ImageCanvasCell';
-
+import { Suspense } from 'react';
 // TODO create a parseDataURL helper
 
 const PlainImageCell = async ({ value, query, expanded }) => {
@@ -19,7 +19,7 @@ const PlainImageCell = async ({ value, query, expanded }) => {
 };
 
 const ImageCell = ({ value, query, expanded }) => {
-    if (expanded) return <ImageCanvasCell value={value} query={query} expanded={expanded} />
+    if (expanded) return <Suspense fallback={<>Loading</>}><ImageCanvasCell value={value} query={query} expanded={expanded} /></Suspense>
     else return <PlainImageCell value={value} query={query} expanded={expanded} />
 }
 
