@@ -14,6 +14,7 @@ const fetchData = async ({ query, endpoint, requestType }) => {
     if (requestType === 'GET') {
         const queryString = new URLSearchParams(query).toString();
         const data = await fetch(`${config.apiUrl}${endpoint}?${queryString}`);
+        console.log(`${config.apiUrl}${endpoint}?${queryString}`)
         return data;
     } else if (requestType === 'POST') {
         const data = await fetch(`${config.apiUrl}${endpoint}`, {

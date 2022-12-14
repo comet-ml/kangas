@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { EnvContext } from "../../../lib/contexts/EnvContext";
 import computeScale from '../../../lib/computeScale';
-const ImageCanvasClient = ({ value, query, columnName, expanded, metadata, image }) => {
+const ImageCanvasClient = ({ value, query, columnName, metadata, image }) => {
     const canvas = useRef();
     const [scoreRange, setScoreRange] = useState({ min: 0, max: 1 });
 
@@ -11,7 +11,7 @@ const ImageCanvasClient = ({ value, query, columnName, expanded, metadata, image
     const drawImage = useCallback(() => {
         const ctx = canvas.current?.getContext("2d");
         // TODO That funky computeScale business
-        ctx.clearRect(0, 0, canvas.current.width, canvas.current.height);
+        //ctx.clearRect(0, 0, canvas.current.width, canvas.current.height);
 
         const img = new Image;
         img.src = `data:application/octet-stream;base64,${image}`

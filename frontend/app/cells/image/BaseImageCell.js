@@ -3,10 +3,10 @@ import ImageCanvasCell from './ImageCanvasCell';
 import { Suspense } from 'react';
 // TODO create a parseDataURL helper
 
-const PlainImageCell = async ({ value, query, expanded }) => {
+const PlainImageCell = async ({ value, query, expanded=false }) => {
     const { type, assetType, assetId } = value;
     const { dgid } = query;
-    const image = await fetchAsset({ query: { assetId, dgid }, returnUrl: true, thumbnail: !expanded });
+    const image = await fetchAsset({ query: { assetId, dgid, thumbnail: true }, returnUrl: true });
 
     return (
             <div className="cell-content">
@@ -19,8 +19,12 @@ const PlainImageCell = async ({ value, query, expanded }) => {
 };
 
 const ImageCell = ({ value, query, expanded }) => {
-    if (expanded) return <Suspense fallback={<>Loading</>}><ImageCanvasCell value={value} query={query} expanded={expanded} /></Suspense>
-    else return <PlainImageCell value={value} query={query} expanded={expanded} />
+    return (
+        <Suspense fallback={<>Loading</>}>
+            {!!expanded && <ImageCanvasCell value={value} query={query} expanded={true} /> }
+            { !expanded && <PlainImageCell value={value} query={query} expanded={false} /> }
+        </Suspense>
+    )
 }
 
 export default ImageCell;
