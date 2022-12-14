@@ -20,9 +20,8 @@ import urllib
 import webbrowser
 
 import kangas.server
-from kangas.datatypes.utils import download_filename
-
 from kangas import _in_colab_environment, get_localhost, terminate
+from kangas.datatypes.utils import download_filename
 
 try:
     from datasets import load_dataset as huggingface_load_dataset
@@ -40,6 +39,12 @@ def get_parser_arguments(parser):
         help="Open a particular DataGrid; optional, you can select which DataGrid to use in UI",
         type=str,
         nargs="?",
+        default=None,
+    )
+    parser.add_argument(
+        "--filter",
+        help="A filter to be applied to a given DataGrid",
+        type=str,
         default=None,
     )
     parser.add_argument(
@@ -91,6 +96,12 @@ def get_parser_arguments(parser):
         default=None,
     )
     parser.add_argument(
+        "--max-workers",
+        help="Use this flag to set the tornado max_workers",
+        default=None,
+        type=int,
+    )
+    parser.add_argument(
         "--debug",
         help="Use this flag to display output from servers",
         default=False,
@@ -124,6 +135,24 @@ def get_parser_arguments(parser):
         "--split",
         help="If you are viewing a HuggingFace dataset, set the split name",
         type=str,
+        default=None,
+    )
+    parser.add_argument(
+        "--streaming",
+        help="If you are viewing a HuggingFace dataset, load it streaming",
+        default=False,
+        action="store_true",
+    )
+    parser.add_argument(
+        "--seed",
+        help="If you are viewing a HuggingFace dataset, set the seed",
+        type=int,
+        default=None,
+    )
+    parser.add_argument(
+        "--samples",
+        help="If you are viewing a HuggingFace dataset, set the sample value",
+        type=int,
         default=None,
     )
 
@@ -255,18 +284,34 @@ def server(parsed_args, remaining=None):
                 dg = kangas.read_csv(filename)
                 dg.save()
                 filename = dg.filename
+            elif file_type == "json":
+                dg = kangas.read_json(filename)
+                dg.save()
+                filename = dg.filename
             elif file_type == "huggingface":
                 if huggingface_load_dataset is None:
                     raise Exception("requires `pip install datasets`")
 
                 if parsed_args.split is not None:
                     dataset = huggingface_load_dataset(
-                        filename, split=parsed_args.split
+                        filename,
+                        split=parsed_args.split,
+                        streaming=parsed_args.streaming,
                     )
                 else:
                     dataset_splits = huggingface_load_dataset(filename)
                     split = list(dataset_splits.keys())[0]
-                    dataset = huggingface_load_dataset(filename, split=split)
+                    dataset = huggingface_load_dataset(
+                        filename, split=split, streaming=parsed_args.streaming
+                    )
+
+                if parsed_args.seed is not None:
+                    dataset = dataset.shuffle(seed=parsed_args.seed)
+                if parsed_args.samples is not None:
+                    try:
+                        dataset = dataset.take(parsed_args.samples)
+                    except AttributeError:
+                        print("Unable to take samples; using entire dataset")
 
                 dg = kangas.DataGrid(dataset)
                 dg.save()
@@ -275,6 +320,8 @@ def server(parsed_args, remaining=None):
                 raise Exception("Unknown file type: %r" % file_type)
 
             query_vars["datagrid"] = filename
+            if parsed_args.filter:
+                query_vars["filter"] = parsed_args.filter
         if query_vars:
             url = "%s?%s" % (host, urllib.parse.urlencode(query_vars))
         else:
@@ -289,7 +336,9 @@ def server(parsed_args, remaining=None):
         )
         try:
             kangas.server.start_tornado_server(
-                port=KANGAS_BACKEND_PORT, debug=parsed_args.debug
+                port=KANGAS_BACKEND_PORT,
+                debug=parsed_args.debug,
+                max_workers=parsed_args.max_workers,
             )
         except Exception:
             print("Unable to start backend; perhaps already running")

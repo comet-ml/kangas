@@ -11,5 +11,27 @@
 #    All rights reserved                             #
 ######################################################
 
-version_info = (1, 3, 3)
-__version__ = ".".join(map(str, version_info))
+import kangas as kg
+
+
+def make_datagrid():
+    dg = kg.DataGrid()
+    dg.append([1, 2, 3, 4])
+    dg.append([1, 2, 3, 4])
+    dg.append([1, 2, 3, 4])
+    dg.save()
+    return dg
+
+
+def test_append_column_int():
+    dg = make_datagrid()
+    dg.append_column("New Integer", ["5", "5", "5"])
+    for row in range(3):
+        assert dg[row][4] == 5
+
+
+def test_append_column_computed_column():
+    dg = make_datagrid()
+    dg.append_column("New Column", "{'A'} + {'B'} + {'ROW-ID'}")
+    for row in range(3):
+        assert dg[row][4] == 3 + row + 1

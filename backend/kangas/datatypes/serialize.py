@@ -11,6 +11,7 @@
 #    All rights reserved                             #
 ######################################################
 
+import ast
 import datetime
 import json
 
@@ -46,6 +47,8 @@ def serialize_string_function(datagrid, item):
         return None
 
     item = str(item)
+    if len(item) > datagrid.MAX_COL_STRING_LENGTH:
+        print("Truncating string: %r" % item)
     return item[: datagrid.MAX_COL_STRING_LENGTH]
 
 
@@ -67,10 +70,28 @@ def serialize_json_function(datagrid, item):
     if is_null(item):
         return None
 
-    if isinstance(item, (dict,)):
+    if isinstance(item, (dict, list, tuple)):
         return json.dumps(item)
     else:
         raise Exception("Can't convert %r to JSON" % item)
+
+
+def serialize_vector_function(datagrid, item):
+    if is_null(item):
+        return None
+
+    if isinstance(item, (list, tuple)):
+        return json.dumps(item)
+    elif hasattr(item, "tolist"):
+        return str(item.tolist()).replace("nan", "None")
+    else:
+        raise Exception("Can't convert %r to vector repr" % item)
+
+
+def unserialize_vector(datagrid, row, column_name):
+    value = row[column_name]
+    if value is not None:
+        return ast.literal_eval(value)
 
 
 def log_and_serialize_function(datagrid, item):
@@ -131,6 +152,11 @@ DATAGRID_TYPES = {
         "types": [dict],
         "serialize": serialize_json_function,
         "unserialize": unserialize,
+    },
+    "VECTOR": {
+        "types": [],
+        "serialize": serialize_vector_function,
+        "unserialize": unserialize_vector,
     },
 }
 

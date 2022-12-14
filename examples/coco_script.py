@@ -47,7 +47,7 @@ Example filters to try in the UI:
 3. Images with a lot of person segments: `{"image"}.labels.person > 16`
 4. Images of a certain size:  `{"image"}.image.width > 600`
 5. Images with exactly one segment in them: `{"image"}.count == 1`
-6. Image with the most toilets: `{"image"}.labels.toilet > 10`
+6. Image with the most toilets: `{"image"}.labels.toilet > 9`
 """
 
 import json

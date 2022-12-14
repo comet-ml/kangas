@@ -32,7 +32,7 @@ const StatusText = ({ status }) => {
 	  );
 };
 
-const SettingsBarServer = ({ query, matrices, columns, options, status='loading' }) => {
+const SettingsBarServer = ({ query, matrices, columns, options, status='loading', completions }) => {
     return (
         <div id="settings-bar">
             <div id="nav-bar-1">
@@ -45,7 +45,7 @@ const SettingsBarServer = ({ query, matrices, columns, options, status='loading'
                 </div>
             </div>
             <div id="nav-bar">
-                <SelectRow columns={columns} query={query} options={options} />
+                <SelectRow columns={columns} query={query} options={options} completions={completions} />
             </div>
         </div>
     );

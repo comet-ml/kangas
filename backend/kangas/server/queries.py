@@ -18,8 +18,9 @@ import math
 import os
 import re
 import sqlite3
+import string
 import time
-from collections import Counter
+from collections import Counter, defaultdict
 
 import numpy as np
 from PIL import Image
@@ -29,7 +30,6 @@ from ..datatypes.utils import (
     generate_thumbnail,
     image_to_fp,
     is_nan,
-    make_dict_factory,
     pytype_to_dgtype,
 )
 from .computed_columns import update_state
@@ -49,7 +49,100 @@ from traceback import format_exc
 import math
 """
 
-# based on: https://stackoverflow.com/questions/2298339/standard-deviation-for-sqlite
+VALID_CHARS = string.ascii_letters + string.digits + "_"
+
+
+def safe_builtin_funcs():
+    return {
+        "abs": abs,
+        "all": all,
+        "any": any,
+        "ascii": ascii,
+        "bin": bin,
+        "bool": bool,
+        "bytes": bytes,
+        "callable": callable,
+        "chr": chr,
+        "complex": complex,
+        "dict": dict,
+        "dir": dir,
+        "divmod": divmod,
+        "enumerate": enumerate,
+        "filter": filter,
+        "float": float,
+        "format": format,
+        "hasattr": hasattr,
+        "hash": hash,
+        "hex": hex,
+        "id": id,
+        "int": int,
+        "isinstance": isinstance,
+        "issubclass": issubclass,
+        "iter": iter,
+        "len": len,
+        "list": list,
+        "map": map,
+        "max": max,
+        "min": min,
+        "oct": oct,
+        "ord": ord,
+        "pow": pow,
+        "range": range,
+        "repr": repr,
+        "reversed": reversed,
+        "round": round,
+        "set": set,
+        "slice": slice,
+        "sorted": sorted,
+        "str": str,
+        "sum": sum,
+        "tuple": tuple,
+        "type": type,
+        "zip": zip,
+    }
+
+
+try:
+    import RestrictedPython
+    import RestrictedPython.Eval
+    import RestrictedPython.Guards
+
+    def safe_compile(source):
+        return RestrictedPython.compile_restricted_eval(source).code
+
+    def safe_builtins():
+        env = RestrictedPython.Guards.safe_builtins.copy()
+        env.update(safe_builtin_funcs())
+        return env
+
+    def safe_env(**kwargs):
+        env = {
+            "_getattr_": getattr,
+            "_getitem_": RestrictedPython.Eval.default_guarded_getitem,
+            "_getiter_": RestrictedPython.Eval.default_guarded_getiter,
+            "_iter_unpack_sequence_": RestrictedPython.Guards.guarded_iter_unpack_sequence,
+            "__name__": "restricted namespace",
+            "__builtins__": safe_builtins(),
+        }
+        env.update(kwargs)
+        return env
+
+except Exception:
+
+    def safe_compile(source):
+        return compile(source, "<string>", "eval")
+
+    def safe_env(**kwargs):
+        env = {
+            "__builtins__": safe_builtins(),
+        }
+        env.update(kwargs)
+        return env
+
+    def safe_builtins():
+        env = {}
+        env.update(safe_builtin_funcs())
+        return env
 
 
 def parse_comma_separated_values(string):
@@ -89,6 +182,7 @@ def parse_comma_separated_values(string):
     return retval
 
 
+# based on: https://stackoverflow.com/questions/2298339/standard-deviation-for-sqlite
 class StdevFunc:
     def __init__(self):
         self.M = 0.0
@@ -111,11 +205,327 @@ class StdevFunc:
         return math.sqrt(self.S / (self.k - 1))  # To use MySQL version, change to k-2
 
 
+def FLATTEN(lists):
+    if lists:
+        try:
+            return str(
+                [item for sublist in ast.literal_eval(lists) for item in sublist]
+            )
+        except Exception:
+            pass
+
+    return "[]"
+
+
+def SPLIT(string, delim=None, maxsplit=-1):
+    if string:
+        return str(string.split(delim, maxsplit))
+    else:
+        return ""
+
+
+def KEYS_OF(obj):
+    if obj:
+        try:
+            return str(list(ast.literal_eval(obj).keys()))
+        except Exception:
+            pass
+
+    return "[]"
+
+
+def VALUES_OF(obj):
+    if obj:
+        try:
+            return str(list(ast.literal_eval(obj).values()))
+        except Exception:
+            pass
+
+    return "[]"
+
+
+def LENGTH(string_or_obj):
+    ## Comes in as a string, but might be "[...]"
+    if string_or_obj:
+        try:
+            return len(ast.literal_eval(string_or_obj))
+        except Exception:
+            return len(string_or_obj)
+    return 0
+
+
+def IN_OBJ(item, string_or_obj):
+    if string_or_obj:
+        try:
+            return item in list(ast.literal_eval(string_or_obj))
+        except Exception:
+            return item in string_or_obj
+    return False
+
+
+def ANY_IN_GROUP(group):
+    if group:
+        try:
+            decoded_group = ast.literal_eval(group)
+        except Exception:
+            decoded_group = None
+        if isinstance(decoded_group, list):
+            group_decoded = [x for x in decoded_group]
+            return any(group_decoded)
+
+    return False
+
+
+def ALL_IN_GROUP(group):
+    ## This varies from Python semantics: if you are looking for all
+    ## then it doesn't make sense to return True if the list
+    ## is empty
+    if group:
+        try:
+            decoded_group = ast.literal_eval(group)
+        except Exception:
+            decoded_group = None
+        if isinstance(decoded_group, list):
+            group_decoded = [x for x in decoded_group]
+        group_decoded = [x for x in decoded_group]
+        return all(group_decoded)
+
+    return False
+
+
+def process_results(value):
+    if value is True:
+        return "1"
+    elif value is False:
+        return "0"
+    else:
+        return repr(value)
+
+
+def unescape(string):
+    if string:
+        return string.replace("&#39;", "'").replace("&#34;", '"').replace("&#44;", ",")
+    else:
+        return ""
+
+
+def ListComprehension(x, y, gen, ifs):
+    ## [x for y in gen ifs]
+    results = []
+    gen = unescape(gen)
+    if gen:
+        x, y = unescape(x), unescape(y)
+        code = safe_compile(x)
+        env = safe_env()
+        try:
+            ## FIXME: a string that is a number is json-like
+            decoded_gen = ast.literal_eval(gen)
+        except Exception:
+            decoded_gen = gen
+
+        ## first, we prepare ifs:
+        if ifs:
+            decoded_ifs = [unescape(exp) for exp in ifs.split(",")]
+        else:
+            decoded_ifs = []
+        compiled_ifs = [safe_compile(exp) for exp in decoded_ifs]
+
+        # dict:
+        if isinstance(decoded_gen, dict):
+            env[y] = decoded_gen
+
+            # Short circuit logic:
+            doit = all(eval(exp, env) for exp in compiled_ifs)
+
+            if doit:
+                try:
+                    result = eval(code, env)
+                except Exception:
+                    result = None
+                if result is not None:
+                    results.append(process_results(result))
+        else:
+            # List of dicts:
+            for row in decoded_gen:
+                # so that item.key will be found:
+                env[y] = row
+
+                doit = all([eval(exp, env) for exp in compiled_ifs])
+
+                if not doit:
+                    continue
+
+                try:
+                    result = eval(code, env)
+                except Exception:
+                    result = None
+                if result is not None:
+                    results.append(process_results(result))
+    retval = "[" + (",".join(results)) + "]"
+    return retval
+
+
 def get_database_connection(dgid):
     db_path = get_dg_path(dgid)
     conn = sqlite3.connect(db_path)
     conn.create_aggregate("STDEV", 1, StdevFunc)
+    conn.create_function("ANY_IN_GROUP", 1, ANY_IN_GROUP)
+    conn.create_function("ALL_IN_GROUP", 1, ALL_IN_GROUP)
+    conn.create_function("FLATTEN", 1, FLATTEN)
+    conn.create_function("SPLIT", -1, SPLIT)
+    conn.create_function("LENGTH", 1, LENGTH)
+    conn.create_function("KEYS_OF", 1, KEYS_OF)
+    conn.create_function("VALUES_OF", 1, VALUES_OF)
+    conn.create_function("IN_OBJ", 2, IN_OBJ)
+    conn.create_function("ListComprehension", 4, ListComprehension)
     return conn
+
+
+def get_completions(dgid):
+    db_path = get_dg_path(dgid)
+    conn = sqlite3.connect(db_path)
+    rows = conn.execute("SELECT name, other from metadata;")
+    results = defaultdict(set)
+    constructs = [
+        "AVG()",
+        "COUNT()",
+        "MAX()",
+        "MIN()",
+        "None",
+        "STDEV()",
+        "SUM()",
+        "TOTAL()",
+        "abs()",
+        "all([])",
+        "and",
+        "any([])",
+        "datetime",
+        "flatten()",
+        "in",
+        "is",
+        "len()",
+        "math",
+        "max()",
+        "min()",
+        "not",
+        "or",
+        "random",
+        "round()",
+    ]
+    for expr in constructs:
+        trigger = expr[:1]
+        results[" " + trigger].add(expr)
+        if trigger != trigger.lower():
+            results[" " + trigger.lower()].add(expr)
+
+    results["datetime."] = [
+        "date()",
+        "datetime()",
+    ]
+    results["random."] = [
+        "randint()",
+        "random()",
+    ]
+    results["math."] = [
+        "acos()",
+        "acosh()",
+        "asin()",
+        "asinh()",
+        "atan()",
+        "atan2()",
+        "atanh()",
+        "ceil()",
+        "cos()",
+        "cosh()",
+        "degrees()",
+        "exp()",
+        "floor()",
+        "log()",
+        "log10()",
+        "log2()",
+        "pi",
+        "radians()",
+        "sin()",
+        "sinh()",
+        "sqrt()",
+        "tan()",
+        "tanh()",
+        "trunc()",
+    ]
+
+    for row in rows:
+        name, other = row
+        name = name if not name.endswith("--metadata") else name[:-10]
+        if other:
+            try:
+                other = json.loads(row[1])
+            except Exception:
+                continue
+            if "completions" in other:
+                for comp in other["completions"].keys():
+                    types = other["completions"][comp]
+                    if comp == "":
+                        if "str" in types:
+                            results['{"%s"}.' % (name,)].update(
+                                [
+                                    "split()",
+                                    "upper()",
+                                    "lower()",
+                                    "strip()",
+                                    "lsrtip()",
+                                    "rstrip()",
+                                    "endswith()",
+                                    "startswith()",
+                                ]
+                            )
+                        if "dict" in types:
+                            results['{"%s"}.' % (name,)].add("keys()")
+                            results['{"%s"}.' % (name,)].add("values()")
+                        continue
+
+                    elif comp.count(".") == 1:
+                        path = "."
+                        item = comp[1:]
+                    else:
+                        path, item = comp.rsplit(".", 1)
+
+                    if not path.endswith("."):
+                        new_path = path + "."
+                    else:
+                        new_path = path
+
+                    if all(ch in VALID_CHARS for ch in item):
+                        results['{"%s"}%s' % (name, new_path)].add(item)
+                        results['{"%s"}%s' % (name, new_path)].add("keys()")
+                        results['{"%s"}%s' % (name, new_path)].add("values()")
+
+                        item_path = (path + "." + item) if path != "." else ("." + item)
+                        if not item_path.endswith("."):
+                            item_path += "."
+
+                        if "str" in types:
+                            results['{"%s"}%s' % (name, item_path)].update(
+                                [
+                                    "split()",
+                                    "upper()",
+                                    "lower()",
+                                    "strip()",
+                                    "lsrtip()",
+                                    "rstrip()",
+                                    "endswith()",
+                                    "startswith()",
+                                ]
+                            )
+                        elif "dict" in types:
+                            results['{"%s"}%s' % (name, item_path)].add("keys()")
+                            results['{"%s"}%s' % (name, item_path)].add("values()")
+
+    return {key: sorted(list(value)) for key, value in results.items()}
+
+
+"""
+strings:
+"""
 
 
 def get_metadata(conn):
@@ -878,70 +1288,6 @@ def select_asset_group_metadata(
     return sorted(list(results))
 
 
-def query_sql(
-    datagrid,
-    column_name_map,
-    where_expr,
-    sort_by,
-    sort_desc,
-    to_dicts,
-    count,
-):
-    dgid = datagrid.filename
-    public_columns = datagrid.get_columns()
-
-    conn = sqlite3.connect(dgid)
-    metadata = get_metadata(conn)
-    columns = list(metadata.keys())
-    select_expr_as = [get_field_name(column, metadata) for column in columns]
-    databases = ["datagrid"]
-    computed_columns = None
-
-    where_sql = update_state(
-        dgid,
-        computed_columns,
-        metadata,
-        databases,
-        columns,
-        select_expr_as,
-        where_expr,
-    )
-    sort_by_field_name = get_field_name(sort_by, metadata) if sort_by else "rowid"
-    sort_desc = "DESC" if sort_desc else "ASC"
-
-    if not count:
-        conn.row_factory = make_dict_factory(column_name_map)
-    cursor = conn.cursor()
-    if count:
-        sql = "SELECT COUNT(*) FROM {databases} WHERE {where};"
-    else:
-        sql = "SELECT {select_expr_as} FROM {databases} WHERE {where} ORDER BY {sort_by_field_name} {sort_desc};"
-    env = {
-        "select_expr_as": ", ".join(select_expr_as),
-        "where": where_sql,
-        "sort_desc": sort_desc,
-        "sort_by_field_name": sort_by_field_name,
-        "databases": ", ".join(databases),
-    }
-    sql_expr = sql.format(**env)
-    results = cursor.execute(sql_expr)
-    if count:
-        for row in results:
-            yield row
-    else:
-        for row in results:
-            if to_dicts:
-                yield {
-                    column_name: datagrid._value_to_asset(row, column_name)
-                    for column_name in public_columns
-                }
-            else:
-                yield [
-                    datagrid._value_to_asset(row, column_name)
-                    for column_name in public_columns
-                ]
-
-
 def verify_where(
     dgid,
     computed_columns,
@@ -1003,7 +1349,134 @@ def verify_where(
     return {"valid": True, "message": "Query is valid"}
 
 
+def query_sql(
+    datagrid,
+    column_name_map,
+    where_expr,
+    sort_by,
+    sort_desc,
+    count,
+    computed_columns=None,
+    limit=None,
+    offset=0,
+):
+    dgid = datagrid.filename
+    select_columns = datagrid.get_columns()
+    if computed_columns:
+        computed_columns = {
+            key: {"field_expr": value, "field_name": "cc%d" % i, "type": "STRING"}
+            for i, (key, value) in enumerate(computed_columns.items())
+        }
+        select_columns.extend(list(computed_columns.keys()))
+    else:
+        computed_columns = {}
+
+    if count:
+        results = select_query_count(
+            dgid=dgid,
+            group_by=None,
+            computed_columns=computed_columns,
+            where_expr=where_expr,
+        )
+        return results
+    else:
+        results = select_query_page(
+            dgid=dgid,
+            offset=offset,
+            group_by=None,
+            sort_by=sort_by,
+            sort_desc=sort_desc,
+            where=None,
+            limit=limit,
+            select_columns=select_columns,
+            computed_columns=computed_columns,
+            where_expr=where_expr,
+        )
+        return results["rows"]
+
+
+def select_query_count(
+    dgid,
+    group_by,
+    computed_columns,
+    where_expr=None,
+):
+    conn = get_database_connection(dgid)
+    cur = conn.cursor()
+    metadata = get_metadata(conn)
+    columns = list(metadata.keys())
+    select_expr_as = [get_field_name(column, metadata) for column in columns]
+    databases = ["datagrid"]
+    where = None
+
+    if computed_columns or where_expr:
+        where_sql = update_state(
+            dgid,
+            computed_columns,
+            metadata,
+            databases,
+            columns,
+            select_expr_as,
+            where_expr,
+        )
+        if where_sql:
+            where = where_sql
+
+    where = where if where else "1"
+
+    env = {
+        "where": where,
+        "select_expr_as": ", ".join(select_expr_as),
+        "databases": ", ".join(databases),
+    }
+
+    if group_by:
+        env["group_by_field_name"] = get_field_name(group_by, metadata)
+        total_sql = "SELECT COUNT() from (SELECT {select_expr_as} FROM {databases} GROUP BY {group_by_field_name});"
+    else:
+        total_sql = "SELECT COUNT() FROM (SELECT {select_expr_as} FROM {databases} WHERE {where});"
+    selection_sql = total_sql.format(**env)
+    LOGGER.info("SQL %s", selection_sql)
+    start_time = time.time()
+    total_rows = cur.execute(selection_sql).fetchone()[0]
+    LOGGER.info("SQL %s seconds", time.time() - start_time)
+    return total_rows
+
+
 def select_query(
+    dgid,
+    offset,
+    group_by,
+    sort_by,
+    sort_desc,
+    where,
+    limit,
+    select_columns,
+    computed_columns,
+    where_expr=None,
+):
+    result = select_query_page(
+        dgid,
+        offset,
+        group_by,
+        sort_by,
+        sort_desc,
+        where,
+        limit,
+        select_columns,
+        computed_columns,
+        where_expr,
+    )
+    result["total"] = select_query_count(
+        dgid,
+        group_by,
+        computed_columns,
+        where_expr,
+    )
+    return result
+
+
+def select_query_page(
     dgid,
     offset,
     group_by,
@@ -1041,6 +1514,7 @@ def select_query(
             where = where_sql
 
     where = where if where else "1"
+    limit = ("LIMIT %s OFFSET %s" % (limit, offset)) if limit is not None else ""
 
     # Metadata now has computed_columns:
     if select_columns:
@@ -1061,7 +1535,6 @@ def select_query(
         group_by_field_name = get_field_name(group_by, metadata)
         env = {
             "limit": limit,
-            "offset": offset,
             "group_by_field_name": group_by_field_name,
             "sort_by_field_name": sort_by_field_name,
             "where": where,
@@ -1070,11 +1543,10 @@ def select_query(
             "select_fields": ", ".join(select_fields),
             "databases": ", ".join(databases),
         }
-        select_sql = "SELECT {select_expr_as} FROM {databases} WHERE {where} GROUP BY {group_by_field_name} ORDER BY {sort_by_field_name} {sort_desc} LIMIT {limit} OFFSET {offset}"
+        select_sql = "SELECT {select_expr_as} FROM {databases} WHERE {where} GROUP BY {group_by_field_name} ORDER BY {sort_by_field_name} {sort_desc} {limit}"
     else:
         env = {
             "limit": limit,
-            "offset": offset,
             "sort_by_field_name": sort_by_field_name,
             "where": where,
             "sort_desc": sort_desc,
@@ -1082,7 +1554,7 @@ def select_query(
             "select_fields": ", ".join(select_fields),
             "databases": ", ".join(databases),
         }
-        select_sql = "SELECT {select_expr_as} FROM {databases} WHERE {where} ORDER BY {sort_by_field_name} {sort_desc} LIMIT {limit} OFFSET {offset}"
+        select_sql = "SELECT {select_expr_as} FROM {databases} WHERE {where} ORDER BY {sort_by_field_name} {sort_desc} {limit}"
 
     if len(select_columns) != len(columns):
         select_sql = "SELECT {select_fields} FROM (%s);" % select_sql
@@ -1101,7 +1573,6 @@ def select_query(
     rows = cur.fetchall()
 
     if group_by:
-        total_sql = "SELECT COUNT() from (SELECT {select_expr_as} FROM {databases} GROUP BY {group_by_field_name});"
         group_by_field_name = get_field_name(group_by, metadata)
         # Add cell messages for groups and assets:
         rows = list(rows)
@@ -1155,7 +1626,6 @@ def select_query(
 
             rows[r] = row
     else:
-        total_sql = "SELECT COUNT() FROM (SELECT {select_expr_as} FROM {databases} WHERE {where});"
         # Add asset messages:
         rows = list(rows)
         for r in range(len((rows))):
@@ -1182,12 +1652,6 @@ def select_query(
 
             rows[r] = row
 
-    selection_sql = total_sql.format(**env)
-    LOGGER.info("SQL %s", selection_sql)
-    start_time = time.time()
-    total_rows = cur.execute(selection_sql).fetchone()[0]
-    LOGGER.info("SQL %s seconds", time.time() - start_time)
-
     for column in remove_columns:
         select_columns.remove(column)
 
@@ -1198,7 +1662,6 @@ def select_query(
         ],
         "nrows": len(rows),
         "ncols": len(select_columns),
-        "total": total_rows,
         "rows": rows,
     }
 

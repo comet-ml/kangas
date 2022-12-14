@@ -20,7 +20,8 @@ import numbers
 import os
 import re
 import shutil
-import urllib
+import urllib.parse
+import urllib.request
 import uuid
 
 import numpy as np
@@ -32,6 +33,7 @@ THUMBNAIL_SIZE = (100, 55)  # width, height
 RESERVED_NAMES = ["ROW-ID"]
 LOGGER = logging.getLogger(__name__)
 INFINITY = float("inf")
+CONVERSION_METHODS = ["as_py", "to_pydatetime"]
 
 
 def contain(image, size, method=None):
@@ -122,6 +124,18 @@ def make_dict_factory(column_name_map):
     return dict_factory
 
 
+def all_numbers(item):
+    # Possibly nested
+    if item is None:
+        return True
+    elif isinstance(item, numbers.Number):
+        return True
+    elif isinstance(item, (list, tuple)):
+        return all(all_numbers(v) for v in item)
+    else:
+        return False
+
+
 def pytype_to_dgtype(item):
     import PIL.Image
 
@@ -130,16 +144,30 @@ def pytype_to_dgtype(item):
     if is_null(item):
         return None
 
-    if hasattr(item, "item") and callable(item.item):
-        ## numpy types
-        item = item.item()
-
     if isinstance(item, PIL.Image.Image):
         return "IMAGE-ASSET"
+
+    if isinstance(item, (list, tuple)):
+        if all_numbers(item):
+            return "VECTOR"
+        else:
+            return "JSON"
+
+    if hasattr(item, "item") and callable(item.item):
+        ## numpy types
+        try:
+            item = item.item()
+        except Exception:
+            pass
+
+    if hasattr(item, "tolist") and not isinstance(item, numbers.Number):
+        ## numpy arrays
+        return "VECTOR"
 
     for ctype in DATAGRID_TYPES:
         if isinstance(item, tuple(DATAGRID_TYPES[ctype]["types"])):
             return ctype
+
     raise ValueError("unknown type: %r" % type(item))
 
 
@@ -253,6 +281,11 @@ def convert_to_value(
             converter = converters[colname]
             return converter(value)
 
+    while any([hasattr(value, method) for method in CONVERSION_METHODS]):
+        for method in CONVERSION_METHODS:
+            if hasattr(value, method):
+                value = getattr(value, method)()
+
     if isinstance(value, str):
         return convert_string_to_value(
             value, heuristics, datetime_format, colname, converters
@@ -320,7 +353,10 @@ def convert_string_to_value(
     match = re.match(r"^([-+]?[\d]+\.?[\d]*[Ee](?:[-+]?[\d]+)?)$", value)
     if match:
         value = match.groups()[0]
-        return float(value)
+        try:
+            return float(value)
+        except Exception:
+            return value
 
     # integers, including currency
     match = re.match(r"^[\$]?([-+]?[,\d]+)$", value)

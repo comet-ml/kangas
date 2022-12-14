@@ -26,6 +26,7 @@ import sys
 import urllib
 
 import tornado
+from tornado.concurrent import run_on_executor
 from tornado.web import RequestHandler
 
 from .._version import __version__
@@ -33,6 +34,7 @@ from ..datatypes.utils import THUMBNAIL_SIZE
 from .queries import (
     KANGAS_ROOT,
     custom_output,
+    get_completions,
     get_datagrid_timestamp,
     get_dg_path,
     get_fields,
@@ -47,6 +49,8 @@ from .queries import (
     select_histogram,
     select_metadata,
     select_query,
+    select_query_count,
+    select_query_page,
     verify_where,
 )
 
@@ -124,6 +128,7 @@ class BaseHandler(RequestHandler):
 
 
 class HistogramHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def post(self):
         # Required:
@@ -138,6 +143,7 @@ class HistogramHandler(BaseHandler):
         where_description = data.get("whereDescription", where)
         computed_columns = data.get("computedColumns", None)
         where_expr = data.get("whereExpr", None)
+        where_expr = where_expr.strip() if where_expr else None
 
         if self.ensure_datagrid_path(dgid):
             results = select_histogram(
@@ -153,7 +159,21 @@ class HistogramHandler(BaseHandler):
             self.write_json(results)
 
 
+class CompletionsHandler(BaseHandler):
+    @run_on_executor
+    @auth_wrapper
+    def post(self):
+        # Required:
+        data = tornado.escape.json_decode(self.request.body)
+        dgid = self.unquote(data.get("dgid", None))
+
+        if self.ensure_datagrid_path(dgid):
+            results = get_completions(dgid)
+            self.write_json(results)
+
+
 class DescriptionHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def post(self):
         # Required:
@@ -168,6 +188,7 @@ class DescriptionHandler(BaseHandler):
         where_description = data.get("whereDescription", where)
         computed_columns = data.get("computedColumns", None)
         where_expr = data.get("whereExpr", None)
+        where_expr = where_expr.strip() if where_expr else None
 
         if self.ensure_datagrid_path(dgid):
             result = select_description(
@@ -184,6 +205,7 @@ class DescriptionHandler(BaseHandler):
 
 
 class CategoryHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def post(self):
         # Required:
@@ -198,6 +220,7 @@ class CategoryHandler(BaseHandler):
         where_description = data.get("whereDescription", where)
         computed_columns = data.get("computedColumns", None)
         where_expr = data.get("whereExpr", None)
+        where_expr = where_expr.strip() if where_expr else None
 
         if self.ensure_datagrid_path(dgid):
             result = select_category(
@@ -214,6 +237,7 @@ class CategoryHandler(BaseHandler):
 
 
 class AssetGroupHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def post(self):
         # Required:
@@ -229,6 +253,7 @@ class AssetGroupHandler(BaseHandler):
         column_limit = data.get("columnLimit", None)
         computed_columns = data.get("computedColumns", None)
         where_expr = data.get("whereExpr", None)
+        where_expr = where_expr.strip() if where_expr else None
 
         if self.ensure_datagrid_path(dgid):
             result = select_asset_group(
@@ -247,6 +272,7 @@ class AssetGroupHandler(BaseHandler):
 
 
 class AssetGroupMetadataHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def post(self):
         # Required:
@@ -262,6 +288,7 @@ class AssetGroupMetadataHandler(BaseHandler):
         column_limit = data.get("columnLimit", None)
         computed_columns = data.get("computedColumns", None)
         where_expr = data.get("whereExpr", None)
+        where_expr = where_expr.strip() if where_expr else None
         metadata_path = data.get("metadataPath", "labels")
         distinct = data.get("distinct", True)
 
@@ -283,6 +310,7 @@ class AssetGroupMetadataHandler(BaseHandler):
 
 
 class AssetGroupThumbnailHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def post(self):
         # Required:
@@ -301,6 +329,7 @@ class AssetGroupThumbnailHandler(BaseHandler):
         border_width = data.get("borderWidth", 1)
         computed_columns = data.get("computedColumns", None)
         where_expr = data.get("whereExpr", None)
+        where_expr = where_expr.strip() if where_expr else None
 
         if self.ensure_datagrid_path(dgid):
             result = select_asset_group_thumbnail(
@@ -322,6 +351,7 @@ class AssetGroupThumbnailHandler(BaseHandler):
 
 
 class QueryHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def post(self):
         # Required:
@@ -338,6 +368,7 @@ class QueryHandler(BaseHandler):
         select = data.get("select", None)
         computed_columns = data.get("computedColumns", None)
         where_expr = data.get("whereExpr", None)
+        where_expr = where_expr.strip() if where_expr else None
 
         if self.ensure_datagrid_path(dgid):
             result = select_query(
@@ -355,7 +386,67 @@ class QueryHandler(BaseHandler):
             self.write_json(result)
 
 
+class QueryPageHandler(BaseHandler):
+    @run_on_executor
+    @auth_wrapper
+    def post(self):
+        # Required:
+        data = tornado.escape.json_decode(self.request.body)
+        dgid = self.unquote(data.get("dgid", None))
+
+        # Optional selections:
+        offset = data.get("offset", 0)
+        group_by = data.get("groupBy", None)
+        sort_by = data.get("sortBy", None)
+        where = data.get("where", None)
+        limit = data.get("limit", 10)
+        sort_desc = data.get("sortDesc", False)
+        select = data.get("select", None)
+        computed_columns = data.get("computedColumns", None)
+        where_expr = data.get("whereExpr", None)
+        where_expr = where_expr.strip() if where_expr else None
+
+        if self.ensure_datagrid_path(dgid):
+            result = select_query_page(
+                dgid,
+                offset,
+                group_by,
+                sort_by,
+                sort_desc,
+                where,
+                limit,
+                select,
+                computed_columns,
+                where_expr,
+            )
+            self.write_json(result)
+
+
+class QueryTotalHandler(BaseHandler):
+    @run_on_executor
+    @auth_wrapper
+    def post(self):
+        # Required:
+        data = tornado.escape.json_decode(self.request.body)
+        dgid = self.unquote(data.get("dgid", None))
+        group_by = data.get("groupBy", None)
+        computed_columns = data.get("computedColumns", None)
+        where_expr = data.get("whereExpr", None)
+        where_expr = where_expr.strip() if where_expr else None
+
+        if self.ensure_datagrid_path(dgid):
+            total = select_query_count(
+                dgid,
+                group_by,
+                computed_columns,
+                where_expr,
+            )
+            result = {"total": total}
+            self.write_json(result)
+
+
 class VerifyWhereHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def post(self):
         # Required:
@@ -363,6 +454,7 @@ class VerifyWhereHandler(BaseHandler):
         dgid = self.unquote(data.get("dgid", None))
         computed_columns = data.get("computedColumns", None)
         where_expr = data.get("whereExpr", None)
+        where_expr = where_expr.strip() if where_expr else None
 
         if self.ensure_datagrid_path(dgid):
             result = verify_where(
@@ -374,6 +466,7 @@ class VerifyWhereHandler(BaseHandler):
 
 
 class MetadataHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def post(self):
         # Required:
@@ -386,6 +479,7 @@ class MetadataHandler(BaseHandler):
 
 
 class AssetMetadataHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def post(self):
         # Required:
@@ -399,6 +493,7 @@ class AssetMetadataHandler(BaseHandler):
 
 
 class FieldsHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def post(self):
         # Required:
@@ -412,6 +507,7 @@ class FieldsHandler(BaseHandler):
 
 
 class DownloadHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def get(self):
         # Required:
@@ -429,6 +525,7 @@ class DownloadHandler(BaseHandler):
 
 
 class ListDataGridsHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def get(self):
         result = list_datagrids()
@@ -436,6 +533,7 @@ class ListDataGridsHandler(BaseHandler):
 
 
 class GetDataGridTimestampHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def get(self):
         dgid = self.unquote(
@@ -447,6 +545,7 @@ class GetDataGridTimestampHandler(BaseHandler):
 
 
 class StatusHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def get(self):
         result = {
@@ -463,6 +562,7 @@ class StatusHandler(BaseHandler):
 
 
 class CustomOutputHandler(BaseHandler):
+    @run_on_executor
     @auth_wrapper
     def post(self):
         # Required:
@@ -484,6 +584,8 @@ datagrid_handlers = [
     ("/datagrid/asset-group-thumbnail", AssetGroupThumbnailHandler),
     ("/datagrid/asset-metadata", AssetMetadataHandler),
     ("/datagrid/query", QueryHandler),
+    ("/datagrid/query-total", QueryTotalHandler),
+    ("/datagrid/query-page", QueryPageHandler),
     ("/datagrid/metadata", MetadataHandler),
     ("/datagrid/download", DownloadHandler),
     ("/datagrid/list", ListDataGridsHandler),
@@ -491,4 +593,5 @@ datagrid_handlers = [
     ("/datagrid/verify-where", VerifyWhereHandler),
     ("/datagrid/timestamp", GetDataGridTimestampHandler),
     ("/datagrid/status", StatusHandler),
+    ("/datagrid/completions", CompletionsHandler),
 ]
