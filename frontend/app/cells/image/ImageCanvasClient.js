@@ -3,19 +3,29 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { EnvContext } from "../../../lib/contexts/EnvContext";
 import computeScale from '../../../lib/computeScale';
-const ImageCanvasClient = ({ value, query, columnName, metadata, image }) => {
-    const canvas = useRef();
+import styles from './ImageCanvas.module.scss';
+import classNames from 'classnames/bind';
+
+const cx = classNames.bind(styles);
+
+const ImageCanvasClient = ({ metadata, image }) => {
+    const imageCanvas = useRef();
+    const labelCanvas = useRef();
     const [scoreRange, setScoreRange] = useState({ min: 0, max: 1 });
 
 
     const drawImage = useCallback(() => {
-        const ctx = canvas.current?.getContext("2d");
+        const ctx = imageCanvas.current?.getContext("2d");
         // TODO That funky computeScale business
-        //ctx.clearRect(0, 0, canvas.current.width, canvas.current.height);
+        ctx.clearRect(0, 0, imageCanvas.current.width, imageCanvas.current.height);
 
         const img = new Image;
+        img.onload = () => ctx.drawImage(img, 0, 0)
         img.src = `data:application/octet-stream;base64,${image}`
-        ctx.drawImage(img, 0, 0)
+    }, [image]);
+
+    const drawLabels = useCallback(() => {
+        const ctx = labelCanvas.current?.getContext("2d");
 
         const imageScale = 1;
         // We don't need the alpha statements, since they are constants
@@ -70,15 +80,22 @@ const ImageCanvasClient = ({ value, query, columnName, metadata, image }) => {
                 }
             }
         }
-
-
-    }, [image]);
+    }, [metadata])
 
     useEffect(() => {
-        drawImage()
+        drawImage();
     }, [drawImage]);
 
-    return <canvas ref={canvas} height={600} width={600}  />
+    useEffect(() => {
+        drawLabels();
+    }, [drawLabels]);
+
+    return (
+        <div className={cx('canvas-container')}>
+            <canvas ref={imageCanvas} height={600} width={600} />
+            <canvas ref={labelCanvas} height={600} width={600} />
+        </div>
+    )
 }
 
 export default ImageCanvasClient;
