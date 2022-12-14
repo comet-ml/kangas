@@ -1,7 +1,7 @@
 import fetchAsset from '../../../lib/fetchAsset';
+import ImageCanvasCell from './ImageCanvasCell';
 
-
-const GroupedImageCell = async ({ value, query, columnName, expanded }) => {
+const ThumbnailGroupCell = async ({ value, query, columnName, expanded }) => {
     // TODO Un-hardcode these properties
     const image = await fetchAsset({ 
         query: {
@@ -24,5 +24,10 @@ const GroupedImageCell = async ({ value, query, columnName, expanded }) => {
             </div>
     );
 };
+
+const GroupedImageCell = ({ value, query, columnName, expanded }) => {
+    if (!expanded) return <ThumbnailGroupCell value={value} query={query} columnName={columnName} expanded={expanded} />
+    else return <ImageCanvasCell value={value} query={query} columnName={columnName} expanded={expanded} />
+}
 
 export default GroupedImageCell;

@@ -8,7 +8,7 @@ const Image = ({ value, columnName, query }) => {
             <Base value={value} query={query} />
         </DialogueModal>
     );
-    else  return (
+    else return (
         <DialogueModal toggleElement={<Grouped value={value} columnName={columnName} query={query} />}>
             <Grouped value={value} columnName={columnName} query={query} expanded={true} />
         </DialogueModal>
