@@ -1,6 +1,7 @@
 import fetchAsset from '../../../lib/fetchAsset';
 import ImageCanvasCell from './ImageCanvasCell';
 
+// TODO create a parseDataURL helper
 
 const PlainImageCell = async ({ value, query, expanded }) => {
     const { type, assetType, assetId } = value;

@@ -17,6 +17,7 @@ import Skeletons from '../components/skeletons';
 import hashQuery from '../lib/hashQuery';
 import fetchTable from '../lib/fetchTable';
 import fetchStatus from '../lib/fetchStatus';
+import fetchCompletions from '../lib/fetchCompletions';
 import { EMPTY_TABLE } from '../stubs';
 import { columnTypeMap } from '../lib/makeComponentMap';
 import FooterRow from '../components/FooterRow.server';
@@ -53,6 +54,11 @@ const Root = ({ query, matrices, expiration }) => {
     const { dgid } = query;
     const { columnTypes, columns, rows, total } = table ?? EMPTY_TABLE;
 
+    const {data: completions} = useData(
+        `completions-${dgid}`,
+        () => fetchCompletions(dgid),
+    );
+
     const columnOptions = allColumns
         ? allColumns?.columns?.filter((col) => !col.endsWith('--metadata'))
         : [];
@@ -85,6 +91,7 @@ const Root = ({ query, matrices, expiration }) => {
                     columns={filteredColumns}
                     options={columnOptions}
                     status={status}
+	            completions={completions}
                 />
             </Suspense>
             <Suspense fallback={<Skeletons />}>

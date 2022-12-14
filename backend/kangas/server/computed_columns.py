@@ -13,9 +13,11 @@
 
 import ast
 
+import astor
+
 ## FIXME:
-## 1. No support for substrings, or [:]
-## 2. No support for JSON lists
+## 1. No support for substrings
+## 2. No support for slices, [:]
 
 
 class AttributeNode:
@@ -121,6 +123,20 @@ class Evaluator:
                 aggregate_selection_name = "%s_aggregate_column_%s" % (function_name, 1)
                 self.selections[aggregate_selection_name] = expr
                 return aggregate_selection_name
+            elif function_name in ["any", "all", "len", "flatten"]:
+                ## Sqlite functions
+                function_map = {
+                    "any": "ANY_IN_GROUP",
+                    "all": "ALL_IN_GROUP",
+                    "len": "LENGTH",
+                    "flatten": "FLATTEN",
+                }
+                sargs = ", ".join([str(arg) for arg in args])
+                expr = "{function_name}({sargs})".format(
+                    function_name=function_map[function_name],
+                    sargs=sargs,
+                )
+                return expr
             elif function_name in ["abs", "round", "max", "min"]:
                 # Special case to deal with Python's min([...]), max([...])
                 # to turn into SQL's min(...), max(...)
@@ -135,12 +151,6 @@ class Evaluator:
                     return "CAST(%s AS int)" % expr
                 else:
                     return expr
-            elif function_name == "len":
-                sargs = ", ".join([str(arg) for arg in args])
-                expr = "length({sargs})".format(
-                    sargs=sargs,
-                )
-                return expr
             elif isinstance(function_name, AttributeNode):
                 if function_name.obj == "random":
                     if function_name.attr == "random":
@@ -302,7 +312,13 @@ class Evaluator:
                     else:
                         raise Exception("unsupported method %r" % repr(function_name))
 
-                elif function_name.attr in ["contains", "endswith", "startswith"]:
+                elif function_name.attr in [
+                    "contains",
+                    "endswith",
+                    "startswith",
+                ]:
+                    # FIXME: remove contains... that was a mistake: use IN
+
                     # FIXME: args[0] could be a string, or a field_name
                     # Assuming string for now in contains, startswith, endswith
                     # because of special form in SQL:
@@ -328,7 +344,7 @@ class Evaluator:
                             function_name.obj,
                         )
                         pass
-                    elif function_name == "startswith":
+                    elif function_name.attr == "startswith":
                         return "like('%s', %s)" % (
                             args[0][1:-1] + "%",
                             function_name.obj,
@@ -344,6 +360,12 @@ class Evaluator:
                     return "upper(%s)" % ", ".join([str(function_name.obj)] + args)
                 elif function_name.attr == "lower":
                     return "lower(%s)" % ", ".join([str(function_name.obj)] + args)
+                elif function_name.attr == "split":
+                    return "SPLIT(%s)" % ", ".join([str(function_name.obj)] + args)
+                elif function_name.attr == "keys":
+                    return "KEYS_OF(%s)" % ", ".join([str(function_name.obj)] + args)
+                elif function_name.attr == "values":
+                    return "VALUES_OF(%s)" % ", ".join([str(function_name.obj)] + args)
                 else:
                     raise Exception("unknown method %r" % repr(function_name))
             else:
@@ -359,14 +381,24 @@ class Evaluator:
                 **args
             )
         elif isinstance(node, ast.Compare):
-            args = {
-                "comparators": [self.eval_node(arg) for arg in node.comparators],
-                "left": self.eval_node(node.left),
-                "ops": [self.eval_node(arg) for arg in node.ops],
-            }
-            args["right"] = args["comparators"][0]
-            args["op"] = args["ops"][0]
-            return "{left} {op} {right}".format(**args)
+            comparators = [self.eval_node(arg) for arg in node.comparators]
+            ops = [self.eval_node(arg) for arg in node.ops]
+            left = self.eval_node(node.left)
+
+            if ops[0] == " IN ":
+                if not (
+                    isinstance(comparators[0], str) and comparators[0].startswith("(")
+                ):
+                    return "IN_OBJ(%s, %s)" % (left, comparators[0])
+
+            retval = ""
+            for op, right in zip(ops, comparators):
+                if retval:
+                    retval += " and "
+                retval += "{left} {op} {right}".format(left=left, op=op, right=right)
+                left = right
+            return retval
+
         elif isinstance(node, ast.Attribute):
             obj = self.eval_node(node.value)
             attr = node.attr
@@ -407,6 +439,9 @@ class Evaluator:
             return " IN "
         elif isinstance(node, ast.List):
             args = [self.eval_node(arg) for arg in node.elts]
+            if len(args) == 0:
+                return "null"
+
             return "(" + (", ".join([str(arg) for arg in args])) + ")"
         elif isinstance(node, ast.Set):
             ## Special format for delayed evaluation of computed
@@ -416,12 +451,35 @@ class Evaluator:
         elif isinstance(node, ast.Str):
             ## Python 3.7
             return repr(node.s)
+        elif isinstance(node, ast.ListComp):
+            # [x for y in json_list if ...]
+            # [x.label == 'hello' for x in {"image"}.overlays if ...]
+            x = astor.to_source(node.elt).strip()
+            y = astor.to_source(node.generators[0].target).strip()
+            json_list = self.eval_node(node.generators[0].iter)
+            ifs = ",".join(
+                escape(astor.to_source(node).strip()) for node in node.generators[0].ifs
+            )
+            return 'ListComprehension("%s", "%s", %s, "%s")' % (
+                escape(x),
+                escape(y),
+                json_list,
+                ifs,
+            )
+
         raise TypeError(node)
+
+
+def escape(string):
+    s1 = str(string).replace("{'", "__lbrace__").replace("'}", "__rbrace__")
+    s2 = s1.replace("'", "&#39;").replace('"', "&#34;").replace(",", "&#44;")
+    s3 = s2.replace("__lbrace__", "{'").replace("__rbrace__", "'}")
+    return s3
 
 
 def eval_computed_columns(computed_columns, where_expr=None):
     """
-    Takes: list of computed_columns '{
+    Takes: list of computed_columns: {
       "New date": {
          "field_expr": "{'date'} + 7",
          "field_name": "cc1"
@@ -461,7 +519,11 @@ def eval_computed_columns(computed_columns, where_expr=None):
     if where_expr:
         where_sql = evaluator.eval_expr(where_expr)
 
-    return (new_columns, evaluator.selections, where_sql)
+    return (
+        new_columns,
+        evaluator.selections,
+        where_sql,
+    )
 
 
 def update_state(
@@ -530,6 +592,10 @@ def update_state(
         )
         field_type = new_columns[column_name]["type"]
         field_name = new_columns[column_name]["field_name"]
+        ## Computed columns expr based on prior computed columns
+        ## names should replace {"prev column"} with prev column
+        ## expr_field:
+        columns_to_field_name[name_to_key(column_name)] = field_expr
         columns.append(column_name)
         metadata[column_name] = {
             "field_expr": field_expr,

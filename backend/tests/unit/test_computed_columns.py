@@ -11,10 +11,9 @@
 #    All rights reserved                             #
 ######################################################
 
-from kangas.server.computed_columns import update_state
-from kangas.server.queries import select_query
-
 from kangas import DataGrid, Image
+from kangas.server.computed_columns import eval_computed_columns, update_state
+from kangas.server.queries import select_query_count, select_query_page
 
 from ..testlib import AlwaysEquals
 
@@ -34,7 +33,7 @@ dg.save()
 
 
 def select_by_query(where_expr, computed_columns):
-    return select_query(
+    return select_query_page(
         DGID,
         offset=0,
         group_by=None,
@@ -43,6 +42,15 @@ def select_by_query(where_expr, computed_columns):
         where=None,
         limit=100,
         select_columns=None,
+        computed_columns=computed_columns,
+        where_expr=where_expr,
+    )
+
+
+def select_by_query_count(where_expr, computed_columns, group_by=None):
+    return select_query_count(
+        DGID,
+        group_by,
         computed_columns=computed_columns,
         where_expr=where_expr,
     )
@@ -97,9 +105,9 @@ def test_none():
         "ncols": 6,
         "nrows": 0,
         "rows": [],
-        "total": 0,
     }
     assert results == expected_results
+    assert 0 == select_by_query_count(where_expr, computed_columns)
 
 
 def test_simple_1():
@@ -191,9 +199,9 @@ def test_simple_1():
                 "row-id": 3,
             },
         ],
-        "total": 3,
     }
     assert results == expected_results
+    assert 3 == select_by_query_count(where_expr, computed_columns)
 
 
 def test_simple_2():
@@ -236,9 +244,9 @@ def test_simple_2():
         "ncols": 7,
         "nrows": 0,
         "rows": [],
-        "total": 0,
     }
     assert results == expected_results
+    assert 0 == select_by_query_count(where_expr, computed_columns)
 
 
 def test_aggregate_where1():
@@ -283,9 +291,9 @@ def test_aggregate_where1():
         "ncols": 7,
         "nrows": 0,
         "rows": [],
-        "total": 0,
     }
     assert results == expected_results
+    assert 0 == select_by_query_count(where_expr, computed_columns)
 
 
 def test_aggregate_column():
@@ -351,9 +359,9 @@ def test_aggregate_column():
                 "row-id": 1,
             }
         ],
-        "total": 1,
     }
     assert results == expected_results
+    assert 1 == select_by_query_count(where_expr, computed_columns)
 
 
 def test_image_column():
@@ -439,9 +447,9 @@ def test_image_column():
                 "row-id": 3,
             },
         ],
-        "total": 3,
     }
     assert results == expected_results
+    assert 3 == select_by_query_count(where_expr, computed_columns)
 
 
 def test_image_column_metadata():
@@ -482,9 +490,9 @@ def test_image_column_metadata():
         "ncols": 6,
         "nrows": 0,
         "rows": [],
-        "total": 0,
     }
     assert results == expected_results
+    assert 0 == select_by_query_count(where_expr, computed_columns)
 
 
 def test_image_computed_column():
@@ -534,6 +542,16 @@ def test_image_computed_column():
         "ncols": 7,
         "nrows": 0,
         "rows": [],
-        "total": 0,
     }
     assert results == expected_results
+    assert 0 == select_by_query_count(where_expr, computed_columns)
+
+
+def test_shortcut_boolean_logic():
+    results = eval_computed_columns({}, "1 < 4 < 2")
+    assert results[2] == "1 < 4 and 4 < 2"
+
+
+def test_boolean_logic():
+    results = eval_computed_columns({}, "(1 < 4) and (4 < 2)")
+    assert results[2] == "(1 < 4 and 4 < 2)"

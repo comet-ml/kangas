@@ -25,7 +25,7 @@ class UnixTime {
     constructor(datetime) {
         this.obj = new Date(datetime * 1000);
         this.year = pad(this.obj.getFullYear(), 4);
-        this.month = pad(this.obj.getDate(), 2);
+        this.month = pad(this.obj.getMonth() + 1, 2);
         this.day = pad(this.obj.getDate(), 2);
         this.hour = pad(this.obj.getHours(), 2);
         this.minute = pad(this.obj.getMinutes(), 2);

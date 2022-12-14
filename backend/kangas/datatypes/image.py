@@ -66,6 +66,7 @@ class Image(Asset):
         metadata=None,
         source=None,
         unserialize=False,
+        color_order="rgb",
     ):
         """
         Logs the image.
@@ -104,9 +105,14 @@ class Image(Asset):
                 setting that indicates where the color information is in the format
                 of the 2D data. 'last' indicates that the data is in (rows, columns,
                 channels) where 'first' indicates (channels, rows, columns).
+            color_order: Optional. Default 'rgb'. The color order of the incoming
+                image data. Only applied when data is an array and color_order is
+                "bgr".
         """
         super().__init__(source)
         if unserialize:
+            # A function that takes the object to lookup
+            self._unserialize = unserialize
             return
         if self.source is not None:
             filename = self.source["source"]
@@ -133,6 +139,7 @@ class Image(Asset):
             minmax,
             channels,
             self.metadata,
+            color_order,
         )
         self.metadata["image"] = {"width": size[0], "height": size[1]}
         self.asset_data = file_like.read()
@@ -147,7 +154,7 @@ class Image(Asset):
         Return the image as a Python Image Library (PIL) image.
 
         Example:
-        ```
+        ```python
         >>> import kangas as kg
         >>> image = kg.Image("filename.jpg").to_pil()
         >>> image.show()
@@ -199,7 +206,7 @@ class Image(Asset):
             else:
                 self.metadata["labels"][label] += count
 
-    def add_regions(self, label, *regions, score=None):
+    def add_regions(self, label, *regions, score=None, **metadata):
         """
         Add polygon regions to an image.
 
@@ -210,7 +217,7 @@ class Image(Asset):
                with the region.
 
         Example:
-        ```
+        ```python
         >>> image = Image()
         >>> image.add_regions("car", [(x1, y1), ...], [(x2, y2), ...])
         ```
@@ -225,9 +232,11 @@ class Image(Asset):
                 "score": score,
             }
         )
+        if metadata:
+            self.metadata["overlays"][-1].update(metadata)
         return self
 
-    def add_bounding_boxes(self, label, *boxes, score=None):
+    def add_bounding_boxes(self, label, *boxes, score=None, **metadata):
         """
         Add bounding boxes to an image.
 
@@ -238,7 +247,7 @@ class Image(Asset):
                with the region.
 
         Example:
-        ```
+        ```python
         >>> image = Image()
         >>> box1 = [(x1, y1), (x2, y2)]
         >>> box2 = [(x1, y1), (x2, y2)]
@@ -255,16 +264,18 @@ class Image(Asset):
                 "score": score,
             }
         )
+        if metadata:
+            self.metadata["overlays"][-1].update(metadata)
         return self
 
-    def add_mask(self, label, image):
+    def add_mask(self, label, image, **metadata):
         """
         Add a mask to an image.
 
         Under development.
 
         Example:
-        ```
+        ```python
         >>> image = Image()
         >>> image.add_mask("attention", Image(MASK))
         ```
@@ -281,16 +292,18 @@ class Image(Asset):
                 "data": image,
             }
         )
+        if metadata:
+            self.metadata["overlays"][-1].update(metadata)
         return self
 
-    def add_annotations(self, text, anchor, *points, score=None):
+    def add_annotations(self, text, anchor, *points, score=None, **metadata):
         """
         Add an annotation to an image.
 
         Under development.
 
         Example:
-        ```
+        ```python
         >>> image = Image()
         >>> image.add_annotations("Tumors", (50, 50), (100, 100), (200, 200), ...)
         ```
@@ -304,6 +317,8 @@ class Image(Asset):
                 "score": score,
             }
         )
+        if metadata:
+            self.metadata["overlays"][-1].update(metadata)
         return self
 
 
@@ -317,6 +332,7 @@ def _image_data_to_file_like_object(
     image_minmax,
     image_channels,
     metadata,
+    color_order,
 ):
     # type: (Union[IO[bytes], Any], Optional[str], str, float, Optional[Sequence[int]], Optional[str], Optional[Sequence[float]], str, Optional[Any]) -> Union[IO[bytes], None, Any]
     """
@@ -344,6 +360,7 @@ def _image_data_to_file_like_object(
             image_colormap,
             image_minmax,
             image_channels,
+            color_order,
         )
         return results
     elif hasattr(image_data, "eval"):  # tensorflow tensor
@@ -356,6 +373,7 @@ def _image_data_to_file_like_object(
             image_colormap,
             image_minmax,
             image_channels,
+            color_order,
         )
         return results
     elif isinstance(image_data, PIL.Image.Image):  # PIL.Image
@@ -376,6 +394,7 @@ def _image_data_to_file_like_object(
             image_colormap,
             image_minmax,
             image_channels,
+            color_order,
         )
         return results
     elif hasattr(image_data, "read"):  # file-like object
@@ -390,6 +409,7 @@ def _image_data_to_file_like_object(
             image_colormap,
             image_minmax,
             image_channels,
+            color_order,
         )
         return results
     else:
@@ -405,12 +425,15 @@ def _array_to_image_fp_size(
     image_colormap,
     image_minmax,
     image_channels,
+    color_order,
 ):
     # type: (Any, str, float, Optional[Sequence[int]], Optional[str], Optional[Sequence[float]], str) -> Optional[IO[bytes]]
     """
     Convert a numpy array to an in-memory image
     file pointer.
     """
+    if isinstance(color_order, str) and color_order.lower() == "bgr":
+        array = array[..., ::-1].copy()
     image = _array_to_image(
         array, image_scale, image_shape, image_colormap, image_minmax, image_channels
     )

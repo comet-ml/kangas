@@ -82,6 +82,27 @@ const HelpText = () => (
             </li>
         </ul>
         <p dir="auto">
+            Also you can use Python's comparison operator chaining. That is, any
+            of the above operators can be used in a shorthand way as follows:
+        </p>
+        <div className="snippet-clipboard-content notranslate position-relative overflow-auto">
+            <pre className="notranslate">
+                <code>
+    &#123;"column a"} &lt; &#123;"column b"} &lt; &#123;"column c"}
+                </code>
+            </pre>
+        </div>
+        <p dir="auto">
+            which is shorthand for:
+        </p>
+        <div className="snippet-clipboard-content notranslate position-relative overflow-auto">
+            <pre className="notranslate">
+                <code>
+                  &#123;"column a"} &lt; &#123;"column b"} and &#123;"column b"} &lt; &#123;"column c"}
+                </code>
+            </pre>
+        </div>
+        <p dir="auto">
             Use <code>is None</code> and <code>is not None</code> for selecting
             rows that have null values. Otherwise, null values are ignored in
             most other uses.
@@ -102,7 +123,7 @@ const HelpText = () => (
         </div>
         <h3 dir="auto">JSON attribute access</h3>
         <p dir="auto">
-            For JSON and metdata columns, you can use the dot operator to access
+            For JSON and metadata columns, you can use the dot operator to access
             values:
         </p>
         <div className="snippet-clipboard-content notranslate position-relative overflow-auto">
@@ -114,7 +135,7 @@ const HelpText = () => (
         <p dir="auto">or nested values:</p>
         <div className="snippet-clipboard-content notranslate position-relative overflow-auto">
             <pre className="notranslate">
-                <code>&#123;"Image"}.labels.contains("dog")</code>
+                <code>&#123;"Image"}.labels.dog &gt; 1</code>
             </pre>
             <pre className="notranslate">
                 <code>&#123;"Image"}.labels.dog and &#123;"Image"}.labels.cat</code>
@@ -122,8 +143,50 @@ const HelpText = () => (
             <div className="zeroclipboard-container position-absolute right-0 top-0"></div>
         </div>
         <p dir="auto">
-            See below for more information on <code>contains()</code> and other
-            string and JSON methods.
+             The dotted-name path following a column of JSON data deviates from Python
+             semantics. In addition, the path can only be use for nested dictionaries.
+             If the JSON has a list, then you will not be able to use the dotted-name syntax.
+             However, you can use Python's list comprehension, like these examples:
+        </p>
+        <ul dir="auto">
+	<li>
+	  <code>any([x["label"] == 'dog' for x in &#123;"Image"}.overlays])</code> - images with dogs
+        </li>
+	<li>
+         <code>all([x["label"] == 'person' for x in &#123;"Image"}.overlays])</code> - images with only people (no other labels)
+	</li>
+	<li>
+        <code>any([x["label"] in ["car", "bicycle"] for x in &#123;"Image"}.overlays])</code> - images with cars or bicycles
+	</li>
+	<li>
+        <code>any([x["label"] == "cat" or x["label"] == "dog" for x in &#123;"Image"}.overlays])</code> - images with dogs or cats
+	</li>
+	<li>
+        <code>any([x["label"] == "cat" for x in &#123;"Image"}.overlays]) and any([x["label"] == "dog" for x in &#123;"Image"}.overlays])</code> - images with dogs and cats
+	</li>
+	<li>
+        <code>any([x["score"] &gt; 0.999 for x in &#123;"Image"}.overlays])</code> - images with an annotation score greater than 0.999
+	</li>
+     </ul>
+
+        <p dir="auto">
+             List comprehension also deviates slightly from standard Python semantics:
+        </p>
+        <ul dir="auto">
+            <li>
+             <code>[item for item in LIST]</code> - same as Python (item is each element in the list)
+	    </li>
+	    <li>
+             <code>[item for item in DICT]</code> - item is the DICT
+	    </li>
+    </ul>
+        <p dir="auto">
+    Note that you will need to wrap the list comprehension in either
+    <code>any()</code> or <code>all()</code>. You can also use <code>flatten()</code> around
+    nested list comprehensions.
+    </p>
+        <p dir="auto">
+            See below for more information on string and JSON methods.
         </p>
         <p dir="auto">
             Note that any mention of a column that contains an asset type (e.g.,
@@ -133,7 +196,7 @@ const HelpText = () => (
         <p dir="auto">These are mostly used with column values:</p>
         <ul dir="auto">
             <li>
-                <code>&#123;"Column Name"}.contains(STRING)</code>
+                <code>STRING in &#123;"Column Name"}</code>
             </li>
             <li>
                 <code>&#123;"Column Name"}.endswith(STRING)</code>
@@ -155,6 +218,9 @@ const HelpText = () => (
             </li>
             <li>
                 <code>&#123;"Column Name"}.lower()</code>
+            </li>
+            <li>
+                <code>&#123;"Column Name"}.split(DELIM[, MAXSPLITS])</code>
             </li>
         </ul>
         <h3 dir="auto">Python if/else expression</h3>
