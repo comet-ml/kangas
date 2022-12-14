@@ -1,7 +1,8 @@
 import fetchAsset from '../../../lib/fetchAsset';
+import ImageCanvasCell from './ImageCanvasCell';
 
 
-const ImageCell = async ({ value, query, expanded }) => {
+const PlainImageCell = async ({ value, query, expanded }) => {
     const { type, assetType, assetId } = value;
     const { dgid } = query;
     const image = await fetchAsset({ query: { assetId, dgid }, returnUrl: true, thumbnail: !expanded });
@@ -15,5 +16,10 @@ const ImageCell = async ({ value, query, expanded }) => {
             </div>
     );
 };
+
+const ImageCell = ({ value, query, expanded }) => {
+    if (expanded) return <ImageCanvasCell value={value} query={query} expanded={expanded} />
+    else return <PlainImageCell value={value} query={query} expanded={expanded} />
+}
 
 export default ImageCell;
