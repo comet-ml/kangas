@@ -471,7 +471,7 @@ def generate_image(asset_data):
     return image
 
 
-def generate_thumbnail(asset_data, size=None):
+def generate_thumbnail(asset_data, size=None, force=False):
     """
     Given the asset data, generate a thumbnail-sized image
     in the png format.
@@ -482,6 +482,9 @@ def generate_thumbnail(asset_data, size=None):
 
     Args:
         asset_data: the raw bytes of an image
+        size: (tuple, optional) max (width, height)
+        force: (bool, optional) if True, force resize;
+            else only if not too small
 
     Returns:
         bytes of image (PNG if created, but may be the original
@@ -491,10 +494,26 @@ def generate_thumbnail(asset_data, size=None):
 
     size = size if size else THUMBNAIL_SIZE
     image = generate_image(asset_data)
+
+    # Generate a thumbnail:
     if hasattr(ImageOps, "contain"):
         new_image = ImageOps.contain(image, size)
     else:
         new_image = contain(image, size)
+
+    # If the thumbnail is too small on any dimension, resize
+    # it (keeps aspect ratio) to a minimum size:
+    if not force:
+        if new_image.width < THUMBNAIL_SIZE[0] * 0.5:
+            width = THUMBNAIL_SIZE[0]
+            height = image.height * width // image.width
+            new_image = image.resize((width, height))
+
+        elif new_image.height < THUMBNAIL_SIZE[1] * 0.5:
+            height = THUMBNAIL_SIZE[1]
+            width = image.width * height // image.height
+            new_image = image.resize((width, height))
+
     fp = image_to_fp(new_image, "png")
     return fp.read()
 
