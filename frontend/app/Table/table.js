@@ -9,7 +9,7 @@ const cx = classNames.bind(styles)
 
 const Table = async ({ query }) => {
     const data = await fetchDataGrid(query)
-    const { columnTypes, columns, rows, total, typeMap, displayColumns } = data;
+    const { columnTypes, columns, rows, typeMap, displayColumns } = data;
     return (
             <div className={styles.tableRoot}>
                 <div className={cx(['headerRow', 'row'])}>
@@ -23,7 +23,7 @@ const Table = async ({ query }) => {
                     <div className={cx('row', { group: !!query?.groupBy })} key={`row-${ridx}`}>
                         {
                             Object.values(row).map( (cell, cidx) => (
-                                <Cell value={cell} type={columnTypes[cidx]} columnName={columns[cidx]} query={query} /> 
+                                <Cell value={cell} type={columnTypes[cidx]} columnName={columns[cidx]} query={query} />
                             ) )
                         }
                     </div>
@@ -33,4 +33,3 @@ const Table = async ({ query }) => {
 };
 
 export default Table;
-
