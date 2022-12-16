@@ -21,7 +21,6 @@ const ImageCanvasClient = ({ metadata, image }) => {
     const labelCanvas = useRef();
     const { labels, scoreRange, updateScore, toggleLabel } = useLabels(metadata);
     
-    
     const drawImage = useCallback(() => {
         const ctx = imageCanvas.current?.getContext("2d");
         // TODO That funky computeScale business
@@ -97,7 +96,6 @@ const ImageCanvasClient = ({ metadata, image }) => {
                         <div className="zoom-label">Score:</div>
                         <input
                             type="range"
-                            // ref={scoreRef}
                             min={`${scoreRange.min}`}
                             max={`${scoreRange.max}`}
                             defaultValue={`${scoreRange.min}`}
