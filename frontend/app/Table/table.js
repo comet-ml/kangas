@@ -10,11 +10,25 @@ const cx = classNames.bind(styles)
 const Table = async ({ query }) => {
     const data = await fetchDataGrid(query)
     const { columnTypes, columns, rows, typeMap, displayColumns } = data;
+    const view = {
+	columns: columns.map( (name, cidx) => (
+	    {
+		name,
+		type: columnTypes[cidx],
+		style: {
+		    width: '200px',
+		    height: '55px',
+		    'max-width': 'unset',
+		},
+	    }
+	)),
+    };
+
     return (
             <div className={styles.tableRoot}>
                 <div className={cx(['headerRow', 'row'])}>
-                    {displayColumns?.map((col) => (
-                        <div className={cx('cell')} title={col}>
+            {displayColumns?.map((col, idx) => (
+                    <div className={cx('cell')} title={col} style={view.columns[idx].style}>
                             {col}
                         </div>
                     ))}
@@ -23,7 +37,7 @@ const Table = async ({ query }) => {
                     <div className={cx('row', { group: !!query?.groupBy })} key={`row-${ridx}`}>
                         {
                             Object.values(row).map( (cell, cidx) => (
-                                <Cell value={cell} type={columnTypes[cidx]} columnName={columns[cidx]} query={query} />
+                                    <Cell value={cell} style={view.columns[cidx].style} type={columnTypes[cidx]} columnName={columns[cidx]} query={query} />
                             ) )
                         }
                     </div>

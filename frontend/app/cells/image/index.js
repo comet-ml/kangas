@@ -2,9 +2,9 @@ import Base from './BaseImageCell';
 import Grouped from './GroupedImageCell';
 import DialogueModal from '../../modals/DialogueModal/DialogueModalClient';
 
-const Image = ({ value, columnName, query }) => {
+const Image = ({ value, columnName, query, style }) => {
     if (!query?.groupBy) return (
-        <DialogueModal toggleElement={<Base value={value} query={query} expanded={false} />}>
+            <DialogueModal toggleElement={<Base value={value} query={query} expanded={false} style={style} />}>
             <Base value={value} query={query} expanded={true} />
         </DialogueModal>
     );

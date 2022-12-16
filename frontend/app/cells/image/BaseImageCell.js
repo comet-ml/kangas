@@ -9,13 +9,13 @@ import styles from '../Cell.module.scss';
 const cx = classNames.bind(styles);
 
 
-const PlainImageCell = async ({ value, query, expanded=false }) => {
+const PlainImageCell = async ({ value, query, expanded=false, style }) => {
     const { type, assetType, assetId } = value;
     const { dgid } = query;
     const image = await fetchAsset({ query: { assetId, dgid, thumbnail: true }, returnUrl: true });
 
     return (
-            <div className={cx("cell-content")}>
+            <div className={cx("cell-content")} style={style}>
                 <img
                     src={`data:application/octet-stream;base64,${image}`}
                     alt="DataGrid Image"
@@ -24,11 +24,11 @@ const PlainImageCell = async ({ value, query, expanded=false }) => {
     );
 };
 
-const ImageCell = ({ value, query, expanded }) => {
+const ImageCell = ({ value, query, expanded, style }) => {
     return (
         <Suspense fallback={<>Loading</>}>
             {!!expanded && <ImageCanvasCell value={value} query={query} expanded={true} /> }
-            { !expanded && <PlainImageCell value={value} query={query} expanded={false} /> }
+        { !expanded && <PlainImageCell value={value} query={query} expanded={false} style={style} /> }
         </Suspense>
     )
 }

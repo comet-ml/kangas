@@ -1,8 +1,8 @@
 .cell {
     position: relative;
     min-height: 55px;
-    min-width: 100px;
-    max-width: 100px;
+//    min-width: 100px;
+//    max-width: 100px;
 
     margin-left: 12px;
     text-overflow: ellipsis;
@@ -41,10 +41,11 @@
     font-size: 13px;
     color: #3d4355;
 
-    display: contents;
+//    display: contents;
 }
 
 .cell-content > img {
+    border-radius: 0.25rem;
     max-width: 100%;
     max-height: 100%;
     display: block;

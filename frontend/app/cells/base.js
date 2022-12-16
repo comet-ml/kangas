@@ -27,12 +27,12 @@ const cellMap = {
     },
 }
 
-const Cell = async ({ value, columnName, type, query }) => {
+const Cell = async ({ value, columnName, type, query, style }) => {
     const Component = cellMap?.[type]?.component;
     return (
-        <div className={cx('cell')}>
-            { !!Component && <Component value={value} columnName={columnName} query={query} />}
-            { !Component && <div>{`${value} - ${type}`}</div> }
+        <div className={cx('cell')} >
+            { !!Component && <Component value={value} columnName={columnName} query={query} style={style} />}
+            { !Component && <div style={style}>{`${value} - ${type}`}</div> }
         </div>
     )
 }
