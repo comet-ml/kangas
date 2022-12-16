@@ -67,9 +67,6 @@ const ImageCanvasClient = ({ metadata, image }) => {
         ctx.imageSmoothingEnabled = true
 
         for (const overlay of labels) {
-            console.log('runnin')
-            console.log(overlay)
-
             if (overlay?.type === 'regions') {
                 for (const region of overlay?.data) {
                     // TODO Implement the color generator
