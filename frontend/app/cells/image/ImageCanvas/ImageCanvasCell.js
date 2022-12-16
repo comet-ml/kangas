@@ -1,8 +1,7 @@
 import { Suspense } from "react";
-import config from "../../../config";
-import fetchAsset from "../../../lib/fetchAsset";
+import config from "../../../../config";
+import fetchAsset from "../../../../lib/fetchAsset";
 import ImageCanvasClient from "./ImageCanvasClient";
-import CanvasContext from '../../contexts/CanvasContext';
 
 const ImageCanvasCell = async ({ value, query }) => {
     const { type, assetType, assetId } = value;
@@ -21,14 +20,12 @@ const ImageCanvasCell = async ({ value, query }) => {
 
     return (
         <Suspense fallback={<>Loading</>}>
-            <CanvasContext value={JSON.parse(metadata)}>
-                <ImageCanvasClient 
-                    value={value}
-                    query={query}
-                    metadata={JSON.parse(metadata)}
-                    image={image}
-                />
-            </CanvasContext>
+            <ImageCanvasClient 
+                value={value}
+                query={query}
+                metadata={JSON.parse(metadata)}
+                image={image}
+            />
         </Suspense>
     )
 }

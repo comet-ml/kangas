@@ -1,5 +1,5 @@
 import fetchAsset from '../../../lib/fetchAsset';
-import ImageCanvasCell from './ImageCanvasCell';
+import ImageCanvasCell from './ImageCanvas/ImageCanvasCell';
 
 const ThumbnailGroupCell = async ({ value, query, columnName, expanded }) => {
     // TODO Un-hardcode these properties

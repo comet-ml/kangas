@@ -1,5 +1,5 @@
 import fetchAsset from '../../../lib/fetchAsset';
-import ImageCanvasCell from './ImageCanvasCell';
+import ImageCanvasCell from './ImageCanvas/ImageCanvasCell';
 import { Suspense } from 'react';
 // TODO create a parseDataURL helper
 

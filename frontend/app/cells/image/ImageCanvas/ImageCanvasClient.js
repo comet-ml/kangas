@@ -1,50 +1,27 @@
 'use client';
 
 import { useCallback, useMemo, useEffect, useRef, useState } from 'react';
-import { EnvContext } from "../../../lib/contexts/EnvContext";
-import computeScale from '../../../lib/computeScale';
+import computeScale from '../../../../lib/computeScale';
 import styles from './ImageCanvas.module.scss';
 import classNames from 'classnames/bind';
-import CanvasContext from '../../contexts/CanvasContext';
+import useLabels from '../../../../lib/hooks/useLabels';
 
 const cx = classNames.bind(styles);
+
+const Label = ({ label }) => {
+    return (
+        <div style={{ background: 'blue' }}>
+            {`${label?.label}`}
+        </div>
+    )
+}
 
 const ImageCanvasClient = ({ metadata, image }) => {
     const imageCanvas = useRef();
     const labelCanvas = useRef();
-    const [score, setScore] = useState(0);
-
-    /* 
-    const scoreRange = useMemo(() => {
-        let min = 0;
-        let max = 1;
-
-        if (metadata?.overlays) {
-
-            for (const overlay of Object.values(metadata.overlays)) {
-
-                // Filter logic
-                // TODO Fix below bug (potential) with 0-scores
-                if (overlay?.score) {
-                    if (min > overlay?.score) min = overlay?.score;
-                    if (max < overlay?.score) max = overlay?.score;
-                }
-            }
-        }
-
-        return { min, max }
-    }, [metadata?.overlays]);
-    */
-
-    const labels = useMemo(() => {
-        if (metadata?.overlays) {
-            return Object.values(metadata.overlays).filter(label => !label?.score || (label?.score > score));
-        } else {
-            return [];
-        }
-    }, [metadata?.overlays, score]);
-
-    const updateScore = useCallback((e) => setScore(e.target.value), []);
+    const { labels, scoreRange, updateScore } = useLabels(metadata);
+    
+    
     const drawImage = useCallback(() => {
         const ctx = imageCanvas.current?.getContext("2d");
         // TODO That funky computeScale business
@@ -121,15 +98,18 @@ const ImageCanvasClient = ({ metadata, image }) => {
                         <input
                             type="range"
                             // ref={scoreRef}
-                            min="0"
-                            max="1"
-                            defaultValue="0"
+                            min={`${scoreRange.min}`}
+                            max={`${scoreRange.max}`}
+                            defaultValue={`${scoreRange.min}`}
                             className="zoom-slider"
                             id="zoom-slide"
                             step="0.001"
                             onChange={updateScore}
                         />
                     </div>
+                </div>
+                <div className={cx('labels-container')}>
+                    { labels?.map(l => <Label label={l} />) }
                 </div>
             </div>
             <div className={cx('canvas-column')}>
