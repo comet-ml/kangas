@@ -1,10 +1,31 @@
+.image-editor {
+    display: flex;
+    
+    .editor-controls {
+        width: 228px;
+        height: 100%;
+        position: relative;
+        overflow-y: auto;    
+    }
+}
+
+.canvas-column {
+    width: 682px;
+    height: 672px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .canvas-container {
     position: relative;
-    width: 600px;
-    height: 600px;
+    width: 492px;
+    height: 472px;
     
     canvas {
         position: absolute;
         left: 0;
+        border-radius: 10px;
     }
+
 }
