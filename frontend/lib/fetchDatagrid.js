@@ -9,10 +9,10 @@ const fetchDataGrid = async (query) => {
         body: JSON.stringify(query)
     };
 
-    const res = await fetch(`${config.apiUrl}query`, request);
+    const res = await fetch(`${config.apiUrl}query-page`, request);
     const data = await res.json();
 
-    const { columnTypes, columns, rows, total } = data;
+    const { columnTypes, columns, rows } = data;
     const typeMap = Object.fromEntries(
         columns.map((col, idx) => [col, columnTypes[idx]])
     )

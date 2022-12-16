@@ -2,21 +2,22 @@ import config from '../config';
 import fetchDataGrid from '../lib/fetchDatagrid';
 import fetchAvailableMatrices from '../lib/fetchAvailableMatrices';
 import Table from './Table/table';
+import ButtonBar from './ButtonBar/buttonBar';
+import Pager from './Pager/pager';
 
 const Page = async ({ searchParams }) => {
-    const { 
+    const {
         dgid='./notebooks/coco-500.datagrid',
         filter,
         groupBy,
         sortBy,
-        sortDesc 
+        sortDesc
     } = searchParams;
-
-    const matrices = await fetchAvailableMatrices();
 
     return (
         <div>
-            <Table 
+	    <ButtonBar/>
+            <Table
                 query={{
                     dgid,
                     filter,
@@ -24,10 +25,10 @@ const Page = async ({ searchParams }) => {
                     sortBy,
                     sortDesc
                 }}
-                matrices={matrices}
             />
+	    <Pager/>
         </div>
-    )
-}
+    );
+};
 
 export default Page;
