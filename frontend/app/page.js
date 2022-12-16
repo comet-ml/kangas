@@ -20,7 +20,7 @@ const Page = async ({ searchParams }) => {
             <Table
                 query={{
                     dgid,
-                    filter,
+                    whereExpr: filter,
                     groupBy,
                     sortBy,
                     sortDesc
