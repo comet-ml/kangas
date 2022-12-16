@@ -8,9 +8,9 @@ import useLabels from '../../../../lib/hooks/useLabels';
 
 const cx = classNames.bind(styles);
 
-const Label = ({ label }) => {
+const Label = ({ label, toggle }) => {
     return (
-        <div style={{ background: 'blue' }}>
+        <div onClick={() => toggle(label)} style={{ background: 'blue' }}>
             {`${label?.label}`}
         </div>
     )
@@ -19,7 +19,7 @@ const Label = ({ label }) => {
 const ImageCanvasClient = ({ metadata, image }) => {
     const imageCanvas = useRef();
     const labelCanvas = useRef();
-    const { labels, scoreRange, updateScore } = useLabels(metadata);
+    const { labels, scoreRange, updateScore, toggleLabel } = useLabels(metadata);
     
     
     const drawImage = useCallback(() => {
@@ -109,7 +109,7 @@ const ImageCanvasClient = ({ metadata, image }) => {
                     </div>
                 </div>
                 <div className={cx('labels-container')}>
-                    { labels?.map(l => <Label label={l} />) }
+                    { labels?.map(l => <Label toggle={toggleLabel} label={l} />) }
                 </div>
             </div>
             <div className={cx('canvas-column')}>

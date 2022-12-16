@@ -3,6 +3,7 @@ import { useState, useMemo, useCallback } from 'react';
 
 const useLabels = (metadata) => {
     const [score, setScore] = useState(0);
+    const [hiddenLabels, setHiddenLabels] = useState({ })
 
     const scoreRange = useMemo(() => {
         let min = 0;
@@ -26,18 +27,30 @@ const useLabels = (metadata) => {
 
     const labels = useMemo(() => {
         if (metadata?.overlays) {
-            return Object.values(metadata.overlays).filter(label => !label?.score || (label?.score > score));
+            return Object.values(metadata.overlays).filter(label => (!label?.score || (label?.score > score)) && !hiddenLabels?.[label.label]);
         } else {
             return [];
         }
-    }, [metadata?.overlays, score]);
+    }, [metadata?.overlays, score, hiddenLabels]);
 
     const updateScore = useCallback((e) => setScore(e.target.value), []);
+    const toggleLabel = useCallback((label) => {
+        if (hiddenLabels?.[label.label]) {
+            const { [label.label]: removed, ...remaining } = hiddenLabels;
+            setHiddenLabels(remaining);
+        } else {
+            setHiddenLabels({ 
+                ...hiddenLabels,
+                [label.label]: true 
+            })
+        }
+    }, [hiddenLabels])
 
     return {
         labels,
         scoreRange,
-        updateScore
+        updateScore,
+        toggleLabel
     }
 
 }
