@@ -32,7 +32,7 @@ const Cell = async ({ value, columnName, type, query, style }) => {
     return (
         <div className={cx('cell')} >
             { !!Component && <Component value={value} columnName={columnName} query={query} style={style} />}
-            { !Component && <div style={style}>{`${value} - ${type}`}</div> }
+            { !Component && <div style={style}>{`${value}`}</div> }
         </div>
     )
 }

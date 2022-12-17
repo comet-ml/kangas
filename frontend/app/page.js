@@ -7,7 +7,7 @@ import Pager from './Pager/pager';
 
 const Page = async ({ searchParams }) => {
     const {
-        dgid='./notebooks/coco-500.datagrid',
+        datagrid='./notebooks/coco-500.datagrid',
         filter,
         groupBy,
         sortBy,
@@ -20,8 +20,10 @@ const Page = async ({ searchParams }) => {
     const limit = rows ? parseInt(rows) : 10;
     const offset = page ? (parseInt(page) - 1) * limit : 0;
 
+    // FIXME: What to do with empty datagrid?
+
     const query = {
-        dgid,
+        dgid: datagrid,
         whereExpr: filter,
         groupBy,
         sortBy,
