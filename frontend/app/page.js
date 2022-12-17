@@ -11,22 +11,30 @@ const Page = async ({ searchParams }) => {
         filter,
         groupBy,
         sortBy,
-        sortDesc
+        sortDesc,
+	page,
+	rows,
     } = searchParams;
+
+    // Limit and offset are always set; get base or view defaults:
+    const limit = rows ? parseInt(rows) : 10;
+    const offset = page ? (parseInt(page) - 1) * limit : 0;
+
+    const query = {
+        dgid,
+        whereExpr: filter,
+        groupBy,
+        sortBy,
+        sortDesc,
+	offset,
+	limit,
+    };
 
     return (
         <div>
-	    <ButtonBar/>
-            <Table
-                query={{
-                    dgid,
-                    whereExpr: filter,
-                    groupBy,
-                    sortBy,
-                    sortDesc
-                }}
-            />
-	    <Pager/>
+	    <ButtonBar query={query} />
+            <Table query={query} />
+	    <Pager query={query} />
         </div>
     );
 };

@@ -5,8 +5,12 @@ import config from '../config';
 import fetchData from './fetchData';
 
 const fetchDatagridTotal = async (query) => {
-    const data = await fetchData({ url: `${config.apiUrl}query-total`, query });
-    return data; // {"total": int}
+    if (query?.dgid) {
+	const data = await fetchData({ url: `${config.apiUrl}query-total`,
+				       query });
+	return data; // {"total": int}
+    }
+    return {"total": 0};
 };
 
 export default fetchDatagridTotal;
