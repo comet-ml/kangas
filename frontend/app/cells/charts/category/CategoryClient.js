@@ -67,9 +67,10 @@ const CategoryClient = ({ data, expanded, title, query, columnName }) => {
 	data.event.preventDefault();
 	data.event.stopPropagation();
 
-	let filter = `{"${columnName}"} == "${data.points[0].label}"`;
-	//FIXME: check not equal in abstract way (hash of it as object?)
-	if (!!query.filter && query.filter !== filter)
+	let filter = `{"${query.groupBy}"} == "${query.columnValue}" and {"${columnName}"} == "${data.points[0].label}"`;
+	console.log(filter);
+	//FIXME: may repeat items:
+	if (!!query.filter)
 	    filter = `${query.filter} and ${filter}`;
 
 	// FIXME: build query string and encode:
