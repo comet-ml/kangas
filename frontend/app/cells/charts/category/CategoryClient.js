@@ -4,7 +4,8 @@ import Plot from 'react-plotly.js'
 import classNames from 'classnames/bind';
 import { ModalContext } from '../../../modals/DialogueModal/DialogueModalClient';
 import styles from '../Charts.module.scss'
-import { useContext, useMemo } from 'react';
+import { useContext, useMemo, useCallback } from 'react';
+import { useRouter } from "next/navigation";
 
 const cx = classNames.bind(styles);
 
@@ -37,7 +38,7 @@ const CategoryConfig = {
 };
 
 
-const CategoryClient = ({ data, expanded, title }) => {    
+const CategoryClient = ({ data, expanded, title, query, columnName }) => {
     const ExpandedLayout = useMemo(() => {
         return {
             autosize: true,
@@ -59,6 +60,22 @@ const CategoryClient = ({ data, expanded, title }) => {
         };
     }, [title]);
 
+    const router = useRouter();
+
+    const onClick = useCallback((data) => {
+	// FIXME: this doesn't stop the event:
+	data.event.preventDefault();
+	data.event.stopPropagation();
+
+	let filter = `{"${columnName}"} == "${data.points[0].label}"`;
+	//FIXME: check not equal in abstract way (hash of it as object?)
+	if (!!query.filter && query.filter !== filter)
+	    filter = `${query.filter} and ${filter}`;
+
+	// FIXME: build query string and encode:
+	router.push(`/?datagrid=${query.dgid}&filter=${filter}`);
+    }, [data, columnName]);
+
     return (
         <div className={cx('plotly-container', { expanded })}>
             <Plot
@@ -66,6 +83,7 @@ const CategoryClient = ({ data, expanded, title }) => {
                 data={data}
                 layout={expanded ? ExpandedLayout : CategoryLayout}
                 config={CategoryConfig}
+	        onClick={onClick}
             />
         </div>
     )
