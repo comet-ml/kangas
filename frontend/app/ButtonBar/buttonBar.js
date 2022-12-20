@@ -2,15 +2,33 @@
 
 import DialogueModal from '../modals/DialogueModal/DialogueModalClient';
 import fetchStatus from '../../lib/fetchStatus';
+// FIXME:
+//import MatrixSelect from './MatrixSelectClient';
+//import GroupBy from './GroupBy';
+import RefreshButton from './RefreshButton';
+//import FilterExpr from './FilterExpr';
+import HelpText from './HelpText.js';
 
 import styles from './ButtonBar.module.scss';
 import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);
 
+const SelectButton = () => (
+    <div className={cx("button-outline")}>
+        <img src="/columns_placeholder.png" /> <span>Columns</span>
+    </div>
+);
+
 const KangasButton = () => (
-	<div className={cx("button-outline")}>
+    <div className={cx("button-outline")}>
         <img src="/favicon.png" />
         <span>Kangas</span>
+    </div>
+);
+
+const HelpButton = () => (
+	<div className={cx("button-outline")}>
+        <span>?</span>
     </div>
 );
 
@@ -34,8 +52,11 @@ const AboutDialog = ({status}) => {
 	  );
 };
 
-const ButtonBar = async () => {
+const ButtonBar = async ({query}) => {
     const status = await fetchStatus();
+    const columns  = [];
+    const matrices = [];
+    const completions = {};
 
     return (
         <div id="settings-bar">
@@ -44,16 +65,38 @@ const ButtonBar = async () => {
                     <AboutDialog status={status} />
                 </DialogueModal>
                 <div id="matrix-select" className={cx("select-row")}>
-{/*
-                    <MatrixSelect query={query} options={matrices} />
+{/*                 <MatrixSelect query={query} options={matrices} /> */}
                     <RefreshButton query={query} />
-*/}
                 </div>
             </div>
             <div id="nav-bar">
+              <div className="select-row">
 {/*
-                <SelectRow columns={columns} query={query} options={options} completions={completions} />
-*/}
+                <GroupBy query={query} columns={columns} />
+                <SortBy query={query} columns={columns} /> */}
+                <DialogueModal
+                  toggleElement={<SelectButton />}
+                  sx={{
+                    "& .MuiDialog-container": {
+                        "& .MuiPaper-root": {
+                        width: "100%",
+                        maxWidth: "540px",  // Set your width here
+                        },
+                    },
+                  }}
+                >
+{/*                  <CustomizeColumnsModal
+                     query={query}
+                     isMulti={true}
+                     columns={columns}
+                     defaultOptions={options}
+                  /> */}
+                </DialogueModal>
+{/*                <FilterExpr query={query} columns={columns} completions={completions} /> */}
+                <DialogueModal fullScreen={false} toggleElement={<HelpButton />}>
+                  <HelpText />
+                </DialogueModal>
+              </div>
             </div>
         </div>
     );
