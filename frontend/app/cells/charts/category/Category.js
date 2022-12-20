@@ -10,7 +10,7 @@ const Category = async ({ value, expanded }) => {
         )
     }
 
-    return <CategoryClient data={data} expanded={expanded} title={value?.columnName} />
+    return <CategoryClient data={data} expanded={expanded} title={value?.columnName} query={value} columnName={value?.columnName} />
 }
 
 export default Category;
