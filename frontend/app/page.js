@@ -2,7 +2,7 @@ import config from '../config';
 import fetchDataGrid from '../lib/fetchDatagrid';
 import fetchAvailableMatrices from '../lib/fetchAvailableMatrices';
 import Table from './Table/table';
-import ButtonBar from './ButtonBar/buttonBar';
+import ButtonBar from './Settings';
 import Pager from './Pager/pager';
 
 const Page = async ({ searchParams }) => {
@@ -12,8 +12,8 @@ const Page = async ({ searchParams }) => {
         groupBy,
         sortBy,
         sortDesc,
-	page,
-	rows,
+        page,
+        rows,
     } = searchParams;
 
     // Limit and offset are always set; get base or view defaults:
@@ -28,15 +28,15 @@ const Page = async ({ searchParams }) => {
         groupBy,
         sortBy,
         sortDesc,
-	offset,
-	limit,
+        offset,
+        limit,
     };
 
     return (
         <div>
-	    <ButtonBar query={query} />
+	        <ButtonBar query={query} />
             <Table query={query} />
-	    <Pager query={query} />
+	        <Pager query={query} />
         </div>
     );
 };
