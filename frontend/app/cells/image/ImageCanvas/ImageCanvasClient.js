@@ -1,10 +1,11 @@
 'use client';
 
-import { useCallback, useMemo, useEffect, useRef, useState } from 'react';
+import { useCallback, useMemo, useEffect, useRef, useState, useContext } from 'react';
 import computeScale from '../../../../lib/computeScale';
 import styles from './ImageCanvas.module.scss';
 import classNames from 'classnames/bind';
 import useLabels from '../../../../lib/hooks/useLabels';
+import { CanvasContext } from '../../../contexts/CanvasContext';
 
 const cx = classNames.bind(styles);
 
@@ -16,9 +17,10 @@ const Label = ({ label, toggle }) => {
     )
 }
 
-const ImageCanvasClient = ({ metadata, image }) => {
+const ImageCanvasClient = ({ image }) => {
     const imageCanvas = useRef();
     const labelCanvas = useRef();
+    const { metadata } = useContext(CanvasContext);
     const { labels, scoreRange, updateScore, toggleLabel } = useLabels(metadata);
     
     const drawImage = useCallback(() => {

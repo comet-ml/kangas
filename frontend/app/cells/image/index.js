@@ -4,7 +4,7 @@ import DialogueModal from '../../modals/DialogueModal/DialogueModalClient';
 
 const Image = ({ value, columnName, query, style }) => {
     if (!query?.groupBy) return (
-            <DialogueModal toggleElement={<Base value={value} query={query} expanded={false} style={style} />}>
+        <DialogueModal toggleElement={<Base value={value} query={query} expanded={false} style={style} />}>
             <Base value={value} query={query} expanded={true} />
         </DialogueModal>
     );

@@ -13,7 +13,7 @@
     align-items: center;
 
     &.header {
-        min-height: 0px;
+        min-height: 12px;
     }
 
     &.group {
@@ -50,4 +50,3 @@
     max-height: 100%;
     display: block;
 }
-
