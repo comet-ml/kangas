@@ -7,7 +7,7 @@ import Pager from './Pager/pager';
 
 const Page = async ({ searchParams }) => {
     const {
-        datagrid='./notebooks/coco-500.datagrid',
+        dgid,
         filter,
         groupBy,
         sortBy,
@@ -23,7 +23,7 @@ const Page = async ({ searchParams }) => {
     // FIXME: What to do with empty datagrid?
 
     const query = {
-        dgid: datagrid,
+        dgid,
         whereExpr: filter,
         groupBy,
         sortBy,

@@ -2,8 +2,7 @@
 
 import DialogueModal from '../modals/DialogueModal/DialogueModalClient';
 import fetchStatus from '../../lib/fetchStatus';
-// FIXME:
-//import MatrixSelect from './MatrixSelectClient';
+import MatrixSelect from './MatrixSelectClient';
 //import GroupBy from './GroupBy';
 import RefreshButton from './RefreshButton';
 //import FilterExpr from './FilterExpr';
@@ -11,25 +10,28 @@ import HelpText from './HelpText.js';
 import { KangasButton, AboutDialog, SelectButton, HelpButton } from './Buttons';
 import styles from './SettingsBar.module.scss';
 import classNames from 'classnames/bind';
+import { Suspense } from 'react';
+import fetchDatagrids from '../../lib/fetchDatagrids';
 
 const cx = classNames.bind(styles);
 
 
-const SettingsBar = async ({query}) => {
+const SettingsBar = async ({ query }) => {
     const status = await fetchStatus();
     const columns  = [];
-    const matrices = [];
+    const options = await fetchDatagrids();
     const completions = {};
 
     return (
         <div className={cx('settings-bar')}>
             <div className={cx('left-settings-bar')}>
                 <DialogueModal fullScreen={false} toggleElement={<KangasButton />}>
-                    <AboutDialog status={status} />
+                    <Suspense fallback={<div>Loading</div>}>
+                        <AboutDialog status={status} />
+                    </Suspense>
                 </DialogueModal>
-                <div id="matrix-select" className={cx("select-row")}>
-                    <RefreshButton query={query} />
-                </div>
+                <MatrixSelect query={query} options={options} />
+                <RefreshButton query={query} />
             </div>
             <div className={cx('right-settings-bar')}>
                 <DialogueModal

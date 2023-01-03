@@ -1,6 +1,15 @@
 import config from '../config';
 
 const fetchDataGrid = async (query) => {
+    // TODO: Rip this conditional return out. This is just here for testing purposes.
+    if (!query?.dgid) return {
+        columnTypes: [], 
+        columns: [], 
+        rows: [], 
+        typeMap: [], 
+        displayColumns: []
+    }
+
     const request = {
         method: 'POST',
         headers: {
