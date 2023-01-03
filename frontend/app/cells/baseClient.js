@@ -26,7 +26,7 @@ const CellClient = ({ columnName, type, isHeader, children }) => {
     const resize = useCallback((d) => {
         updateWidth({
             [columnName]: {
-                width: initWidth + d.width
+                width: initWidth + (d.width ?? 0)
             }
         })
     }, [columnName, initWidth]);
@@ -36,7 +36,7 @@ const CellClient = ({ columnName, type, isHeader, children }) => {
 
     useEffect(() => {
         if (!isResizing && (columns?.[columnName]?.width !== initWidth)) {
-            setInitWidth(columns?.[columnName]?.width)
+            setInitWidth(columns?.[columnName]?.width ?? initWidth)
         }
     }, [isResizing, columns?.[columnName]?.width, initWidth])
 
@@ -44,7 +44,7 @@ const CellClient = ({ columnName, type, isHeader, children }) => {
         <Resizable 
             className={cx('cell', { header: isHeader})} 
             size={{
-                width: columns?.[columnName]?.width,
+                width: columns?.[columnName]?.width ?? initWidth,
                 height: 0
             }}
             enable={{
