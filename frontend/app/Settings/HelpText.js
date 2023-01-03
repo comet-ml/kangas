@@ -3,7 +3,7 @@ const HelpText = () => (
         <p dir="auto">
             <b>DataGrid filter expressions</b> use Python syntax for selecting
             matching rows. To use the value of a column in the expression,
-            enclosing the column name like <code>&#123;"Column Name"&rbrace;</code>.
+            enclosing the column name like <code>&#123;"Column Name"&#125;</code>.
             Some examples:
         </p>
         <p dir="auto">
@@ -12,7 +12,7 @@ const HelpText = () => (
         </p>
         <div className="snippet-clipboard-content notranslate position-relative overflow-auto">
             <pre className="notranslate">
-                <code>&#123;"fitness"&rbrace; &lt; 0.1</code>
+                <code>&#123;"fitness"&#125; &lt; 0.1</code>
             </pre>
             <div className="zeroclipboard-container position-absolute right-0 top-0"></div>
         </div>
@@ -25,7 +25,7 @@ const HelpText = () => (
         </p>
         <div className="snippet-clipboard-content notranslate position-relative overflow-auto">
             <pre className="notranslate">
-                <code>&#123;"score 1"&rbrace; &gt;= &#123;"score 2"&rbrace;</code>
+                <code>&#123;"score 1"&#125; &gt;= &#123;"score 2"&#125;</code>
             </pre>
             <div className="zeroclipboard-container position-absolute right-0 top-0"></div>
         </div>
@@ -88,7 +88,7 @@ const HelpText = () => (
         <div className="snippet-clipboard-content notranslate position-relative overflow-auto">
             <pre className="notranslate">
                 <code>
-    &#123;"column a"&rbrace; &lt; &#123;"column b"&rbrace; &lt; &#123;"column c"&rbrace;
+    &#123;"column a"&#125; &lt; &#123;"column b"&#125; &lt; &#123;"column c"&#125;
                 </code>
             </pre>
         </div>
@@ -98,7 +98,7 @@ const HelpText = () => (
         <div className="snippet-clipboard-content notranslate position-relative overflow-auto">
             <pre className="notranslate">
                 <code>
-                  &#123;"column a"&rbrace; &lt; &#123;"column b"&rbrace; and &#123;"column b"&rbrace; &lt; &#123;"column c"&rbrace;
+                  &#123;"column a"&#125; &lt; &#123;"column b"&#125; and &#123;"column b"&#125; &lt; &#123;"column c"&#125;
                 </code>
             </pre>
         </div>
@@ -115,8 +115,8 @@ const HelpText = () => (
         <div className="snippet-clipboard-content notranslate position-relative overflow-auto">
             <pre className="notranslate">
                 <code>
-                    ((&#123;"loss"&rbrace; - &#123;"base line"&rbrace;) &lt; 0.5) or
-                    (&#123;"loss"&rbrace; &gt; 0.95)
+                    ((&#123;"loss"&#125; - &#123;"base line"&#125;) &lt; 0.5) or
+                    (&#123;"loss"&#125; &gt; 0.95)
                 </code>
             </pre>
             <div className="zeroclipboard-container position-absolute right-0 top-0"></div>
@@ -128,17 +128,17 @@ const HelpText = () => (
         </p>
         <div className="snippet-clipboard-content notranslate position-relative overflow-auto">
             <pre className="notranslate">
-                <code>&#123;"Image"&rbrace;.extension == "jpg"</code>
+                <code>&#123;"Image"&#125;.extension == "jpg"</code>
             </pre>
             <div className="zeroclipboard-container position-absolute right-0 top-0"></div>
         </div>
         <p dir="auto">or nested values:</p>
         <div className="snippet-clipboard-content notranslate position-relative overflow-auto">
             <pre className="notranslate">
-                <code>&#123;"Image"&rbrace;.labels.dog &gt; 1</code>
+                <code>&#123;"Image"&#125;.labels.dog &gt; 1</code>
             </pre>
             <pre className="notranslate">
-                <code>&#123;"Image"&rbrace;.labels.dog and &#123;"Image"&rbrace;.labels.cat</code>
+                <code>&#123;"Image"&#125;.labels.dog and &#123;"Image"&#125;.labels.cat</code>
             </pre>
             <div className="zeroclipboard-container position-absolute right-0 top-0"></div>
         </div>
@@ -150,22 +150,22 @@ const HelpText = () => (
         </p>
         <ul dir="auto">
 	<li>
-	  <code>any([x["label"] == 'dog' for x in &#123;"Image"&rbrace;.overlays])</code> - images with dogs
+	  <code>any([x["label"] == 'dog' for x in &#123;"Image"&#125;.overlays])</code> - images with dogs
         </li>
 	<li>
-         <code>all([x["label"] == 'person' for x in &#123;"Image"&rbrace;.overlays])</code> - images with only people (no other labels)
+         <code>all([x["label"] == 'person' for x in &#123;"Image"&#125;.overlays])</code> - images with only people (no other labels)
 	</li>
 	<li>
-        <code>any([x["label"] in ["car", "bicycle"] for x in &#123;"Image"&rbrace;.overlays])</code> - images with cars or bicycles
+        <code>any([x["label"] in ["car", "bicycle"] for x in &#123;"Image"&#125;.overlays])</code> - images with cars or bicycles
 	</li>
 	<li>
-        <code>any([x["label"] == "cat" or x["label"] == "dog" for x in &#123;"Image"&rbrace;.overlays])</code> - images with dogs or cats
+        <code>any([x["label"] == "cat" or x["label"] == "dog" for x in &#123;"Image"&#125;.overlays])</code> - images with dogs or cats
 	</li>
 	<li>
-        <code>any([x["label"] == "cat" for x in &#123;"Image"&rbrace;.overlays]) and any([x["label"] == "dog" for x in &#123;"Image"&rbrace;.overlays])</code> - images with dogs and cats
+        <code>any([x["label"] == "cat" for x in &#123;"Image"&#125;.overlays]) and any([x["label"] == "dog" for x in &#123;"Image"&#125;.overlays])</code> - images with dogs and cats
 	</li>
 	<li>
-        <code>any([x["score"] &gt; 0.999 for x in &#123;"Image"&rbrace;.overlays])</code> - images with an annotation score greater than 0.999
+        <code>any([x["score"] &gt; 0.999 for x in &#123;"Image"&#125;.overlays])</code> - images with an annotation score greater than 0.999
 	</li>
      </ul>
 
@@ -196,31 +196,31 @@ const HelpText = () => (
         <p dir="auto">These are mostly used with column values:</p>
         <ul dir="auto">
             <li>
-                <code>STRING in &#123;"Column Name"&rbrace;</code>
+                <code>STRING in &#123;"Column Name"&#125;</code>
             </li>
             <li>
-                <code>&#123;"Column Name"&rbrace;.endswith(STRING)</code>
+                <code>&#123;"Column Name"&#125;.endswith(STRING)</code>
             </li>
             <li>
-                <code>&#123;"Column Name"&rbrace;.startswith(STRING)</code>
+                <code>&#123;"Column Name"&#125;.startswith(STRING)</code>
             </li>
             <li>
-                <code>&#123;"Column Name"&rbrace;.strip()</code>
+                <code>&#123;"Column Name"&#125;.strip()</code>
             </li>
             <li>
-                <code>&#123;"Column Name"&rbrace;.lstrip()</code>
+                <code>&#123;"Column Name"&#125;.lstrip()</code>
             </li>
             <li>
-                <code>&#123;"Column Name"&rbrace;.rstrip()</code>
+                <code>&#123;"Column Name"&#125;.rstrip()</code>
             </li>
             <li>
-                <code>&#123;"Column Name"&rbrace;.upper()</code>
+                <code>&#123;"Column Name"&#125;.upper()</code>
             </li>
             <li>
-                <code>&#123;"Column Name"&rbrace;.lower()</code>
+                <code>&#123;"Column Name"&#125;.lower()</code>
             </li>
             <li>
-                <code>&#123;"Column Name"&rbrace;.split(DELIM[, MAXSPLITS])</code>
+                <code>&#123;"Column Name"&#125;.split(DELIM[, MAXSPLITS])</code>
             </li>
         </ul>
         <h3 dir="auto">Python if/else expression</h3>
@@ -231,7 +231,7 @@ const HelpText = () => (
         <div className="snippet-clipboard-content notranslate position-relative overflow-auto">
             <pre className="notranslate">
                 <code>
-                    ("low" if &#123;"loss"&rbrace; &lt; 0.5 else "high") == "low"
+                    ("low" if &#123;"loss"&#125; &lt; 0.5 else "high") == "low"
                 </code>
             </pre>
             <div className="zeroclipboard-container position-absolute right-0 top-0"></div>
@@ -264,25 +264,25 @@ const HelpText = () => (
         </p>
         <ul dir="auto">
             <li>
-                <code>AVG(&#123;"Column Name"&rbrace;)</code>
+                <code>AVG(&#123;"Column Name"&#125;)</code>
             </li>
             <li>
-                <code>MAX(&#123;"Column Name"&rbrace;)</code>
+                <code>MAX(&#123;"Column Name"&#125;)</code>
             </li>
             <li>
-                <code>MIN(&#123;"Column Name"&rbrace;)</code>
+                <code>MIN(&#123;"Column Name"&#125;)</code>
             </li>
             <li>
-                <code>SUM(&#123;"Column Name"&rbrace;)</code>
+                <code>SUM(&#123;"Column Name"&#125;)</code>
             </li>
             <li>
-                <code>TOTAL(&#123;"Column Name"&rbrace;)</code>
+                <code>TOTAL(&#123;"Column Name"&#125;)</code>
             </li>
             <li>
-                <code>COUNT(&#123;"Column Name"&rbrace;)</code>
+                <code>COUNT(&#123;"Column Name"&#125;)</code>
             </li>
             <li>
-                <code>STDEV(&#123;"Column Name"&rbrace;)</code>
+                <code>STDEV(&#123;"Column Name"&#125;)</code>
             </li>
         </ul>
         <p dir="auto">Examples:</p>
@@ -291,7 +291,7 @@ const HelpText = () => (
         </p>
         <div className="snippet-clipboard-content notranslate position-relative overflow-auto">
             <pre className="notranslate">
-                <code>&#123;"loss"&rbrace; &lt; AVG(&#123;"loss"&rbrace;)</code>
+                <code>&#123;"loss"&#125; &lt; AVG(&#123;"loss"&#125;)</code>
             </pre>
             <div className="zeroclipboard-container position-absolute right-0 top-0"></div>
         </div>
