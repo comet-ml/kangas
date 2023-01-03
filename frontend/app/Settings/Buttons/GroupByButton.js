@@ -1,24 +1,27 @@
 //import CustomizeColumnsModal from './CustomizeColumnsModal';
 // FIXME: has a useRef:
 //import usePopover from '../../lib/usePopover';
+'use client';
+
 import { Popover } from '@mui/material';
 
-import styles from './ButtonBar.module.scss';
+import styles from './Buttons.module.scss';
 import classNames from 'classnames/bind';
+import { useContext } from 'react';
+import { ViewContext } from '../../contexts/ViewContext';
+import CustomizeColumnsModal from '../CustomizeColumnsModal';
+import usePopover from '../../../lib/hooks/usePopover';
+
 const cx = classNames.bind(styles);
 
-const GroupButton = ({ active }) => (
-    <div className={`${cx('button-outline')} ${active && 'active-button'}`}>
-        <img src="/group_placeholder.png" /> <span>Group by</span>
-    </div>
-);
-
-const GroupBy = ({ query, columns }) => {
-    //const { open, toggleOpen, anchor } = usePopover();
+const GroupByButton = ({ query }) => {
+    const { open, toggleOpen, anchor } = usePopover();
+    const { columns } = useContext(ViewContext)
+    console.log(columns)
     return (
         <>
-            <div onClick={toggleOpen} ref={anchor}>
-                <GroupButton active={open} />
+            <div className={cx('button-outline', { 'active-button': false })} onClick={toggleOpen} ref={anchor}>
+                <img src="/group_placeholder.png" /> <span>Group by</span>
             </div>
             <Popover
                 anchorOrigin={{
@@ -30,18 +33,16 @@ const GroupBy = ({ query, columns }) => {
                     horizontal: 'right',
                 }}
                 className={'popover-select'}
+                open={open}
             >
-	    {/*
                 <CustomizeColumnsModal
                     query={query}
                     subtrees={['groupBy', 'sortBy']}
                     columns={columns}
-                    onColumnChange={toggleOpen}
                 />
-*/}
             </Popover>
         </>
     );
 };
 
-export default GroupBy;
+export default GroupByButton;

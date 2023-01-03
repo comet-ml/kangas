@@ -4,6 +4,9 @@ import fetchAvailableMatrices from '../lib/fetchAvailableMatrices';
 import Table from './Table/table';
 import ButtonBar from './Settings';
 import Pager from './Pager/pager';
+import ViewProvider from './contexts/ViewContext';
+import defaultCellSizes from '../lib/consts/defaultCellSizes';
+
 
 const Page = async ({ searchParams }) => {
     const {
@@ -32,11 +35,17 @@ const Page = async ({ searchParams }) => {
         limit,
     };
 
+    const data = await fetchDataGrid(query)
+    const { columnTypes, columns } = data;
+    const view = Object.fromEntries( columns.map( ( col, idx ) => [ col, defaultCellSizes?.[ columnTypes[idx ] ] ] ) );
+
     return (
         <div>
-	        <ButtonBar query={query} />
-            <Table query={query} />
-	        <Pager query={query} />
+            <ViewProvider value={{ columns: view }}>
+                <ButtonBar query={query} />
+                <Table query={query} />
+                <Pager query={query} />
+            </ViewProvider>
         </div>
     );
 };

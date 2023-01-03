@@ -1,15 +1,11 @@
+'use client';
+
 import React, { useCallback, useMemo, useState } from 'react';
-import dynamic from 'next/dynamic.js';
-import { unstable_useRefreshRoot as useRefreshRoot } from 'next/streaming';
+import Select from 'react-select';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-
-const Select = dynamic(() => import('react-select'), {
-    ssr: false,
-});
-
-import MultiSelectSort from './MultiSelectSort.client.js';
 import makeQuery from '../../lib/makeQuery.js';
+import useQueryParams from '../../lib/hooks/useQueryParams.js';
 
 const SortArrow = ({ toggle, sortDesc }) => {
     return (
@@ -27,18 +23,19 @@ const CustomizeColumnsModal = ({
     onColumnChange = () => {},
     subtree = '',
     isMulti = false,
+
     subtrees = [], // Optional: Some buttons might need to update multiple fields (e.g. grouping should also sort)
 }) => {
-    const refresh = useRefreshRoot();
-    const [menuIsOpen, setMenuIsOpen] = useState(false);
-    const [newOptions, setNewOptions] = useState(null);
+    const { params, updateParams } = useQueryParams();
+    console.log(columns)
+
     // Should the reset button be active
     const [sortDesc, setSortDesc] = useState(false);
 
     // React select requires an array of dictionaries as input
     const options = useMemo(
         () =>
-            columns.map((col, i) => {
+            Object.keys(columns).map((col, i) => {
                 // For dropdown selectors, we add an empty cell at id: 0, hence the i + 1 below
                 return { id: i + 1, label: col, value: col };
             }),
@@ -59,26 +56,16 @@ const CustomizeColumnsModal = ({
         return options.find((opt) => opt.value === selection) || null;
     }, [options, query]);
 
-    const handleClearCurrentChanges = () => {
-        setNewOptions(null);
-    };
 
-    const handleColumnToggle = (newSelectedOptions, action) => {
-        setNewOptions(newSelectedOptions);
-        setMenuIsOpen(false);
-    };
-
-    const handleResetDefaultColumns = () => {
-        setNewOptions(columns);
-    };
 
     // This is for selecting multiple columns
     const handleUpdateColumns = useCallback(
         (selected) => {
             const parsedOptions = selected.map((col) => col.value);
+            /*
             refresh({
                 query: makeQuery(query, '', { select: parsedOptions }),
-            });
+            }); */
         },
         [query]
     );
@@ -95,6 +82,7 @@ const CustomizeColumnsModal = ({
                     newQuery = makeQuery(newQuery, tree, column);
                 }
 
+                /*
                 // Shrink limit if we're adding a groupBy; reset to 10 if removing groupBy
                 if (newQuery?.groupBy) {
                     const { limit, offset, ...limitless } = newQuery;
@@ -106,11 +94,12 @@ const CustomizeColumnsModal = ({
 
                 refresh({
                     query: newQuery,
-                });
+                });*/
             } else {
+                /*
                 refresh({
                     query: makeQuery(query, subtree, column),
-                });
+                });*/
             }
 
             onColumnChange();
@@ -131,23 +120,26 @@ const CustomizeColumnsModal = ({
             newQuery = unsorted;
         }
 
-        refresh({
+      /*  refresh({
             query: newQuery,
-        });
+        });*/
         onColumnChange();
     }, [query, subtree, subtrees]);
 
+    const group = useCallback((e) => {
+        updateParams({
+            groupBy: e.value,
+            sortBy: e.value
+        })
+    }, [updateParams]);
+
     const toggleDesc = useCallback(() => {
         // This is only passed to the single column selector, so the subtree parsing is unnecessary
-        refresh({
-            query: {
-                ...query,
-                sortDesc: !query?.sortDesc
-            }
-        });
+        updateParam({ param: 'sortDesc', value: !params?.sortDesc })
         onColumnChange();
     }, [query])
 
+    /*
     // FIXME: remove this height: 320px when we find solution for standalone height
     // in select:
     if (isMulti) {
@@ -167,7 +159,7 @@ const CustomizeColumnsModal = ({
             </div>
         );
     }
-
+*/
     return (
         <div>
             <div className="select-modal-title">
@@ -185,7 +177,7 @@ const CustomizeColumnsModal = ({
                 <Select
                     options={options}
                     value={selectedOption}
-                    onChange={handleUpdateColumn}
+                    onChange={group}
 
                 />
                 { !!query?.sortBy && <SortArrow toggle={toggleDesc} sortDesc={query?.sortDesc} /> }

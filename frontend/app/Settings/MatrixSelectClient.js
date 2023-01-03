@@ -3,26 +3,18 @@
 import Select from 'react-select';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
-
+import useQueryParams from '../../lib/hooks/useQueryParams';
 
 // Ideally, we wouldn't need to import a third-party library for a select component here,
 // but native select components are annoying to style
 const MatrixSelect = ({ query, options=['blah'] }) => {
-    const params = useSearchParams();
-    const router = useRouter();
-    const dgid = useMemo(() => params.get('dgid'), [params]);
+    const { params, updateParams } = useQueryParams();
 
     const changeDatagrid = useCallback((e) => {
-        const current = new URLSearchParams(params.toString())
-        if (!!current.get('dgid')) {
-            current.delete('dgid');
-        }
-        
-        current.append('dgid', e.value);
-
-        router.push(`/?${current.toString()}`)
-
-    }, [params, router]);
+        updateParams({
+            dgid: e.value
+        })
+    }, [updateParams]);
 
     const customStyles = {
         menuPortal: (provided) => ({ ...provided, zIndex: 9999 }),
@@ -34,7 +26,7 @@ const MatrixSelect = ({ query, options=['blah'] }) => {
         <Select
             id={'matrix-select-pulldown'}
             defaultValue={
-                options.find((item) => item?.value?.endsWith(dgid)) || ''
+                options.find((item) => item?.value?.endsWith(params?.dgid)) || ''
             }
             options={options}
             styles={customStyles}
