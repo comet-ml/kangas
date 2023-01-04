@@ -2,8 +2,8 @@ import config from '../config';
 import fetchDataGrid from '../lib/fetchDatagrid';
 import fetchAvailableMatrices from '../lib/fetchAvailableMatrices';
 import Table from './Table/table';
-import ButtonBar from './Settings';
-import Pager from './Pager/pager';
+import SettingsBar from './Settings';
+import PagerBar from './PagerBar';
 import ViewProvider from './contexts/ViewContext';
 import defaultCellSizes from '../lib/consts/defaultCellSizes';
 
@@ -42,9 +42,9 @@ const Page = async ({ searchParams }) => {
     return (
         <div>
             <ViewProvider value={{ columns: view }}>
-                <ButtonBar query={query} />
+                <SettingsBar query={query} />
                 <Table query={query} />
-                <Pager query={query} />
+                <PagerBar query={query} />
             </ViewProvider>
         </div>
     );
