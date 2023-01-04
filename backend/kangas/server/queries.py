@@ -18,6 +18,7 @@ import math
 import os
 import re
 import sqlite3
+import statistics
 import string
 import time
 from collections import Counter, defaultdict
@@ -254,6 +255,16 @@ def LENGTH(string_or_obj):
     return 0
 
 
+def MEAN(string_or_obj):
+    ## Comes in as a string, but might be "[...]"
+    if string_or_obj:
+        try:
+            return statistics.mean(ast.literal_eval(string_or_obj))
+        except Exception:
+            return statistics.mean(string_or_obj)
+    return 0
+
+
 def IN_OBJ(item, string_or_obj):
     if string_or_obj:
         try:
@@ -374,6 +385,7 @@ def get_database_connection(dgid):
     conn.create_function("FLATTEN", 1, FLATTEN)
     conn.create_function("SPLIT", -1, SPLIT)
     conn.create_function("LENGTH", 1, LENGTH)
+    conn.create_function("MEAN", 1, MEAN)
     conn.create_function("KEYS_OF", 1, KEYS_OF)
     conn.create_function("VALUES_OF", 1, VALUES_OF)
     conn.create_function("IN_OBJ", 2, IN_OBJ)
@@ -399,6 +411,7 @@ def get_completions(dgid):
         "all([])",
         "and",
         "any([])",
+        "avg([])",
         "datetime",
         "flatten()",
         "in",
@@ -411,6 +424,7 @@ def get_completions(dgid):
         "or",
         "random",
         "round()",
+        "statistics",
     ]
     for expr in constructs:
         trigger = expr[:1]
@@ -426,6 +440,7 @@ def get_completions(dgid):
         "randint()",
         "random()",
     ]
+    results["statistics."] = ["mean()"]
     results["math."] = [
         "acos()",
         "acosh()",

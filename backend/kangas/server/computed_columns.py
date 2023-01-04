@@ -26,7 +26,7 @@ class AttributeNode:
         self.attr = attr
 
     def __str__(self):
-        if self.obj in ["random", "math", "datetime"]:
+        if self.obj in ["random", "math", "datetime", "statistics"]:
             raise Exception(
                 "uncalled or unknown method '%s.%s'" % (self.obj, self.attr)
             )
@@ -123,12 +123,13 @@ class Evaluator:
                 aggregate_selection_name = "%s_aggregate_column_%s" % (function_name, 1)
                 self.selections[aggregate_selection_name] = expr
                 return aggregate_selection_name
-            elif function_name in ["any", "all", "len", "flatten"]:
+            elif function_name in ["any", "all", "len", "flatten", "avg"]:
                 ## Sqlite functions
                 function_map = {
                     "any": "ANY_IN_GROUP",
                     "all": "ALL_IN_GROUP",
                     "len": "LENGTH",
+                    "avg": "MEAN",
                     "flatten": "FLATTEN",
                 }
                 sargs = ", ".join([str(arg) for arg in args])
@@ -207,6 +208,20 @@ class Evaluator:
                             minute=minute,
                             second=second,
                         )
+                    else:
+                        raise Exception("unsupported method %r" % repr(function_name))
+                elif function_name.obj == "statistics":
+                    if len(args) == 0:
+                        raise Exception(
+                            "missing argument to method %r" % repr(function_name)
+                        )
+
+                    sargs = ", ".join([str(arg) for arg in args])
+                    if function_name.attr == "mean":
+                        expr = "MEAN({sargs})".format(
+                            sargs=sargs,
+                        )
+                        return expr
                     else:
                         raise Exception("unsupported method %r" % repr(function_name))
                 elif function_name.obj == "math":
