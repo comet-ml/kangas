@@ -1,26 +1,30 @@
 /* eslint-disable react/jsx-key */
 
 import fetchDataGridTotal from '../../lib/fetchDatagridTotal';
+import Pager from './pager';
 
-import styles from './Pager.module.scss';
-import classNames from 'classnames/bind';
-const cx = classNames.bind(styles);
-
-const Pager = async ({query}) => {
+const PagerBar = async ({query}) => {
     const totalRows = (await fetchDataGridTotal(query)).total;
 
+    const firstRow = query.offset + 1;
     const currentPage = Math.floor(query.offset / query.limit) + 1;
     const totalPages = Math.ceil(totalRows / query.limit);
     const maxRow = Math.min(
 	query.offset + query.limit,
 	totalRows,
     );
+    const pageSize = query.limit;
 
     return (
-        <div className={cx('pagination')}>
-	    Showing {`${query.offset + 1} - ${maxRow} of ${totalRows} rows`}: Page {`${currentPage}  / ${totalPages}`}
-	</div>
+	    <Pager
+	      firstRow={firstRow}
+	      totalRows={totalRows}
+              currentPage={currentPage}
+	      totalPages={totalPages}
+	      maxRow={maxRow}
+	      pageSize={pageSize}
+	    />
     );
 };
 
-export default Pager;
+export default PagerBar;
