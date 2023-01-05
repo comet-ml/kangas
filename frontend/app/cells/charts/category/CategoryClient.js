@@ -63,17 +63,17 @@ const CategoryClient = ({ data, expanded, title, query, columnName }) => {
     const router = useRouter();
 
     const onClick = useCallback((data) => {
-	// FIXME: this doesn't stop the event:
-	data.event.preventDefault();
-	data.event.stopPropagation();
+        // FIXME: this doesn't stop the event:
+        data.event.preventDefault();
+        data.event.stopPropagation();
 
-	let filter = `{"${query.groupBy}"} == "${query.columnValue}" and {"${columnName}"} == "${data.points[0].label}"`;
-	//FIXME: may repeat items:
-	if (!!query.filter)
-	    filter = `${query.filter} and ${filter}`;
+        let filter = `{"${query.groupBy}"} == "${query.columnValue}" and {"${columnName}"} == "${data.points[0].label}"`;
+        //FIXME: may repeat items:
+        if (!!query.filter)
+            filter = `${query.filter} and ${filter}`;
 
-	// FIXME: build query string and encode:
-	router.push(`/?datagrid=${query.dgid}&filter=${filter}`);
+        // FIXME: build query string and encode:
+        router.push(`/?datagrid=${query.dgid}&filter=${filter}`);
     }, [data, columnName]);
 
     return (
@@ -83,7 +83,7 @@ const CategoryClient = ({ data, expanded, title, query, columnName }) => {
                 data={data}
                 layout={expanded ? ExpandedLayout : CategoryLayout}
                 config={CategoryConfig}
-	        onClick={onClick}
+                onClick={onClick}
             />
         </div>
     )

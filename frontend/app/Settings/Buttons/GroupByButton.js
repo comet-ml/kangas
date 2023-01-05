@@ -7,20 +7,15 @@ import { Popover } from '@mui/material';
 
 import styles from './Buttons.module.scss';
 import classNames from 'classnames/bind';
-import { useContext } from 'react';
-import { ViewContext } from '../../contexts/ViewContext';
-import CustomizeColumnsModal from '../CustomizeColumnsModal';
 import usePopover from '../../../lib/hooks/usePopover';
-
+import SelectColumnDropdown from '../../modals/SelectColumnDrowpdown/SelectColumnDropdown';
 const cx = classNames.bind(styles);
 
-const GroupByButton = ({ query }) => {
+const GroupByButton = ({ }) => {
     const { open, toggleOpen, anchor } = usePopover();
-    const { columns } = useContext(ViewContext)
-    console.log(columns)
     return (
         <>
-            <div className={cx('button-outline', { 'active-button': false })} onClick={toggleOpen} ref={anchor}>
+            <div className={cx('button-outline')} onClick={toggleOpen} ref={anchor}>
                 <img src="/group_placeholder.png" /> <span>Group by</span>
             </div>
             <Popover
@@ -34,12 +29,9 @@ const GroupByButton = ({ query }) => {
                 }}
                 className={'popover-select'}
                 open={open}
+                anchorEl={anchor?.current}
             >
-                <CustomizeColumnsModal
-                    query={query}
-                    subtrees={['groupBy', 'sortBy']}
-                    columns={columns}
-                />
+                <SelectColumnDropdown toggleOpen={toggleOpen} />
             </Popover>
         </>
     );

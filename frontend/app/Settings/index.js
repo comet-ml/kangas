@@ -3,7 +3,6 @@
 import DialogueModal from '../modals/DialogueModal/DialogueModalClient';
 import fetchStatus from '../../lib/fetchStatus';
 import MatrixSelect from './MatrixSelectClient';
-//import GroupBy from './GroupBy';
 import RefreshButton from './RefreshButton';
 //import FilterExpr from './FilterExpr';
 import HelpText from './HelpText.js';

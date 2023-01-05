@@ -1,0 +1,41 @@
+.select-modal-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 17px 0;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 19px;
+
+    div {
+        display: flex;
+    }
+
+    .reset-button {
+        font-weight: 400;
+        font-size: 13px;
+        line-height: 15px;
+        cursor: pointer;
+        margin-left: 54px;
+    }
+
+    .disabled {
+        color: #afb0fb;
+    }
+
+    .enabled {
+        color: #5155f5;
+
+}
+}
+
+.select-modal-body {
+    border-top: 1px solid #f0f2f6;
+    width: 100%;
+    display: flex;
+    align-items: center;
+
+    div:first-child {
+        width: 100%;
+    }
+}

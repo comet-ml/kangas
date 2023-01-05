@@ -23,7 +23,6 @@ const CustomizeColumnsModal = ({
     onColumnChange = () => {},
     subtree = '',
     isMulti = false,
-
     subtrees = [], // Optional: Some buttons might need to update multiple fields (e.g. grouping should also sort)
 }) => {
     const { params, updateParams } = useQueryParams();
