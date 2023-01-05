@@ -309,6 +309,7 @@ class DataGrid:
         height="750px",
         width="100%",
         protocol="http",
+        **kwargs
     ):
         """
         Open DataGrid in an IFrame in the jupyter environment or browser.
@@ -322,6 +323,7 @@ class DataGrid:
                from the server (may not be visible in a notebook)
             height: (optional, str) the height of iframe in px or percentage
             width: (optional, str) the width of iframe in px or percentage
+            kwargs: additional URL parameters to pass to server
 
         Example:
 
@@ -331,6 +333,7 @@ class DataGrid:
         >>> # append data to DataGrid
         >>> dg.show()
         >>> dg.show("{'Column Name'} == 'category three'")
+        >>> dg.show("{'Column Name'} == 'category three'", group="Another Column Name")
         ```
         """
         from IPython.display import IFrame, clear_output, display
@@ -343,6 +346,8 @@ class DataGrid:
             self.save()
 
         query_vars = {"datagrid": self.filename}
+        query_vars.update(kwargs)
+
         if filter:
             query_vars["filter"] = filter
         qvs = "?" + urllib.parse.urlencode(query_vars)

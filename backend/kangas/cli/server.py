@@ -48,6 +48,18 @@ def get_parser_arguments(parser):
         default=None,
     )
     parser.add_argument(
+        "--group",
+        help="Group to be applied to a given DataGrid",
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
+        "--sort",
+        help="Sort order to be applied to a given DataGrid",
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
         "-r",
         "--root",
         help="The directory from which to server datagrid files; also can use KANGAS_ROOT env variable",
@@ -322,6 +334,10 @@ def server(parsed_args, remaining=None):
             query_vars["datagrid"] = filename
             if parsed_args.filter:
                 query_vars["filter"] = parsed_args.filter
+            if parsed_args.group:
+                query_vars["group"] = parsed_args.group
+            if parsed_args.sort:
+                query_vars["sort"] = parsed_args.sort
         if query_vars:
             url = "%s?%s" % (host, urllib.parse.urlencode(query_vars))
         else:

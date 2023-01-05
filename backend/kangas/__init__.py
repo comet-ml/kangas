@@ -138,6 +138,7 @@ def show(
     height="750px",
     width="100%",
     protocol="http",
+    **kwargs
 ):
     """
     Start the Kangas servers and show the DatGrid UI
@@ -157,6 +158,7 @@ def show(
             iframe shown in the Jupyter notebook.
         width: (str) the width (in "px" pixels or "%" percentages) of the
             iframe shown in the Jupyter notebook.
+        kwargs: additional URL parameters to pass to server
 
     Example:
 
@@ -164,6 +166,7 @@ def show(
     >>> import kangas
     >>> kangas.show("./example.datagrid")
     >>> kangas.show("./example.datagrid", "{'Column Name'} < 0.5")
+    >>> kangas.show("./example.datagrid", "{'Column Name'} < 0.5", group="Another Column Name")
     ```
     """
     from IPython.display import IFrame, clear_output, display
@@ -172,6 +175,7 @@ def show(
 
     if datagrid:
         query_vars = {"datagrid": datagrid}
+        query_vars.update(kwargs)
         if filter:
             query_vars["filter"] = filter
         qvs = "?" + urllib.parse.urlencode(query_vars)

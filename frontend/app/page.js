@@ -9,12 +9,13 @@ import defaultCellSizes from '../lib/consts/defaultCellSizes';
 
 
 const Page = async ({ searchParams }) => {
+    // User-facing URL param API
     const {
         datagrid,
         filter,
-        groupBy,
-        sortBy,
-        sortDesc,
+        group,
+        sort,
+        descending,
         page,
         rows,
     } = searchParams;
@@ -28,9 +29,9 @@ const Page = async ({ searchParams }) => {
     const query = {
         dgid: datagrid,
         whereExpr: filter,
-        groupBy,
-        sortBy,
-        sortDesc,
+        groupBy: group,
+        sortBy: sort,
+        sortDesc: descending,
         offset,
         limit,
     };
