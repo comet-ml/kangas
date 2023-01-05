@@ -10,7 +10,7 @@ import defaultCellSizes from '../lib/consts/defaultCellSizes';
 
 const Page = async ({ searchParams }) => {
     const {
-        dgid,
+        datagrid,
         filter,
         groupBy,
         sortBy,
@@ -26,7 +26,7 @@ const Page = async ({ searchParams }) => {
     // FIXME: What to do with empty datagrid?
 
     const query = {
-        dgid,
+        dgid: datagrid,
         whereExpr: filter,
         groupBy,
         sortBy,

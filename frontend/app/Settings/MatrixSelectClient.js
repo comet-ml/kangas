@@ -12,8 +12,8 @@ const MatrixSelect = ({ query, options=['blah'] }) => {
 
     const changeDatagrid = useCallback((e) => {
         updateParams({
-            dgid: e.value
-        })
+            datagrid: e.value
+        });
     }, [updateParams]);
 
     const customStyles = {
