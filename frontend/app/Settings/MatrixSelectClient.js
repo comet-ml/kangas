@@ -5,6 +5,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
 import useQueryParams from '../../lib/hooks/useQueryParams';
 
+import classNames from 'classnames/bind';
+import styles from './MatrixSelectClient.module.scss';
+const cx = classNames.bind(styles);
+
+
 // Ideally, we wouldn't need to import a third-party library for a select component here,
 // but native select components are annoying to style
 const MatrixSelect = ({ query, options=['blah'] }) => {
@@ -25,6 +30,7 @@ const MatrixSelect = ({ query, options=['blah'] }) => {
     return (
         <Select
             id={'matrix-select-pulldown'}
+            className={cx('matrix-select')}
             defaultValue={
                 options.find((item) => item?.value?.endsWith(params?.dgid)) || ''
             }
