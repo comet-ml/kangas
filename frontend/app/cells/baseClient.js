@@ -10,14 +10,14 @@ import defaultCellSizes from "../../lib/consts/defaultCellSizes";
 const cx = classNames.bind(styles);
 
 
-/* 
+/*
 The startResizing/stopResizing/initWidth dynamic is potentially a bit confusing.
 The gist is that we need to update the width of every cell in a column as we resize
 a given cell. Because of the way react-resizable works under the hood, simply updating
 the cell widths via onResize will often lead to the widths of different cells falling out of sync.
 Using the startResizing/stopResizing/initWidth dynamic, we can force all widths to stay in sync.
 */
- 
+
 const CellClient = ({ columnName, type, isHeader, children }) => {
     const { columns, updateWidth } = useContext(ViewContext);
     const [isResizing, setIsResizing] = useState(false);
@@ -41,8 +41,9 @@ const CellClient = ({ columnName, type, isHeader, children }) => {
     }, [isResizing, columns?.[columnName]?.width, initWidth])
 
     return (
-        <Resizable 
-            className={cx('cell', { header: isHeader})} 
+        <Resizable
+            className={cx('cell', { header: isHeader})}
+            handleStyles={isHeader ? {'right': {'background-color': 'lightgray'}} : {'right': {'background-color': '#fafafa'}}}
             size={{
                 width: columns?.[columnName]?.width ?? initWidth,
                 height: 0
