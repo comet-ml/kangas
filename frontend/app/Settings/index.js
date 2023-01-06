@@ -33,18 +33,7 @@ const SettingsBar = async ({ query }) => {
                 <RefreshButton query={query} />
             </div>
             <div className={cx('right-settings-bar')}>
-                <DialogueModal
-                  toggleElement={<SelectButton />}
-                  sx={{
-                    "& .MuiDialog-container": {
-                        "& .MuiPaper-root": {
-                        width: "100%",
-                        maxWidth: "540px",  // Set your width here
-                        },
-                    },
-                  }}
-                >
-                </DialogueModal>
+                <SelectButton />
                 <DialogueModal fullScreen={false} toggleElement={<HelpButton />}>
                   <HelpText />
                 </DialogueModal>
