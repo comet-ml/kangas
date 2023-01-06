@@ -14,6 +14,11 @@ import { CSS } from '@dnd-kit/utilities';
 import { ViewContext } from '../../contexts/ViewContext';
 import useQueryParams from '../../../lib/hooks/useQueryParams';
 
+import classNames from 'classnames/bind';
+import styles from '../../Settings/SettingsBar.module.scss';
+const cx = classNames.bind(styles);
+
+
 // Most of this is taken directly from https://github.com/codercodingthecode/react-select/blob/update-sortable/docs/examples/MultiSelectSort.tsx
 // The code is a lot, but the gist is that we use react-select to get all of the nice interactivity we need in our <select> element. Unfortunately,
 // react-select doesn't provide the drag-and-drop sorting interface we use, so we use @dnd-kit for that. To make the two libraries work together,
@@ -50,7 +55,7 @@ const MultiValueContainer = (props) => {
 
     const style = {
         color: isOver ? 'green' : undefined,
-        
+
     };
 
     return (
@@ -69,12 +74,12 @@ const MultiValueRemove = (props) => {
                 ...props.innerProps,
             }}
         >
-            <div style={{ 
-                width: '100%', 
-                height: '100%', 
-                textAlign: 'center', 
-                display: 'flex', 
-                justifyContent: 'center', 
+            <div style={{
+                width: '100%',
+                height: '100%',
+                textAlign: 'center',
+                display: 'flex',
+                justifyContent: 'center',
                 alignItems: 'center'
                 }}
             >
@@ -85,7 +90,7 @@ const MultiValueRemove = (props) => {
 };
 
 const Menu = (props) => (
-    <components.Menu className="react-select-list" {...props} />
+	<components.Menu className={cx("react-select-list")} {...props} />
 );
 
 const MultiColumnSelectModal = ({  }) => {
@@ -164,14 +169,14 @@ const MultiColumnSelectModal = ({  }) => {
      }, []);
 
     return (
-        <div className="multi-select-columns">
-            <div className="title">
+            <div className={cx("multi-select-columns")}>
+            <div className={cx("title")}>
                 {`Column Selection & Ordering`}
             </div>
-            <div className="subtitle">
+            <div className={cx("subtitle")}>
                 Add and remove column tags to update the table
             </div>
-            <div className="multi-select-columns-body">
+            <div className={cx("multi-select-columns-body")}>
                 <DndContext
                     modifiers={[restrictToParentElement]}
                     onDragEnd={onSortEnd}
@@ -197,13 +202,13 @@ const MultiColumnSelectModal = ({  }) => {
                         />
                     </SortableContext>
                 </DndContext>
-                <div className="button-row">
-                    <div className="reset" onClick={resetSelected}>Reset Defaults</div>
-                    <button className='button' onClick={update}>Done</button>
+            <div className={cx("button-row")}>
+            <div className={cx("reset")} onClick={resetSelected}>Reset Defaults</div>
+            <button className={cx('button')} onClick={update}>Done</button>
                 </div>
             </div>
         </div>
-    
+
     );
 };
 
