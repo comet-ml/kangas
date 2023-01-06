@@ -20,7 +20,7 @@ const SortArrow = ({ toggle, sortDesc }) => {
     )
 }
 
-const SelectColumnDropdown = ({ toggleOpen }) => {
+const SelectColumnDropdown = ({ toggleOpen, group = false }) => {
     const { params, updateParams } = useQueryParams();
     const { columns } = useContext(ViewContext)
 
@@ -28,13 +28,19 @@ const SelectColumnDropdown = ({ toggleOpen }) => {
         updateParam({ param: 'sortDesc', value: !params?.sortDesc })
     }, [updateParams]);
 
-    const group = useCallback((e) => {
+    const groupBy = useCallback((e) => {
         updateParams({
-            groupBy: e.value,
-            sortBy: e.value
+            group: e.value,
+            sort: e.value
         });
         toggleOpen();
     }, [updateParams, toggleOpen]);
+
+    const sortBy = useCallback((e) => {
+        updateParams({ sort: e.value });
+        toggleOpen();
+    }, [updateParams, toggleOpen]);
+
 
     // React select requires an array of dictionaries as input
     const options = useMemo(
@@ -48,7 +54,6 @@ const SelectColumnDropdown = ({ toggleOpen }) => {
 
     return (
         <div>
-            baby
             <div className={cx('select-modal-title')}>
                 <div>Select a column</div>
                 <div
@@ -62,10 +67,10 @@ const SelectColumnDropdown = ({ toggleOpen }) => {
             <div className={cx('select-modal-body')}>
                 <Select
                     options={options}
-                    onChange={group}
+                    onChange={group ? groupBy : sortBy}
 
                 />
-                { !!params?.sortBy && <SortArrow toggle={toggleDesc} sortDesc={params?.sortDesc} /> }
+                { !!params?.sort && <SortArrow toggle={toggleDesc} sortDesc={params?.sortDesc} /> }
             </div>
         </div>
 

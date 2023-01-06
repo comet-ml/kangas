@@ -6,7 +6,7 @@ import MatrixSelect from './MatrixSelectClient';
 import RefreshButton from './RefreshButton';
 //import FilterExpr from './FilterExpr';
 import HelpText from './HelpText.js';
-import { KangasButton, AboutDialog, SelectButton, HelpButton, GroupByButton } from './Buttons';
+import { KangasButton, AboutDialog, SelectButton, HelpButton, GroupByButton, SortByButton } from './Buttons';
 import styles from './SettingsBar.module.scss';
 import classNames from 'classnames/bind';
 import { Suspense } from 'react';
@@ -48,7 +48,9 @@ const SettingsBar = async ({ query }) => {
                 <DialogueModal fullScreen={false} toggleElement={<HelpButton />}>
                   <HelpText />
                 </DialogueModal>
-                <GroupByButton query={query} />
+                <SortByButton />
+                <GroupByButton />
+
             </div>
         </div>
     );

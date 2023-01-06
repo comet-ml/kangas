@@ -7,12 +7,12 @@ import usePopover from '../../../lib/hooks/usePopover';
 import SelectColumnDropdown from '../../modals/SelectColumnDrowpdown/SelectColumnDropdown';
 const cx = classNames.bind(styles);
 
-const GroupByButton = () => {
+const SortByButton = () => {
     const { open, toggleOpen, anchor } = usePopover();
     return (
         <>
             <div className={cx('button-outline')} onClick={toggleOpen} ref={anchor}>
-                <img src="/group_placeholder.png" /> <span>Group by</span>
+                <img src="/group_placeholder.png" /> <span>Sort By</span>
             </div>
             <Popover
                 anchorOrigin={{
@@ -33,4 +33,4 @@ const GroupByButton = () => {
     );
 };
 
-export default GroupByButton;
+export default SortByButton;
