@@ -13,7 +13,7 @@ const cx = classNames.bind(styles);
 
 const SortArrow = ({ toggle, sortDesc }) => {
     return (
-        <div className='arrow-toggle' onClick={toggle}>
+            <div className={cx('arrow-toggle')} onClick={toggle}>
             { sortDesc && <KeyboardArrowDownIcon /> }
             { !sortDesc && <KeyboardArrowUpIcon /> }
         </div>
@@ -57,7 +57,7 @@ const SelectColumnDropdown = ({ toggleOpen, group = false }) => {
             <div className={cx('select-modal-title')}>
                 <div>Select a column</div>
                 <div
-                    className={`reset-button ${
+                    className={`${cx('reset-button')} ${
                         false ? 'enabled' : 'disabled'
                     }`}
                 >
