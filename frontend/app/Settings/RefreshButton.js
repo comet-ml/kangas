@@ -1,25 +1,34 @@
 'use client';
 
 import CachedIcon from '@mui/icons-material/Cached';
-// FIXME:
-//import { useRefreshRoot } from 'next/dist/client/streaming/refresh';
 import { useCallback } from 'react';
+import useQueryParams from '../../lib/hooks/useQueryParams';
+
+import styles from './RefreshButton.module.scss';
+import classNames from 'classnames/bind';
+const cx = classNames.bind(styles);
 
 const RefreshButton = ({ query }) => {
-    // FIXME:
-    //const refresh = useRefreshRoot();
-    const refresh = (query) => {};
+    const { params, updateParams } = useQueryParams();
 
-    // This is not memoized because we need Date.now() to be current when fired
-    const clearCache = () => {
-        refresh({
-            query,
-            expiration: Date.now()
+    const clearCache = useCallback(() => {
+	// Reset params:
+        updateParams({
+            sort: undefined,
+            group: undefined,
+            page: undefined,
+            rows: undefined,
+	    filter: undefined,
+	    descending: undefined,
+	    select: undefined
         });
-    };
+	// FIXME: do something here to force cache delete or update
+    });
 
     return (
-        <CachedIcon className="cached-icon" onClick={clearCache} />
+        <div onClick={clearCache}>
+            <CachedIcon className={cx("cached-icon")} />
+	</div>
     );
 
 };
