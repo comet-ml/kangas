@@ -31,8 +31,8 @@ const MatrixSelect = ({ query, options=['blah'] }) => {
         <Select
             id={'matrix-select-pulldown'}
             className={cx('matrix-select')}
-            defaultValue={
-                options.find((item) => item?.value?.endsWith(params?.dgid)) || ''
+            value={
+                options.find((item) => item?.value?.endsWith(params?.datagrid)) || ''
             }
             options={options}
             styles={customStyles}
