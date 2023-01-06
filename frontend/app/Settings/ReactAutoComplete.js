@@ -9,8 +9,12 @@ import getCaretCoordinates from 'textarea-caret';
 import getInputSelection, { setCaretPosition } from 'get-input-selection';
 import { TextField } from '@mui/material';
 
+import styles from './Buttons/Buttons.module.scss';
+import classNames from 'classnames/bind';
+const cx = classNames.bind(styles);
+
 const FilterButton = ({ callback }) => (
-    <div className="button-outline" onClick={callback}>
+	<div className={cx("button-outline")} onClick={callback}>
         <img src="/filter_placeholder.png" /> <span>Filter</span>
     </div>
 );
@@ -469,7 +473,7 @@ class AutocompleteTextField extends React.Component {
     });
 
     return (
-      <ul className="react-autocomplete-input" style={{ left: left + offsetX, top: top + offsetY }}>
+	    <ul className={cx("react-autocomplete-input")} style={{ left: left + offsetX, top: top + offsetY }}>
         {helperOptions}
       </ul>
     );

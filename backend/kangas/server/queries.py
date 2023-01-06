@@ -471,6 +471,7 @@ def get_completions(dgid):
     for row in rows:
         name, other = row
         name = name if not name.endswith("--metadata") else name[:-10]
+        results["{"].add('"%s"' % name)
         if other:
             try:
                 other = json.loads(row[1])

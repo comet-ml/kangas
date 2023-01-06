@@ -1,34 +1,29 @@
-import { unstable_useRefreshRoot as useRefreshRoot } from 'next/streaming';
-import Autocomplete from './ReactAutocomplete';
+'use client';
+
+import Autocomplete from './ReactAutoComplete';
 import { TextField } from '@mui/material';
 import InputAdornment from '@mui/material/InputAdornment';
 import { useCallback, useEffect, useRef, useMemo } from 'react';
-import DialogueModal from '../modals/DialogueModal/DialogueModalClient';
+import useQueryParams from '../../lib/hooks/useQueryParams';
 
-const FilterExpr = ({ query, columns, completions }) => {
-    const refresh = useRefreshRoot();
+const FilterExpr = ({ query, completions }) => {
+    const { params, updateParams } = useQueryParams();
     const filter = useRef();
     const onKeyPress = useCallback((e) => {
         if (e.key === 'Enter') {
-            refresh({
-                    query: {
-                        ...query,
-                        whereExpr: filter?.current?.value,
-                        offset: 0,
-                    },
+            updateParams({
+                filter: filter?.current?.value,
+                page: 1,
             });
         }
-    }, [query, refresh]);
+    }, [updateParams]);
 
     const applyFilter = useCallback((e) => {
-        refresh({
-            query: {
-                ...query,
-                whereExpr: filter?.current?.value,
-                offset: 0,
-            },
+        updateParams({
+            filter: filter?.current?.value,
+            page: 1,
         });
-    }, [query, refresh]);
+    }, [updateParams]);
 
     useEffect(() => {
         filter.current.value = query?.whereExpr || '';
@@ -42,25 +37,18 @@ const FilterExpr = ({ query, columns, completions }) => {
 	} else {
 	    return ` ${slug}`;
 	}
-    }, [query, refresh]);
+    }, [query]);
 
     const triggers = useMemo(() => {
 	return ["{"].concat(Object.keys(completions));
     }, [completions]);
-
-    const options = useMemo(() => {
-	return {
-	    "{": columns.map(name => `"${name}"`),
-	    ...completions,
-	};
-    }, [completions, columns]);
 
     return (
         <>
             <Autocomplete
                 defaultValue={query?.whereExpr || ''}
                 trigger={triggers}
-                options={options}
+                options={completions}
                 changeOnSelect={onChangeSelect}
                 matchAny={true}
                 regex={'^[a-zA-Z0-9_\\-\\"\\ ]+$'}
