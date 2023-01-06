@@ -27,8 +27,8 @@ const SelectColumnDropdown = ({ toggleOpen, group = false }) => {
     const { columns } = useContext(ViewContext)
 
     const toggleDesc = useCallback(() => {
-        updateParams({ descending: !params?.descending });
-    }, [updateParams]);
+        updateParams({ descending: params?.descending !== 'true'});
+    }, [params, updateParams]);
 
     const groupBy = useCallback((e) => {
         updateParams({
@@ -68,11 +68,12 @@ const SelectColumnDropdown = ({ toggleOpen, group = false }) => {
             </div>
             <div className={cx('select-modal-body')}>
                 <Select
+                    defaultValue={options.filter(e => e.label === (group ? params?.group : params?.sort))}
                     options={options}
                     onChange={group ? groupBy : sortBy}
 
                 />
-                { !group && <SortArrow toggle={toggleDesc} sortDesc={params?.descsending} /> }
+                { !group && <SortArrow toggle={toggleDesc} sortDesc={params?.descending === 'true'} /> }
             </div>
         </div>
 
