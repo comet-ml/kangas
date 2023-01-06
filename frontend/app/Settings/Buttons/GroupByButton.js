@@ -27,7 +27,7 @@ const GroupByButton = () => {
                 open={open}
                 anchorEl={anchor?.current}
             >
-                <SelectColumnDropdown toggleOpen={toggleOpen} />
+              <SelectColumnDropdown toggleOpen={toggleOpen} group={true} />
             </Popover>
         </>
     );
