@@ -27,7 +27,7 @@ const SelectColumnDropdown = ({ toggleOpen, group = false }) => {
     const { columns } = useContext(ViewContext)
 
     const toggleDesc = useCallback(() => {
-        updateParam({ param: 'sortDesc', value: !params?.sortDesc })
+        updateParams({ descending: !params?.sortDesc });
     }, [updateParams]);
 
     const groupBy = useCallback((e) => {
