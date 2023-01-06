@@ -40,10 +40,21 @@ const CellClient = ({ columnName, type, isHeader, children }) => {
         }
     }, [isResizing, columns?.[columnName]?.width, initWidth])
 
+    const headerResizeStyle = {
+	'width': '1px',
+	'background-color': 'silver',
+	'border': '2px ridge silver',
+	'border-radius': '2px',
+	'right': '0px',
+	'height': '100%',
+	'top': '-2px',
+    };
+
+
     return (
         <Resizable
             className={cx('cell', { header: isHeader})}
-            handleStyles={isHeader ? {'right': {'background-color': 'lightgray'}} : {'right': {'background-color': '#fafafa'}}}
+            handleStyles={isHeader ? {'right': headerResizeStyle} : {'right': {'background-color': '#fafafa'}}}
             size={{
                 width: columns?.[columnName]?.width ?? initWidth,
                 height: 0
