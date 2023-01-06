@@ -1,0 +1,55 @@
+/* 3rd Party Specific */
+
+/* Material UI */
+
+.MuiPaper-root {
+    min-width: 300px;
+    max-width: 1400px;
+    max-height: 90%;
+    padding: 16px;
+    background: white;
+    box-sizing: border-box;
+    box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.13);
+    border-radius: 4px;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+}
+
+.MuiDialog-paperWidthSm {
+}
+
+.MuiPaper-root .expanded > * {
+    max-height: 500px;
+}
+
+.MuiOutlinedInput-root {
+    max-height: 34px;
+    box-sizing: border-box;
+    border: 1px solid #5155f5;
+    border-right: 0;
+    border-radius: 4px;
+}
+
+.MuiOutlinedInput-notchedOutline {
+    border: 0;
+}
+
+/* TODO: Fix this !important flag by customizing the styles in MUI better */
+.MuiInputBase-adornedEnd {
+    padding-right: 0 !important;
+}
+
+.MuiAccordion--root {
+    padding: 0;
+}
+
+.MuiDialog-container div[role='dialog'] {
+}
+
+/* TODO: Fix this !important flag by customizing the styles in MUI better */
+.MuiPopover-paper {
+    overflow: visible !important;
+}

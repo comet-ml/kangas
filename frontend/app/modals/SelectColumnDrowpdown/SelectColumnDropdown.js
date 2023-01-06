@@ -11,6 +11,8 @@ import classNames from 'classnames/bind';
 
 const cx = classNames.bind(styles);
 
+import "./Mui.css";
+
 const SortArrow = ({ toggle, sortDesc }) => {
     return (
             <div className={cx('arrow-toggle')} onClick={toggle}>
