@@ -8,9 +8,9 @@ const useQueryParams = () => {
     const params = useMemo(() => {
         const placeholder = {};
 
-        urlParams.forEach(param => {
-            placeholder[param] = urlParams.get(param);
-        })
+        for (const [key, value] of urlParams) {
+            placeholder[key] = value;
+        };
 
         return placeholder;
     }, [urlParams]);
