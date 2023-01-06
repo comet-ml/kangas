@@ -43,6 +43,16 @@ const SelectColumnDropdown = ({ toggleOpen, group = false }) => {
         toggleOpen();
     }, [updateParams, toggleOpen]);
 
+    const resetDefault = useCallback(() => {
+	if (group) {
+            updateParams({ group: undefined });
+	} else {
+            updateParams({ sort: undefined });
+	}
+    });
+
+    console.log(params);
+
 
     // React select requires an array of dictionaries as input
     const options = useMemo(
@@ -62,13 +72,14 @@ const SelectColumnDropdown = ({ toggleOpen, group = false }) => {
                     className={`${cx('reset-button')} ${
                         false ? 'enabled' : 'disabled'
                     }`}
+                    onClick={resetDefault}
                 >
                     Reset to default
                 </div>
             </div>
             <div className={cx('select-modal-body')}>
                 <Select
-                    defaultValue={options.filter(e => e.label === (group ? params?.group : params?.sort))}
+                    value={options.filter(e => e.label === (group ? params?.group : params?.sort))}
                     options={options}
                     onChange={group ? groupBy : sortBy}
 
