@@ -396,7 +396,7 @@ def get_database_connection(dgid):
 def get_completions(dgid):
     db_path = get_dg_path(dgid)
     conn = sqlite3.connect(db_path)
-    rows = conn.execute("SELECT name, other from metadata;")
+    rows = conn.execute("SELECT name, other, type from metadata;")
     results = defaultdict(set)
     constructs = [
         "AVG()",
@@ -407,15 +407,22 @@ def get_completions(dgid):
         "STDEV()",
         "SUM()",
         "TOTAL()",
+        "True",
+        "False",
         "abs()",
         "all([])",
         "and",
         "any([])",
         "avg([])",
         "datetime",
+        "for",
         "flatten()",
+        "if TEST else VALUE",
         "in",
         "is",
+        "is None",
+        "is not",
+        "is not None",
         "len()",
         "math",
         "max()",
@@ -467,33 +474,40 @@ def get_completions(dgid):
         "tanh()",
         "trunc()",
     ]
+    string_methods = [
+        "split()",
+        "upper()",
+        "lower()",
+        "strip()",
+        "lsrtip()",
+        "rstrip()",
+        "endswith()",
+        "startswith()",
+    ]
+    for method in string_methods:
+        results["." + method + "."].update([x for x in string_methods if x != method])
 
     for row in rows:
-        name, other = row
+        name, other, datatype = row
         name = name if not name.endswith("--metadata") else name[:-10]
         results["{"].add('"%s"' % name)
-        if other:
+        if not other:
+            # No metadata, but add methods for datatypes here:
+            if datatype == "TEXT":
+                results['{"%s"}.' % (name,)].update(string_methods)
+        else:
             try:
-                other = json.loads(row[1])
+                other = json.loads(other)
             except Exception:
                 continue
+
+            results["["].add('[x for x in {"%s"}]' % name)
             if "completions" in other:
                 for comp in other["completions"].keys():
                     types = other["completions"][comp]
                     if comp == "":
                         if "str" in types:
-                            results['{"%s"}.' % (name,)].update(
-                                [
-                                    "split()",
-                                    "upper()",
-                                    "lower()",
-                                    "strip()",
-                                    "lsrtip()",
-                                    "rstrip()",
-                                    "endswith()",
-                                    "startswith()",
-                                ]
-                            )
+                            results['{"%s"}.' % (name,)].update(string_methods)
                         if "dict" in types:
                             results['{"%s"}.' % (name,)].add("keys()")
                             results['{"%s"}.' % (name,)].add("values()")
@@ -521,16 +535,7 @@ def get_completions(dgid):
 
                         if "str" in types:
                             results['{"%s"}%s' % (name, item_path)].update(
-                                [
-                                    "split()",
-                                    "upper()",
-                                    "lower()",
-                                    "strip()",
-                                    "lsrtip()",
-                                    "rstrip()",
-                                    "endswith()",
-                                    "startswith()",
-                                ]
+                                string_methods
                             )
                         elif "dict" in types:
                             results['{"%s"}%s' % (name, item_path)].add("keys()")

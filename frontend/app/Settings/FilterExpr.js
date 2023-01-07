@@ -51,7 +51,7 @@ const FilterExpr = ({ query, completions }) => {
                 options={completions}
                 changeOnSelect={onChangeSelect}
                 matchAny={true}
-                regex={'^[a-zA-Z0-9_\\-\\"\\ ]+$'}
+                regex={'^[a-zA-Z0-9_\\-\\"]+$'}
                 spacer={''}
                 maxOptions={0}
                 spaceRemovers={['.']}
