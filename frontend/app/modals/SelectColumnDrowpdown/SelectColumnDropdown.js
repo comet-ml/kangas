@@ -7,9 +7,11 @@ import useQueryParams from '../../../lib/hooks/useQueryParams';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import styles from './SelectColumnDropdown.module.scss';
+import styles2 from '../../Settings/SettingsBar.module.scss';
 import classNames from 'classnames/bind';
 
 const cx = classNames.bind(styles);
+const cx2 = classNames.bind(styles2);
 
 import "./Mui.css";
 
@@ -49,6 +51,7 @@ const SelectColumnDropdown = ({ toggleOpen, group = false }) => {
 	} else {
             updateParams({ sort: undefined });
 	}
+	toggleOpen();
     });
 
     console.log(params);
@@ -68,16 +71,9 @@ const SelectColumnDropdown = ({ toggleOpen, group = false }) => {
         <div>
             <div className={cx('select-modal-title')}>
                 <div>Select a column</div>
-                <div
-                    className={`${cx('reset-button')} ${
-                        false ? 'enabled' : 'disabled'
-                    }`}
-                    onClick={resetDefault}
-                >
-                    Reset to default
-                </div>
             </div>
             <div className={cx('select-modal-body')}>
+            <div style={{display: 'flex'}}>
                 <Select
                     value={options.filter(e => e.label === (group ? params?.group : params?.sort))}
                     options={options}
@@ -85,6 +81,18 @@ const SelectColumnDropdown = ({ toggleOpen, group = false }) => {
 
                 />
                 { !group && <SortArrow toggle={toggleDesc} sortDesc={params?.descending === 'true'} /> }
+              </div>
+              <div style={{display: 'flex', margin: '20px 0px'}}>
+                 <div
+                    className={`${cx('reset-button')} ${
+                        false ? 'enabled' : 'disabled'
+                    }`}
+                    onClick={resetDefault}
+                 >
+                 Reset to default
+                 </div>
+                 <button className={cx2('button')} onClick={toggleOpen}>Done</button>
+              </div>
             </div>
         </div>
 

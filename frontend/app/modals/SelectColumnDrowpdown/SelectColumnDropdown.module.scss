@@ -11,14 +11,6 @@
         display: flex;
     }
 
-    .reset-button {
-        font-weight: 400;
-        font-size: 13px;
-        line-height: 15px;
-        cursor: pointer;
-        margin-left: 54px;
-    }
-
     .disabled {
         color: #afb0fb;
     }
@@ -26,13 +18,21 @@
     .enabled {
         color: #5155f5;
 
+    }
 }
+
+.reset-button {
+    font-size: 14px;
+    color: rgb(81, 85, 245);
+    cursor: pointer;
+    font-weight: 400;
+    line-height: 15px;
 }
 
 .select-modal-body {
     border-top: 1px solid #f0f2f6;
     width: 100%;
-    display: flex;
+    display: block;
     align-items: center;
 
     div:first-child {
