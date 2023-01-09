@@ -54,9 +54,6 @@ const SelectColumnDropdown = ({ toggleOpen, group = false }) => {
 	toggleOpen();
     });
 
-    console.log(params);
-
-
     // React select requires an array of dictionaries as input
     const options = useMemo(
         () =>

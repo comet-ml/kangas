@@ -12,9 +12,13 @@ const cx = classNames.bind(styles)
 const Table = async ({ query }) => {
     const data = await fetchDataGrid(query)
     const { columnTypes, columns, rows, displayColumns } = data;
+    // Remove any row keys that are not in displayColumns:
+    const displayRows = rows.map(row => Object.fromEntries(
+	Object.entries(row).filter(([name]) => displayColumns.includes(name))
+    ));
     return (
             <div className={styles.tableRoot}>
-                {[ displayColumns, ...rows ]?.map((row, ridx) => (
+                {[ displayColumns, ...displayRows ]?.map((row, ridx) => (
                     <div className={cx('row', { group: !!query?.groupBy, headerRow: ridx < 1 })} key={`row-${ridx}`}>
                         {
                             Object.values(row).map( (cell, cidx) => (
