@@ -126,11 +126,17 @@ const MultiColumnSelectModal = ({  }) => {
     const resetSelected = useCallback(() => setSelected(options), [options]);
 
     const update = useCallback(() => {
-        const parsedOptions = selected.map((col) => col.value);
-        updateParams({
-            select: parsedOptions.join(',')
-        });
-    }, [selected, updateParams])
+	if (selected.length > 0) {
+            const parsedOptions = selected.map((col) => col.value);
+            updateParams({
+		select: parsedOptions.join(',')
+            });
+	} else {
+            updateParams({
+		select: undefined
+            });
+	}
+    }, [selected, updateParams]);
 
     // Note: react-select styling: https://react-select.com/styles
     const customStyles = useMemo(() => {
