@@ -1,16 +1,21 @@
 // import { Html, Head, Main, NextScript } from 'next/document';
 import Script from 'next/script';
-import ClientContext from '../lib/contexts/EnvContext';
+import ConfigProvider from './contexts/ConfigContext';
 import config from '../config';
 // TODO Insert head scripts again
 const RootLayout = ({ children }) => {
     return (
         <html>
-            <ClientContext apiUrl={config.apiUrl} isColab={config.isColab}>
+            <ConfigProvider value={{
+                config: {
+                    apiUrl: config.apiUrl,
+                    isColab: config.isColab
+                }
+            }}>
                 <body>
                     { children }
                 </body>
-            </ClientContext>
+            </ConfigProvider>
         </html>
     );
 }

@@ -16,7 +16,7 @@ const reducer = (state, action) => {
         case 'UPDATE_CONFIG':
             return {
                 config: {
-                    ...state.config
+                    ...state.config,
                     ...action.payload
                 }
             }
@@ -29,7 +29,7 @@ const ConfigProvider = ({ value, children }) => {
     const [state, dispatch] = useReducer(reducer, value);
     return (
         <ConfigContext.Provider value={{
-            config: state.config,
+            config: state?.config,
             updateConfig: (payload) => dispatch({ type: 'UPDATE_CONFIG', payload })
         }}>
             { children }

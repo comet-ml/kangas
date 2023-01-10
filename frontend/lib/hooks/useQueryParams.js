@@ -18,20 +18,35 @@ const useQueryParams = () => {
     const updateParams = useCallback((updatedParams) => {
         const current = new URLSearchParams(urlParams.toString());
         for (const key in updatedParams) {
-	    if (!!current.get(key)) {
-                current.delete(key);
-	    }
+            if (!!current.get(key)) {
+                    current.delete(key);
+            }
 
             if (typeof(updatedParams[key]) !== 'undefined') {
-		current.append(key, updatedParams[key]);
-	    }
+                current.append(key, updatedParams[key]);
+            }
         }
         router.push(`/?${current.toString()}`);
     }, [urlParams, router]);
 
+    const prefetch = useCallback((updatedParams) => {
+        const current = new URLSearchParams(urlParams.toString());
+        for (const key in updatedParams) {
+            if (!!current.get(key)) {
+                    current.delete(key);
+            }
+
+            if (typeof(updatedParams[key]) !== 'undefined') {
+                current.append(key, updatedParams[key]);
+            }
+        }
+        router.prefetch(`/?${current.toString()}`);
+    }, [urlParams, router]);
+
     return {
         params,
-        updateParams
+        updateParams,
+        prefetch
     };
 
 }

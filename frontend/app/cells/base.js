@@ -1,5 +1,5 @@
 // This is the base cell class. Mostly, this is used for wrapping everything in <Suspense />
-
+import { Suspense } from 'react';
 import FloatCell from './float';
 import ImageCell from './image';
 import JSONCell from './json/JSONCell';
@@ -32,22 +32,30 @@ const cellMap = {
     }
 }
 
-const Cell = async ({ value, columnName, type, query, style, isHeader }) => {
+const HeaderCell = ({ columnName, type }) => {
+    return (
+        <CellClient columnName={columnName} type={type} isHeader={true}>
+            <Header columnName={columnName} />
+        </CellClient>
+    )
+}
+
+const Cell = async ({ value, columnName, type, query, isHeader }) => {
     const Component = cellMap?.[type]?.component;
 
     if (isHeader) {
         return (
-            <CellClient columnName={columnName} type={type} isHeader={true}>
-                <Header columnName={columnName} />
-            </CellClient>
+            <HeaderCell columnName={columnName} type={type} />
         )
     }
 
     return (
-        <CellClient columnName={columnName} type={type}>
-            { !!Component && <Component value={value} query={query} style={style} />}
-            { !Component && <div style={style}>{`${value}`}</div> }
-        </CellClient>
+        <Suspense fallback={<CellClient columnName={columnName} type={type}><div>{`${value}`}</div></CellClient>}>
+            <CellClient columnName={columnName} type={type}>
+                { !!Component && <Component value={value} query={query} />}
+                { !Component && <div>{`${value}`}</div> }
+            </CellClient>
+        </Suspense>
     )
 }
 

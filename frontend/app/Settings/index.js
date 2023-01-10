@@ -30,7 +30,9 @@ const SettingsBar = async ({ query }) => {
                         <AboutDialog status={status} />
                     </Suspense>
                 </DialogueModal>
-                <MatrixSelect query={query} options={options} />
+                <Suspense fallback={<>FDKLSF</>}>
+                    <MatrixSelect query={query} options={options} />
+                </Suspense>
                 <RefreshButton query={query} />
             </div>
             <div className={cx('right-settings-bar')}>

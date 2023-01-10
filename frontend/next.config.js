@@ -6,6 +6,7 @@ module.exports = {
   experimental: {
     runtime: 'nodejs',
     appDir: true,
+    fetchCache: true
   },
   eslint: {
     ignoreDuringBuilds: true,
