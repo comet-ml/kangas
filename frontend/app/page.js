@@ -1,5 +1,6 @@
 import config from '../config';
 import fetchDataGrid from '../lib/fetchDatagrid';
+import fetchReadme from '../lib/fetchReadme';
 import fetchAvailableMatrices from '../lib/fetchAvailableMatrices';
 import Table from './Table/table';
 import SettingsBar from './Settings';
@@ -7,6 +8,7 @@ import PagerBar from './PagerBar';
 import ViewProvider from './contexts/ViewContext';
 import defaultCellSizes from '../lib/consts/defaultCellSizes';
 
+import './Page.module.scss';
 
 const Page = async ({ searchParams }) => {
     // User-facing URL param API
@@ -38,17 +40,26 @@ const Page = async ({ searchParams }) => {
         limit,
     };
 
-    const data = await fetchDataGrid(query)
+    const data = await fetchDataGrid(query);
+    const readme = await fetchReadme(query);
     const { columnTypes, columns } = data;
     const view = Object.fromEntries( columns.map( ( col, idx ) => [ col, defaultCellSizes?.[ columnTypes[idx ] ] ] ) );
 
     return (
-        <div>
+            <div style={{display: 'flex'}}>
+            <div dangerouslySetInnerHTML={{__html: readme}}
+                 style={{width: '500px',
+			 overflow: 'auto',
+			 border: 'solid blue',
+			 'border-width': 'thin'}}
+	    ></div>
+	    <div>
             <ViewProvider value={{ columns: view }}>
                 <SettingsBar query={query} />
                 <Table query={query} />
                 <PagerBar query={query} />
             </ViewProvider>
+	    </div>
         </div>
     );
 };

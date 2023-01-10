@@ -12,6 +12,7 @@
 ######################################################
 
 import ast
+import inspect
 import json
 import logging
 import math
@@ -21,8 +22,10 @@ import sqlite3
 import statistics
 import string
 import time
+import urllib
 from collections import Counter, defaultdict
 
+import marko
 import numpy as np
 from PIL import Image
 
@@ -48,6 +51,30 @@ import json
 import numpy as np
 from traceback import format_exc
 import math
+"""
+
+DEFAULT_README = """# README
+
+## Example 1
+
+```python
+kangas.show("coco-500.datagrid", '{"Category 5"} == "five"', host='localhost', sort='Category 5')
+```
+## Example 2
+
+```python
+datagrid.show('{"Category 5"} == "four"', host='localhost', sort='Category 5')
+```
+
+## Example 3
+
+```python
+datagrid.show(
+    '{"Category 5"} == "five"',
+    host='localhost',
+    sort='Category 10'
+)
+```
 """
 
 VALID_CHARS = string.ascii_letters + string.digits + "_"
@@ -391,6 +418,95 @@ def get_database_connection(dgid):
     conn.create_function("IN_OBJ", 2, IN_OBJ)
     conn.create_function("ListComprehension", 4, ListComprehension)
     return conn
+
+
+def get_argument_bindings(function, args, kwargs):
+    signature = inspect.signature(function)
+    try:
+        binding = signature.bind(*args, **kwargs)
+    except TypeError:
+        return None
+    # Set default values for missing values:
+    binding.apply_defaults()
+    ignore_param_list = ["self"]
+    # Side-effect, remove ignored items:
+    [
+        binding.arguments.pop(item)
+        for item in ignore_param_list
+        if item in binding.arguments
+    ]
+    # Returns OrderedDict:
+    return binding.arguments
+
+
+def parse_args_kwargs(params):
+    env = safe_env()
+    env["get_args_and_params"] = lambda *args, **kwargs: (args, kwargs)
+    code = "get_args_and_params({params})".format(params=params)
+    args, kwargs = eval(safe_compile(code), env)
+    return args, kwargs
+
+
+def create_markdown_button(url, dgid, params):
+    import kangas
+
+    args, kwargs = parse_args_kwargs(params)
+    if (
+        len(args) > 0
+        and isinstance(args[0], str)
+        and args[0].endswith(".datagrid")
+        or "datagrid" in kwargs
+    ):
+        params = get_argument_bindings(kangas.show, list(args), kwargs)
+    else:
+        # Add an arg for self:
+        params = get_argument_bindings(
+            kangas.DataGrid.show, [None] + list(args), kwargs
+        )
+
+    # Copy kwargs to params:
+    if "kwargs" in params:
+        params.update(params["kwargs"])
+
+    if params is None:
+        return ""
+    elif params:
+        query_args = {
+            key: value
+            for key, value in params.items()
+            if key
+            in ["filter", "sort", "group", "page", "rows", "select", "descending"]
+        }
+        query_args["datagrid"] = dgid
+    else:
+        query_args = {"datagrid": dgid}
+
+    qargs = urllib.parse.urlencode(query_args)
+    return f"""<a href="{url}?{qargs}"><button>Show DataGrid</button></a>"""
+
+
+def process_readme(url, dgid, readme):
+    regex = r"```python.*?\.show\((.*?)\)[^`]*```"
+    retval = ""
+    start = 0
+    matches = re.finditer(regex, readme, re.MULTILINE | re.DOTALL)
+    for match in matches:
+        end, newstart = match.span()
+        previous = readme[start:end]
+        retval += previous
+        code = match.group(0)
+        retval += code + "\n\n"
+        retval += create_markdown_button(url, dgid, match.groups(0)[0])
+        start = newstart
+    return marko.Markdown().convert(retval)
+
+
+def get_readme(url, dgid):
+    # db_path = get_dg_path(dgid)
+    # conn = sqlite3.connect(db_path)
+    # readme_rows = conn.execute("SELECT value from config where name = 'README';").fetchone()
+    # if readme_rows:
+    return process_readme(url, dgid, DEFAULT_README)
 
 
 def get_completions(dgid):

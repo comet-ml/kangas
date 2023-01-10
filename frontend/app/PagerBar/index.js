@@ -3,7 +3,7 @@
 import fetchDataGridTotal from '../../lib/fetchDatagridTotal';
 import Pager from './pager';
 
-const PagerBar = async ({query}) => {
+const PagerBar = async ({query, toggleOpen}) => {
     const totalRows = (await fetchDataGridTotal(query)).total;
 
     const firstRow = query.offset + 1;
@@ -16,6 +16,8 @@ const PagerBar = async ({query}) => {
     const pageSize = query.limit;
 
     return (
+	<div style={{display: 'flex'}}>
+	    <button onClick={toggleOpen}>README</button>
 	    <Pager
 	      firstRow={firstRow}
 	      totalRows={totalRows}
@@ -24,6 +26,7 @@ const PagerBar = async ({query}) => {
 	      maxRow={maxRow}
 	      pageSize={pageSize}
 	    />
+	</div>
     );
 };
 

@@ -51,6 +51,7 @@ setup_args = dict(
         "numpy",
         "tornado",
         "matplotlib",
+        "marko",
         "Pillow",
         "scipy",
         "nodejs-bin==16.15.1a4",

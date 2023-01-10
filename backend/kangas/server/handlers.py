@@ -38,6 +38,7 @@ from .queries import (
     get_datagrid_timestamp,
     get_dg_path,
     get_fields,
+    get_readme,
     list_datagrids,
     select_asset,
     select_asset_group,
@@ -574,6 +575,20 @@ class CustomOutputHandler(BaseHandler):
         self.write_json(output)
 
 
+class GetReadMeHandler(BaseHandler):
+    @run_on_executor
+    @auth_wrapper
+    def post(self):
+        # Required:
+        data = tornado.escape.json_decode(self.request.body)
+        dgid = self.unquote(data.get("dgid", None))
+        url = self.unquote(data.get("url", None))
+
+        if self.ensure_datagrid_path(dgid):
+            result = get_readme(url, dgid)
+            self.write_json(result)
+
+
 datagrid_handlers = [
     ("/datagrid/histogram", HistogramHandler),
     ("/datagrid/description", DescriptionHandler),
@@ -594,4 +609,5 @@ datagrid_handlers = [
     ("/datagrid/timestamp", GetDataGridTimestampHandler),
     ("/datagrid/status", StatusHandler),
     ("/datagrid/completions", CompletionsHandler),
+    ("/datagrid/readme", GetReadMeHandler),
 ]
