@@ -1,3 +1,5 @@
+import './HelpText.css';
+
 const HelpText = () => (
     <div className="markdown-body">
         <p dir="auto">
