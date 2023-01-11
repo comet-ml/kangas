@@ -53,6 +53,7 @@ const fetchCategoryNew = async (query) => {
             marker: {
                 color: Object.keys(sorted).map(getColor),
             },
+            categories: Object.keys(sorted).reverse(),
         }
     ];
 

@@ -55,8 +55,6 @@ const Page = async ({ searchParams }) => {
         select
     } = searchParams;
 
-
-
     // Limit and offset are always set; get base or view defaults:
     const limit = rows ? parseInt(rows) : 10;
     const offset = page ? (parseInt(page) - 1) * limit : 0;
