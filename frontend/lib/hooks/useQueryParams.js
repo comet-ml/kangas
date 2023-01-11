@@ -18,8 +18,8 @@ const useQueryParams = () => {
     const updateParams = useCallback((updatedParams) => {
         const current = new URLSearchParams(urlParams.toString());
         for (const key in updatedParams) {
-            if (!!current.get(key)) {
-                    current.delete(key);
+            if (current.has(key)) {
+                current.delete(key);
             }
 
             if (typeof(updatedParams[key]) !== 'undefined') {

@@ -17,41 +17,51 @@ import "./Mui.css";
 
 const SortArrow = ({ toggle, sortDesc }) => {
     return (
-            <div className={cx('arrow-toggle')} onClick={toggle}>
+        <div className={cx('arrow-toggle')} onClick={toggle}>
             { sortDesc && <KeyboardArrowDownIcon /> }
             { !sortDesc && <KeyboardArrowUpIcon /> }
         </div>
-    )
+    );
 }
 
 const SelectColumnDropdown = ({ toggleOpen, group = false }) => {
     const { params, updateParams } = useQueryParams();
-    const { columns } = useContext(ViewContext)
+    const { columns } = useContext(ViewContext);
 
     const toggleDesc = useCallback(() => {
-        updateParams({ descending: params?.descending !== 'true'});
+        updateParams({
+            descending: (params?.descending !== 'true').toString()
+        });
     }, [params, updateParams]);
 
     const groupBy = useCallback((e) => {
         updateParams({
             group: e.value,
-            sort: e.value
+            sort: e.value,
+            page: undefined,
         });
         toggleOpen();
     }, [updateParams, toggleOpen]);
 
     const sortBy = useCallback((e) => {
-        updateParams({ sort: e.value });
+        updateParams({
+            sort: e.value
+        });
         toggleOpen();
     }, [updateParams, toggleOpen]);
 
     const resetDefault = useCallback(() => {
-	if (group) {
-            updateParams({ group: undefined });
-	} else {
-            updateParams({ sort: undefined });
-	}
-	toggleOpen();
+        if (group) {
+            updateParams({
+                group: undefined,
+                page: undefined,
+            });
+        } else {
+            updateParams({
+                sort: undefined,
+            });
+        }
+        toggleOpen();
     });
 
     // React select requires an array of dictionaries as input

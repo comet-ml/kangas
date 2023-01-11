@@ -9,19 +9,26 @@ import useQueryParams from '../../lib/hooks/useQueryParams';
 const FilterExpr = ({ query, completions }) => {
     const { params, updateParams } = useQueryParams();
     const filter = useRef();
+
+    const getValue = (value) => {
+        if (typeof(value) === 'undefined' || value === '')
+            return undefined;
+        return value;
+    };
+
     const onKeyPress = useCallback((e) => {
         if (e.key === 'Enter') {
             updateParams({
-                filter: filter?.current?.value,
-                page: 1,
+                filter: getValue(filter?.current?.value),
+                page: undefined,
             });
         }
     }, [updateParams]);
 
     const applyFilter = useCallback((e) => {
         updateParams({
-            filter: filter?.current?.value,
-            page: 1,
+            filter: getValue(filter?.current?.value),
+            page: undefined,
         });
     }, [updateParams]);
 

@@ -55,7 +55,7 @@ const Page = async ({ searchParams }) => {
         select
     } = searchParams;
 
-    
+
 
     // Limit and offset are always set; get base or view defaults:
     const limit = rows ? parseInt(rows) : 10;
@@ -68,7 +68,7 @@ const Page = async ({ searchParams }) => {
         whereExpr: filter,
         groupBy: group,
         sortBy: sort,
-        sortDesc: descending,
+        sortDesc: descending === 'true',
         select: select?.split(','),
         offset,
         limit,
