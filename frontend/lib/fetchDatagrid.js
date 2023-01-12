@@ -14,6 +14,7 @@ const fetchDataGrid = async (query, url=config.apiUrl) => {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'Cache-Control': 'max-age=604800'
         },
         body: JSON.stringify(query),
     };
