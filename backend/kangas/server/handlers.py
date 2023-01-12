@@ -91,7 +91,7 @@ class BaseHandler(RequestHandler):
     def set_default_headers(self):
         self.set_header("Content-Type", "application/json")
         self.set_header("Access-Control-Allow-Origin", "*")
-        self.set_header("Access-Control-Allow-Headers", "x-requested-with")
+        self.set_header("Access-Control-Allow-Headers", "x-requested-with, Cache-Control",)
         self.set_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
 
     def write_json(self, obj):
@@ -156,6 +156,7 @@ class HistogramHandler(BaseHandler):
                 computed_columns,
                 where_expr,
             )
+            self.set_header("Cache-Control", "max-age=604800")
             self.write_json(results)
 
 
@@ -233,6 +234,7 @@ class CategoryHandler(BaseHandler):
                 computed_columns,
                 where_expr,
             )
+            self.set_header("Cache-Control", "max-age=604800")
             self.write_json(result)
 
 
@@ -389,21 +391,20 @@ class QueryHandler(BaseHandler):
 class QueryPageHandler(BaseHandler):
     @run_on_executor
     @auth_wrapper
-    def post(self):
+    def get(self):
         # Required:
-        data = tornado.escape.json_decode(self.request.body)
-        dgid = self.unquote(data.get("dgid", None))
+        dgid = self.get_query_argument("dgid", None)
 
         # Optional selections:
-        offset = data.get("offset", 0)
-        group_by = data.get("groupBy", None)
-        sort_by = data.get("sortBy", None)
-        where = data.get("where", None)
-        limit = data.get("limit", 10)
-        sort_desc = data.get("sortDesc", False)
-        select = data.get("select", None)
-        computed_columns = data.get("computedColumns", None)
-        where_expr = data.get("whereExpr", None)
+        offset = self.get_query_argument("offset", 0)
+        group_by = self.get_query_argument("groupBy", None)
+        sort_by = self.get_query_argument("sortBy", None)
+        where = self.get_query_argument("where", None)
+        limit = self.get_query_argument("limit", 10)
+        sort_desc = self.get_query_argument("sortDesc", False)
+        select = self.get_query_argument("select", None)
+        computed_columns = self.get_query_argument("computedColumns", None)
+        where_expr = self.get_query_argument("whereExpr", None)
         where_expr = where_expr.strip() if where_expr else None
 
         if self.ensure_datagrid_path(dgid):
@@ -419,6 +420,7 @@ class QueryPageHandler(BaseHandler):
                 computed_columns,
                 where_expr,
             )
+            self.set_header("Cache-Control", "max-age=604800")
             self.write_json(result)
 
 
@@ -521,6 +523,7 @@ class DownloadHandler(BaseHandler):
 
         if self.ensure_datagrid_path(dgid):
             result = select_asset(dgid, asset_id, thumbnail)
+            self.set_header("Cache-Control", "max-age=604800")
             self.write(result)
 
 
