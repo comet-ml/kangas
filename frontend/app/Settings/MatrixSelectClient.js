@@ -8,7 +8,6 @@ import useQueryParams from '../../lib/hooks/useQueryParams';
 
 import classNames from 'classnames/bind';
 import styles from './MatrixSelectClient.module.scss';
-import fetchDataGrid from '../../lib/fetchDatagrid';
 import { ConfigContext } from '../contexts/ConfigContext';
 const cx = classNames.bind(styles);
 

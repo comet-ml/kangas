@@ -23,7 +23,11 @@ const fetchHistogramNew = async (query) => {
             'Content-Type': 'application/json',
             'Cache-Control': 'max-age=604800'
         },
-        body: JSON.stringify(query)
+        body: JSON.stringify(query),
+        next: {
+            revalidate: 100000000000
+        }
+
     };
 
     const res = await fetch(`${config.apiUrl}histogram`, request);

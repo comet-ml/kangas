@@ -6,13 +6,14 @@ import SettingsBar from './Settings';
 import PagerBar from './PagerBar';
 import ViewProvider from './contexts/ViewContext';
 import defaultCellSizes from '../lib/consts/defaultCellSizes';
-import { Suspense } from 'react';
+import { Suspense, cache } from 'react';
 import fetchDatagrids from '../lib/fetchDatagrids';
 import EMPTY from '../lib/consts/emptyTable';
 import Prefetch from './prefetch';
 
+
 const Main = async ({ query }) => {
-    const data = await fetchDataGrid(query)
+    const data = await fetchDataGrid(query);
     const { columnTypes, columns } = data;
     const view =  Object.fromEntries( columns.map( ( col, idx ) => [ col, defaultCellSizes?.[ columnTypes[idx ] ] ] ) );
 
@@ -89,6 +90,8 @@ const Page = async ({ searchParams }) => {
                 <Prefetch datagrids={datagrids} />
             </Suspense>
 */
+
+export const fetchCache = 'force-cache';
 
 export default Page;
 

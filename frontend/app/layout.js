@@ -19,5 +19,6 @@ const RootLayout = ({ children }) => {
         </html>
     );
 }
+export const fetchCache = 'force-cache';
 
 export default RootLayout;

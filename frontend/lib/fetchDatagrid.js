@@ -2,6 +2,7 @@ import config from '../config';
 
 const fetchDataGrid = async (query, url=config.apiUrl) => {
     // TODO: Rip this conditional return out. This is just here for testing purposes.
+    // console.log(headersList);
     if (!query?.dgid) return {
         columnTypes: [], 
         columns: [], 
@@ -9,6 +10,12 @@ const fetchDataGrid = async (query, url=config.apiUrl) => {
         typeMap: [], 
         displayColumns: []
     }
+
+    const test = new URLSearchParams(
+        Object.fromEntries(
+            Object.entries(query).filter(([k, v]) => !!v)
+        )
+    ).toString();
 
     const request = {
         method: 'POST',
@@ -20,7 +27,7 @@ const fetchDataGrid = async (query, url=config.apiUrl) => {
     };
 
     try {
-        const res = await fetch(`${url}query-page`, request);
+        const res = await fetch(`${url}query-page?${test}`, { headers: { 'Cache-Control': 'max-age=604800'}, next: { revalidate: 10000000000 } } );
         const data = await res.json();
 
         const { columnTypes, columns, rows } = data;
@@ -38,6 +45,6 @@ const fetchDataGrid = async (query, url=config.apiUrl) => {
         console.log(error);
         console.log("NOOOOOOO")
     }
-}
+};
 
 export default fetchDataGrid;
