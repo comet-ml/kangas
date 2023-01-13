@@ -115,9 +115,15 @@ def get_parser_arguments(parser):
     )
     parser.add_argument(
         "--debug",
-        help="Use this flag to display output from servers",
-        default=False,
+        help="Use this flag to set display to DEBUG for output from servers",
+        default=None,
         action="store_true",
+    )
+    parser.add_argument(
+        "--debug-level",
+        help="Use this flag to set level of output from servers: DEBUG, INFO, WARNING, ERROR, or CRITICAL",
+        type=str,
+        default=None,
     )
     parser.add_argument(
         "--terminate",
@@ -229,9 +235,16 @@ def server(parsed_args, remaining=None):
         else:
             result = 1
 
+        if parsed_args.debug_level is not None:
+            debug_level = parsed_args.debug_level
+        elif parsed_args.debug is not None:
+            debug_level = "INFO"
+        else:
+            debug_level = None
+
         if result == 0:  # Good! We'll use the pip-installed nodejs
             if hasattr(hasattr(nodejs, "node"), "Popen"):  # version 18
-                if not parsed_args.debug:
+                if debug_level is None:
                     node_process = nodejs.node.Popen(
                         [NODE_SERVER_PATH],
                         env=env,
@@ -247,7 +260,7 @@ def server(parsed_args, remaining=None):
                 else:
                     executable = os.path.join(node_folder, "bin/node")
 
-                if not parsed_args.debug:
+                if debug_level is None:
                     node_process = subprocess.Popen(
                         [executable, NODE_SERVER_PATH],
                         env=env,
@@ -266,7 +279,7 @@ def server(parsed_args, remaining=None):
             if result == 1:
                 raise Exception("Unable to find node executable")
 
-            if not parsed_args.debug:
+            if debug_level is None:
                 node_process = subprocess.Popen(
                     [executable, NODE_SERVER_PATH],
                     env=env,
@@ -353,7 +366,7 @@ def server(parsed_args, remaining=None):
         try:
             kangas.server.start_tornado_server(
                 port=KANGAS_BACKEND_PORT,
-                debug=parsed_args.debug,
+                debug=debug_level,
                 max_workers=parsed_args.max_workers,
             )
         except Exception:

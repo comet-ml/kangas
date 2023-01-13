@@ -305,7 +305,7 @@ class DataGrid:
         filter=None,
         host=None,
         port=4000,
-        debug=False,
+        debug=None,
         height="750px",
         width="100%",
         protocol="http",
@@ -319,7 +319,7 @@ class DataGrid:
                to listen to
             filter: (optional, str) a filter to set on the DataGrid
             port: (optional, int) the port number for the servers to listen to
-            debug: (optional, bool) if True, will display additional information
+            debug: (optional, str) will display additional information
                from the server (may not be visible in a notebook)
             height: (optional, str) the height of iframe in px or percentage
             width: (optional, str) the width of iframe in px or percentage

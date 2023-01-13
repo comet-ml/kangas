@@ -78,7 +78,7 @@ def terminate():
     _process_method("python", "kangas", "terminate")
 
 
-def launch(host=None, port=4000, debug=False, protocol="http"):
+def launch(host=None, port=4000, debug=None, protocol="http"):
     """
     Launch the Kangas servers.
 
@@ -90,7 +90,7 @@ def launch(host=None, port=4000, debug=False, protocol="http"):
             servers should listen on.
         port: (int) the port of the Kangas frontend server. The
             backend server will start on port + 1.
-        debug: (bool) if True, debugging output will be
+        debug: (str) the debugging output level will be
             shown as you run the servers.
 
     Example:
@@ -121,7 +121,7 @@ def launch(host=None, port=4000, debug=False, protocol="http"):
                 ]
                 + (["--host", host] if host is not None else [])
                 + (["--colab", "True"] if _in_colab_environment() else [])
-                + (["--debug"] if debug else [])
+                + (["--debug-level", debug] if debug is not None else [])
             )
         )
         time.sleep(2)
@@ -134,7 +134,7 @@ def show(
     filter=None,
     host=None,
     port=4000,
-    debug=False,
+    debug=None,
     height="750px",
     width="100%",
     protocol="http",
@@ -152,7 +152,7 @@ def show(
             servers should listen on.
         port: (int) the port of the Kangas frontend server. The
             backend server will start on port + 1.
-        debug: (bool) if True, debugging output will be
+        debug: (str) debugging output level will be
             shown as you run the servers.
         height: (str) the height (in "px" pixels) of the
             iframe shown in the Jupyter notebook.

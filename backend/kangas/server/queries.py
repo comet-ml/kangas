@@ -621,7 +621,7 @@ def histogram(cur, metadata, values, column):
         np_values = np.array([], dtype=np.float)
 
     if stats["minimum"] is None:
-        LOGGER.info(
+        LOGGER.debug(
             "column %r does not have pre-computed stats; computing on the fly", column
         )
         if values:
@@ -634,7 +634,7 @@ def histogram(cur, metadata, values, column):
         maximum = stats["maximum"]
 
     range = (minimum, maximum)
-    LOGGER.info("Computing histogram...")
+    LOGGER.debug("Computing histogram...")
     counts, labels = np.histogram(np_values, bins=HISTOGRAM_BINS, range=range)
 
     # Compute stats for this set:
@@ -658,9 +658,9 @@ def histogram(cur, metadata, values, column):
                 "sum": np_values.sum().item(),  # ok
             }
         except Exception:
-            LOGGER.info("failed in computing statistics")
+            LOGGER.debug("failed in computing statistics")
 
-    LOGGER.info("Done!")
+    LOGGER.debug("Done!")
     return {
         "type": "histogram",
         "bins": counts.tolist(),
@@ -758,10 +758,11 @@ def get_group_by_rows(
 
     select_sql = "SELECT value FROM (SELECT {select_expr_as}, {group_by_field_expr} AS {group_by_field_name}, GROUP_CONCAT({distinct}REPLACE(IFNULL({field_expr},'None'), ',', '&comma;')) as value FROM {databases} WHERE {where} GROUP BY {group_by_field_name}) WHERE {group_by_field_name} is {column_value}"
     selection_sql = select_sql.format(**env)
-    LOGGER.info("SQL %s", selection_sql)
+
+    LOGGER.debug("SQL %s", selection_sql)
     start_time = time.time()
     cur.execute(selection_sql)
-    LOGGER.info("SQL %s seconds", time.time() - start_time)
+    LOGGER.debug("SQL %s seconds", time.time() - start_time)
     rows = cur.fetchall()
     return rows
 
@@ -826,9 +827,7 @@ def select_histogram(
         row = rows[0]
         if row:
             if row[0]:
-                LOGGER.info("Converting to list of values...")
                 values = parse_comma_separated_values(row[0])
-                LOGGER.info("Done!")
             if not isinstance(values, (list, tuple)):
                 values = [values]
 
@@ -1022,12 +1021,10 @@ def select_category(
                         "columnType": column_type,
                     }
             else:
-                LOGGER.info("Sorting counts...")
                 counts = {
                     key: value
                     for (key, value) in sorted(counts.items(), key=lambda item: item[1])
                 }
-                LOGGER.info("Done!")
                 # values: {"Animal": 37, "Plant": 12}
                 results_json = {
                     "type": "category",
@@ -1179,7 +1176,7 @@ def select_asset_group(
     # These are assetIds (strings):
     select_sql = "SELECT value FROM (SELECT {select_expr_as}, COUNT({field_name}) as value FROM {databases} WHERE {where} GROUP BY {group_by_field_name}) WHERE {group_by_field_name} is {column_value};"
     selection_sql = select_sql.format(**env)
-    LOGGER.info("SQL %s", selection_sql)
+    LOGGER.debug("SQL %s", selection_sql)
     start_time = time.time()
     try:
         cur.execute(selection_sql)
@@ -1187,7 +1184,7 @@ def select_asset_group(
         LOGGER.error("SQL: %s; %s", selection_sql, exc)
         raise Exception(str(exc))
 
-    LOGGER.info("SQL %s seconds", time.time() - start_time)
+    LOGGER.debug("SQL %s seconds", time.time() - start_time)
     total_rows = cur.fetchall()
     total = 0
     if total_rows:
@@ -1357,7 +1354,7 @@ def verify_where(
     select_sql = "SELECT {select_expr_as} FROM {databases} WHERE {where} LIMIT 1;"
 
     selection_sql = select_sql.format(**env)
-    LOGGER.info("SQL %s", selection_sql)
+    LOGGER.debug("SQL %s", selection_sql)
 
     try:
         cur.execute(selection_sql)
@@ -1457,10 +1454,10 @@ def select_query_count(
     else:
         total_sql = "SELECT COUNT() FROM (SELECT {select_expr_as} FROM {databases} WHERE {where});"
     selection_sql = total_sql.format(**env)
-    LOGGER.info("SQL %s", selection_sql)
+    LOGGER.debug("SQL %s", selection_sql)
     start_time = time.time()
     total_rows = cur.execute(selection_sql).fetchone()[0]
-    LOGGER.info("SQL %s seconds", time.time() - start_time)
+    LOGGER.debug("SQL %s seconds", time.time() - start_time)
     return total_rows
 
 
@@ -1582,7 +1579,7 @@ def select_query_page(
     else:
         select_sql = "%s;" % select_sql
     selection_sql = select_sql.format(**env)
-    LOGGER.info("SQL %s", selection_sql)
+    LOGGER.debug("SQL %s", selection_sql)
     start_time = time.time()
     try:
         cur.execute(selection_sql)
@@ -1590,7 +1587,7 @@ def select_query_page(
         LOGGER.error("SQL: %s; %s", selection_sql, exc)
         raise Exception(str(exc))
 
-    LOGGER.info("SQL %s seconds", time.time() - start_time)
+    LOGGER.debug("SQL %s seconds", time.time() - start_time)
     rows = cur.fetchall()
 
     if group_by:
@@ -1861,10 +1858,10 @@ def select_asset(dgid, asset_id, thumbnail=False):
     selection = 'SELECT asset_data, asset_type, asset_thumbnail from assets where asset_id = "{asset_id}";'
     env = {"asset_id": asset_id}
     selection_sql = selection.format(**env)
-    LOGGER.info("SQL %s", selection_sql)
+    LOGGER.debug("SQL %s", selection_sql)
     start_time = time.time()
     row = cur.execute(selection_sql).fetchone()
-    LOGGER.info("SQL %s seconds", time.time() - start_time)
+    LOGGER.debug("SQL %s seconds", time.time() - start_time)
     if row:
         asset_data, asset_type, asset_thumbnail = row
         if thumbnail and asset_type in ["Image"]:
@@ -1884,10 +1881,10 @@ def select_asset_metadata(dgid, asset_id):
     selection = 'SELECT asset_metadata from assets where asset_id = "{asset_id}";'
     env = {"asset_id": asset_id}
     selection_sql = selection.format(**env)
-    LOGGER.info("SQL %s", selection_sql)
+    LOGGER.debug("SQL %s", selection_sql)
     start_time = time.time()
     row = cur.execute(selection_sql).fetchone()
-    LOGGER.info("SQL %s seconds", time.time() - start_time)
+    LOGGER.debug("SQL %s seconds", time.time() - start_time)
     if row:
         return row[0]
     return None
