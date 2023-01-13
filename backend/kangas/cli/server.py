@@ -182,6 +182,13 @@ def server(parsed_args, remaining=None):
     except Exception:
         nodejs = None
 
+    if parsed_args.debug_level is not None:
+        debug_level = parsed_args.debug_level
+    elif parsed_args.debug is not None:
+        debug_level = "INFO"
+    else:
+        debug_level = None
+
     KANGAS_FRONTEND_PORT = parsed_args.frontend_port
     KANGAS_HOST = parsed_args.host if parsed_args.host is not None else get_localhost()
     KANGAS_PROTOCOL = parsed_args.protocol
@@ -234,13 +241,6 @@ def server(parsed_args, remaining=None):
                 result = nodejs.node.run(["--version"])
         else:
             result = 1
-
-        if parsed_args.debug_level is not None:
-            debug_level = parsed_args.debug_level
-        elif parsed_args.debug is not None:
-            debug_level = "INFO"
-        else:
-            debug_level = None
 
         if result == 0:  # Good! We'll use the pip-installed nodejs
             if hasattr(hasattr(nodejs, "node"), "Popen"):  # version 18
@@ -363,17 +363,24 @@ def server(parsed_args, remaining=None):
             "Kangas backend is now running on %s://%s:%s/..."
             % (KANGAS_PROTOCOL, KANGAS_HOST, KANGAS_BACKEND_PORT)
         )
-        try:
+        if debug_level == 20:  # DEBUG
             kangas.server.start_tornado_server(
                 port=KANGAS_BACKEND_PORT,
                 debug=debug_level,
                 max_workers=parsed_args.max_workers,
             )
-        except Exception:
-            print("Unable to start backend; perhaps already running")
-            if parsed_args.frontend != "no":
-                node_process.wait()
-            return
+        else:
+            try:
+                kangas.server.start_tornado_server(
+                    port=KANGAS_BACKEND_PORT,
+                    debug=debug_level,
+                    max_workers=parsed_args.max_workers,
+                )
+            except Exception:
+                print("Unable to start backend; perhaps already running")
+                if parsed_args.frontend != "no":
+                    node_process.wait()
+                return
 
         print("Stopping backend...")
         if parsed_args.frontend != "no":
