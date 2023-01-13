@@ -33,7 +33,8 @@ const FilterExpr = ({ query, completions }) => {
     }, [updateParams]);
 
     useEffect(() => {
-        filter.current.value = query?.whereExpr || '';
+        if (typeof(filter?.current?.value) !== "undefined")
+            filter.current.value = query?.whereExpr || '';
     }, [query]);
 
     const onChangeSelect = useCallback((trigger, slug) => {
