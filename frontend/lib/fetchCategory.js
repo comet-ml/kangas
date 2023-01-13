@@ -4,23 +4,12 @@ import config from '../config';
 // Utils
 import fetchData from './fetchData';
 import { getColor } from './generateChartColor';
-const fetchCategory = async ({ query }) => {
-    const data = await fetchData({
-        url: `${config.apiUrl}category`,
-        query,
-        method: 'POST',
-    });
 
-    return data;
-};
-
-
-const fetchCategoryNew = async (query) => {
+const fetchCategory = async (query) => {
     const request = {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Cache-Control': 'max-age=604800'
         },
         body: JSON.stringify(query),
         next: {
@@ -63,10 +52,6 @@ const fetchCategoryNew = async (query) => {
 
 
     return formattedData;
-}
-
-export {
-    fetchCategoryNew
 }
 
 

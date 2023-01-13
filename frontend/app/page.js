@@ -81,17 +81,12 @@ const Page = async ({ searchParams }) => {
             <Suspense fallback={<Loading query={query} />}>
                 <Main query={query} />
             </Suspense>
+            <Suspense fallback={<></>}>
+                <Prefetch datagrids={datagrids} query={query} />
+            </Suspense>
         </div>
     );
 };
-
-/*
-            <Suspense fallback={<></>}>
-                <Prefetch datagrids={datagrids} />
-            </Suspense>
-*/
-
-export const fetchCache = 'force-cache';
 
 export default Page;
 

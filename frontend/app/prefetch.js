@@ -1,18 +1,26 @@
 import fetchDataGrid from "../lib/fetchDatagrid";
 import fetchDatagrids from "../lib/fetchDatagrids"
 
-const Prefetch = async ({ datagrids }) => {
+const Prefetch = async ({ datagrids, query }) => {
+    const offset = query?.offset ?? 0;
+    const limit = query?.limit ?? 10;
+
+    // Fetch first page of all available datagrids
     for (const dgid of datagrids) {
-        console.log(`trying ${dgid.value}`)
         try {
-            const temp = await fetchDataGrid({ dgid: dgid.value })
+            const temp = await fetchDataGrid({ dgid: dgid.value, limit });
         } catch (error) {
-            console.log(error)
+            console.log(error);
         }
     }
 
+    // Fetch three pages forward
+    for (let x = 1; x < 4; x++) {
+        const nextPage = await fetchDataGrid({ ...query, offset: offset + (limit * x)});   
+    }
+
     return (
-        <></>
+        <div> </div>
     )
 }
 

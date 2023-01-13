@@ -21,13 +21,15 @@ const fetchDataGrid = async (query, url=config.apiUrl) => {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Cache-Control': 'max-age=604800'
+        },
+        next: {
+            revalidate: 10000000000
         },
         body: JSON.stringify(query),
     };
 
     try {
-        const res = await fetch(`${url}query-page?${test}`, { headers: { 'Cache-Control': 'max-age=604800'}, next: { revalidate: 10000000000 } } );
+        const res = await fetch(`${url}query-page?${test}`, request);
         const data = await res.json();
 
         const { columnTypes, columns, rows } = data;

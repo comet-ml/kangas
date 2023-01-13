@@ -1,8 +1,8 @@
-import { fetchHistogramNew } from "../../../../lib/fetchHistogram"
+import fetchHistogram from "../../../../lib/fetchHistogram"
 import HistogramClient from "./HistogramClient";
 
 const Histogram = async ({ value, expanded }) => {
-    const data = await fetchHistogramNew(value);
+    const data = await fetchHistogram(value);
     if (data?.isVerbatim) {
         return (
             <div>{`${data?.value}`}</div>
