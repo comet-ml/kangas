@@ -1,8 +1,8 @@
-import { fetchCategoryNew } from "../../../../lib/fetchCategory"
+import fetchCategory from "../../../../lib/fetchCategory"
 import CategoryClient from "./CategoryClient";
 
 const Category = async ({ value, expanded }) => {
-    const data = await fetchCategoryNew(value);
+    const data = await fetchCategory(value);
 
     if (data?.isVerbatim) {
         return (

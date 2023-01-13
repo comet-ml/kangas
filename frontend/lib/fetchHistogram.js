@@ -6,22 +6,11 @@ import fetchData from './fetchData';
 import formatValue from './formatValue';
 import { getColor } from './generateChartColor';
 
-const fetchHistogram = async ({ query }) => {
-    const data = await fetchData({
-        url: `${config.apiUrl}histogram`,
-        query,
-        method: 'POST',
-    });
-
-    return data;
-};
-
-const fetchHistogramNew = async (query) => {
+const fetchHistogram = async (query) => {
     const request = {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Cache-Control': 'max-age=604800'
         },
         body: JSON.stringify(query),
         next: {
@@ -64,8 +53,5 @@ const fetchHistogramNew = async (query) => {
     return formattedData;
 }
 
-export {
-    fetchHistogramNew
-}
 
 export default fetchHistogram;
