@@ -20,7 +20,14 @@ const MatrixSelect = ({ query, options=['blah'] }) => {
 
     const changeDatagrid = useCallback((e) => {
         updateParams({
-            datagrid: e.value
+            datagrid: e.value,
+            filter: undefined,
+            sort: undefined,
+            group: undefined,
+            descending: undefined,
+            page: undefined,
+            rows: undefined,
+            select: undefined,
         });
     }, [updateParams]);
 
