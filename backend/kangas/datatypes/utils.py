@@ -11,6 +11,7 @@
 #    All rights reserved                             #
 ######################################################
 
+import ast
 import datetime
 import gzip
 import io
@@ -681,3 +682,17 @@ def image_to_fp(image, image_format):
     image.save(fp, format=image_format)  # save the content to fp
     fp.seek(0)
     return fp
+
+
+def combine_arrays(arrays):
+    """
+    Takes a list of lists and values and collapse
+    into a single-dimension np.array.
+    """
+    retval = []
+    for item in arrays:
+        if isinstance(item, str):
+            retval.extend(ast.literal_eval(item))
+        else:
+            retval.append(item)
+    return np.array(retval)

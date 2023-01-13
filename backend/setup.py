@@ -53,6 +53,7 @@ setup_args = dict(
         "matplotlib",
         "Pillow",
         "scipy",
+        "sklearn",
         "nodejs-bin==16.15.1a4",
         "requests",
         "tqdm",

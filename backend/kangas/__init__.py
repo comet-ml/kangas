@@ -196,6 +196,24 @@ def show(
         webbrowser.open(url, autoraise=True)
 
 
+def read_sklearn(dataset_name):
+    """
+    Load a sklearn dataset by name.
+
+    Args:
+        dataset_name: (str) one of: 'boston', 'breast_cancer',
+            'diabetes', 'digits', 'files', 'iris',
+            'linnerud', 'sample_image', 'sample_images',
+            'svmlight_file', 'svmlight_files', 'wine'
+
+    Example:
+    ```python
+    >>> dg = kg.read_sklearn("iris")
+    ```
+    """
+    return DataGrid.read_sklearn(dataset_name)
+
+
 def read_parquet(filename, **kwargs):
     """
     Takes a parquet filename or URL and returns a DataGrid.

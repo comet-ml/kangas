@@ -471,6 +471,12 @@ class Evaluator:
         elif isinstance(node, ast.Str):
             ## Python 3.7
             return repr(node.s)
+        elif isinstance(node, ast.Index):
+            return self.eval_node(node.value)
+        elif isinstance(node, ast.Subscript):
+            index = self.eval_node(node.slice)
+            obj = self.eval_node(node.value)
+            return "json_extract(%s, '$[%s]')" % (obj, index)
         elif isinstance(node, ast.ListComp):
             # [x for y in json_list if ...]
             # [x.label == 'hello' for x in {"image"}.overlays if ...]
