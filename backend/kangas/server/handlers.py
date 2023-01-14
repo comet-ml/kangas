@@ -55,6 +55,7 @@ from .queries import (
 )
 
 USE_AUTH = False
+LOGGER = logging.getLogger(__name__)
 
 if USE_AUTH:
     auth_wrapper = tornado.web.authenticated
@@ -91,7 +92,10 @@ class BaseHandler(RequestHandler):
     def set_default_headers(self):
         self.set_header("Content-Type", "application/json")
         self.set_header("Access-Control-Allow-Origin", "*")
-        self.set_header("Access-Control-Allow-Headers", "x-requested-with, Cache-Control",)
+        self.set_header(
+            "Access-Control-Allow-Headers",
+            "x-requested-with, Cache-Control",
+        )
         self.set_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
 
     def write_json(self, obj):
@@ -115,6 +119,7 @@ class BaseHandler(RequestHandler):
             return urllib.parse.unquote(value)
 
     def ensure_datagrid_path(self, dgid):
+        LOGGER.debug("DataGrid dgid: %s", dgid)
         if dgid is not None:
             db_path = get_dg_path(dgid)
             if os.path.exists(db_path):
@@ -406,6 +411,7 @@ class QueryPageHandler(BaseHandler):
         where_expr = where_expr.strip() if where_expr else None
 
         if self.ensure_datagrid_path(dgid):
+            LOGGER.debug("QueryPageHandler dgid: %s", dgid)
             result = select_query_page(
                 dgid,
                 offset,
