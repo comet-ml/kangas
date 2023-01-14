@@ -21,12 +21,12 @@ Using the startResizing/stopResizing/initWidth dynamic, we can force all widths 
 const CellClient = ({ columnName, type, isHeader, children }) => {
     const { columns, updateWidth } = useContext(ViewContext);
     const [isResizing, setIsResizing] = useState(false);
-    const [initWidth, setInitWidth] = useState(defaultCellSizes[type].width)
+    const [initWidth, setInitWidth] = useState(defaultCellSizes[type]?.width || 0)
 
     const resize = useCallback((d) => {
         updateWidth({
             [columnName]: {
-                width: initWidth + (d.width ?? 0)
+                width: initWidth + (d?.width ?? 0)
             }
         })
     }, [columnName, initWidth]);
