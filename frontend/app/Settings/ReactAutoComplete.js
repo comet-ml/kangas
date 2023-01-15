@@ -65,7 +65,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-  component: TextField,
   defaultValue: '',
   disabled: false,
   maxOptions: 6,
