@@ -1,9 +1,11 @@
 import config from '../config';
 
-const fetchStatus = async () => {
-    const result = await fetch(`${config.apiUrl}status`);
+import fetchIt from './fetchIt';
 
-    return result.json();
+const fetchStatus = async () => {
+    const result = await fetchIt({url: `${config.apiUrl}status`, query: {}});
+
+    return result;
 };
 
 export default fetchStatus;

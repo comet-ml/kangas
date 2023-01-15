@@ -1,8 +1,9 @@
 import config from '../config';
 
+import fetchIt from './fetchIt';
+
 const fetchDatagrids = async () => {
-    const result = await fetch(`${config.apiUrl}list`, { cache: 'no-store' });
-    const json = await result.json();
+    const json = await fetchIt({url: `${config.apiUrl}list`, query: {}, cache: false});
     return json;
 };
 

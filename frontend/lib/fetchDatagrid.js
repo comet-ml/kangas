@@ -1,36 +1,19 @@
 import config from '../config';
+import fetchIt from './fetchIt';
 
 const fetchDataGrid = async (query, url=config.apiUrl) => {
     // TODO: Rip this conditional return out. This is just here for testing purposes.
     // console.log(headersList);
     if (!query?.dgid) return {
-        columnTypes: [], 
-        columns: [], 
-        rows: [], 
-        typeMap: [], 
+        columnTypes: [],
+        columns: [],
+        rows: [],
+        typeMap: [],
         displayColumns: []
     }
 
-    const test = new URLSearchParams(
-        Object.fromEntries(
-            Object.entries(query).filter(([k, v]) => !!v)
-        )
-    ).toString();
-
-    const request = {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        next: {
-            revalidate: 10000000000
-        },
-        body: JSON.stringify(query),
-    };
-
     try {
-        const res = await fetch(`${url}query-page?${test}`, request);
-        const data = await res.json();
+        const data = await fetchIt({url: `${url}query-page`, query});
 
         const { columnTypes, columns, rows } = data;
         const typeMap = Object.fromEntries(

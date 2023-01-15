@@ -1,4 +1,5 @@
 import config from '../config';
+import fetchIt from './fetchIt';
 
 const parseEndpoint = ({ thumbnail, group }) => {
     if (group) {
@@ -37,14 +38,23 @@ const fetchAsset = async ({
     thumbnail = false,
 }) => {
     const endpoint = parseEndpoint({ thumbnail, group: !!query?.groupBy });
-    const requestType = parseRequestType(endpoint);
-    const data = await fetchData({ query, endpoint, requestType});
+    //const requestType = parseRequestType(endpoint);
+    //const data = await fetchData({ query, endpoint, requestType});
+    const data = await fetchIt({url: `${config.apiUrl}${endpoint}`, query, returnUrl});
 
+    /*
     if (returnUrl) {
-        const arrayBuffer = await data.arrayBuffer();
-        const dataUrl = Buffer.from(arrayBuffer).toString('base64');
+        let arrayBuffer, dataUrl;
+        try {
+            arrayBuffer = await clone.arrayBuffer();
+            dataUrl = Buffer.from(arrayBuffer).toString('base64');
+        } catch {
+            console.log("Was CACHED!");
+            dataUrl = '';
+        }
         return dataUrl;
     }
+    */
 
     return data;
 };

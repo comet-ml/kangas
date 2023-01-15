@@ -1,6 +1,8 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 
+import config from '../../config';
+
 const useQueryParams = () => {
     const router = useRouter();
     const urlParams = useSearchParams();
@@ -40,7 +42,8 @@ const useQueryParams = () => {
                 current.append(key, updatedParams[key]);
             }
         }
-        router.prefetch(`/?${current.toString()}`);
+        if (config.prefetch)
+            router.prefetch(`/?${current.toString()}`);
     }, [urlParams, router]);
 
     return {

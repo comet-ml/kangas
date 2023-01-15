@@ -17,6 +17,7 @@ datagrids from. Defaults to the directory
 where datagrid server was started.
 """
 
+import base64
 import json
 import logging
 import os
@@ -103,6 +104,7 @@ class BaseHandler(RequestHandler):
             result = json.dumps(obj)
         except Exception:
             logging.error("can't encode %r" % obj)
+            ## FIXME: how to write an error message?
             self.write("ENCODING ERROR")
             return
 
@@ -163,6 +165,35 @@ class HistogramHandler(BaseHandler):
             )
             self.write_json(results)
 
+    @run_on_executor
+    @auth_wrapper
+    def get(self):
+        # Required:
+        dgid = self.get_query_argument("dgid", None)
+
+        # Optional selections:
+        group_by = self.get_query_argument("groupBy", None)
+        where = self.get_query_argument("where", None)
+        column_name = self.get_query_argument("columnName", None)
+        column_value = get_column_value(self.get_query_argument("columnValue", None))
+        where_description = self.get_query_argument("whereDescription", where)
+        computed_columns = self.get_query_argument("computedColumns", None)
+        where_expr = self.get_query_argument("whereExpr", None)
+        where_expr = where_expr.strip() if where_expr else None
+
+        if self.ensure_datagrid_path(dgid):
+            results = select_histogram(
+                dgid,
+                group_by,
+                where,
+                column_name,
+                column_value,
+                where_description,
+                computed_columns,
+                where_expr,
+            )
+            self.write_json(results)
+
 
 class CompletionsHandler(BaseHandler):
     @run_on_executor
@@ -171,6 +202,16 @@ class CompletionsHandler(BaseHandler):
         # Required:
         data = tornado.escape.json_decode(self.request.body)
         dgid = self.unquote(data.get("dgid", None))
+
+        if self.ensure_datagrid_path(dgid):
+            results = get_completions(dgid)
+            self.write_json(results)
+
+    @run_on_executor
+    @auth_wrapper
+    def get(self):
+        # Required:
+        dgid = self.get_query_argument("dgid", None)
 
         if self.ensure_datagrid_path(dgid):
             results = get_completions(dgid)
@@ -240,6 +281,35 @@ class CategoryHandler(BaseHandler):
             )
             self.write_json(result)
 
+    @run_on_executor
+    @auth_wrapper
+    def get(self):
+        # Required:
+        dgid = self.get_query_argument("dgid", None)
+
+        # Optional selections:
+        group_by = self.get_query_argument("groupBy", None)
+        where = self.get_query_argument("where", None)
+        column_name = self.get_query_argument("columnName", None)
+        column_value = get_column_value(self.get_query_argument("columnValue", None))
+        where_description = self.get_query_argument("whereDescription", where)
+        computed_columns = self.get_query_argument("computedColumns", None)
+        where_expr = self.get_query_argument("whereExpr", None)
+        where_expr = where_expr.strip() if where_expr else None
+
+        if self.ensure_datagrid_path(dgid):
+            result = select_category(
+                dgid,
+                group_by,
+                where,
+                column_name,
+                column_value,
+                where_description,
+                computed_columns,
+                where_expr,
+            )
+            self.write_json(result)
+
 
 class AssetGroupHandler(BaseHandler):
     @run_on_executor
@@ -259,6 +329,7 @@ class AssetGroupHandler(BaseHandler):
         computed_columns = data.get("computedColumns", None)
         where_expr = data.get("whereExpr", None)
         where_expr = where_expr.strip() if where_expr else None
+        return_url = data.get("returnUrl", False)
 
         if self.ensure_datagrid_path(dgid):
             result = select_asset_group(
@@ -273,7 +344,46 @@ class AssetGroupHandler(BaseHandler):
                 where_expr,
                 distinct=True,
             )
-            self.write_json(result)
+            if return_url:
+                self.write_json({"uri": base64.b64encode(result).decode("utf-8")})
+            else:
+                self.write_json(result)
+
+    @run_on_executor
+    @auth_wrapper
+    def get(self):
+        # Required:
+        dgid = self.get_query_argument("dgid", None)
+
+        # Optional selections:
+        group_by = self.get_query_argument("groupBy", None)
+        where = self.get_query_argument("where", None)
+        column_name = self.get_query_argument("columnName", None)
+        column_value = get_column_value(self.get_query_argument("columnValue", None))
+        column_offset = self.get_query_argument("columnOffset", 0)
+        column_limit = self.get_query_argument("columnLimit", None)
+        computed_columns = self.get_query_argument("computedColumns", None)
+        where_expr = self.get_query_argument("whereExpr", None)
+        where_expr = where_expr.strip() if where_expr else None
+        return_url = self.get_query_argument("returnUrl", False)
+
+        if self.ensure_datagrid_path(dgid):
+            result = select_asset_group(
+                dgid,
+                group_by,
+                where,
+                column_name,
+                column_value,
+                column_offset,
+                column_limit,
+                computed_columns,
+                where_expr,
+                distinct=True,
+            )
+            if return_url:
+                self.write_json({"uri": base64.b64encode(result).decode("utf-8")})
+            else:
+                self.write_json(result)
 
 
 class AssetGroupMetadataHandler(BaseHandler):
@@ -335,6 +445,7 @@ class AssetGroupThumbnailHandler(BaseHandler):
         computed_columns = data.get("computedColumns", None)
         where_expr = data.get("whereExpr", None)
         where_expr = where_expr.strip() if where_expr else None
+        return_url = data.get("returnUrl", False)
 
         if self.ensure_datagrid_path(dgid):
             result = select_asset_group_thumbnail(
@@ -352,7 +463,52 @@ class AssetGroupThumbnailHandler(BaseHandler):
                 border_width,
                 distinct=True,
             )
-            self.write(result)
+            if return_url:
+                self.write_json({"uri": base64.b64encode(result).decode("utf-8")})
+            else:
+                self.write(result)
+
+    @run_on_executor
+    @auth_wrapper
+    def get(self):
+        # Required:
+        dgid = self.get_query_argument("dgid", None)
+
+        # Optional selections:
+        group_by = self.get_query_argument("groupBy", None)
+        where = self.get_query_argument("where", None)
+        column_name = self.get_query_argument("columnName", None)
+        column_value = get_column_value(self.get_query_argument("columnValue", None))
+        column_offset = self.get_query_argument("columnOffset", 0)
+        gallery_size = self.get_query_argument("gallerySize", None)
+        image_size = self.get_query_argument("imageSize", THUMBNAIL_SIZE)
+        background_color = self.get_query_argument("backgroundColor", None)
+        border_width = self.get_query_argument("borderWidth", 1)
+        computed_columns = self.get_query_argument("computedColumns", None)
+        where_expr = self.get_query_argument("whereExpr", None)
+        where_expr = where_expr.strip() if where_expr else None
+        return_url = self.get_query_argument("returnUrl", False)
+
+        if self.ensure_datagrid_path(dgid):
+            result = select_asset_group_thumbnail(
+                dgid,
+                group_by,
+                where,
+                column_name,
+                column_value,
+                column_offset,
+                computed_columns,
+                where_expr,
+                gallery_size,
+                background_color,
+                image_size,
+                border_width,
+                distinct=True,
+            )
+            if return_url:
+                self.write_json({"uri": base64.b64encode(result).decode("utf-8")})
+            else:
+                self.write(result)
 
 
 class QueryHandler(BaseHandler):
@@ -426,6 +582,39 @@ class QueryPageHandler(BaseHandler):
             )
             self.write_json(result)
 
+    @run_on_executor
+    @auth_wrapper
+    def get(self):
+        dgid = self.get_query_argument("dgid", None)
+
+        # Optional selections:
+        offset = self.get_query_argument("offset", 0)
+        group_by = self.get_query_argument("groupBy", None)
+        sort_by = self.get_query_argument("sortBy", None)
+        where = self.get_query_argument("where", None)
+        limit = self.get_query_argument("limit", 10)
+        sort_desc = self.get_query_argument("sortDesc", False)
+        select = self.get_query_argument("select", None)
+        computed_columns = self.get_query_argument("computedColumns", None)
+        where_expr = self.get_query_argument("whereExpr", None)
+        where_expr = where_expr.strip() if where_expr else None
+
+        if self.ensure_datagrid_path(dgid):
+            LOGGER.debug("QueryPageHandler dgid: %s", dgid)
+            result = select_query_page(
+                dgid,
+                offset,
+                group_by,
+                sort_by,
+                sort_desc,
+                where,
+                limit,
+                select,
+                computed_columns,
+                where_expr,
+            )
+            self.write_json(result)
+
 
 class QueryTotalHandler(BaseHandler):
     @run_on_executor
@@ -437,6 +626,26 @@ class QueryTotalHandler(BaseHandler):
         group_by = data.get("groupBy", None)
         computed_columns = data.get("computedColumns", None)
         where_expr = data.get("whereExpr", None)
+        where_expr = where_expr.strip() if where_expr else None
+
+        if self.ensure_datagrid_path(dgid):
+            total = select_query_count(
+                dgid,
+                group_by,
+                computed_columns,
+                where_expr,
+            )
+            result = {"total": total}
+            self.write_json(result)
+
+    @run_on_executor
+    @auth_wrapper
+    def get(self):
+        # Required:
+        dgid = self.get_query_argument("dgid", None)
+        group_by = self.get_query_argument("groupBy", None)
+        computed_columns = self.get_query_argument("computedColumns", None)
+        where_expr = self.get_query_argument("whereExpr", None)
         where_expr = where_expr.strip() if where_expr else None
 
         if self.ensure_datagrid_path(dgid):
@@ -496,6 +705,17 @@ class AssetMetadataHandler(BaseHandler):
             result = select_asset_metadata(dgid, asset_id)
             self.write_json(result)
 
+    @run_on_executor
+    @auth_wrapper
+    def get(self):
+        # Required:
+        asset_id = self.get_query_argument("assetId", None)
+        dgid = self.get_query_argument("dgid", None)
+
+        if self.ensure_datagrid_path(dgid):
+            result = select_asset_metadata(dgid, asset_id)
+            self.write_json(result)
+
 
 class FieldsHandler(BaseHandler):
     @run_on_executor
@@ -520,13 +740,17 @@ class DownloadHandler(BaseHandler):
             tornado.escape.url_unescape(self.get_query_argument("dgid", ""))
         )
         asset_id = tornado.escape.url_unescape(self.get_query_argument("assetId", ""))
+        return_url = self.get_query_argument("returnUrl", False)
         thumbnail = json.loads(
             tornado.escape.url_unescape(self.get_query_argument("thumbnail", "false"))
         )
 
         if self.ensure_datagrid_path(dgid):
             result = select_asset(dgid, asset_id, thumbnail)
-            self.write(result)
+            if return_url:
+                self.write_json({"uri": base64.b64encode(result).decode("utf-8")})
+            else:
+                self.write(result)
 
 
 class ListDataGridsHandler(BaseHandler):

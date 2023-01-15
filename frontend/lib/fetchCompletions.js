@@ -2,16 +2,15 @@
 import config from '../config';
 
 // Utils
-import fetchData from './fetchData';
+import fetchIt from './fetchIt';
 
 const fetchCompletions = async ( dgid ) => {
-    if (dgid) {
-	const data = await fetchData({
-            url: `${config.apiUrl}completions`,
-            query: {dgid},
-            method: 'POST',
-	});
-
+    if (!!dgid) {
+	const data = await fetchIt(
+            {
+                url: `${config.apiUrl}completions`,
+                query: {dgid},
+            });
 	return data;
     }
     return {};

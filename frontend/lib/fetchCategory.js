@@ -2,29 +2,18 @@
 import config from '../config';
 
 // Utils
+import fetchIt from './fetchIt';
 import fetchData from './fetchData';
 import { getColor } from './generateChartColor';
 
 const fetchCategory = async (query) => {
-    const request = {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(query),
-        next: {
-            revalidate: 100000000000
-        }
-    };
-
-    const res = await fetch(`${config.apiUrl}category`, request);
-    const data = await res.json();
+    const data = await fetchIt({url: `${config.apiUrl}category`, query});
 
     if (data?.type === 'verbatim') {
         return {
             isVerbatim: true,
             ...data
-        }
+        };
     }
 
     const sorted = Object.keys(data.values)
