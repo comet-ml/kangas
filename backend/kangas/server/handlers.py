@@ -480,10 +480,28 @@ class AssetGroupThumbnailHandler(BaseHandler):
         column_name = self.get_query_argument("columnName", None)
         column_value = get_column_value(self.get_query_argument("columnValue", None))
         column_offset = self.get_query_argument("columnOffset", 0)
+
         gallery_size = self.get_query_argument("gallerySize", None)
-        image_size = self.get_query_argument("imageSize", THUMBNAIL_SIZE)
+        if gallery_size:
+            gallery_size = [
+                int(n) for n in tornado.escape.url_unescape(gallery_size).split(",")
+            ]
+
+        image_size = self.get_query_argument("imageSize", None)
+        if image_size:
+            image_size = [
+                int(n) for n in tornado.escape.url_unescape(image_size).split(",")
+            ]
+        else:
+            image_size = THUMBNAIL_SIZE
+
         background_color = self.get_query_argument("backgroundColor", None)
-        border_width = self.get_query_argument("borderWidth", 1)
+        if background_color:
+            background_color = [
+                int(n) for n in tornado.escape.url_unescape(background_color).split(",")
+            ]
+
+        border_width = int(self.get_query_argument("borderWidth", "1"))
         computed_columns = self.get_query_argument("computedColumns", None)
         where_expr = self.get_query_argument("whereExpr", None)
         where_expr = where_expr.strip() if where_expr else None

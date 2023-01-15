@@ -497,7 +497,7 @@ def generate_thumbnail(asset_data, size=None, force=False):
     image = generate_image(asset_data)
 
     if not force:
-        # Don't force to size give, but make max height:
+        # Don't force to size given, but make max height:
         height = THUMBNAIL_SIZE[1]
         width = image.width * height // image.height
         new_image = image.resize((width, height))
