@@ -365,7 +365,7 @@ class AssetGroupHandler(BaseHandler):
         computed_columns = self.get_query_argument("computedColumns", None)
         where_expr = self.get_query_argument("whereExpr", None)
         where_expr = where_expr.strip() if where_expr else None
-        return_url = self.get_query_argument("returnUrl", False)
+        return_url = self.get_query_argument("returnUrl", "false") == "true"
 
         if self.ensure_datagrid_path(dgid):
             result = select_asset_group(
@@ -487,7 +487,7 @@ class AssetGroupThumbnailHandler(BaseHandler):
         computed_columns = self.get_query_argument("computedColumns", None)
         where_expr = self.get_query_argument("whereExpr", None)
         where_expr = where_expr.strip() if where_expr else None
-        return_url = self.get_query_argument("returnUrl", False)
+        return_url = self.get_query_argument("returnUrl", "false") == "true"
 
         if self.ensure_datagrid_path(dgid):
             result = select_asset_group_thumbnail(
@@ -593,7 +593,7 @@ class QueryPageHandler(BaseHandler):
         sort_by = self.get_query_argument("sortBy", None)
         where = self.get_query_argument("where", None)
         limit = self.get_query_argument("limit", 10)
-        sort_desc = self.get_query_argument("sortDesc", False)
+        sort_desc = self.get_query_argument("sortDesc", "false") == "true"
         select = self.get_query_argument("select", None)
         computed_columns = self.get_query_argument("computedColumns", None)
         where_expr = self.get_query_argument("whereExpr", None)
@@ -740,10 +740,8 @@ class DownloadHandler(BaseHandler):
             tornado.escape.url_unescape(self.get_query_argument("dgid", ""))
         )
         asset_id = tornado.escape.url_unescape(self.get_query_argument("assetId", ""))
-        return_url = self.get_query_argument("returnUrl", False)
-        thumbnail = json.loads(
-            tornado.escape.url_unescape(self.get_query_argument("thumbnail", "false"))
-        )
+        return_url = self.get_query_argument("returnUrl", "false") == "true"
+        thumbnail = self.get_query_argument("thumbnail", "false") == "true"
 
         if self.ensure_datagrid_path(dgid):
             result = select_asset(dgid, asset_id, thumbnail)
