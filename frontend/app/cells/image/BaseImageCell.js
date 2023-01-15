@@ -12,7 +12,7 @@ const cx = classNames.bind(styles);
 const PlainImageCell = async ({ value, query, expanded=false, style }) => {
     const { type, assetType, assetId } = value;
     const { dgid } = query;
-    const image = await fetchAsset({ query: { assetId, dgid, thumbnail: true }, returnUrl: true });
+    const image = await fetchAsset({ query: { assetId, dgid }, thumbnail: true, returnUrl: true });
 
     return (
             <div className={cx("cell-content")} style={style}>
