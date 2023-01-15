@@ -496,19 +496,16 @@ def generate_thumbnail(asset_data, size=None, force=False):
     size = size if size else THUMBNAIL_SIZE
     image = generate_image(asset_data)
 
-    # Generate a thumbnail:
-    if hasattr(ImageOps, "contain"):
-        new_image = ImageOps.contain(image, size)
-    else:
-        new_image = contain(image, size)
-
-    # If the thumbnail is too small on any dimension, resize
-    # it (keeps aspect ratio) to a minimum size:
     if not force:
-        if new_image.height < THUMBNAIL_SIZE[1]:
-            height = THUMBNAIL_SIZE[1]
-            width = image.width * height // image.height
-            new_image = image.resize((width, height))
+        # Don't force to size give, but make max height:
+        height = THUMBNAIL_SIZE[1]
+        width = image.width * height // image.height
+        new_image = image.resize((width, height))
+    else:
+        if hasattr(ImageOps, "contain"):
+            new_image = ImageOps.contain(image, size)
+        else:
+            new_image = contain(image, size)
 
     fp = image_to_fp(new_image, "png")
     return fp.read()
