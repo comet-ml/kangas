@@ -505,12 +505,7 @@ def generate_thumbnail(asset_data, size=None, force=False):
     # If the thumbnail is too small on any dimension, resize
     # it (keeps aspect ratio) to a minimum size:
     if not force:
-        if new_image.width < THUMBNAIL_SIZE[0]:
-            width = THUMBNAIL_SIZE[0]
-            height = image.height * width // image.width
-            new_image = image.resize((width, height))
-
-        elif new_image.height < THUMBNAIL_SIZE[1]:
+        if new_image.height < THUMBNAIL_SIZE[1]:
             height = THUMBNAIL_SIZE[1]
             width = image.width * height // image.height
             new_image = image.resize((width, height))

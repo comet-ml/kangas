@@ -745,6 +745,7 @@ class DownloadHandler(BaseHandler):
 
         if self.ensure_datagrid_path(dgid):
             result = select_asset(dgid, asset_id, thumbnail)
+            LOGGER.debug("download size of asset %s: %s" % (asset_id, len(result)))
             if return_url:
                 self.write_json({"uri": base64.b64encode(result).decode("utf-8")})
             else:
