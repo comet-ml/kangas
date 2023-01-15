@@ -1377,6 +1377,7 @@ def query_sql(
     computed_columns=None,
     limit=None,
     offset=0,
+    debug=False,
 ):
     dgid = datagrid.filename
     select_columns = datagrid.get_columns()
@@ -1409,6 +1410,7 @@ def query_sql(
             select_columns=select_columns,
             computed_columns=computed_columns,
             where_expr=where_expr,
+            debug=debug,
         )
         return results["rows"]
 
@@ -1505,6 +1507,7 @@ def select_query_page(
     select_columns,
     computed_columns,
     where_expr=None,
+    debug=False,
 ):
     sort_desc = "DESC" if sort_desc else "ASC"
     conn = get_database_connection(dgid)
@@ -1579,6 +1582,8 @@ def select_query_page(
     else:
         select_sql = "%s;" % select_sql
     selection_sql = select_sql.format(**env)
+    if debug:
+        print(selection_sql)
     LOGGER.debug("SQL %s", selection_sql)
     start_time = time.time()
     try:

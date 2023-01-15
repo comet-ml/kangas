@@ -1898,6 +1898,7 @@ class DataGrid:
         computed_columns=None,
         limit=None,
         offset=0,
+        debug=False,
     ):
         """
         Perform a selection on the database, including possibly a
@@ -1948,6 +1949,7 @@ class DataGrid:
             computed_columns,
             limit,
             offset,
+            debug=debug,
         )
         if count:
             return results
