@@ -1,3 +1,16 @@
+.pagination {
+    display: flex;
+    align-items: baseline;
+    padding-right: 25px;
+    font-family: 'Roboto';
+    color: #5f677e;
+    line-height: 14px;
+    font-weight: 400;
+    font-size: 12px;
+    justify-content: space-between;
+    max-width: 800px;
+}
+
 button.rounded {
     border-radius: 25px;
     cursor: pointer;
