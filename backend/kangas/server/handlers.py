@@ -767,6 +767,7 @@ class DownloadHandler(BaseHandler):
             if return_url:
                 self.write_json({"uri": base64.b64encode(result).decode("utf-8")})
             else:
+                self.set_header('Cache-Control', 'max-age=604800')
                 self.write(result)
 
 

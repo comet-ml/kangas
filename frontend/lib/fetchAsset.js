@@ -1,7 +1,7 @@
 import config from '../config';
 import fetchIt from './fetchIt';
 
-const parseEndpoint = ({ thumbnail, group }) => {
+export const parseEndpoint = ({ thumbnail, group }) => {
     if (group) {
         return thumbnail ? 'asset-group-thumbnail' : 'asset-group'
     } else {
@@ -40,7 +40,7 @@ const fetchAsset = async ({
     const endpoint = parseEndpoint({ thumbnail, group: !!query?.groupBy });
     //const requestType = parseRequestType(endpoint);
     //const data = await fetchData({ query, endpoint, requestType});
-    const data = await fetchIt({url: `${config.apiUrl}${endpoint}`, query: {...query, thumbnail}, returnUrl});
+    const data = await fetchIt({url: `${config.apiUrl}${endpoint}`, query: {...query, thumbnail}});
 
     /*
     if (returnUrl) {

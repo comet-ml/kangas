@@ -1,9 +1,10 @@
 import config from '../config';
-import fetchIt from './fetchIt';
+import cachedFetch from './fetchIt';
 
 const fetchDataGrid = async (query, url=config.apiUrl) => {
     // TODO: Rip this conditional return out. This is just here for testing purposes.
     // console.log(headersList);
+
     if (!query?.dgid) return {
         columnTypes: [],
         columns: [],
@@ -13,7 +14,7 @@ const fetchDataGrid = async (query, url=config.apiUrl) => {
     }
 
     try {
-        const data = await fetchIt({url: `${url}query-page`, query});
+        const data = await cachedFetch({url: `${url}query-page`, query});
 
         const { columnTypes, columns, rows } = data;
         const typeMap = Object.fromEntries(

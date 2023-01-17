@@ -40,6 +40,7 @@ export const TableDisplay = ({ query, data }) => {
 }
 const Table = async ({ query }) => {
     const data = await fetchDataGrid(query)
+    console.log(data);
 
     return (
         <Suspense fallback={<TableDisplay data={EMPTY} query={query} />}>
