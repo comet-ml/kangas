@@ -1,8 +1,12 @@
 /* eslint-disable react/jsx-key */
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import config from '../../config';
+
+import { useCallback, useMemo, useEffect, useRef } from 'react';
 import useQueryParams from '../../lib/hooks/useQueryParams';
+import RowsButton from '../Settings/Buttons/RowsButton';
+import AboutDataGridButton from '../Settings/Buttons/AboutDataGridButton';
 
 import styles from './Pager.module.scss';
 import classNames from 'classnames/bind';
@@ -10,11 +14,18 @@ const cx = classNames.bind(styles);
 
 const Pager = ({ firstRow, totalRows, currentPage, totalPages, maxRow, pageSize }) => {
     const { params, updateParams } = useQueryParams();
+    const pageInput = useRef();
+
+    const canGoto = (page) => {
+	return page > 0 && page <= totalPages && page !== currentPage;
+    };
 
     const gotoPage = useCallback((page) => {
-        updateParams({
-            page
-        });
+        if (canGoto(page)) {
+            updateParams({
+                page
+            });
+        }
     }, [updateParams]);
 
     const setPageSize = useCallback((pagesize) => {
@@ -24,9 +35,16 @@ const Pager = ({ firstRow, totalRows, currentPage, totalPages, maxRow, pageSize 
         });
     }, [updateParams]);
 
-    const canGoto = (page) => {
-	return page > 0 && page <= totalPages && page !== currentPage;
-    };
+    const enter = useCallback((e) => {
+        if (e?.keyCode === 13 || e?.code === 'Enter') {
+            const page = parseInt(e.target.value);
+            if (page) gotoPage(page);
+        }
+    }, [gotoPage]);
+
+    useEffect(() => {
+        if (pageInput?.current) pageInput.current.value = currentPage;
+    }, [currentPage]);
 
     const notGotoFirst = useMemo(() => {
 	return !canGoto(1);
@@ -46,8 +64,9 @@ const Pager = ({ firstRow, totalRows, currentPage, totalPages, maxRow, pageSize 
 
     return (
         <div className={cx('pagination')}>
+            <AboutDataGridButton />
 	    <span>
-	    Showing {`${firstRow} - ${maxRow} of ${totalRows} rows`}: Page {`${currentPage}  / ${totalPages}`}
+	    Showing {`${firstRow.toLocaleString(config.locale)} - ${maxRow.toLocaleString(config.locale)} of ${totalRows.toLocaleString(config.locale)} rows`}
             </span>
             <button
                className={cx('rounded')}
@@ -63,6 +82,28 @@ const Pager = ({ firstRow, totalRows, currentPage, totalPages, maxRow, pageSize 
             >
 	      {'<'}
             </button>
+	    <span>
+	    Page
+            </span>
+            <input
+                type="text"
+                inputMode='numeric'
+                pattern="[0-9]*"
+                onKeyDown={(e) => enter(e)}
+                disabled={totalPages === 1}
+                ref={pageInput}
+                defaultValue={currentPage}
+                style={{
+                        width: '50px',
+                        margin: '0 8px',
+                        textAlign: 'center',
+                        fontSize: '12px',
+                        fontWeight: '500',
+                }}
+            />
+	    <span>
+	    of {`${totalPages.toLocaleString(config.locale)}`}
+            </span>
             <button
                className={cx('rounded')}
 	       onClick={() => gotoPage(currentPage + 1)}
@@ -77,18 +118,7 @@ const Pager = ({ firstRow, totalRows, currentPage, totalPages, maxRow, pageSize 
             >
 	      {'>|'}
             </button>
-            <select
-              value={pageSize}
-              onChange={e => {
-                setPageSize(Number(e.target.value))
-              }}
-            >
-              {[5, 10, 15, 20, 25].map(pageSize => (
-                <option key={pageSize} value={pageSize}>
-                  Show {pageSize}
-                </option>
-              ))}
-            </select>
+            <RowsButton />
         </div>
     );
 };
