@@ -7,9 +7,9 @@ import ImageCanvasClient from "./ImageCanvasClient";
 
 const ImageCanvasCell = async ({ value, query }) => {
     const { type, assetType, assetId } = value;
-    const { dgid } = query;
-    const image = await fetchAsset({ query: { assetId, dgid }, returnUrl: true });
-    const metadata = await fetchAssetMetadata({ assetId, dgid });
+    const { dgid, timestamp } = query;
+    const image = await fetchAsset({ query: { assetId, dgid, timestamp }, returnUrl: true });
+    const metadata = await fetchAssetMetadata({ assetId, dgid, timestamp });
 
     // TODO: Abstract this into a fetchAssetMetadata method
     /*

@@ -8,6 +8,7 @@ import ViewProvider from './contexts/ViewContext';
 import defaultCellSizes from '../lib/consts/defaultCellSizes';
 import { Suspense, cache } from 'react';
 import fetchDatagrids from '../lib/fetchDatagrids';
+import fetchTimestamp from '../lib/fetchTimestamp';
 import EMPTY from '../lib/consts/emptyTable';
 import Prefetch from './prefetch';
 
@@ -73,6 +74,8 @@ const Page = async ({ searchParams }) => {
         limit,
     };
 
+    if (!!datagrid)
+        query.timestamp = await fetchTimestamp(datagrid);
 
     return (
         <div>

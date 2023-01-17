@@ -13,7 +13,7 @@ const cx = classNames.bind(styles);
 
 const PlainImageCell = ({ value, query, expanded=false, style }) => {
     const endpoint = parseEndpoint({ thumbnail: true, group: !!query?.groupBy });
-    const queryString = new URLSearchParams({ assetId: value?.assetId, dgid: query?.dgid, thumbnail: true }).toString();
+    const queryString = new URLSearchParams({ assetId: value?.assetId, dgid: query?.dgid, timestamp: query?.timestamp, thumbnail: true }).toString();
     //const res = await fetch(`${config.apiUrl}${endpoint}?${queryString}`, { next: { revalidate: 1000 } });
     //const image = await res.blob();
     //const imageUrl = URL.createObjectURL(image);

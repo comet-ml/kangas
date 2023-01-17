@@ -11,7 +11,7 @@ const Prefetch = async ({ datagrids, query }) => {
         // Fetch first page of all available datagrids
         for (const dgid of datagrids) {
             try {
-                const temp = await fetchDataGrid({ dgid: dgid.value, limit });
+                const temp = await fetchDataGrid({ dgid: dgid.value, timestamp: dgid.timestamp, limit });
             } catch (error) {
                 console.log(error);
             }
