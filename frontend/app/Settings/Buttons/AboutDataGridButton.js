@@ -9,8 +9,8 @@ const cx = classNames.bind(styles);
 const AboutDataGridButton = () => (
     <DialogueModal
         toggleElement={
-            <div className={cx("button-outline")}>
-                <img src="/favicon.png" /> <span>About this DataGrid</span>
+                <div style={{color: "#5155f5"}}>
+                <span>About this DataGrid</span>
             </div>
         }
         sx={{

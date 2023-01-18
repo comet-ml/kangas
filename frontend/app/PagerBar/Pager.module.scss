@@ -8,13 +8,36 @@
     font-weight: 400;
     font-size: 12px;
     justify-content: space-between;
-    max-width: 800px;
+    max-width: 100%;
 }
 
 button.rounded {
-    border-radius: 25px;
+    color: #5155f5;
+    border: 1px solid #5155f5;
+    border-radius: 5px;
+    padding: 7.5px 12px;
+    font-family: 'Roboto';
+    font-weight: 500;
+    display: inline-block;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
     cursor: pointer;
-    height: 30px;
-    width: 30px;
+    max-height: 34px;
+    box-sizing: border-box;
+    white-space: nowrap;
 }
 
+.left-bar {
+    display: flex;
+    width: -webkit-fill-available;
+    column-gap: 12px;
+}
+
+.right-bar {
+    display: flex;
+    width: 100%;
+    justify-content: right;
+    align-items: baseline;
+    column-gap: 12px;
+}

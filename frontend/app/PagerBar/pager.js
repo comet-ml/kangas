@@ -64,7 +64,10 @@ const Pager = ({ firstRow, totalRows, currentPage, totalPages, maxRow, pageSize 
 
     return (
         <div className={cx('pagination')}>
+          <div className={cx("left-bar")}>
             <AboutDataGridButton />
+          </div>
+          <div className={cx("right-bar")}>
 	    <span>
 	    Showing {`${firstRow.toLocaleString(config.locale)} - ${maxRow.toLocaleString(config.locale)} of ${totalRows.toLocaleString(config.locale)} rows`}
             </span>
@@ -118,7 +121,7 @@ const Pager = ({ firstRow, totalRows, currentPage, totalPages, maxRow, pageSize 
             >
 	      {'>|'}
             </button>
-            <RowsButton />
+          </div>
         </div>
     );
 };
