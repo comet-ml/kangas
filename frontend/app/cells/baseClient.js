@@ -42,9 +42,9 @@ const CellClient = ({ columnName, type, isHeader, children }) => {
 
     const headerResizeStyle = {
 	'width': '1px',
-	'background-color': 'silver',
+	'backgroundColor': 'silver',
 	'border': '2px ridge silver',
-	'border-radius': '2px',
+	'borderRadius': '2px',
 	'right': '0px',
 	'height': '100%',
 	'top': '-2px',

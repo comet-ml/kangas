@@ -19,7 +19,7 @@ const cx2 = classNames.bind(style2);
 
 const ClearButton = ({ callback }) => (
         <InputAdornment position="end" style={{cursor: 'pointer'}}>
-        <ClearIcon onClick={callback} color="primary" fontSize={'small'} />
+            <ClearIcon onClick={callback} color="primary" fontSize={'small'} />
         </InputAdornment>
 );
 

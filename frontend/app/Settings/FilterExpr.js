@@ -3,7 +3,7 @@
 import Autocomplete from './ReactAutoComplete';
 import { TextField } from '@mui/material';
 import InputAdornment from '@mui/material/InputAdornment';
-import { useCallback, useEffect, useRef, useMemo } from 'react';
+import { useCallback, useEffect, useRef, useMemo, useState } from 'react';
 import useQueryParams from '../../lib/hooks/useQueryParams';
 
 const FilterExpr = ({ query, completions }) => {
@@ -25,7 +25,7 @@ const FilterExpr = ({ query, completions }) => {
         }
     }, [updateParams]);
 
-    const clearFilter = useCallback((e) => {
+    const clearFilter = useCallback((event) => {
         updateParams({
             filter: undefined,
             page: undefined,
