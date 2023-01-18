@@ -255,6 +255,16 @@ def LENGTH(string_or_obj):
     return 0
 
 
+def SUM_OF_LIST(string_or_obj):
+    ## Comes in as a string, but might be "[...]"
+    if string_or_obj:
+        try:
+            return sum(ast.literal_eval(string_or_obj))
+        except Exception:
+            return sum(string_or_obj)
+    return 0
+
+
 def MEAN(string_or_obj):
     ## Comes in as a string, but might be "[...]"
     if string_or_obj:
@@ -385,6 +395,7 @@ def get_database_connection(dgid):
     conn.create_function("FLATTEN", 1, FLATTEN)
     conn.create_function("SPLIT", -1, SPLIT)
     conn.create_function("LENGTH", 1, LENGTH)
+    conn.create_function("SUM_OF_LIST", 1, SUM_OF_LIST)
     conn.create_function("MEAN", 1, MEAN)
     conn.create_function("KEYS_OF", 1, KEYS_OF)
     conn.create_function("VALUES_OF", 1, VALUES_OF)
@@ -432,6 +443,7 @@ def get_completions(dgid):
         "random",
         "round()",
         "statistics",
+        "sum()",
     ]
     for expr in constructs:
         trigger = expr[:1]
