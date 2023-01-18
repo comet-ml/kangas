@@ -1,7 +1,6 @@
 import config from '../config';
 
 import fetchDataGrid from "../lib/fetchDatagrid";
-import fetchDatagrids from "../lib/fetchDatagrids"
 
 const Prefetch = async ({ datagrids, query }) => {
     const offset = query?.offset ?? 0;
