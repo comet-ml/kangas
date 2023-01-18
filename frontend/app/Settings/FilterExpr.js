@@ -25,9 +25,9 @@ const FilterExpr = ({ query, completions }) => {
         }
     }, [updateParams]);
 
-    const applyFilter = useCallback((e) => {
+    const clearFilter = useCallback((e) => {
         updateParams({
-            filter: getValue(filter?.current?.value),
+            filter: undefined,
             page: undefined,
         });
     }, [updateParams]);
@@ -66,7 +66,7 @@ const FilterExpr = ({ query, completions }) => {
                 placeholder={`e.g.: {"column name"} > 0.5`}
                 id="filter"
                 onKeyPress={onKeyPress}
-                applyFilter={applyFilter}
+                clearFilter={clearFilter}
                 refInput={filter}
             />
         </>

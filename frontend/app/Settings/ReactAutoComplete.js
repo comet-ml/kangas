@@ -8,6 +8,8 @@ import PropTypes from 'prop-types';
 import getCaretCoordinates from 'textarea-caret';
 import getInputSelection, { setCaretPosition } from 'get-input-selection';
 import { TextField } from '@mui/material';
+import InputAdornment from "@material-ui/core/InputAdornment";
+import ClearIcon from "@material-ui/icons/Clear";
 
 import style1 from './Buttons/Buttons.module.scss';
 import style2 from './SettingsBar.module.scss';
@@ -15,10 +17,10 @@ import classNames from 'classnames/bind';
 const cx1 = classNames.bind(style1);
 const cx2 = classNames.bind(style2);
 
-const FilterButton = ({ callback }) => (
-	<div className={cx1("button-outline")} onClick={callback}>
-        <img src="/filter_placeholder.png" /> <span>Filter</span>
-    </div>
+const ClearButton = ({ callback }) => (
+        <InputAdornment position="end" style={{cursor: 'pointer'}}>
+        <ClearIcon onClick={callback} color="primary" fontSize={'small'} />
+        </InputAdornment>
 );
 
 const KEY_UP = 38;
@@ -32,7 +34,7 @@ const OPTION_LIST_Y_OFFSET = 10;
 const OPTION_LIST_MIN_WIDTH = 100;
 
 const propTypes = {
-  applyFilter: PropTypes.func,
+  clearFilter: PropTypes.func,
   onKeyPress: PropTypes.func,
   defaultValue: PropTypes.string,
   disabled: PropTypes.bool,
@@ -483,7 +485,7 @@ class AutocompleteTextField extends React.Component {
   render() {
     const {
       onKeyPress,
-      applyFilter,
+      clearFilter,
       defaultValue,
       disabled,
       onBlur,
@@ -517,7 +519,7 @@ class AutocompleteTextField extends React.Component {
           inputRef={this.refInput}
           value={val}
           InputProps={{
-            endAdornment: <FilterButton callback={applyFilter} />,
+              endAdornment: <ClearButton callback={clearFilter} />,
             sx: {
                 fontSize: '13px',
                 width: '360px'
