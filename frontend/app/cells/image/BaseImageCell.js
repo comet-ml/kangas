@@ -11,17 +11,20 @@ import Image from 'next/image';
 const cx = classNames.bind(styles);
 
 
-const PlainImageCell = ({ value, query, expanded=false, style }) => {
+const PlainImageCell = async ({ value, query, expanded=false, style }) => {
     const endpoint = parseEndpoint({ thumbnail: true, group: !!query?.groupBy });
-    const queryString = new URLSearchParams({ assetId: value?.assetId, dgid: query?.dgid, timestamp: query?.timestamp, thumbnail: true, returnUrl: false }).toString();
-    //const res = await fetch(`${config.apiUrl}${endpoint}?${queryString}`, { next: { revalidate: 1000 } });
-    //const image = await res.blob();
-    //const imageUrl = URL.createObjectURL(image);
+    const queryString = new URLSearchParams({ 
+        assetId: value?.assetId, 
+        dgid: query?.dgid, 
+        timestamp: query?.timestamp, 
+        thumbnail: true,
+        endpoint 
+    }).toString();
 
     return (
             <div className={cx("cell-content")} style={style}>
                 <img
-                    src={`${config.apiUrl}${endpoint}?${queryString}`}
+                    src={`http://localhost:4000/api/image?${queryString}`}
                     alt="DataGrid Image"
                 />
             </div>
