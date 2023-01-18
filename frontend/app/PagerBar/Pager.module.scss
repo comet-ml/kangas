@@ -28,6 +28,12 @@ button.rounded {
     white-space: nowrap;
 }
 
+button.rounded:disabled {
+    cursor: unset;
+    color: lightgrey;
+    border: 1px solid grey;
+}
+
 .left-bar {
     display: flex;
     width: -webkit-fill-available;
