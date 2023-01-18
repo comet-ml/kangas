@@ -18,6 +18,9 @@ const useQueryParams = () => {
     }, [urlParams]);
 
     const updateParams = useCallback((updatedParams) => {
+        // FIXME: need to unify paramaters (does order matter?)
+        // and handle defaults so that they match for caching
+        // puposes
         const current = new URLSearchParams(urlParams.toString());
         for (const key in updatedParams) {
             if (current.has(key)) {

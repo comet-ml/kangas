@@ -374,6 +374,7 @@ class AssetGroupHandler(BaseHandler):
             if return_url:
                 self.write_json({"uri": base64.b64encode(result).decode("utf-8")})
             else:
+                self.set_header("Cache-Control", "max-age=604800")
                 self.write_json(result)
 
     @run_on_executor
@@ -410,6 +411,7 @@ class AssetGroupHandler(BaseHandler):
             if return_url:
                 self.write_json({"uri": base64.b64encode(result).decode("utf-8")})
             else:
+                self.set_header("Cache-Control", "max-age=604800")
                 self.write_json(result)
 
 
@@ -528,6 +530,7 @@ class AssetGroupThumbnailHandler(BaseHandler):
             if return_url:
                 self.write_json({"uri": base64.b64encode(result).decode("utf-8")})
             else:
+                self.set_header("Cache-Control", "max-age=604800")
                 self.write(result)
 
     @run_on_executor
@@ -588,6 +591,7 @@ class AssetGroupThumbnailHandler(BaseHandler):
             if return_url:
                 self.write_json({"uri": base64.b64encode(result).decode("utf-8")})
             else:
+                self.set_header("Cache-Control", "max-age=604800")
                 self.write(result)
 
 
@@ -808,7 +812,7 @@ class DownloadHandler(BaseHandler):
             if return_url:
                 self.write_json({"uri": base64.b64encode(result).decode("utf-8")})
             else:
-                self.set_header('Cache-Control', 'max-age=604800')
+                self.set_header("Cache-Control", "max-age=604800")
                 self.write(result)
 
 

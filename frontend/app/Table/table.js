@@ -11,7 +11,7 @@ const cx = classNames.bind(styles)
 
 export const TableDisplay = ({ query, data }) => {
     const { columnTypes, columns, rows, displayColumns } = data;
-    
+
     // Remove any row keys that are not in displayColumns:
     const displayRows = rows.map(row => Object.fromEntries(
 	    Object.entries(row).filter(([name]) => displayColumns.includes(name))
@@ -23,12 +23,12 @@ export const TableDisplay = ({ query, data }) => {
                 <div className={cx('row', { group: !!query?.groupBy, headerRow: ridx < 1 })} key={`row-${ridx}`}>
                     {
                         Object.values(row).map( (cell, cidx) => (
-                            <Cell 
-                                value={cell} 
-                                type={columnTypes[cidx]} 
-                                columnName={columns[cidx]} 
-                                query={query} 
-                                isHeader={ridx < 1} 
+                            <Cell
+                                value={cell}
+                                type={columnTypes[cidx]}
+                                columnName={columns[cidx]}
+                                query={query}
+                                isHeader={ridx < 1}
                             />
                         ) )
                     }
@@ -39,12 +39,11 @@ export const TableDisplay = ({ query, data }) => {
 
 }
 const Table = async ({ query }) => {
-    const data = await fetchDataGrid(query)
-    console.log(data);
+    const data = await fetchDataGrid(query);
 
     return (
         <Suspense fallback={<TableDisplay data={EMPTY} query={query} />}>
-            <TableDisplay data={data} query={query} />            
+            <TableDisplay data={data} query={query} />
         </Suspense>
     );
 };
