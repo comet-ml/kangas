@@ -36,12 +36,15 @@ const fetchAsset = async ({
     query,
     returnUrl = false,
     thumbnail = false,
+    json = true,
 }) => {
     const endpoint = parseEndpoint({ thumbnail, group: !!query?.groupBy });
     //const requestType = parseRequestType(endpoint);
     //const data = await fetchData({ query, endpoint, requestType});
-    const data = await fetchIt({url: `${config.apiUrl}${endpoint}`, query: {...query, thumbnail}});
-
+    const data = await fetchIt({url: `${config.apiUrl}${endpoint}`,
+                                query: {...query, thumbnail},
+                                json,
+                                returnUrl});
     /*
     if (returnUrl) {
         let arrayBuffer, dataUrl;

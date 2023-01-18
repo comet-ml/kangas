@@ -29,7 +29,6 @@
     max-height: 34px;
     box-sizing: border-box;
     border: 1px solid #5155f5;
-    border-right: 0;
     border-radius: 4px;
 }
 
@@ -39,7 +38,7 @@
 
 /* TODO: Fix this !important flag by customizing the styles in MUI better */
 .MuiInputBase-adornedEnd {
-    padding-right: 0 !important;
+    padding-right: 5px !important;
 }
 
 .MuiAccordion--root {

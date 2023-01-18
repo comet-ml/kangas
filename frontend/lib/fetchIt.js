@@ -1,16 +1,16 @@
 import config from '../config';
 
-// Old way:
-// const fetchIt = async (url, query, method='POST', cache=false, json=true, returnUrl=false) => {
-// New way:
 const parseQuery = (query) => {
+    // Reduce query to defaults:
+    if (typeof(query.offset) !== 'undefined' && query.offset == 0) {
+        delete query.offset;
+    }
+
     const url = new URLSearchParams(
         Object.fromEntries(
             Object.entries(query).filter(([k, v]) => typeof(v) !== 'undefined' && v !== null)
         ))
         .toString();
-
-
 
     return url;
 }
@@ -41,8 +41,11 @@ const cachedFetch = async ({ url, query={}, method="GET", next = { revalidate: 1
 }
 */
 
-// TODO: Remove JSON arg--let components resolve promises however they need
-const cachedFetch = async ({url, query = {}, method='GET', cache=config.cache, json=true, returnUrl=false, ...args}) => {
+// Old way:
+// const fetchIt = async (url, query, method='POST', cache=false, json=true, returnUrl=false) => {
+// New way:
+const fetchIt = async ({url, query = {}, method='GET', cache=config.cache, json=true,
+                        returnUrl=false, ...args}) => {
     let queryArgs = '';
     const headers = {};
     const request = {
@@ -54,7 +57,7 @@ const cachedFetch = async ({url, query = {}, method='GET', cache=config.cache, j
     if (method === 'GET') {
         queryArgs = new URLSearchParams(
             Object.fromEntries(
-                Object.entries({ 
+                Object.entries({
                     ...query,
                     returnUrl: returnUrl ? true : undefined
                 }).filter(([k, v]) => typeof(v) !== 'undefined' && v !== null)
@@ -86,4 +89,4 @@ const cachedFetch = async ({url, query = {}, method='GET', cache=config.cache, j
 
 };
 
-export default cachedFetch;
+export default fetchIt;

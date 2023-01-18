@@ -1,5 +1,5 @@
 import config from '../config';
-import cachedFetch from './fetchIt';
+import fetchIt from './fetchIt';
 
 const fetchDataGrid = async (query, url=config.apiUrl) => {
     // TODO: Rip this conditional return out. This is just here for testing purposes.
@@ -14,7 +14,7 @@ const fetchDataGrid = async (query, url=config.apiUrl) => {
     }
 
     try {
-        const data = await cachedFetch({url: `${url}query-page`, query});
+        const data = await fetchIt({url: `${url}query-page`, query});
 
         const { columnTypes, columns, rows } = data;
         const typeMap = Object.fromEntries(

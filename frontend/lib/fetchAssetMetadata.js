@@ -5,10 +5,11 @@ import config from '../config';
 import fetchData from './fetchData';
 import fetchIt from './fetchIt';
 
-const fetchAssetMetadata = async ({ assetId, dgid }) => {
+const fetchAssetMetadata = async ({ assetId, dgid, timestamp }) => {
     const query = {
         assetId,
         dgid,
+        timestamp,
     };
     const data = await fetchIt({url: `${config.apiUrl}asset-metadata`, query});
     /*
