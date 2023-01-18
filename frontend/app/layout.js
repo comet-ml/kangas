@@ -2,7 +2,7 @@
 import Script from 'next/script';
 import ConfigProvider from './contexts/ConfigContext';
 import config from '../config';
-// TODO Insert head scripts again
+
 const RootLayout = ({ children }) => {
     return (
         <html>
