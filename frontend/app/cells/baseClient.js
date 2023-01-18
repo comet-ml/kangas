@@ -54,7 +54,7 @@ const CellClient = ({ columnName, type, isHeader, children }) => {
     return (
         <Resizable
             className={cx('cell', { header: isHeader})}
-            handleStyles={isHeader ? {'right': headerResizeStyle} : {'right': {'background-color': '#fafafa'}}}
+            handleStyles={isHeader ? {'right': headerResizeStyle} : {'right': {'backgroundColor': '#fafafa'}}}
             size={{
                 width: columns?.[columnName]?.width ?? initWidth,
                 height: 0
