@@ -90,7 +90,7 @@ const Pager = ({ firstRow, totalRows, currentPage, totalPages, maxRow, pageSize 
                 inputMode='numeric'
                 pattern="[0-9]*"
                 onKeyDown={(e) => enter(e)}
-                disabled={totalPages === 1}
+                disabled={totalPages <= 1}
                 ref={pageInput}
                 defaultValue={currentPage}
                 style={{
