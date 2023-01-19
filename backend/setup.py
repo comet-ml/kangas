@@ -51,6 +51,7 @@ setup_args = dict(
         "numpy",
         "tornado",
         "matplotlib",
+        "marko",
         "Pillow",
         "scipy",
         "scikit-learn",

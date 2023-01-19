@@ -12,9 +12,14 @@ import styles from './Pager.module.scss';
 import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);
 
-const Pager = ({ firstRow, totalRows, currentPage, totalPages, maxRow, pageSize }) => {
+const Pager = ({ aboutText, firstRow, totalRows, currentPage, totalPages, maxRow, pageSize }) => {
     const { params, updateParams } = useQueryParams();
     const pageInput = useRef();
+
+    console.log("aboutText:");
+    console.log(aboutText);
+
+    const aboutButton = aboutText !== '' ? (<AboutDataGridButton text={aboutText} />) : (<></>);
 
     const canGoto = (page) => {
 	return page > 0 && page <= totalPages && page !== currentPage;
@@ -65,7 +70,7 @@ const Pager = ({ firstRow, totalRows, currentPage, totalPages, maxRow, pageSize 
     return (
         <div className={cx('pagination')}>
           <div className={cx("left-bar")}>
-            <AboutDataGridButton />
+            {aboutButton}
           </div>
           <div className={cx("right-bar")}>
 	    <span>

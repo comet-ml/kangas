@@ -6,7 +6,8 @@ import DialogueModal from '../../modals/DialogueModal/DialogueModalClient';
 
 const cx = classNames.bind(styles);
 
-const AboutDataGridButton = () => (
+const AboutDataGridButton = ({text}) => {
+    return (
     <DialogueModal
         toggleElement={
                 <div style={{color: "#5155f5"}}>
@@ -22,8 +23,15 @@ const AboutDataGridButton = () => (
             },
             }}
         >
-            <div />
+            <div style={{display: "flex"}}>
+                <div dangerouslySetInnerHTML={{__html: text}}
+                    style={{width: '500px',
+		            overflow: 'auto',
+			    border: 'solid blue',
+			    borderWidth: 'thin'}}></div>
+            </div>
     </DialogueModal>
 );
+};
 
 export default AboutDataGridButton;

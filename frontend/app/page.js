@@ -15,6 +15,7 @@ import Prefetch from './prefetch';
 
 const Main = async ({ query }) => {
     const data = await fetchDataGrid(query);
+
     const { columnTypes, columns } = data;
     const view =  Object.fromEntries( columns.map( ( col, idx ) => [ col, defaultCellSizes?.[ columnTypes[idx ] ] ] ) );
 

@@ -34,6 +34,7 @@ from ..datatypes.utils import (
     pytype_to_dgtype,
 )
 from .computed_columns import update_state
+from .utils import process_about, safe_compile, safe_env
 
 LOGGER = logging.getLogger(__name__)
 KANGAS_ROOT = os.environ.get("KANGAS_ROOT", ".")
@@ -51,99 +52,6 @@ import math
 """
 
 VALID_CHARS = string.ascii_letters + string.digits + "_"
-
-
-def safe_builtin_funcs():
-    return {
-        "abs": abs,
-        "all": all,
-        "any": any,
-        "ascii": ascii,
-        "bin": bin,
-        "bool": bool,
-        "bytes": bytes,
-        "callable": callable,
-        "chr": chr,
-        "complex": complex,
-        "dict": dict,
-        "dir": dir,
-        "divmod": divmod,
-        "enumerate": enumerate,
-        "filter": filter,
-        "float": float,
-        "format": format,
-        "hasattr": hasattr,
-        "hash": hash,
-        "hex": hex,
-        "id": id,
-        "int": int,
-        "isinstance": isinstance,
-        "issubclass": issubclass,
-        "iter": iter,
-        "len": len,
-        "list": list,
-        "map": map,
-        "max": max,
-        "min": min,
-        "oct": oct,
-        "ord": ord,
-        "pow": pow,
-        "range": range,
-        "repr": repr,
-        "reversed": reversed,
-        "round": round,
-        "set": set,
-        "slice": slice,
-        "sorted": sorted,
-        "str": str,
-        "sum": sum,
-        "tuple": tuple,
-        "type": type,
-        "zip": zip,
-    }
-
-
-try:
-    import RestrictedPython
-    import RestrictedPython.Eval
-    import RestrictedPython.Guards
-
-    def safe_compile(source):
-        return RestrictedPython.compile_restricted_eval(source).code
-
-    def safe_builtins():
-        env = RestrictedPython.Guards.safe_builtins.copy()
-        env.update(safe_builtin_funcs())
-        return env
-
-    def safe_env(**kwargs):
-        env = {
-            "_getattr_": getattr,
-            "_getitem_": RestrictedPython.Eval.default_guarded_getitem,
-            "_getiter_": RestrictedPython.Eval.default_guarded_getiter,
-            "_iter_unpack_sequence_": RestrictedPython.Guards.guarded_iter_unpack_sequence,
-            "__name__": "restricted namespace",
-            "__builtins__": safe_builtins(),
-        }
-        env.update(kwargs)
-        return env
-
-except Exception:
-
-    def safe_compile(source):
-        return compile(source, "<string>", "eval")
-
-    def safe_env(**kwargs):
-        env = {
-            "__builtins__": safe_builtins(),
-        }
-        env.update(kwargs)
-        return env
-
-    def safe_builtins():
-        env = {}
-        env.update(safe_builtin_funcs())
-        return env
 
 
 def parse_comma_separated_values(string):
@@ -2050,3 +1958,20 @@ STDOUT = printed
         output["stderr"] = ""
     output["stdout"] = local_env.get("STDOUT", "")
     return output
+
+
+def get_about(url, dgid):
+    db_path = get_dg_path(dgid)
+    conn = sqlite3.connect(db_path)
+
+    try:
+        about_text = conn.execute(
+            "SELECT value from settings where name = 'about';"
+        ).fetchone()[0]
+    except Exception:
+        about_text = ""
+
+    if about_text:
+        return process_about(url, dgid, about_text)
+    else:
+        return about_text
