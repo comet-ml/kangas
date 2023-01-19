@@ -4,10 +4,10 @@ import DialogueModal from '../../modals/DialogueModal/DialogueModalClient';
 
 const TextCell = ({ value, query, style }) => {
     if (!query?.groupBy) return (
-        <DialogueModal toggleElement={<Base value={value} query={query}  style={style} />}><Base value={value} query={query} /></DialogueModal>
+            <DialogueModal toggleElement={<Base value={value} query={query}  style={style} expanded={false}/>}><Base value={value} query={query} expanded={true}/></DialogueModal>
     );
     else  return (
-        <DialogueModal toggleElement={<Grouped value={value} query={query} />}><Grouped value={value} query={query} expanded={true} /></DialogueModal>
+        <DialogueModal toggleElement={<Grouped value={value} query={query} />}><Grouped value={value} query={query} expanded={false} /></DialogueModal>
     );
 }
 
