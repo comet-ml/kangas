@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Category from "../charts/category/Category";
 import isPrimitive from '../../../lib/isPrimitive';
 import formatValue from "../../../lib/formatValue";
@@ -12,7 +13,7 @@ const GroupedTextCell = ({ value, expanded = false }) => {
     return (
         <div className={cx(['cell', 'group'], { expanded })}>
             { primitive && formatValue(value)}
-            { !primitive && <Category value={value} expanded={expanded} />}
+            { !primitive && <Suspense fallback={<>Loading</>}><Category value={value} expanded={expanded} /></Suspense>}
         </div>
     )
 }

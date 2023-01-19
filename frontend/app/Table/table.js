@@ -9,7 +9,13 @@ import { Suspense } from 'react';
 
 const cx = classNames.bind(styles)
 
-export const TableDisplay = ({ query, data }) => {
+function transpose(matrix) {
+    return matrix.reduce((prev, next) => Object.values(next).map((item, i) =>
+      (prev[i] || []).concat(Object.values(next)[i])
+    ), []);
+  }
+
+  export const TableDisplay = ({ query, data }) => {
     const { columnTypes, columns, rows, displayColumns } = data;
 
     // Remove any row keys that are not in displayColumns:
@@ -17,18 +23,23 @@ export const TableDisplay = ({ query, data }) => {
 	    Object.entries(row).filter(([name]) => displayColumns.includes(name))
     ));
 
+    const transposed = transpose([ displayColumns, ...displayRows ]);
+    console.log('I AM TRANSPOSED')
+    console.log(transposed)
+
     return (
         <div className={styles.tableRoot}>
-            {[ displayColumns, ...displayRows ]?.map((row, ridx) => (
-                <div className={cx('row', { group: !!query?.groupBy, headerRow: ridx < 1 })} key={`row-${ridx}`}>
+            {transposed?.map((column, colidx) => (
+                <div className={cx('column')} key={`col-${colidx}`}>
+
                     {
-                        Object.values(row).map( (cell, cidx) => (
+                        Object.values(column).map( (cell, cidx) => (
                             <Cell
                                 value={cell}
                                 type={columnTypes[cidx]}
                                 columnName={columns[cidx]}
                                 query={query}
-                                isHeader={ridx < 1}
+                                isHeader={colidx < 1}
                             />
                         ) )
                     }

@@ -20,11 +20,13 @@ const Main = async ({ query }) => {
 
     return (
         <ViewProvider value={{ columns: view }}>
-            <SettingsBar query={query} />
-            <Suspense fallback={<TableDisplay data={EMPTY} query={query} />}>
-                <Table query={query} />
+            <Suspense fallback={<>Loading</>}>
+                <SettingsBar query={query} />
+                <Suspense fallback={<TableDisplay data={EMPTY} query={query} />}>
+                    <Table query={query} />
+                </Suspense>
+                <PagerBar query={query} />
             </Suspense>
-            <PagerBar query={query} />
         </ViewProvider>
     )
 }
@@ -35,9 +37,7 @@ const Loading = ({ query }) => {
 
     return (
         <ViewProvider value={{ columns: view }}>
-            <SettingsBar query={query} />
-            <Table query={query} />
-            <PagerBar query={query} />
+            <>Nah</>
         </ViewProvider>
     )
 }

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Histogram from "../charts/histogram/Histogram";
 import isPrimitive from '../../../lib/isPrimitive';
 import formatValue from "../../../lib/formatValue";
@@ -11,7 +12,7 @@ const GroupedFloatCell = ({ value, expanded = false}) => {
     return (
         <div className={cx(['cell', 'group'], { expanded })}>
             { primitive && formatValue(value)}
-            { !primitive && <Histogram value={value} expanded={expanded} />}
+            { !primitive && <Suspense fallback={<>Loading</>}><Histogram value={value} expanded={expanded} /></Suspense>}
         </div>
     )
 }
