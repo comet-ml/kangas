@@ -1,6 +1,6 @@
 'use client';
 
-import Plot from 'react-plotly.js'
+import dynamic from "next/dynamic";
 import classNames from 'classnames/bind';
 import { ModalContext } from '../../../modals/DialogueModal/DialogueModalClient';
 import styles from '../Charts.module.scss'
@@ -8,6 +8,7 @@ import { useContext, useMemo, useCallback } from 'react';
 import { useRouter } from "next/navigation";
 
 const cx = classNames.bind(styles);
+const Plot = dynamic(() => import("react-plotly.js"), { ssr: false, });
 
 const CategoryLayout = {
     paper_bgcolor: 'rgba(0,0,0,0)',
