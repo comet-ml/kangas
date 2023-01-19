@@ -1,11 +1,16 @@
-import formatValue from "../../../lib/formatValue"
+import linkify from "linkify-string";
 
-const TextCell = ({ value, style }) => {
+import formatValue from "../../../lib/formatValue";
+
+const TextCell = ({ value, style, expanded=false }) => {
+
+    const text = expanded ? linkify(formatValue(value, 'TEXT')) : formatValue(value, 'TEXT');
+
     return (
         <div className="cell-content" style={style}>
-            {`${formatValue(value, 'TEXT')}`}
+            <div dangerouslySetInnerHTML={{__html: text}} />
         </div>
-    )
+    );
 
 }
 
