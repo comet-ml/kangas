@@ -35,6 +35,7 @@ from ..datatypes.utils import THUMBNAIL_SIZE
 from .queries import (
     KANGAS_ROOT,
     custom_output,
+    get_about,
     get_completions,
     get_datagrid_timestamp,
     get_dg_path,
@@ -876,6 +877,31 @@ class CustomOutputHandler(BaseHandler):
         self.write_json(output)
 
 
+class GetAboutDataGridHandler(BaseHandler):
+    @run_on_executor
+    @auth_wrapper
+    def post(self):
+        # Required:
+        data = tornado.escape.json_decode(self.request.body)
+        dgid = self.unquote(data.get("dgid", None))
+        url = self.unquote(data.get("url", None))
+
+        if self.ensure_datagrid_path(dgid):
+            result = get_about(url, dgid)
+            self.write_json({"about": result})
+
+    @run_on_executor
+    @auth_wrapper
+    def get(self):
+        # Required:
+        dgid = self.get_query_argument("dgid", None)
+        url = self.get_query_argument("url", None)
+
+        if self.ensure_datagrid_path(dgid):
+            result = get_about(url, dgid)
+            self.write_json({"about": result})
+
+
 datagrid_handlers = [
     ("/datagrid/histogram", HistogramHandler),
     ("/datagrid/description", DescriptionHandler),
@@ -894,4 +920,5 @@ datagrid_handlers = [
     ("/datagrid/timestamp", GetDataGridTimestampHandler),
     ("/datagrid/status", StatusHandler),
     ("/datagrid/completions", CompletionsHandler),
+    ("/datagrid/about", GetAboutDataGridHandler),
 ]

@@ -21,6 +21,7 @@ import psutil
 
 from ._version import __version__  # noqa
 from .datatypes import Audio, Curve, DataGrid, Image, Text, Video  # noqa
+from .integrations import log_to_comet  # noqa
 from .utils import _in_colab_environment, _in_jupyter_environment, get_localhost
 
 

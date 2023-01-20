@@ -1,10 +1,12 @@
 /* eslint-disable react/jsx-key */
 
 import fetchDataGridTotal from '../../lib/fetchDatagridTotal';
+import fetchAbout from '../../lib/fetchAbout';
 import Pager from './pager';
 
 const PagerBar = async ({query}) => {
     const totalRows = (await fetchDataGridTotal(query)).total;
+    const aboutText = await fetchAbout(query);
 
     const firstRow = query.offset + 1;
     const currentPage = Math.floor(query.offset / query.limit) + 1;
@@ -17,6 +19,7 @@ const PagerBar = async ({query}) => {
 
     return (
 	    <Pager
+              aboutText={aboutText}
 	      firstRow={firstRow}
 	      totalRows={totalRows}
               currentPage={currentPage}

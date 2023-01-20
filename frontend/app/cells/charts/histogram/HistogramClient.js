@@ -7,7 +7,7 @@ import dynamic from 'next/dynamic';
 import { getColor } from '../../../../lib/generateChartColor';
 import formatValue from '../../../../lib/formatValue';
 const Plot = dynamic(() => import("react-plotly.js"), {
-    suspense: true,
+    ssr: false
   });
 
 const cx = classNames.bind(styles);

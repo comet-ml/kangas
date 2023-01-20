@@ -179,6 +179,7 @@ class DataGrid:
         self.converters = converters if converters else self._get_default_converters()
         self.datetime_format = datetime_format
         self.heuristics = heuristics
+        self.about = ""
         self.create_thumbnails = False
         self.name = name
         self._data = []
@@ -2087,6 +2088,33 @@ class DataGrid:
         if settings:
             self._save_settings(**settings)
 
+    def set_about(self, markdown):
+        """
+        Set the about page for this DataGrid.
+
+        Args:
+            markdown: (str) the text of the markdown About text
+        """
+        self._save_settings(about=markdown)
+
+    def get_about(self):
+        """
+        Get the about page for this DataGrid.
+        """
+        self._load_settings()
+        return self.about
+
+    def display_about(self):
+        """
+        Display the about page for this DataGrid as markdown.
+
+        Note: this requires being in an IPython-like environment.
+        """
+        from IPython.display import Markdown, display
+
+        self._load_settings()
+        display(Markdown(self.about))
+
     def _save_settings(self, **settings):
 
         try:
@@ -2119,6 +2147,7 @@ class DataGrid:
             "datetime_format": str,
             "name": str,
             "create_thumbnails": bool,
+            "about": str,
         }
 
         for row in self.conn.execute(select_settings_sql):

@@ -7,7 +7,7 @@ import { useContext, useMemo, useCallback, Suspense } from 'react';
 import { useRouter } from "next/navigation";
 import dynamic from 'next/dynamic';
 const Plot = dynamic(() => import("react-plotly.js"), {
-    suspense: true,
+    ssr: false,
   });
 
 
