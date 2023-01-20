@@ -136,5 +136,5 @@ def log_to_comet(filename, comet_path=None, output_dir="."):
 
     print("Saved local DataGrid as %r" % output)
     print("Saved local compressed DataGrid as %r" % zip_file)
-    experiment._log_asset(zip_file, file_name=filename, asset_type="datagrid")
+    experiment._log_asset(zip_file, file_name=zip_file, asset_type="datagrid")
     experiment.end()
