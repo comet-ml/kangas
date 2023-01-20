@@ -1,11 +1,15 @@
 'use client';
 
-import Plot from 'react-plotly.js'
 import classNames from 'classnames/bind';
 import { ModalContext } from '../../../modals/DialogueModal/DialogueModalClient';
 import styles from '../Charts.module.scss'
-import { useContext, useMemo, useCallback } from 'react';
+import { useContext, useMemo, useCallback, Suspense } from 'react';
 import { useRouter } from "next/navigation";
+import dynamic from 'next/dynamic';
+const Plot = dynamic(() => import("react-plotly.js"), {
+    suspense: true,
+  });
+
 
 const cx = classNames.bind(styles);
 

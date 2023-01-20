@@ -44,8 +44,15 @@ const cachedFetch = async ({ url, query={}, method="GET", next = { revalidate: 1
 // Old way:
 // const fetchIt = async (url, query, method='POST', cache=false, json=true, returnUrl=false) => {
 // New way:
-const fetchIt = async ({url, query = {}, method='GET', cache=config.cache, json=true,
-                        returnUrl=false, ...args}) => {
+const fetchIt = async ({
+    url, 
+    query = {},
+     method='GET', 
+     cache=config.cache, 
+     json=true,
+     returnUrl=false, 
+     ...args
+    }) => {
     let queryArgs = '';
     const headers = {};
     const request = {
@@ -76,7 +83,7 @@ const fetchIt = async ({url, query = {}, method='GET', cache=config.cache, json=
         request.cache = 'no-store';
     }
 
-    console.log(`fetchIt ${method}: ${url}?${queryArgs}, json: ${json}`);
+    //console.log(`fetchIt ${method}: ${url}?${queryArgs}, json: ${json}`);
     const res = await fetch(`${url}?${queryArgs}`, request);
 
     if (json) {

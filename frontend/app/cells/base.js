@@ -50,12 +50,10 @@ const Cell = async ({ value, columnName, type, query, isHeader }) => {
     }
 
     return (
-        <Suspense fallback={<CellClient columnName={columnName} type={type}><div>{`${value}`}</div></CellClient>}>
-            <CellClient columnName={columnName} type={type}>
-                { !!Component && <Component value={value} query={query} />}
-                { !Component && <div>{`${value}`}</div> }
-            </CellClient>
-        </Suspense>
+        <CellClient columnName={columnName} type={type}>
+            { !!Component && <Component value={value} query={query} />}
+            { !Component && <div>{`${value}`}</div> }
+        </CellClient>
     )
 }
 

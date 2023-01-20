@@ -11,7 +11,7 @@ import fetchDatagrids from '../lib/fetchDatagrids';
 import fetchTimestamp from '../lib/fetchTimestamp';
 import EMPTY from '../lib/consts/emptyTable';
 import Prefetch from './prefetch';
-
+import Skeleton from './Skeleton';
 
 const Main = async ({ query }) => {
     const data = await fetchDataGrid(query);
@@ -20,13 +20,9 @@ const Main = async ({ query }) => {
 
     return (
         <ViewProvider value={{ columns: view }}>
-            <Suspense fallback={<>Loading</>}>
-                <SettingsBar query={query} />
-                <Suspense fallback={<TableDisplay data={EMPTY} query={query} />}>
-                    <Table query={query} />
-                </Suspense>
-                <PagerBar query={query} />
-            </Suspense>
+            <SettingsBar query={query} />
+            <Table data={data} query={query} />
+            <PagerBar query={query} />
         </ViewProvider>
     )
 }
@@ -79,7 +75,7 @@ const Page = async ({ searchParams }) => {
 
     return (
         <div>
-            <Suspense fallback={<Loading query={query} />}>
+            <Suspense fallback={<Skeleton message={"Suspending Page"} />}>
                 <Main query={query} />
             </Suspense>
             <Suspense fallback={<></>}>

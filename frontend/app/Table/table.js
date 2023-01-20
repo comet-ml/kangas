@@ -6,10 +6,11 @@ import styles from './Table.module.scss';
 import classNames from 'classnames/bind';
 import EMPTY from '../../lib/consts/emptyTable';
 import { Suspense } from 'react';
+import Skeleton from '../Skeleton';
 
 const cx = classNames.bind(styles)
 
-function transpose(matrix) {
+const transpose = (matrix) => {
     return matrix.reduce((prev, next) => Object.values(next).map((item, i) =>
       (prev[i] || []).concat(Object.values(next)[i])
     ), []);
@@ -24,23 +25,22 @@ function transpose(matrix) {
     ));
 
     const transposed = transpose([ displayColumns, ...displayRows ]);
-    console.log('I AM TRANSPOSED')
-    console.log(transposed)
 
     return (
         <div className={styles.tableRoot}>
             {transposed?.map((column, colidx) => (
                 <div className={cx('column')} key={`col-${colidx}`}>
-
                     {
                         Object.values(column).map( (cell, cidx) => (
-                            <Cell
-                                value={cell}
-                                type={columnTypes[cidx]}
-                                columnName={columns[cidx]}
-                                query={query}
-                                isHeader={colidx < 1}
-                            />
+                            <Suspense fallback={<Skeleton message={`suspending ${cell} - ${colidx}/${cidx}`} />}>
+                                <Cell
+                                    value={cell}
+                                    type={columnTypes[colidx]}
+                                    columnName={columns[colidx]}
+                                    query={query}
+                                    isHeader={cidx < 1}
+                                />
+                            </Suspense>
                         ) )
                     }
                 </div>
@@ -49,6 +49,7 @@ function transpose(matrix) {
     )
 
 }
+/*
 const Table = async ({ query }) => {
     const data = await fetchDataGrid(query);
 
@@ -58,5 +59,5 @@ const Table = async ({ query }) => {
         </Suspense>
     );
 };
-
-export default Table;
+ */
+export default TableDisplay;

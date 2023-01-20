@@ -1,9 +1,14 @@
 'use client';
 
-import Plot from 'react-plotly.js'
 import classNames from 'classnames/bind';
 import styles from '../Charts.module.scss'
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
+import { getColor } from '../../../../lib/generateChartColor';
+import formatValue from '../../../../lib/formatValue';
+const Plot = dynamic(() => import("react-plotly.js"), {
+    suspense: true,
+  });
 
 const cx = classNames.bind(styles);
 
@@ -34,7 +39,47 @@ const HistogramConfig = {
     displayModeBar: false,
 };
 
-const HistogramClient = ({ data, expanded, title }) => {
+const HistogramClient = ({ value, expanded, title }) => {
+    const [data, setData] = useState();
+
+    useEffect(() => {
+        const queryString =new URLSearchParams(
+            Object.fromEntries(
+                Object.entries({
+                    ...value,
+                }).filter(([k, v]) => typeof(v) !== 'undefined' && v !== null)
+            )
+        ).toString();
+
+        fetch(`api/histogram?${queryString}`)
+        .then(res => {
+            return res.json();
+        })
+        .then(chart => {
+            setData(chart)
+        })
+    }, [value]);
+
+    const formattedData = useMemo(() => [
+        {
+            type: 'bar',
+            x:
+                data?.columnType === 'DATETIME'
+                    ? data?.labels?.map((v) => formatValue(v, 'DATETIME'))
+                    : data?.labels,
+            y: data?.bins,
+            text: data?.labels?.map(
+                (value) =>
+                    `${data?.column}: ${formatValue(
+                        value,
+                        data?.columnType
+                    )} ${data?.message || ''}`
+            ),
+            marker: { color: getColor(data?.column) },
+        },
+    ], [data]);
+
+
     const ExpandedLayout = useMemo(() => {
         return {
             autosize: true,
@@ -63,7 +108,7 @@ const HistogramClient = ({ data, expanded, title }) => {
         <div className={cx('plotly-container', { expanded })}>
             <Plot
                 className={cx('plotly-chart', { expanded })}
-                data={data}
+                data={formattedData}
                 layout={expanded ? ExpandedLayout : HistogramLayout}
                 config={HistogramConfig}
             />

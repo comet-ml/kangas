@@ -52,7 +52,6 @@ const fetchAsset = async ({
             arrayBuffer = await clone.arrayBuffer();
             dataUrl = Buffer.from(arrayBuffer).toString('base64');
         } catch {
-            console.log("Was CACHED!");
             dataUrl = '';
         }
         return dataUrl;
