@@ -20,6 +20,8 @@ import zipfile
 
 from .utils import ProgressBar
 
+# Add or import vendor specific code here
+
 
 def get_comet_type(asset_type):
     """
@@ -50,30 +52,31 @@ def log_to_comet(filename, comet_path=None, output_dir="."):
     zip_file = os.path.join(output_dir, base + "-comet.dgz")
     output = os.path.join(output_dir, base + "-comet.datagrid")
 
-    if comet_path is None:
-        experiment = Experiment()
-    elif "/" in comet_path:
-        # FIXME: id or name:
-        project_name, experiment_id = comet_path.split("/")
-        experiment = ExistingExperiment(previous_experiment=experiment_id)
-    else:
-        project_name = comet_path
-        experiment = Experiment(project_name=project_name)
-
     if output_dir is None:
         output_dir = tempfile.TemporaryDirectory()
 
     if os.path.isfile(output):
         os.remove(output)
+
     if os.path.isfile(zip_file):
         os.remove(zip_file)
 
     conn = sqlite3.connect(output)
     cur = conn.cursor()
     cur.execute("ATTACH DATABASE '{filename}' as original;".format(filename=filename))
+    rows = conn.execute("SELECT * from original.assets;")
+
+    if "/" in comet_path:
+        # FIXME: id or name:
+        project_name, experiment_id = comet_path.split("/")
+        experiment = ExistingExperiment(previous_experiment=experiment_id)
+    elif comet_path:
+        project_name = comet_path
+        experiment = Experiment(project_name=project_name)
+    else:
+        experiment = Experiment()
 
     # Log all of the assets:
-    rows = conn.execute("SELECT * from original.assets;")
     asset_map = {}
     for row in ProgressBar(rows.fetchall(), "Uploading DataGrid assets to comet.com"):
         # FIXME: make sure asset is not already logged
@@ -85,12 +88,16 @@ def log_to_comet(filename, comet_path=None, output_dir="."):
             binary_io = io.BytesIO(asset_data)
         file_name = metadata.get("filename", "%s-%s" % (asset_type, asset_id))
         comet_type = get_comet_type(asset_type)
+        if "step" in metadata:
+            step = metadata["step"]
+        else:
+            step = 0
         asset_results = experiment._log_asset(
             binary_io,
             file_name=file_name,
             copy_to_tmp=True,  # NOTE: comet_ml no longer supports False
             asset_type=comet_type,
-            asset_id=asset_id,
+            step=step,
         )
         asset_map[asset_id] = asset_results
 
@@ -111,9 +118,10 @@ def log_to_comet(filename, comet_path=None, output_dir="."):
         comet_asset_id = asset_map[asset_id]["assetId"]
         asset_metadata = json.loads(asset_metadata_string)
         asset_metadata["source"] = asset_map[asset_id]["web"]
+        asset_metadata["cometAssetId"] = comet_asset_id
         cur.execute(
-            "UPDATE assets SET asset_id = ?, asset_metadata = ? WHERE asset_id = ?;",
-            (comet_asset_id, json.dumps(asset_metadata), asset_id),
+            "UPDATE assets SET asset_metadata = ? WHERE asset_id = ?;",
+            (json.dumps(asset_metadata), asset_id),
         )
     conn.commit()
 
