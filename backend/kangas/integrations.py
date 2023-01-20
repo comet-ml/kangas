@@ -11,6 +11,7 @@
 #    All rights reserved                             #
 ######################################################
 
+import datetime
 import io
 import json
 import os
@@ -33,6 +34,50 @@ def get_comet_type(asset_type):
     else:
         # Audio, Image, Video, Curve, etc.
         return asset_type.lower()
+
+
+def create_from_comet(comet_path, name):
+    from comet_ml import API
+
+    from kangas import DataGrid, Image
+
+    api = API()
+
+    if comet_path.count("/") == 2:
+        # FIXME: id or name:
+        workspace, project_name, experiment_id = comet_path.split("/", 2)
+        experiments = [api.get_experiment(workspace, project_name, experiment_id)]
+    elif comet_path.count("/") == 1:
+        workspace, project_name = comet_path.split("/", 1)
+        experiments = api.get_experiments(workspace, project_name)
+    else:
+        workspace = comet_path
+        experiments = api.get_experiments(workspace)
+
+    columns = ["fileName", "step", "createdAt", "assetId", "tags", "experimentKey"]
+
+    if os.path.isfile(name + ".datagrid"):
+        os.remove(name + ".datagrid")
+
+    dg = DataGrid(
+        name=name,
+        columns=["image"] + columns,
+    )
+    for experiment in experiments:
+        asset_list = experiment.get_asset_list("image")
+        for asset in asset_list:
+            dg.append(
+                [
+                    Image(source=asset["link"], metadata=asset["metadata"]),
+                    asset["fileName"],
+                    asset["step"],
+                    datetime.datetime.fromtimestamp(asset["createdAt"] / 1000),
+                    asset["assetId"],
+                    asset["tags"] if asset["tags"] else None,
+                    asset["experimentKey"],
+                ]
+            )
+    dg.save()
 
 
 def log_to_comet(filename, comet_path=None, output_dir="."):

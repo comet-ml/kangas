@@ -15,6 +15,7 @@ Examples:
     datagrid server
     datagrid viewer
     datagrid log
+    datagrid create
 
 For more information:
     datagrid COMMAND --help
@@ -49,7 +50,7 @@ def add_subparser(subparsers, module, name):
 
 def main(raw_args=sys.argv[1:]):
     # Import CLI commands:
-    from . import log, server, viewer
+    from . import create, log, server, viewer
 
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
@@ -67,6 +68,7 @@ def main(raw_args=sys.argv[1:]):
     add_subparser(subparsers, server, "server")
     add_subparser(subparsers, viewer, "viewer")
     add_subparser(subparsers, log, "log")
+    add_subparser(subparsers, create, "create")
 
     # First identify the subparser as some subparser pass additional args to
     # the subparser and other not
