@@ -50,33 +50,52 @@ def create_from_comet(comet_path, name):
     elif comet_path.count("/") == 1:
         workspace, project_name = comet_path.split("/", 1)
         experiments = api.get_experiments(workspace, project_name)
-    else:
+    elif comet_path:
         workspace = comet_path
         experiments = api.get_experiments(workspace)
+    else:
+        raise Exception(
+            "PATH should be one of: workspace/project/exp, workspace/project, or workspace"
+        )
 
-    columns = ["fileName", "step", "createdAt", "assetId", "tags", "experimentKey"]
+    if name.endswith(".datagrid"):
+        name = name[:-9]
 
     if os.path.isfile(name + ".datagrid"):
         os.remove(name + ".datagrid")
 
     dg = DataGrid(
         name=name,
-        columns=["image"] + columns,
+        columns=[
+            "Image",
+            "File name",
+            "Created at",
+            "File size",
+            "Step",
+            "Comet asset id",
+            "Tags",
+            "Comet experiment id",
+        ],
     )
     for experiment in experiments:
-        asset_list = experiment.get_asset_list("image")
+        asset_list = experiment.get_asset_list()
         for asset in asset_list:
-            dg.append(
-                [
-                    Image(source=asset["link"], metadata=asset["metadata"]),
-                    asset["fileName"],
-                    asset["step"],
-                    datetime.datetime.fromtimestamp(asset["createdAt"] / 1000),
-                    asset["assetId"],
-                    asset["tags"] if asset["tags"] else None,
-                    asset["experimentKey"],
-                ]
-            )
+            # FIXME: pass in type(s) to get; currently gets all known
+            # FIXME: each type will need its own column
+            if asset["type"] == "image":
+                dg.append(
+                    [
+                        Image(source=asset["link"], metadata=asset["metadata"]),
+                        asset["fileName"],
+                        datetime.datetime.fromtimestamp(asset["createdAt"] / 1000),
+                        asset["fileSize"],
+                        asset["step"],
+                        asset["assetId"],
+                        asset["tags"] if asset["tags"] else None,  # list, []
+                        asset["experimentKey"],
+                    ]
+                )
+            # FIXME: append audio, video, curve, JSON, etc.
     dg.save()
 
 
@@ -111,10 +130,13 @@ def log_to_comet(filename, comet_path=None, output_dir="."):
     cur.execute("ATTACH DATABASE '{filename}' as original;".format(filename=filename))
     rows = conn.execute("SELECT * from original.assets;")
 
-    if "/" in comet_path:
+    if comet_path.count("/") == 2:
         # FIXME: id or name:
-        project_name, experiment_id = comet_path.split("/")
+        workspace, project_name, experiment_id = comet_path.split("/", 2)
         experiment = ExistingExperiment(previous_experiment=experiment_id)
+    elif comet_path.count("/") == 1:
+        workspace, project_name = comet_path.split("/", 1)
+        experiment = Experiment(workspace=workspace, project_name=project_name)
     elif comet_path:
         project_name = comet_path
         experiment = Experiment(project_name=project_name)
@@ -124,8 +146,8 @@ def log_to_comet(filename, comet_path=None, output_dir="."):
     # Log all of the assets:
     asset_map = {}
     for row in ProgressBar(rows.fetchall(), "Uploading DataGrid assets to comet.com"):
-        # FIXME: make sure asset is not already logged
         asset_id, asset_type, asset_data, asset_metadata, asset_thumbnail = row
+        # FIXME: convert annotations to comet-style
         metadata = json.loads(asset_metadata)
         if isinstance(asset_data, str):
             binary_io = io.StringIO(asset_data)
@@ -142,6 +164,7 @@ def log_to_comet(filename, comet_path=None, output_dir="."):
             file_name=file_name,
             copy_to_tmp=True,  # NOTE: comet_ml no longer supports False
             asset_type=comet_type,
+            metadata=metadata,
             step=step,
         )
         asset_map[asset_id] = asset_results

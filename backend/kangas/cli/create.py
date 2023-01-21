@@ -21,7 +21,9 @@ ADDITIONAL_ARGS = False
 def get_parser_arguments(parser):
     parser.add_argument(
         "PATH",
-        help=("The path to the source-specific project/experiment etc"),
+        help=(
+            "The source-specific path: workspace/project/exp, workspace/project, or workspace"
+        ),
         type=str,
     )
     parser.add_argument(
