@@ -11,5 +11,6 @@
 #    All rights reserved                             #
 ######################################################
 
-version_info = (2, 0, 0)
-__version__ = ".".join(map(str, version_info))
+# Add or import vendor specific code here
+
+from .comet import download_from_comet, upload_to_comet  # noqa

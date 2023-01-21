@@ -19,9 +19,7 @@ import sqlite3
 import tempfile
 import zipfile
 
-from .utils import ProgressBar
-
-# Add or import vendor specific code here
+from ..utils import ProgressBar
 
 
 def get_comet_type(asset_type):
@@ -36,7 +34,7 @@ def get_comet_type(asset_type):
         return asset_type.lower()
 
 
-def create_from_comet(comet_path, name):
+def download_from_comet(comet_path, name):
     from comet_ml import API
 
     from kangas import DataGrid, Image
@@ -99,7 +97,7 @@ def create_from_comet(comet_path, name):
     dg.save()
 
 
-def log_to_comet(filename, comet_path=None, output_dir="."):
+def upload_to_comet(filename, comet_path=None, output_dir="."):
     """
     Create the SQLite database, zip it, and log it to
     an experiment.

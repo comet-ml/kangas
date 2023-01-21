@@ -65,6 +65,7 @@ setup_args = dict(
         "kangas.cli",
         "kangas.server",
         "kangas.datatypes",
+        "kangas.integrations",
     ],
     include_package_data=True,
     entry_points={"console_scripts": ["kangas = kangas.cli:main"]},
