@@ -165,6 +165,18 @@ def LENGTH(string_or_obj):
     return 0
 
 
+def RANGE(start, end=None, step=None):
+    try:
+        if step is not None:
+            return str(tuple(range(start, end, step)))
+        elif end is not None:
+            return str(tuple(range(start, end)))
+        else:
+            return str(tuple(range(start)))
+    except Exception:
+        return None
+
+
 def SUM_OF_LIST(string_or_obj):
     ## Comes in as a string, but might be "[...]"
     if string_or_obj:
@@ -305,6 +317,7 @@ def get_database_connection(dgid):
     conn.create_function("FLATTEN", 1, FLATTEN)
     conn.create_function("SPLIT", -1, SPLIT)
     conn.create_function("LENGTH", 1, LENGTH)
+    conn.create_function("RANGE", -1, RANGE)
     conn.create_function("SUM_OF_LIST", 1, SUM_OF_LIST)
     conn.create_function("MEAN", 1, MEAN)
     conn.create_function("KEYS_OF", 1, KEYS_OF)
@@ -351,6 +364,7 @@ def get_completions(dgid):
         "not",
         "or",
         "random",
+        "range()",
         "round()",
         "statistics",
         "sum()",
