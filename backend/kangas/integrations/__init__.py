@@ -13,4 +13,4 @@
 
 # Add or import vendor specific code here
 
-from .comet import download_from_comet, upload_to_comet  # noqa
+from .comet import export_from_comet, import_to_comet  # noqa

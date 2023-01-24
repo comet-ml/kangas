@@ -22,42 +22,50 @@ def get_parser_arguments(parser):
     parser.add_argument(
         "PATH",
         help=(
-            "The source-specific path: workspace/project/exp, workspace/project, or workspace"
+            "The target-specific path: workspace/project/exp, workspace/project, project, or nothing"
         ),
+        nargs="?",
+        default=None,
         type=str,
     )
     parser.add_argument(
-        "NAME",
-        help=("The name of the DataGrid to create"),
+        "FILENAME",
+        help=("The filename of the DataGrid to upload to host"),
         type=str,
     )
     ## Add integrations here:
     parser.add_argument(
         "--comet",
-        help="Use comet as the source",
+        help="Use comet as the target",
         action="store_true",
         default=False,
     )
 
 
-def download(parsed_args, remaining=None):
-    # Called via `kangas download ...`
+def import_command(parsed_args, remaining=None):
+    # Called via `kangas import ...`
     try:
-        download_cli(parsed_args)
+        import_cli(parsed_args)
     except KeyboardInterrupt:
         print("Canceled by CONTROL+C")
     except Exception as exc:
         print("ERROR: " + str(exc))
 
 
-def download_cli(parsed_args):
-    # Include source-specific files here:
-    from ..integrations import download_from_comet
+def import_cli(parsed_args):
+    # Include target-specific files here:
+    from ..integrations import import_to_comet
+
+    if parsed_args.FILENAME is None:
+        parsed_args.FILENAME = parsed_args.PATH
+        parsed_args.PATH = None
 
     if parsed_args.comet:
-        download_from_comet(comet_path=parsed_args.PATH, name=parsed_args.NAME)
+        import_to_comet(
+            parsed_args.FILENAME, comet_path=parsed_args.PATH, output_dir="."
+        )
     else:
-        raise Exception("You need to add a source: --comet")
+        raise Exception("You need to add a target: --comet")
 
 
 def main(args):
@@ -66,9 +74,9 @@ def main(args):
     )
     get_parser_arguments(parser)
     parsed_args = parser.parse_args(args)
-    download(parsed_args)
+    import_command(parsed_args)
 
 
 if __name__ == "__main__":
-    # Called via `python -m kangas.cli.download ...`
+    # Called via `python -m kangas.cli.import_command ...`
     main(sys.argv[1:])

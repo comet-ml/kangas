@@ -14,8 +14,8 @@
 Examples:
     datagrid server
     datagrid viewer
-    datagrid upload
-    datagrid download
+    datagrid import
+    datagrid export
 
 For more information:
     datagrid COMMAND --help
@@ -24,6 +24,13 @@ import argparse
 import sys
 
 from .. import __version__
+
+name_map = {
+    "import": "import_command",
+    "export": "export_command",
+    "server": "server",
+    "viewer": "viewer",
+}
 
 
 def add_subparser(subparsers, module, name):
@@ -35,7 +42,7 @@ def add_subparser(subparsers, module, name):
        * module.ADDITIONAL_ARGS is set to True/False
        * module.get_parser_arguments is defined
     """
-    func = getattr(module, name)
+    func = getattr(module, name_map[name])
     additional_args = module.ADDITIONAL_ARGS
     get_parser_arguments = module.get_parser_arguments
     docs = module.__doc__
@@ -50,7 +57,7 @@ def add_subparser(subparsers, module, name):
 
 def main(raw_args=sys.argv[1:]):
     # Import CLI commands:
-    from . import download, server, upload, viewer
+    from . import export_command, import_command, server, viewer
 
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
@@ -67,8 +74,8 @@ def main(raw_args=sys.argv[1:]):
     # Register CLI commands:
     add_subparser(subparsers, server, "server")
     add_subparser(subparsers, viewer, "viewer")
-    add_subparser(subparsers, upload, "upload")
-    add_subparser(subparsers, download, "download")
+    add_subparser(subparsers, import_command, "import")
+    add_subparser(subparsers, export_command, "export")
 
     # First identify the subparser as some subparser pass additional args to
     # the subparser and other not
