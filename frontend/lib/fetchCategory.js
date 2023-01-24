@@ -16,10 +16,10 @@ const fetchCategory = async (query) => {
         };
     }
 
-    const sorted = Object.keys(data.values)
+    const sorted = Object.keys(data?.values)
         .sort()
         .reduce((obj, key) => {
-            obj[key] = data.values[key];
+            obj[key] = data?.values[key];
             return obj;
         }, {});
 
@@ -30,7 +30,7 @@ const fetchCategory = async (query) => {
             x: Object.values(sorted),
             y: Object.keys(sorted),
             text: Object.keys(sorted).map(
-                (key) => `${data.column}: ${key} ${data.message || ''}`
+                (key) => `${data?.column}: ${key} ${data?.message || ''}`
             ),
             marker: {
                 color: Object.keys(sorted).map(getColor),

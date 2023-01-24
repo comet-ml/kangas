@@ -16,7 +16,7 @@ import Skeleton from './Skeleton';
 const Main = async ({ query }) => {
     const data = await fetchDataGrid(query);
 
-    const { columnTypes, columns } = data;
+    const { columnTypes, columns } = data || EMPTY;
     const view =  Object.fromEntries( columns.map( ( col, idx ) => [ col, defaultCellSizes?.[ columnTypes[idx ] ] ] ) );
 
     return (
@@ -71,8 +71,7 @@ const Page = async ({ searchParams }) => {
         limit,
     };
 
-    if (!!datagrid)
-        query.timestamp = await fetchTimestamp(datagrid);
+    if (!!datagrid) query.timestamp = await fetchTimestamp(datagrid);
 
     return (
         <div>

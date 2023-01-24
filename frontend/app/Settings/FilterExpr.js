@@ -48,7 +48,9 @@ const FilterExpr = ({ query, completions }) => {
     }, [query]);
 
     const triggers = useMemo(() => {
-	return ["{"].concat(Object.keys(completions));
+        if (!completions) return ["{"];
+        
+        return ["{"].concat(Object.keys(completions));
     }, [completions]);
 
     return (

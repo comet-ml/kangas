@@ -2,7 +2,7 @@
 
 import classNames from 'classnames/bind';
 import styles from '../Charts.module.scss'
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { getColor } from '../../../../lib/generateChartColor';
 import formatValue from '../../../../lib/formatValue';
@@ -41,6 +41,16 @@ const HistogramConfig = {
 
 const HistogramClient = ({ value, expanded, title }) => {
     const [data, setData] = useState();
+    const [visible, setVisible] = useState(false);
+    const plot = useRef();
+
+    const onIntersect = useCallback((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                setVisible(true);
+            }
+        })
+    }, []);
 
     useEffect(() => {
         const queryString =new URLSearchParams(
@@ -58,7 +68,22 @@ const HistogramClient = ({ value, expanded, title }) => {
         .then(chart => {
             setData(chart)
         })
+        .catch(e => {
+            console.log(e)
+        })
     }, [value]);
+
+    useEffect(() => {
+        const options = {
+            root: null,
+            rootMargin: "0px",
+            threshold: 0
+        };
+
+        const observer = new IntersectionObserver(onIntersect, options);
+        observer.observe(plot.current);
+
+    }, [onIntersect]);
 
     const formattedData = useMemo(() => [
         {
@@ -105,13 +130,15 @@ const HistogramClient = ({ value, expanded, title }) => {
     }, [title]);
 
     return (
-        <div className={cx('plotly-container', { expanded })}>
+        <div ref={plot} className={cx('plotly-container', { expanded })}>
+            { visible &&
             <Plot
                 className={cx('plotly-chart', { expanded })}
                 data={formattedData}
                 layout={expanded ? ExpandedLayout : HistogramLayout}
                 config={HistogramConfig}
             />
+}
         </div>
     )
 }
