@@ -35,7 +35,7 @@ from ..datatypes.utils import THUMBNAIL_SIZE
 from .queries import (
     KANGAS_ROOT,
     custom_output,
-    generate_plotly_image,
+    generate_chart_image,
     get_about,
     get_completions,
     get_datagrid_timestamp,
@@ -903,25 +903,24 @@ class GetAboutDataGridHandler(BaseHandler):
             self.write_json({"about": result})
 
 
-class PlotlyImageHandler(BaseHandler):
+class ChartImageHandler(BaseHandler):
     @run_on_executor
     @auth_wrapper
     def get(self):
         # Required:
-        chart_type = self.get_query_argument("chart_type", None)
         data = tornado.escape.json_decode(self.get_query_argument("data", "{}"))
-        layout = tornado.escape.json_decode(self.get_query_argument("layout", "{}"))
-        height = int(self.get_query_argument("height", "150"))
-        return_url = self.get_query_argument("returnUrl", "false") == "true"
+        chart_type = self.get_query_argument("chartType", None)
+        height = int(self.get_query_argument("height", "116"))
+        width = int(self.get_query_argument("width", "0"))
 
-        image = generate_plotly_image(chart_type, data, layout, height)
+        if width == 0:
+            width = int(height * 600 / 450)  # keep same ratio as expanded chart
 
-        if return_url:
-            self.write_json({"uri": base64.b64encode(image).decode("utf-8")})
-        else:
-            self.set_header("Cache-Control", "max-age=604800")
-            self.set_header("Content-type", "image/png")
-            self.write(image)
+        image = generate_chart_image(chart_type, data, width, height)
+
+        self.set_header("Cache-Control", "max-age=604800")
+        self.set_header("Content-type", "image/png")
+        self.write(image)
 
 
 datagrid_handlers = [
@@ -943,5 +942,5 @@ datagrid_handlers = [
     ("/datagrid/status", StatusHandler),
     ("/datagrid/completions", CompletionsHandler),
     ("/datagrid/about", GetAboutDataGridHandler),
-    ("/datagrid/chart-image", PlotlyImageHandler),
+    ("/datagrid/chart-image", ChartImageHandler),
 ]

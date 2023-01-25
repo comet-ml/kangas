@@ -27,7 +27,7 @@ from collections import Counter, defaultdict
 
 import numpy as np
 import PIL.Image
-import plotly.graph_objects as go  # also requires kaleido
+import PIL.ImageDraw
 
 from ..datatypes.utils import (
     generate_image,
@@ -2004,26 +2004,56 @@ def get_about(url, dgid):
         return about_text
 
 
-def generate_plotly_image(chart_type, data, layout, height):
-    width = height
+def generate_chart_image(chart_type, data, width, height):
+    # data is a list of plotly traces
+    image_data = None
+    image = PIL.Image.new("RGBA", (width, height))
 
-    fig = go.Figure()
+    drawing = PIL.ImageDraw.Draw(image)
 
-    if chart_type == "histogram":
-        obj = go.Histogram(**data)
-    elif chart_type == "bar":
-        obj = go.Bar(**data)
-    else:
-        raise Exception("unknown chart_type: %r" % chart_type)
+    for trace in data:
+        if chart_type == "category":
+            spacing = height / len(trace["x"])
+            margin = max(spacing * 0.20, 1)
+            max_x = max(trace["x"])
 
-    fig.add_trace(obj)
+            for count, [x, y, color] in enumerate(
+                zip(trace["x"], trace["y"], trace["marker"]["color"])
+            ):
+                position = len(trace["x"]) - count - 1
+                drawing.rectangle(
+                    [
+                        (0, position * spacing),
+                        (width * x / max_x, (position + 1) * spacing - margin),
+                    ],
+                    fill=color,
+                )
 
-    fig.update_layout(**layout)
+        elif chart_type == "histogram":
+            spacing = width / len(trace["y"])
+            margin = max(spacing * 0.20, 1)
+            max_y = max(trace["y"])
 
-    image = None
+            for count, [x, y, color] in enumerate(
+                zip(trace["x"], trace["y"], trace["marker"]["color"])
+            ):
+                position = count
+                drawing.rectangle(
+                    [
+                        (position * spacing, height),
+                        (
+                            (position + 1) * spacing - margin,
+                            height - height * y / max_y,
+                        ),
+                    ],
+                    fill=color,
+                )
+        else:
+            raise Exception("unknown chart_type: %r" % chart_type)
+
     with io.BytesIO() as fp:
-        fig.write_image(fp, format="png", height=height, width=width)
+        image.save(fp, format="png")
         fp.seek(0)
-        image = fp.read()
+        image_data = fp.read()
 
-    return image
+    return image_data

@@ -181,16 +181,19 @@ def create_markdown_button(url, dgid, params):
 
 
 def process_about(url, dgid, text):
-    regex = r"```python.*?\.show\((.*?)\)[^`]*```"
-    retval = ""
-    start = 0
-    matches = re.finditer(regex, text, re.MULTILINE | re.DOTALL)
-    for match in matches:
-        end, newstart = match.span()
-        previous = text[start:end]
-        retval += previous
-        code = match.group(0)
-        retval += code + "\n\n"
-        retval += create_markdown_button(url, dgid, match.groups(0)[0])
-        start = newstart
-    return marko.Markdown().convert(retval)
+    if marko is not None:
+        regex = r"```python.*?\.show\((.*?)\)[^`]*```"
+        retval = ""
+        start = 0
+        matches = re.finditer(regex, text, re.MULTILINE | re.DOTALL)
+        for match in matches:
+            end, newstart = match.span()
+            previous = text[start:end]
+            retval += previous
+            code = match.group(0)
+            retval += code + "\n\n"
+            retval += create_markdown_button(url, dgid, match.groups(0)[0])
+            start = newstart
+        return marko.Markdown().convert(retval)
+    else:
+        return ""
