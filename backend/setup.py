@@ -51,6 +51,8 @@ setup_args = dict(
         "numpy",
         "tornado",
         "matplotlib",
+        "plotly",
+        "kaleido",
         "marko",
         "Pillow",
         "scipy",

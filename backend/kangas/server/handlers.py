@@ -35,6 +35,7 @@ from ..datatypes.utils import THUMBNAIL_SIZE
 from .queries import (
     KANGAS_ROOT,
     custom_output,
+    generate_plotly_image,
     get_about,
     get_completions,
     get_datagrid_timestamp,
@@ -902,6 +903,27 @@ class GetAboutDataGridHandler(BaseHandler):
             self.write_json({"about": result})
 
 
+class PlotlyImageHandler(BaseHandler):
+    @run_on_executor
+    @auth_wrapper
+    def get(self):
+        # Required:
+        chart_type = self.get_query_argument("chart_type", None)
+        data = tornado.escape.json_decode(self.get_query_argument("data", "{}"))
+        layout = tornado.escape.json_decode(self.get_query_argument("layout", "{}"))
+        height = int(self.get_query_argument("height", "150"))
+        return_url = self.get_query_argument("returnUrl", "false") == "true"
+
+        image = generate_plotly_image(chart_type, data, layout, height)
+
+        if return_url:
+            self.write_json({"uri": base64.b64encode(image).decode("utf-8")})
+        else:
+            self.set_header("Cache-Control", "max-age=604800")
+            self.set_header("Content-type", "image/png")
+            self.write(image)
+
+
 datagrid_handlers = [
     ("/datagrid/histogram", HistogramHandler),
     ("/datagrid/description", DescriptionHandler),
@@ -921,4 +943,5 @@ datagrid_handlers = [
     ("/datagrid/status", StatusHandler),
     ("/datagrid/completions", CompletionsHandler),
     ("/datagrid/about", GetAboutDataGridHandler),
+    ("/datagrid/chart-image", PlotlyImageHandler),
 ]

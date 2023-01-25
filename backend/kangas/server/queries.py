@@ -27,6 +27,7 @@ from collections import Counter, defaultdict
 
 import numpy as np
 import PIL.Image
+import plotly.graph_objects as go  # also requires kaleido
 
 from ..datatypes.utils import (
     generate_image,
@@ -2001,3 +2002,28 @@ def get_about(url, dgid):
         return process_about(url, dgid, about_text)
     else:
         return about_text
+
+
+def generate_plotly_image(chart_type, data, layout, height):
+    width = height
+
+    fig = go.Figure()
+
+    if chart_type == "histogram":
+        obj = go.Histogram(**data)
+    elif chart_type == "bar":
+        obj = go.Bar(**data)
+    else:
+        raise Exception("unknown chart_type: %r" % chart_type)
+
+    fig.add_trace(obj)
+
+    fig.update_layout(**layout)
+
+    image = None
+    with io.BytesIO() as fp:
+        fig.write_image(fp, format="png", height=height, width=width)
+        fp.seek(0)
+        image = fp.read()
+
+    return image
