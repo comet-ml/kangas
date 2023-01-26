@@ -23,6 +23,7 @@ from matplotlib import cm
 from .._typing import IO, Any, Optional, Sequence, Union
 from .base import Asset
 from .utils import (
+    _verify_box,
     convert_tensor_to_numpy,
     download_filename,
     flatten,
@@ -34,16 +35,6 @@ from .utils import (
 )
 
 LOGGER = logging.getLogger(__name__)
-
-
-def _verify_box(box):
-    """
-    Ensure that a box is [[min_x, min_y], [max_x, max_y]]
-    """
-    x1, y1 = box[0]
-    x2, y2 = box[1]
-
-    return [[min(x1, x2), min(y1, y2)], [max(x1, x2), max(y1, y2)]]
 
 
 class Image(Asset):
@@ -193,24 +184,47 @@ class Image(Asset):
         self.metadata["filename"] = filename
         self.metadata["extension"] = "png"
 
-    def _init_overlays(self, label=None, count=0):
-        if "overlays" not in self.metadata:
-            self.metadata["overlays"] = []
-            self.metadata["labels"] = {}
-            self.metadata["count"] = 0
+    def _init_annotations(self, layer_name):
+        if "annotations" not in self.metadata:
+            # Structure:
+            # {"annotations": [
+            #    {"name": "LAYER-NAME",
+            #     "data":
+            #       {
+            #         "label": [],
+            #         "boxes": [] | "regions": [] | "mask": mask,
+            #         "score": score,
+            #         "metadata": {},
+            #       }
+            # }
+            self.metadata["annotations"] = {}
 
-        self.metadata["count"] += count
-        if label:
-            if label not in self.metadata["labels"]:
-                self.metadata["labels"][label] = count
-            else:
-                self.metadata["labels"][label] += count
+        if layer_name not in [
+            layers["name"] for layers in self.metadata["annotations"]
+        ]:
+            self.metadata["annotations"].append({"name": layer_name, "data": []})
 
-    def add_regions(self, label, *regions, score=None, **metadata):
+    def _update_annotations(self, layer_name, data):
+        inserted = False
+        for layer in self.metadata["annotations"]:
+            if layer["name"] == layer_name:
+                layer["data"].append(data)
+                inserted = True
+
+        if not inserted:
+            self.metadata["annotations"].append(
+                {
+                    "name": layer_name,
+                    "data": data,
+                }
+            )
+
+    def add_regions(self, layer_name, label, *regions, score=None, **metadata):
         """
         Add polygon regions to an image.
 
         Args:
+            layer_name: (str) the layer for the label and regions
             label: (str) the label for the regions
             regions: list or tuples of at least 3 points
             score: (optional, number) a score associated
@@ -219,84 +233,91 @@ class Image(Asset):
         Example:
         ```python
         >>> image = Image()
-        >>> image.add_regions("car", [(x1, y1), ...], [(x2, y2), ...])
+        >>> image.add_regions("Predictions", "car", [(x1, y1), ...], [(x2, y2), ...])
         ```
         """
-        self._init_overlays(label, len(regions))
-
-        self.metadata["overlays"].append(
+        self._init_annotations(layer_name)
+        self._update_annotations(
+            layer_name,
             {
                 "label": label,
-                "type": "regions",
-                "data": list(regions),
+                "regions": list(regions),
                 "score": score,
-            }
+                "metadata": metadata,
+            },
         )
-        if metadata:
-            self.metadata["overlays"][-1].update(metadata)
         return self
 
-    def add_bounding_boxes(self, label, *boxes, score=None, **metadata):
+    def add_bounding_boxes(self, layer_name, label, *boxes, score=None, **metadata):
         """
         Add bounding boxes to an image.
 
         Args:
+            layer_name: (str) the layer for the label and bounding boxes
             label: (str) the label for the regions
-            boxes: list or tuples of exactly 2 points (top-left, bottom-right)
-            score: (optional, number) a score associated
-               with the region.
+            boxes: list or tuples of exactly 2 points (top-left, bottom-right),
+                or 4 ints (x, y, width, height)
+            score: (optional, number) a score associated with the region.
 
         Example:
         ```python
         >>> image = Image()
         >>> box1 = [(x1, y1), (x2, y2)]
-        >>> box2 = [(x1, y1), (x2, y2)]
-        >>> image.add_bounding_boxes("Person", box1, box2, ...)
+        >>> box2 = [x, y, width, height]
+        >>> image.add_bounding_boxes("Truth", "Person", box1, box2, ...)
         ```
         """
-        self._init_overlays(label, len(boxes))
-
-        self.metadata["overlays"].append(
+        self._init_annotations(layer_name)
+        self._update_annotation(
+            layer_name,
             {
                 "label": label,
-                "type": "boxes",
-                "data": [_verify_box(box) for box in boxes],
+                "boxes": [_verify_box(box) for box in boxes],
                 "score": score,
-            }
+                "metadata": metadata,
+            },
         )
-        if metadata:
-            self.metadata["overlays"][-1].update(metadata)
         return self
 
-    def add_mask(self, label, image, **metadata):
+    def add_mask(self, layer_name, label_map, image, score=None, **metadata):
         """
         Add a mask to an image.
+
+        Args:
+            layer_name: (str) the layer for the label
+            label_map: (str) the label for the regions
+            image: (Image) a DataGrid Image instance of the mask
+            score: (optional, number) a score associated with the region.
 
         Under development.
 
         Example:
         ```python
         >>> image = Image()
-        >>> image.add_mask("attention", Image(MASK))
+        >>> image.add_mask("Predictions", "attention", {0: "person"}, Image(MASK))
+        >>> image.add_mask("Ground Truth", "attention", {0: "person"}, Image(MASK))
         ```
         """
         if not isinstance(image, Image):
-            raise ValueError("Image.add_mask() requires a label and Image")
+            raise ValueError(
+                "Image.add_mask() requires a layer_name, label_map, and mask image"
+            )
 
-        self._init_overlays()
-        # Image will be serialized when it is saved
-        self.metadata["overlays"].append(
+        self._init_annotations(layer_name)
+        self._update_annotations(
+            layer_name,
             {
-                "label": label,
-                "type": "mask",
-                "data": image,
-            }
+                "label": label_map,
+                "mask": image,
+                "score": score,
+                "metadata": metadata,
+            },
         )
-        if metadata:
-            self.metadata["overlays"][-1].update(metadata)
         return self
 
-    def add_annotations(self, text, anchor, *points, score=None, **metadata):
+    def add_annotations(
+        self, layer_name, text, anchor, *points, score=None, **metadata
+    ):
         """
         Add an annotation to an image.
 
@@ -305,20 +326,19 @@ class Image(Asset):
         Example:
         ```python
         >>> image = Image()
-        >>> image.add_annotations("Tumors", (50, 50), (100, 100), (200, 200), ...)
+        >>> image.add_annotations("General", "Tumors", (50, 50), (100, 100), (200, 200), ...)
         ```
         """
-        self._init_overlays(text, len(points))
-        self.metadata["overlays"].append(
+        self._init_annotations(layer_name)
+        self._update_annotations(
+            layer_name,
             {
                 "label": text,
-                "type": "annotation",
-                "data": [list(anchor), list(points)],
+                "annotation": [list(anchor), list(points)],
                 "score": score,
-            }
+                "metadata": metadata,
+            },
         )
-        if metadata:
-            self.metadata["overlays"][-1].update(metadata)
         return self
 
 

@@ -32,6 +32,7 @@ from .base import Asset
 from .serialize import ASSET_TYPE_MAP, DATAGRID_TYPES
 from .utils import (
     RESERVED_NAMES,
+    _verify_box,
     apply_converters,
     combine_arrays,
     convert_row_dict,
@@ -2442,3 +2443,65 @@ class DataGrid:
                 [asset_id, asset_type, asset_data, json_string, asset_thumbnail],
             )
             self._asset_id_cache.add(asset_id)
+
+    def upgrade(self):
+        """
+        Upgrade to latest version of datagrid.
+        """
+        cursor = self.conn.cursor()
+
+        sql = "SELECT asset_id, asset_metadata FROM assets;"
+        sql_update = "UPDATE assets SET asset_metadata = ? where asset_id = ?"
+        rows = list(cursor.execute(sql).fetchall())
+
+        count = 0
+        for row in tqdm.tqdm(rows):
+            asset_id, asset_json_string = row
+            asset_json = json.loads(asset_json_string)
+
+            # old style: "overlays": [{"label": "motorcycle", "type": "boxes",
+            # "data": [[[359.17, 146.17], [471.62, 359.74]]], "score": 0.9247971465564591},
+            # {"label": "person", "type": "regions", "data": [[352.55, 146.82, 35...]]}, ...]
+
+            # new style: {"annotations": [
+            #   {"name": str_layername,
+            #    "data": [{"label": str, "boxes": [], "regions": [], "score": float}, ...]}]}
+
+            if "overlays" in asset_json:
+                data = []
+                asset_json["annotations"] = {
+                    "name": "(uncategorized)",
+                    "data": data,
+                }
+                for overlay in asset_json["overlays"]:
+                    if overlay["type"] == "boxes":
+                        data.append(
+                            {
+                                "label": overlay["label"],
+                                "boxes": [_verify_box(box) for box in overlay["data"]],
+                                "score": overlay["score"],
+                                "metadata": overlay["metadata"]
+                                if "metadata" in overlay
+                                else None,
+                            }
+                        )
+                    if overlay["type"] == "regions":
+                        data.append(
+                            {
+                                "label": overlay["label"],
+                                "regions": overlay["data"],
+                                "score": overlay["score"],
+                                "metadata": overlay["metadata"]
+                                if "metadata" in overlay
+                                else None,
+                            }
+                        )
+                del asset_json["overlays"]
+
+            asset_json_new = json.dumps(asset_json)
+            if asset_json_new != asset_json_string:
+                cursor.execute(sql_update, [asset_json_new, asset_id])
+                count += 1
+
+        self.conn.commit()
+        print("Updated %s assets" % count)
