@@ -688,3 +688,18 @@ def combine_arrays(arrays):
         else:
             retval.append(item)
     return np.array(retval)
+
+
+def _verify_box(box):
+    """
+    Ensure that a box is [x, y, width, height]
+    """
+    if len(box) == 2:  # old style [[x1, y1], [x2, y2]]
+        x, y = box[0]
+        x2, y2 = box[1]
+        width = x2 - x
+        height = y2 - y
+    elif len(box) == 4:  # new style [x, y, width, height]
+        x, y, width, height = box
+
+    return [x, y, width, height]
