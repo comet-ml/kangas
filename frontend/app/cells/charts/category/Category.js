@@ -2,6 +2,10 @@ import { DataArraySharp } from "@mui/icons-material";
 import fetchCategory from "../../../../lib/fetchCategory"
 import fetchIt from "../../../../lib/fetchIt";
 import CategoryClient from "./CategoryClient";
+import classNames from 'classnames/bind';
+import styles from '../Charts.module.scss'
+
+const cx = classNames.bind(styles);
 
 const layout =  {
   paper_bgcolor: 'rgba(0,0,0,0)',
@@ -43,7 +47,7 @@ const Category = async ({ value, expanded }) => {
         ).toString();
 
         return (
-            <img src={`/api/charts?${queryString}`} loading="lazy" />
+            <img src={`/api/charts?${queryString}`} loading="lazy" className={cx(['chart-thumbnail', 'category'])} />
           )        
     } else {
         return <CategoryClient expanded={expanded} title={value?.columnName} query={value} columnName={value?.columnName} data={data} />

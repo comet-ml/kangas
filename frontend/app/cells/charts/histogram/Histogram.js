@@ -1,5 +1,9 @@
 import fetchHistogram from "../../../../lib/fetchHistogram"
 import HistogramClient from "./HistogramClient";
+import classNames from 'classnames/bind';
+import styles from '../Charts.module.scss'
+
+const cx = classNames.bind(styles);
 
 const Histogram = async ({ value, expanded }) => {
     const data = await fetchHistogram(value);
@@ -17,7 +21,7 @@ const Histogram = async ({ value, expanded }) => {
         ).toString();
 
         return (
-            <img src={`/api/charts?${queryString}`} loading="lazy" />
+            <img src={`/api/charts?${queryString}`} loading="lazy" className={cx(['chart-thumbnail', 'category'])} />
           )        
     } else {
         return <HistogramClient expanded={expanded} title={value?.columnName} query={value} data={data} />

@@ -2013,7 +2013,7 @@ def generate_chart_image(chart_type, data, width, height):
 
     for trace in data:
         if chart_type == "category":
-            spacing = height / len(trace["x"])
+            spacing = height / 10
             margin = max(spacing * 0.20, 1)
             max_x = max(trace["x"])
 
@@ -2030,7 +2030,7 @@ def generate_chart_image(chart_type, data, width, height):
                 )
 
         elif chart_type == "histogram":
-            spacing = width / len(trace["y"])
+            spacing = width / 10
             margin = max(spacing * 0.20, 1)
             max_y = max(trace["y"])
             color = trace["marker"]["color"]

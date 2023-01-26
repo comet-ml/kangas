@@ -3,7 +3,7 @@ import SkeletonClient from "./SkeletonClient";
 
 // TODO Get rid of client
 const Skeleton = ({message}) => {
-    console.log(message);
+    if (message) console.log(message);
     return (
         <SkeletonClient>
             Loading
