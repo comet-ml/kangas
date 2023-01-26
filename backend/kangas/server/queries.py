@@ -2033,10 +2033,9 @@ def generate_chart_image(chart_type, data, width, height):
             spacing = width / len(trace["y"])
             margin = max(spacing * 0.20, 1)
             max_y = max(trace["y"])
+            color = trace["marker"]["color"]
 
-            for count, [x, y, color] in enumerate(
-                zip(trace["x"], trace["y"], trace["marker"]["color"])
-            ):
+            for count, [x, y] in enumerate(zip(trace["x"], trace["y"])):
                 position = count
                 drawing.rectangle(
                     [
