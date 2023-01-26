@@ -39,8 +39,7 @@ const HistogramConfig = {
     displayModeBar: false,
 };
 
-const HistogramClient = ({ value, expanded, title }) => {
-    const [data, setData] = useState();
+const HistogramClient = ({ value, expanded, title, data }) => {
     const [visible, setVisible] = useState(false);
     const plot = useRef();
 
@@ -53,27 +52,6 @@ const HistogramClient = ({ value, expanded, title }) => {
     }, []);
 
     useEffect(() => {
-        const queryString =new URLSearchParams(
-            Object.fromEntries(
-                Object.entries({
-                    ...value,
-                }).filter(([k, v]) => typeof(v) !== 'undefined' && v !== null)
-            )
-        ).toString();
-
-        fetch(`api/histogram?${queryString}`)
-        .then(res => {
-            return res.json();
-        })
-        .then(chart => {
-            setData(chart)
-        })
-        .catch(e => {
-            console.log(e)
-        })
-    }, [value]);
-
-    useEffect(() => {
         const options = {
             root: null,
             rootMargin: "0px",
@@ -84,25 +62,6 @@ const HistogramClient = ({ value, expanded, title }) => {
         observer.observe(plot.current);
 
     }, [onIntersect]);
-
-    const formattedData = useMemo(() => [
-        {
-            type: 'bar',
-            x:
-                data?.columnType === 'DATETIME'
-                    ? data?.labels?.map((v) => formatValue(v, 'DATETIME'))
-                    : data?.labels,
-            y: data?.bins,
-            text: data?.labels?.map(
-                (value) =>
-                    `${data?.column}: ${formatValue(
-                        value,
-                        data?.columnType
-                    )} ${data?.message || ''}`
-            ),
-            marker: { color: getColor(data?.column) },
-        },
-    ], [data]);
 
 
     const ExpandedLayout = useMemo(() => {
@@ -134,7 +93,7 @@ const HistogramClient = ({ value, expanded, title }) => {
             { visible &&
             <Plot
                 className={cx('plotly-chart', { expanded })}
-                data={formattedData}
+                data={data}
                 layout={expanded ? ExpandedLayout : HistogramLayout}
                 config={HistogramConfig}
             />

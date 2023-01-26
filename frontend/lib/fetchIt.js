@@ -86,7 +86,6 @@ const fetchIt = async ({
 
         //console.log(`fetchIt ${method}: ${url}?${queryArgs}, json: ${json}`);
         const res = await fetch(`${url}?${queryArgs}`, request);
-        console.log(res.status)
 
         if (json) {
             const data = await res.json();

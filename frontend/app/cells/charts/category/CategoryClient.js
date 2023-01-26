@@ -44,8 +44,7 @@ const CategoryConfig = {
 };
 
 
-const CategoryClient = ({ expanded, title, query, columnName }) => {
-    const [data, setData] = useState();
+const CategoryClient = ({ expanded, title, query, columnName, data }) => {
     const [visible, setVisible] = useState(false);
     const plot = useRef();
 
@@ -95,27 +94,6 @@ const CategoryClient = ({ expanded, title, query, columnName }) => {
     }, [data, columnName]);
 
     useEffect(() => {
-        const queryString =new URLSearchParams(
-            Object.fromEntries(
-                Object.entries({
-                    ...query,
-                }).filter(([k, v]) => typeof(v) !== 'undefined' && v !== null)
-            )
-        ).toString();
-
-        fetch(`api/category?${queryString}`)
-        .then(res => {
-            return res.json();
-        })
-        .then(chart => {
-            setData(chart)
-        })
-        .catch(e => {
-            console.log(e)
-        })
-    }, [query]);
-
-    useEffect(() => {
         const options = {
             root: null,
             rootMargin: "0px",
@@ -127,47 +105,12 @@ const CategoryClient = ({ expanded, title, query, columnName }) => {
 
     }, [onIntersect]);
 
-    const sorted = useMemo(() => {
-        return Object.keys(data?.values ?? {})
-        .sort()
-        .reduce((obj, key) => {
-            obj[key] = data?.values[key];
-            return obj;
-        }, {});
-    }, [data?.values]);
-
-    const formattedData = useMemo(() => {
-        return [
-            {
-                type: 'bar',
-                orientation: 'h',
-                x: Object.values(sorted),
-                y: Object.keys(sorted),
-                text: Object.keys(sorted).map(
-                    (key) => `${data?.column}: ${key} ${data?.message || ''}`
-                ),
-                marker: {
-                    color: Object.keys(sorted).map(getColor),
-                },
-            }
-        ];
-    }, [sorted, data]);
-
-    if (data?.type === 'verbatim') {
-        return (
-            <div>{`${data?.value}`}</div>
-        )
-    }
-
-
-
-
     return (
         <div ref={plot} className={cx('plotly-container', { expanded })}>
             { visible && 
             <Plot
                 className={cx('plotly-chart', { expanded })}
-                data={formattedData}
+                data={data}
                 layout={expanded ? ExpandedLayout : CategoryLayout}
                 config={CategoryConfig}
                 onClick={onClick}

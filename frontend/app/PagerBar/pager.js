@@ -15,10 +15,6 @@ const cx = classNames.bind(styles);
 const Pager = ({ aboutText, firstRow, totalRows, currentPage, totalPages, maxRow, pageSize }) => {
     const { params, updateParams } = useQueryParams();
     const pageInput = useRef();
-
-    console.log("aboutText:");
-    console.log(aboutText);
-
     const aboutButton = aboutText !== '' ? (<AboutDataGridButton text={aboutText} />) : (<></>);
 
     const canGoto = (page) => {

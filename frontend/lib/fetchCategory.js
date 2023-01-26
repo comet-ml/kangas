@@ -16,7 +16,7 @@ const fetchCategory = async (query) => {
         };
     }
 
-    const sorted = Object.keys(data?.values)
+    const sorted = Object.keys(data?.values ?? {})
         .sort()
         .reduce((obj, key) => {
             obj[key] = data?.values[key];
@@ -37,7 +37,6 @@ const fetchCategory = async (query) => {
             },
         }
     ];
-
 
 
     return formattedData;

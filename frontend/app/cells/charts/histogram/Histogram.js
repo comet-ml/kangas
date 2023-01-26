@@ -2,8 +2,26 @@ import fetchHistogram from "../../../../lib/fetchHistogram"
 import HistogramClient from "./HistogramClient";
 
 const Histogram = async ({ value, expanded }) => {
+    const data = await fetchHistogram(value);
 
-    return <HistogramClient value={value} expanded={expanded} title={value?.columnName} />
+    if (data?.isVerbatim) {
+        return <>Verbatim</>
+    } else if (!expanded) {
+        const queryString =new URLSearchParams(
+            Object.fromEntries(
+                Object.entries({
+                    chartType: 'histogram', 
+                    data: JSON.stringify(data)
+                }).filter(([k, v]) => typeof(v) !== 'undefined' && v !== null)
+            )
+        ).toString();
+
+        return (
+            <img src={`/api/charts?${queryString}`} loading="lazy" />
+          )        
+    } else {
+        return <HistogramClient expanded={expanded} title={value?.columnName} query={value} data={data} />
+    }    
 }
 
 export default Histogram;
