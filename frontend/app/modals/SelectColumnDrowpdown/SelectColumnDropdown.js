@@ -38,6 +38,7 @@ const SelectColumnDropdown = ({ toggleOpen, group = false }) => {
         updateParams({
             group: e.value,
             sort: e.value,
+            rows: 4,
             page: undefined,
         });
         toggleOpen();
@@ -55,6 +56,7 @@ const SelectColumnDropdown = ({ toggleOpen, group = false }) => {
             updateParams({
                 group: undefined,
                 page: undefined,
+                rows: undefined,
             });
         } else {
             updateParams({

@@ -13,31 +13,58 @@ const cx = classNames.bind(styles);
 
 const cellMap = {
     TEXT: {
+        width: 200,
+        groupedWidth: 200,
         component: TextCell,
     },
     FLOAT: {
+        width: 150,
+        groupedWidth: 200,
         component: FloatCell
     },
-    'IMAGE-ASSET': {
-        component: ImageCell
-    },
-    JSON: {
-        component: JSONCell
-    },
     INTEGER: {
+        width: 100,
+        groupedWidth: 200,
         component: TextCell,
     },
+    JSON: {
+        width: 400,
+        groupedWidth: 200,
+        component: JSONCell
+
+    },
+    'IMAGE-ASSET': {
+        width: 150,
+        groupedWidth: 300,
+        component: ImageCell
+    },
     ROW_ID: {
+        width: 50,
+        groupedWidth: 50,
         component: TextCell
     }
-}
+};
+
+const getDefaultCellSize = (cellType, grouped) => {
+    if (grouped) {
+        if (typeof(cellMap[cellType]) !== 'undefined') {
+            return cellMap[cellType].groupedWidth;
+        }
+    }
+    // Not grouped:
+    if (typeof(cellMap[cellType]) !== 'undefined') {
+        return cellMap[cellType].width;
+    }
+    console.log(`ERROR: missing cell type: ${cellType}`);
+    return 200;
+};
 
 const HeaderCell = ({ columnName, type }) => {
     return (
         <CellClient columnName={columnName} type={type} isHeader={true}>
             <Header columnName={columnName} />
         </CellClient>
-    )
+    );
 }
 
 const Cell = async ({ value, columnName, type, query, isHeader }) => {
@@ -45,16 +72,18 @@ const Cell = async ({ value, columnName, type, query, isHeader }) => {
 
     if (isHeader) {
         return (
-            <HeaderCell columnName={columnName} type={type} />
-        )
-    }
+           <HeaderCell columnName={columnName} type={type} grouped={query?.groupBy}/>
+        );
+    };
 
     return (
-        <CellClient columnName={columnName} type={type}>
+        <CellClient columnName={columnName} type={type} grouped={query?.groupBy}>
             { !!Component && <Component value={value} query={query} />}
             { !Component && <div>{`${value}`}</div> }
         </CellClient>
-    )
-}
+    );
+};
 
-export default Cell;
+export { Cell, getDefaultCellSize };
+
+
