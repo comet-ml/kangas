@@ -6,7 +6,7 @@ const localConfig = {
     defaultDecimalPrecision: 5,
     locale: 'en-US',
     isColab: env.IN_COLAB === 'True',
-    cache: false,
+    cache: true,
     prefetch: false
 };
 

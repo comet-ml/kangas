@@ -914,7 +914,7 @@ class ChartImageHandler(BaseHandler):
         width = int(self.get_query_argument("width", "0"))
 
         if width == 0:
-            width = int(height * 600 / 450)  # keep same ratio as expanded chart
+            width = int(height * 4.5 / 2.75)  # keep same ratio as expanded chart
 
         image = generate_chart_image(chart_type, data, width, height)
 
