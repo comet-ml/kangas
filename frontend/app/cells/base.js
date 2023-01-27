@@ -40,7 +40,7 @@ const cellMap = {
     },
     ROW_ID: {
         width: 50,
-        groupedWidth: 50,
+        groupedWidth: 100,
         component: TextCell
     }
 };

@@ -66,7 +66,7 @@ const CellClient = ({ columnName, type, isHeader, children, grouped }) => {
 
     return (
         <Resizable
-            className={cx('cell', { header: isHeader})}
+            className={cx('cell', { header: isHeader, group: grouped})}
             handleStyles={isHeader ? {'right': headerResizeStyle} : {'right': {'backgroundColor': '#fafafa'}}}
             size={{
                 width: columns?.[columnName]?.width ?? initWidth,

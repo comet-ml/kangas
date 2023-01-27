@@ -17,8 +17,7 @@
     }
 
     &.group {
-        min-height: 110px;
-        max-width: 150px;
+        min-height: 120px;
     }
 
     &.expanded {
@@ -41,7 +40,6 @@
     font-size: 13px;
     color: #3d4355;
 
-//    display: contents;
 }
 
 .cell-content > img {
