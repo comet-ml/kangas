@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext, useCallback, useState, useEffect } from "react";
+import { useContext, useCallback, useState, useEffect, useMemo } from "react";
 import { ViewContext } from "../contexts/ViewContext";
 import classNames from 'classnames/bind';
 import styles from './Cell.module.scss';
@@ -19,39 +19,38 @@ Using the startResizing/stopResizing/initWidth dynamic, we can force all widths 
 */
 
 const CellClient = ({ columnName, type, isHeader, children, grouped }) => {
+    // FIXME: need to reset when changing datagrids
     const { columns, updateWidth } = useContext(ViewContext);
     const [isResizing, setIsResizing] = useState(false);
-    const [initWidth, setInitWidth] = useState(getDefaultCellSize(type, grouped));
+    const [width, setWidth] = useState(getDefaultCellSize(type, grouped));
 
-    // CHECKME: is this correct for switching between group/non-grouped?
-    useEffect(() => {
-        const width = getDefaultCellSize(type, grouped);
-        if (width != initWidth) {
-            setInitWidth(width);
-            updateWidth({
-                [columnName]: {
-                    width: width
-                }
-            });
-        }
-    }, [type, grouped, updateWidth]);
+    // CHECKME: is this a good way to handle two different widths (grouped, and non-grouped)?
+    const isGrouped = useMemo(() => {
+        const width = getDefaultCellSize(type, !!grouped);
+        setWidth(width);
+        updateWidth({
+            [columnName]: {
+                width: width
+            }
+        });
+    }, [grouped]);
 
     const resize = useCallback((d) => {
         updateWidth({
             [columnName]: {
-                width: initWidth + (d?.width ?? 0)
+                width: width + (d?.width ?? 0)
             }
         });
-    }, [columnName, initWidth]);
+    }, [columnName, width]);
 
     const startResizing = useCallback(() => setIsResizing(true), []);
     const stopResizing = useCallback(() => setIsResizing(false), []);
 
     useEffect(() => {
-        if (!isResizing && (columns?.[columnName]?.width !== initWidth)) {
-            setInitWidth(columns?.[columnName]?.width ?? initWidth);
+        if (!isResizing && (columns?.[columnName]?.width !== width)) {
+            setWidth(columns?.[columnName]?.width ?? width);
         }
-    }, [isResizing, columns?.[columnName]?.width, initWidth]);
+    }, [isResizing, columns?.[columnName]?.width, width]);
 
     const headerResizeStyle = {
 	'width': '1px',
@@ -63,13 +62,12 @@ const CellClient = ({ columnName, type, isHeader, children, grouped }) => {
 	'top': '-2px',
     };
 
-
     return (
         <Resizable
             className={cx('cell', { header: isHeader, group: grouped})}
             handleStyles={isHeader ? {'right': headerResizeStyle} : {'right': {'backgroundColor': '#fafafa'}}}
             size={{
-                width: columns?.[columnName]?.width ?? initWidth,
+                width,
                 height: 0
             }}
             enable={{
