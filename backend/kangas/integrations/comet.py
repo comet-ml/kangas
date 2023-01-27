@@ -135,11 +135,14 @@ def import_to_comet(filename, comet_path=None, output_dir="."):
     elif comet_path.count("/") == 1:
         workspace, project_name = comet_path.split("/", 1)
         experiment = Experiment(workspace=workspace, project_name=project_name)
+        experiment._log_other("Created from", "kangas")
     elif comet_path:
         project_name = comet_path
         experiment = Experiment(project_name=project_name)
+        experiment._log_other("Created from", "kangas")
     else:
         experiment = Experiment()
+        experiment._log_other("Created from", "kangas")
 
     # Log all of the assets:
     asset_map = {}
