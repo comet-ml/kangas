@@ -533,6 +533,7 @@ class AssetGroupThumbnailHandler(BaseHandler):
                 self.write_json({"uri": base64.b64encode(result).decode("utf-8")})
             else:
                 self.set_header("Cache-Control", "max-age=604800")
+                self.set_header("Content-type", "image/png")
                 self.write(result)
 
     @run_on_executor
@@ -594,6 +595,7 @@ class AssetGroupThumbnailHandler(BaseHandler):
                 self.write_json({"uri": base64.b64encode(result).decode("utf-8")})
             else:
                 self.set_header("Cache-Control", "max-age=604800")
+                self.set_header("Content-type", "image/png")
                 self.write(result)
 
 
@@ -810,11 +812,11 @@ class DownloadHandler(BaseHandler):
 
         if self.ensure_datagrid_path(dgid):
             result = select_asset(dgid, asset_id, thumbnail)
-            LOGGER.debug("download size of asset %s: %s" % (asset_id, len(result)))
             if return_url:
                 self.write_json({"uri": base64.b64encode(result).decode("utf-8")})
             else:
                 self.set_header("Cache-Control", "max-age=604800")
+                self.set_header("Content-type", "image")
                 self.write(result)
 
 
