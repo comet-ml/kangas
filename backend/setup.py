@@ -57,7 +57,6 @@ setup_args = dict(
         "scikit-learn",
         "nodejs-bin==16.15.1a4",
         "requests",
-        "tqdm",
         "psutil",
     ],
     packages=[

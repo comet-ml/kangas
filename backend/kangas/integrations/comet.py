@@ -164,6 +164,7 @@ def import_to_comet(filename, comet_path=None, output_dir="."):
             asset_type=comet_type,
             metadata=metadata,
             step=step,
+            framework="kangas",
         )
         asset_map[asset_id] = asset_results
 

@@ -25,9 +25,8 @@ import webbrowser
 from collections import defaultdict
 
 import numpy as np
-import tqdm
 
-from ..utils import _in_colab_environment, _in_jupyter_environment
+from ..utils import ProgressBar, _in_colab_environment, _in_jupyter_environment
 from .base import Asset
 from .serialize import ASSET_TYPE_MAP, DATAGRID_TYPES
 from .utils import (
@@ -230,7 +229,7 @@ class DataGrid:
         # Else, will have to add columns on the fly when we get some data
 
         if data:
-            self.extend(tqdm.tqdm(data))
+            self.extend(ProgressBar(data))
 
     def __repr__(self, row=None):
         nrows = self.nrows
@@ -467,7 +466,7 @@ class DataGrid:
             writer = csv.writer(fp, delimiter=sep, quotechar=quotechar)
             if header:
                 writer.writerow(self.get_columns())
-            for row in tqdm.tqdm(self):
+            for row in ProgressBar(self):
                 writer.writerow(
                     [
                         apply_converters(value, colname, converters)
@@ -778,7 +777,7 @@ class DataGrid:
         """
         print("Reading DataFrame...")
         columns = list(dataframe.columns)
-        data = [list(row) for r, row in tqdm.tqdm(dataframe.iterrows())]
+        data = [list(row) for r, row in ProgressBar(dataframe.iterrows())]
         return DataGrid(data=data, columns=columns, **kwargs)
 
     @classmethod
@@ -842,7 +841,7 @@ class DataGrid:
             json_lines = fp.read(1) == "{"
             fp.seek(0)
             if json_lines:
-                for line in tqdm.tqdm(fp):
+                for line in ProgressBar(fp):
                     dg.append(json.loads(line))
             else:
                 dg.extend(json.load(fp))
@@ -910,7 +909,7 @@ class DataGrid:
         print("Loading CSV file %r..." % filename)
         with open(filename) as csvfile:
             reader = csv.reader(csvfile, delimiter=sep, quotechar=quotechar)
-            for r, row in tqdm.tqdm(enumerate(reader)):
+            for r, row in ProgressBar(enumerate(reader)):
                 if header is not None:
                     if not read_header:
                         if header == r:
@@ -1449,7 +1448,7 @@ class DataGrid:
             self._asset_id_cache = set(self.get_asset_ids())
             self.cursor = self.conn.cursor()
             print("Extending data...")
-            for row in tqdm.tqdm(rows):
+            for row in ProgressBar(rows):
                 if not isinstance(row, (dict,)):
                     row_dict = {
                         column_name: value
@@ -2030,7 +2029,7 @@ class DataGrid:
             }
         )
         print("Saving data...")
-        for row in tqdm.tqdm(self._data):
+        for row in ProgressBar(self._data):
             for column_name in row:
                 row[column_name] = convert_to_type(
                     row[column_name], self._columns[column_name]
@@ -2185,7 +2184,7 @@ class DataGrid:
 
         data = []
         print("Computing statistics...")
-        for col_name in tqdm.tqdm(columns):
+        for col_name in ProgressBar(columns):
             col_type = columns[col_name]["type"]
             field_name = columns[col_name]["field_name"]
             if col_type in ["FLOAT", "INTEGER", "ROW_ID"]:
@@ -2455,7 +2454,7 @@ class DataGrid:
         rows = list(cursor.execute(sql).fetchall())
 
         count = 0
-        for row in tqdm.tqdm(rows):
+        for row in ProgressBar(rows):
             asset_id, asset_json_string = row
             asset_json = json.loads(asset_json_string)
 
