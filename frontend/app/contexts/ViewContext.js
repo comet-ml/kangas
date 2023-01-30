@@ -58,9 +58,6 @@ const ViewProvider = ({ value, children }) => {
     useEffect(() => {
         const shouldUpdate = (state?.query?.dgid !== value?.query?.dgid) || (state?.query?.groupBy !== value?.query?.groupBy)
         if (shouldUpdate) {
-            console.log('SHOULD UPDATE')
-            console.log(state);
-            console.log(value)    
             dispatch({ type: 'NEW_COLUMNS', payload: { columns: value.columns, query: value.query } })
         }
     }, [state?.query, value?.query, dispatch])
