@@ -12,6 +12,7 @@ const reducer = (state, action) => {
     switch (action.type) {
         case 'RESIZE_COL_WIDTH':
             return {
+                ...state,
                 columns: {
                     ...state.columns,
                     ...action.payload
@@ -28,6 +29,7 @@ const reducer = (state, action) => {
             }
         case 'UPDATE_COL_STATUS':
             return {
+                ...state,
                 columns: {
                     ...state.columns,
                     [action.payload.column]: {
@@ -38,6 +40,7 @@ const reducer = (state, action) => {
             }
         case 'UPDATE_QUERY':
             return {
+                ...state,
                 query: {
                     ...action.payload.query
                 }
@@ -54,8 +57,10 @@ const ViewProvider = ({ value, children }) => {
     // TODO Find a more performant solution than this quick-and-dirty patch
     useEffect(() => {
         const shouldUpdate = (state?.query?.dgid !== value?.query?.dgid) || (state?.query?.groupBy !== value?.query?.groupBy)
-        
         if (shouldUpdate) {
+            console.log('SHOULD UPDATE')
+            console.log(state);
+            console.log(value)    
             dispatch({ type: 'NEW_COLUMNS', payload: { columns: value.columns, query: value.query } })
         }
     }, [state?.query, value?.query, dispatch])
