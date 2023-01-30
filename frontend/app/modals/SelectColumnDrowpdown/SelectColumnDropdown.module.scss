@@ -1,5 +1,20 @@
 @use '../../Settings/Buttons/Buttons.module.scss';
 
+.select-modal {
+    width: 330px;
+    max-height: 90%;
+    padding: 16px;
+    background: white;
+    box-sizing: border-box;
+    box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.13);
+    border-radius: 4px;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+
+}
 .select-modal-title {
     display: flex;
     align-items: center;
@@ -54,14 +69,10 @@
     div {
         margin-right: 12px;
     }
-
     :last-child {
         margin-right: 0;
     }
-
-    /* 
-    This is a bit gross, but because React Select doesn't give us a great way to target the selector,
-    we're forced to use div:first-child in select-modal-body, which puts us in a bind re: button width
-    */
 }
+
+
 

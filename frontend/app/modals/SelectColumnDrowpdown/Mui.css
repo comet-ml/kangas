@@ -1,7 +1,7 @@
 /* 3rd Party Specific */
 
 /* Material UI */
-
+/*
 .MuiPaper-root {
     min-width: 300px;
     max-width: 1400px;
@@ -36,6 +36,7 @@
     border: 0;
 }
 
+*/
 /* TODO: Fix this !important flag by customizing the styles in MUI better */
 .MuiInputBase-adornedEnd {
     padding-right: 5px !important;

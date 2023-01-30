@@ -88,7 +88,7 @@ const SelectColumnDropdown = ({ toggleOpen, group = false }) => {
 
 
     return (
-        <div>
+        <div className={cx('select-modal')}>
             <div className={cx('select-modal-title')}>
                 <div>Select a column</div>
                 <div
