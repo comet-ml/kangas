@@ -21,6 +21,9 @@ const reducer = (state, action) => {
             return {
                 columns: {
                     ...action.payload.columns
+                },
+                query: {
+                    ...action.payload.query
                 }
             }
         case 'UPDATE_COL_STATUS':
@@ -47,20 +50,19 @@ const reducer = (state, action) => {
 const ViewProvider = ({ value, children }) => {
     const [state, dispatch] = useReducer(reducer, value);
 
-    useEffect(() => {
-        if (state?.query?.datagrid != value?.query?.datagrid) {
-            dispatch({ type: 'NEW_COLUMNS', payload: { columns: value?.columns } })
-            dispatch({ type: 'UPDATE_QUERY', payload: { query: value?.query } })
-        } else if (JSON.stringify(Object.keys(state?.query ?? {})) !== JSON.stringify(Object.keys(value?.query))) {
-            dispatch({ type: 'UPDATE_QUERY', payload: { query: value?.query }});
-        }
 
-    }, [state?.query, value?.query]);
+    // TODO Find a more performant solution than this quick-and-dirty patch
+    useEffect(() => {
+        const shouldUpdate = (state?.query?.dgid !== value?.query?.dgid) || (state?.query?.groupBy !== value?.query?.groupBy)
+        
+        if (shouldUpdate) {
+            dispatch({ type: 'NEW_COLUMNS', payload: { columns: value.columns, query: value.query } })
+        }
+    }, [state?.query, value?.query, dispatch])
 
     return (
         <ViewContext.Provider value={{
             columns: state.columns,
-            query: state.query,
             updateWidth: (payload) => dispatch({ type: 'RESIZE_COL_WIDTH', payload }),
             toggleLoading: (payload) => dispatch({ type: 'UPDATE_COL_STATUS', payload })
         }}>
