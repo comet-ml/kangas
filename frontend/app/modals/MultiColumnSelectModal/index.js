@@ -129,11 +129,11 @@ const MultiColumnSelectModal = ({  }) => {
 	if (selected.length > 0) {
             const parsedOptions = selected.map((col) => col.value);
             updateParams({
-		select: parsedOptions.join(',')
+		        select: parsedOptions.join(',')
             });
 	} else {
             updateParams({
-		select: undefined
+		        select: undefined
             });
 	}
     }, [selected, updateParams]);

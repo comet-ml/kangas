@@ -20,7 +20,7 @@ const Main = async ({ query }) => {
     const view =  Object.fromEntries( columns.map( ( col, idx ) => [ col, { width: getDefaultCellSize(columnTypes[idx], query?.groupBy) } ]));
 
     return (
-        <ViewProvider value={{ columns: view }}>
+        <ViewProvider value={{ columns: view, query }}>
             <SettingsBar query={query} />
             <Table data={data} query={query} />
             <PagerBar query={query} />

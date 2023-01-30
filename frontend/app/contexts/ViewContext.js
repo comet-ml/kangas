@@ -5,6 +5,7 @@ import getDefaultCellSize from '../../lib/getDefaultCellSize';
 
 export const ViewContext = createContext({
     columns: {},
+    query: {}
 });
 
 const reducer = (state, action) => {
@@ -32,6 +33,12 @@ const reducer = (state, action) => {
                     }
                 }
             }
+        case 'UPDATE_QUERY':
+            return {
+                query: {
+                    ...action.payload.query
+                }
+            }
         default:
             return state
     }
@@ -40,21 +47,20 @@ const reducer = (state, action) => {
 const ViewProvider = ({ value, children }) => {
     const [state, dispatch] = useReducer(reducer, value);
 
-
-    // TODO Find a more performant solution than this quick-and-dirty patch
     useEffect(() => {
-        if (
-            JSON.stringify(Object.keys(state?.columns)) !== JSON.stringify(Object.keys(value?.columns)) && 
-            !!value?.columns
-        ) {
-            const isGrouped = !! new URLSearchParams(window.location.search).get('groupBy')
-            dispatch({ type: 'NEW_COLUMNS', payload: { columns: value.columns, isGrouped } })
+        if (state?.query?.datagrid != value?.query?.datagrid) {
+            dispatch({ type: 'NEW_COLUMNS', payload: { columns: value?.columns } })
+            dispatch({ type: 'UPDATE_QUERY', payload: { query: value?.query } })
+        } else if (JSON.stringify(Object.keys(state?.query ?? {})) !== JSON.stringify(Object.keys(value?.query))) {
+            dispatch({ type: 'UPDATE_QUERY', payload: { query: value?.query }});
         }
-    }, [state?.columns, value?.columns, dispatch])
+
+    }, [state?.query, value?.query]);
 
     return (
         <ViewContext.Provider value={{
             columns: state.columns,
+            query: state.query,
             updateWidth: (payload) => dispatch({ type: 'RESIZE_COL_WIDTH', payload }),
             toggleLoading: (payload) => dispatch({ type: 'UPDATE_COL_STATUS', payload })
         }}>
