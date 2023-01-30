@@ -1,7 +1,6 @@
 'use client';
 
 import { createContext, useEffect, useReducer } from 'react';
-import getDefaultCellSize from '../../lib/getDefaultCellSize';
 
 export const ViewContext = createContext({
     columns: {},
