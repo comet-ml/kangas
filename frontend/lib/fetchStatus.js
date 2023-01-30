@@ -1,14 +1,9 @@
-// Config
 import config from '../config';
 
-// Utils
-import fetchData from './fetchData';
+import fetchIt from './fetchIt';
 
 const fetchStatus = async () => {
-    const result = await fetchData({
-        url: `${config.apiUrl}status`,
-        method: 'GET',
-    });
+    const result = await fetchIt({url: `${config.apiUrl}status`, query: {}});
 
     return result;
 };

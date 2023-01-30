@@ -26,7 +26,7 @@ class AttributeNode:
         self.attr = attr
 
     def __str__(self):
-        if self.obj in ["random", "math", "datetime"]:
+        if self.obj in ["random", "math", "datetime", "statistics"]:
             raise Exception(
                 "uncalled or unknown method '%s.%s'" % (self.obj, self.attr)
             )
@@ -123,13 +123,24 @@ class Evaluator:
                 aggregate_selection_name = "%s_aggregate_column_%s" % (function_name, 1)
                 self.selections[aggregate_selection_name] = expr
                 return aggregate_selection_name
-            elif function_name in ["any", "all", "len", "flatten"]:
+            elif function_name in [
+                "any",
+                "all",
+                "len",
+                "flatten",
+                "avg",
+                "sum",
+                "range",
+            ]:
                 ## Sqlite functions
                 function_map = {
                     "any": "ANY_IN_GROUP",
                     "all": "ALL_IN_GROUP",
                     "len": "LENGTH",
+                    "avg": "MEAN",
                     "flatten": "FLATTEN",
+                    "sum": "SUM_OF_LIST",
+                    "range": "RANGE",
                 }
                 sargs = ", ".join([str(arg) for arg in args])
                 expr = "{function_name}({sargs})".format(
@@ -207,6 +218,20 @@ class Evaluator:
                             minute=minute,
                             second=second,
                         )
+                    else:
+                        raise Exception("unsupported method %r" % repr(function_name))
+                elif function_name.obj == "statistics":
+                    if len(args) == 0:
+                        raise Exception(
+                            "missing argument to method %r" % repr(function_name)
+                        )
+
+                    sargs = ", ".join([str(arg) for arg in args])
+                    if function_name.attr == "mean":
+                        expr = "MEAN({sargs})".format(
+                            sargs=sargs,
+                        )
+                        return expr
                     else:
                         raise Exception("unsupported method %r" % repr(function_name))
                 elif function_name.obj == "math":
@@ -456,6 +481,12 @@ class Evaluator:
         elif isinstance(node, ast.Str):
             ## Python 3.7
             return repr(node.s)
+        elif isinstance(node, ast.Index):
+            return self.eval_node(node.value)
+        elif isinstance(node, ast.Subscript):
+            index = self.eval_node(node.slice)
+            obj = self.eval_node(node.value)
+            return "json_extract(%s, '$[%s]')" % (obj, index)
         elif isinstance(node, ast.ListComp):
             # [x for y in json_list if ...]
             # [x.label == 'hello' for x in {"image"}.overlays if ...]

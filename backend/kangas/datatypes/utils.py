@@ -11,6 +11,7 @@
 #    All rights reserved                             #
 ######################################################
 
+import ast
 import datetime
 import gzip
 import io
@@ -29,7 +30,7 @@ import six
 
 from .._typing import IO, Any
 
-THUMBNAIL_SIZE = (100, 55)  # width, height
+THUMBNAIL_SIZE = (150, 55)  # width, height
 RESERVED_NAMES = ["ROW-ID"]
 LOGGER = logging.getLogger(__name__)
 INFINITY = float("inf")
@@ -495,24 +496,16 @@ def generate_thumbnail(asset_data, size=None, force=False):
     size = size if size else THUMBNAIL_SIZE
     image = generate_image(asset_data)
 
-    # Generate a thumbnail:
-    if hasattr(ImageOps, "contain"):
-        new_image = ImageOps.contain(image, size)
-    else:
-        new_image = contain(image, size)
-
-    # If the thumbnail is too small on any dimension, resize
-    # it (keeps aspect ratio) to a minimum size:
     if not force:
-        if new_image.width < THUMBNAIL_SIZE[0] * 0.5:
-            width = THUMBNAIL_SIZE[0]
-            height = image.height * width // image.width
-            new_image = image.resize((width, height))
-
-        elif new_image.height < THUMBNAIL_SIZE[1] * 0.5:
-            height = THUMBNAIL_SIZE[1]
-            width = image.width * height // image.height
-            new_image = image.resize((width, height))
+        # Don't force to size given, but make max height:
+        height = THUMBNAIL_SIZE[1]
+        width = image.width * height // image.height
+        new_image = image.resize((width, height))
+    else:
+        if hasattr(ImageOps, "contain"):
+            new_image = ImageOps.contain(image, size)
+        else:
+            new_image = contain(image, size)
 
     fp = image_to_fp(new_image, "png")
     return fp.read()
@@ -681,3 +674,32 @@ def image_to_fp(image, image_format):
     image.save(fp, format=image_format)  # save the content to fp
     fp.seek(0)
     return fp
+
+
+def combine_arrays(arrays):
+    """
+    Takes a list of lists and values and collapse
+    into a single-dimension np.array.
+    """
+    retval = []
+    for item in arrays:
+        if isinstance(item, str):
+            retval.extend(ast.literal_eval(item))
+        else:
+            retval.append(item)
+    return np.array(retval)
+
+
+def _verify_box(box):
+    """
+    Ensure that a box is [x, y, width, height]
+    """
+    if len(box) == 2:  # old style [[x1, y1], [x2, y2]]
+        x, y = box[0]
+        x2, y2 = box[1]
+        width = x2 - x
+        height = y2 - y
+    elif len(box) == 4:  # new style [x, y, width, height]
+        x, y, width, height = box
+
+    return [x, y, width, height]

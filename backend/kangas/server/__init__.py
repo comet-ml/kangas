@@ -12,35 +12,27 @@
 ######################################################
 
 import asyncio
-import logging
 from concurrent.futures import ThreadPoolExecutor
 
+import tornado
 import tornado.log
+import tornado.options
 import tornado.web
 
 from .handlers import datagrid_handlers
 from .queries import KANGAS_ROOT  # noqa
 
 
-def start_tornado_server(port, debug=False, max_workers=None):
+def start_tornado_server(port, debug=None, max_workers=None):
     """
     Args:
         port: (int) the port to start the frontend server
-        debug: (bool) False means suppress output
+        debug: (str) None means suppress output from servers
     """
 
     async def main():
-        if not debug:
-            hn = logging.NullHandler()
-            hn.setLevel(logging.WARNING)
-            for log_name in [
-                "tornado.access",
-                "tornado.application",
-                "tornado.general",
-            ]:
-                logging.getLogger(log_name).addHandler(hn)
-                logging.getLogger(log_name).propagate = False
-        else:
+        if debug is not None:
+            tornado.options.options["logging"] = debug
             tornado.log.enable_pretty_logging()
 
         # set max_workers

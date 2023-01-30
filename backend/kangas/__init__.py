@@ -21,6 +21,7 @@ import psutil
 
 from ._version import __version__  # noqa
 from .datatypes import Audio, Curve, DataGrid, Image, Text, Video  # noqa
+from .integrations import export_from_comet, import_to_comet  # noqa
 from .utils import _in_colab_environment, _in_jupyter_environment, get_localhost
 
 
@@ -78,7 +79,7 @@ def terminate():
     _process_method("python", "kangas", "terminate")
 
 
-def launch(host=None, port=4000, debug=False, protocol="http"):
+def launch(host=None, port=4000, debug=None, protocol="http"):
     """
     Launch the Kangas servers.
 
@@ -90,7 +91,7 @@ def launch(host=None, port=4000, debug=False, protocol="http"):
             servers should listen on.
         port: (int) the port of the Kangas frontend server. The
             backend server will start on port + 1.
-        debug: (bool) if True, debugging output will be
+        debug: (str) the debugging output level will be
             shown as you run the servers.
 
     Example:
@@ -121,7 +122,7 @@ def launch(host=None, port=4000, debug=False, protocol="http"):
                 ]
                 + (["--host", host] if host is not None else [])
                 + (["--colab", "True"] if _in_colab_environment() else [])
-                + (["--debug"] if debug else [])
+                + (["--debug-level", debug] if debug is not None else [])
             )
         )
         time.sleep(2)
@@ -134,10 +135,11 @@ def show(
     filter=None,
     host=None,
     port=4000,
-    debug=False,
+    debug=None,
     height="750px",
     width="100%",
     protocol="http",
+    **kwargs
 ):
     """
     Start the Kangas servers and show the DatGrid UI
@@ -151,12 +153,13 @@ def show(
             servers should listen on.
         port: (int) the port of the Kangas frontend server. The
             backend server will start on port + 1.
-        debug: (bool) if True, debugging output will be
+        debug: (str) debugging output level will be
             shown as you run the servers.
         height: (str) the height (in "px" pixels) of the
             iframe shown in the Jupyter notebook.
         width: (str) the width (in "px" pixels or "%" percentages) of the
             iframe shown in the Jupyter notebook.
+        kwargs: additional URL parameters to pass to server
 
     Example:
 
@@ -164,6 +167,7 @@ def show(
     >>> import kangas
     >>> kangas.show("./example.datagrid")
     >>> kangas.show("./example.datagrid", "{'Column Name'} < 0.5")
+    >>> kangas.show("./example.datagrid", "{'Column Name'} < 0.5", group="Another Column Name")
     ```
     """
     from IPython.display import IFrame, clear_output, display
@@ -172,6 +176,7 @@ def show(
 
     if datagrid:
         query_vars = {"datagrid": datagrid}
+        query_vars.update(kwargs)
         if filter:
             query_vars["filter"] = filter
         qvs = "?" + urllib.parse.urlencode(query_vars)
@@ -190,6 +195,24 @@ def show(
 
     else:
         webbrowser.open(url, autoraise=True)
+
+
+def read_sklearn(dataset_name):
+    """
+    Load a sklearn dataset by name.
+
+    Args:
+        dataset_name: (str) one of: 'boston', 'breast_cancer',
+            'diabetes', 'digits', 'files', 'iris',
+            'linnerud', 'sample_image', 'sample_images',
+            'svmlight_file', 'svmlight_files', 'wine'
+
+    Example:
+    ```python
+    >>> dg = kg.read_sklearn("iris")
+    ```
+    """
+    return DataGrid.read_sklearn(dataset_name)
 
 
 def read_parquet(filename, **kwargs):

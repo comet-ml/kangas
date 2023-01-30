@@ -84,36 +84,42 @@ def _in_colab_environment():
     return "google.colab" in str(ipy)
 
 
-class ProgressBar:
-    """
-    A simple ASCII progress bar, showing a box for each item.
-    Uses no control characters.
-    """
+try:
+    import tqdm
 
-    def __init__(self, sequence, description=None):
+    ProgressBar = tqdm.tqdm
+except ImportError:
+
+    class ProgressBar:
         """
-        The sequence to iterate over. For best results,
-        don't print during the iteration.
+        A simple ASCII progress bar, showing a box for each item.
+        Uses no control characters.
         """
-        self.sequence = sequence
-        if description:
+
+        def __init__(self, sequence, description=None):
+            """
+            The sequence to iterate over. For best results,
+            don't print during the iteration.
+            """
+            self.sequence = sequence
+            if description:
+                self.description = "%s " % description
+            else:
+                self.description = None
+
+        def set_description(self, description):
             self.description = "%s " % description
-        else:
-            self.description = None
 
-    def set_description(self, description):
-        self.description = "%s " % description
-
-    def __iter__(self):
-        if self.description:
-            print(self.description, end="")
-        print("[", end="")
-        sys.stdout.flush()
-        for item in self.sequence:
-            print("█", end="")
+        def __iter__(self):
+            if self.description:
+                print(self.description, end="")
+            print("[", end="")
             sys.stdout.flush()
-            yield item
-        print("]")
+            for item in self.sequence:
+                print("█", end="")
+                sys.stdout.flush()
+                yield item
+            print("]")
 
 
 def _input_user(prompt):

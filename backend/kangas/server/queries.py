@@ -12,18 +12,22 @@
 ######################################################
 
 import ast
+import io
 import json
 import logging
 import math
 import os
 import re
 import sqlite3
+import statistics
 import string
 import time
+import urllib
 from collections import Counter, defaultdict
 
 import numpy as np
-from PIL import Image
+import PIL.Image
+import PIL.ImageDraw
 
 from ..datatypes.utils import (
     generate_image,
@@ -33,6 +37,7 @@ from ..datatypes.utils import (
     pytype_to_dgtype,
 )
 from .computed_columns import update_state
+from .utils import process_about, safe_compile, safe_env
 
 LOGGER = logging.getLogger(__name__)
 KANGAS_ROOT = os.environ.get("KANGAS_ROOT", ".")
@@ -50,99 +55,6 @@ import math
 """
 
 VALID_CHARS = string.ascii_letters + string.digits + "_"
-
-
-def safe_builtin_funcs():
-    return {
-        "abs": abs,
-        "all": all,
-        "any": any,
-        "ascii": ascii,
-        "bin": bin,
-        "bool": bool,
-        "bytes": bytes,
-        "callable": callable,
-        "chr": chr,
-        "complex": complex,
-        "dict": dict,
-        "dir": dir,
-        "divmod": divmod,
-        "enumerate": enumerate,
-        "filter": filter,
-        "float": float,
-        "format": format,
-        "hasattr": hasattr,
-        "hash": hash,
-        "hex": hex,
-        "id": id,
-        "int": int,
-        "isinstance": isinstance,
-        "issubclass": issubclass,
-        "iter": iter,
-        "len": len,
-        "list": list,
-        "map": map,
-        "max": max,
-        "min": min,
-        "oct": oct,
-        "ord": ord,
-        "pow": pow,
-        "range": range,
-        "repr": repr,
-        "reversed": reversed,
-        "round": round,
-        "set": set,
-        "slice": slice,
-        "sorted": sorted,
-        "str": str,
-        "sum": sum,
-        "tuple": tuple,
-        "type": type,
-        "zip": zip,
-    }
-
-
-try:
-    import RestrictedPython
-    import RestrictedPython.Eval
-    import RestrictedPython.Guards
-
-    def safe_compile(source):
-        return RestrictedPython.compile_restricted_eval(source).code
-
-    def safe_builtins():
-        env = RestrictedPython.Guards.safe_builtins.copy()
-        env.update(safe_builtin_funcs())
-        return env
-
-    def safe_env(**kwargs):
-        env = {
-            "_getattr_": getattr,
-            "_getitem_": RestrictedPython.Eval.default_guarded_getitem,
-            "_getiter_": RestrictedPython.Eval.default_guarded_getiter,
-            "_iter_unpack_sequence_": RestrictedPython.Guards.guarded_iter_unpack_sequence,
-            "__name__": "restricted namespace",
-            "__builtins__": safe_builtins(),
-        }
-        env.update(kwargs)
-        return env
-
-except Exception:
-
-    def safe_compile(source):
-        return compile(source, "<string>", "eval")
-
-    def safe_env(**kwargs):
-        env = {
-            "__builtins__": safe_builtins(),
-        }
-        env.update(kwargs)
-        return env
-
-    def safe_builtins():
-        env = {}
-        env.update(safe_builtin_funcs())
-        return env
 
 
 def parse_comma_separated_values(string):
@@ -251,6 +163,38 @@ def LENGTH(string_or_obj):
             return len(ast.literal_eval(string_or_obj))
         except Exception:
             return len(string_or_obj)
+    return 0
+
+
+def RANGE(start, end=None, step=None):
+    try:
+        if step is not None:
+            return str(tuple(range(start, end, step)))
+        elif end is not None:
+            return str(tuple(range(start, end)))
+        else:
+            return str(tuple(range(start)))
+    except Exception:
+        return None
+
+
+def SUM_OF_LIST(string_or_obj):
+    ## Comes in as a string, but might be "[...]"
+    if string_or_obj:
+        try:
+            return sum(ast.literal_eval(string_or_obj))
+        except Exception:
+            return sum(string_or_obj)
+    return 0
+
+
+def MEAN(string_or_obj):
+    ## Comes in as a string, but might be "[...]"
+    if string_or_obj:
+        try:
+            return statistics.mean(ast.literal_eval(string_or_obj))
+        except Exception:
+            return statistics.mean(string_or_obj)
     return 0
 
 
@@ -374,6 +318,9 @@ def get_database_connection(dgid):
     conn.create_function("FLATTEN", 1, FLATTEN)
     conn.create_function("SPLIT", -1, SPLIT)
     conn.create_function("LENGTH", 1, LENGTH)
+    conn.create_function("RANGE", -1, RANGE)
+    conn.create_function("SUM_OF_LIST", 1, SUM_OF_LIST)
+    conn.create_function("MEAN", 1, MEAN)
     conn.create_function("KEYS_OF", 1, KEYS_OF)
     conn.create_function("VALUES_OF", 1, VALUES_OF)
     conn.create_function("IN_OBJ", 2, IN_OBJ)
@@ -384,7 +331,7 @@ def get_database_connection(dgid):
 def get_completions(dgid):
     db_path = get_dg_path(dgid)
     conn = sqlite3.connect(db_path)
-    rows = conn.execute("SELECT name, other from metadata;")
+    rows = conn.execute("SELECT name, other, type from metadata;")
     results = defaultdict(set)
     constructs = [
         "AVG()",
@@ -395,14 +342,22 @@ def get_completions(dgid):
         "STDEV()",
         "SUM()",
         "TOTAL()",
+        "True",
+        "False",
         "abs()",
         "all([])",
         "and",
         "any([])",
+        "avg([])",
         "datetime",
+        "for",
         "flatten()",
+        "if TEST else VALUE",
         "in",
         "is",
+        "is None",
+        "is not",
+        "is not None",
         "len()",
         "math",
         "max()",
@@ -410,7 +365,10 @@ def get_completions(dgid):
         "not",
         "or",
         "random",
+        "range()",
         "round()",
+        "statistics",
+        "sum()",
     ]
     for expr in constructs:
         trigger = expr[:1]
@@ -426,6 +384,7 @@ def get_completions(dgid):
         "randint()",
         "random()",
     ]
+    results["statistics."] = ["mean()"]
     results["math."] = [
         "acos()",
         "acosh()",
@@ -452,32 +411,40 @@ def get_completions(dgid):
         "tanh()",
         "trunc()",
     ]
+    string_methods = [
+        "split()",
+        "upper()",
+        "lower()",
+        "strip()",
+        "lsrtip()",
+        "rstrip()",
+        "endswith()",
+        "startswith()",
+    ]
+    for method in string_methods:
+        results["." + method + "."].update([x for x in string_methods if x != method])
 
     for row in rows:
-        name, other = row
+        name, other, datatype = row
         name = name if not name.endswith("--metadata") else name[:-10]
-        if other:
+        results["{"].add('"%s"' % name)
+        if not other:
+            # No metadata, but add methods for datatypes here:
+            if datatype == "TEXT":
+                results['{"%s"}.' % (name,)].update(string_methods)
+        else:
             try:
-                other = json.loads(row[1])
+                other = json.loads(other)
             except Exception:
                 continue
+
+            results["["].add('[x for x in {"%s"}]' % name)
             if "completions" in other:
                 for comp in other["completions"].keys():
                     types = other["completions"][comp]
                     if comp == "":
                         if "str" in types:
-                            results['{"%s"}.' % (name,)].update(
-                                [
-                                    "split()",
-                                    "upper()",
-                                    "lower()",
-                                    "strip()",
-                                    "lsrtip()",
-                                    "rstrip()",
-                                    "endswith()",
-                                    "startswith()",
-                                ]
-                            )
+                            results['{"%s"}.' % (name,)].update(string_methods)
                         if "dict" in types:
                             results['{"%s"}.' % (name,)].add("keys()")
                             results['{"%s"}.' % (name,)].add("values()")
@@ -505,16 +472,7 @@ def get_completions(dgid):
 
                         if "str" in types:
                             results['{"%s"}%s' % (name, item_path)].update(
-                                [
-                                    "split()",
-                                    "upper()",
-                                    "lower()",
-                                    "strip()",
-                                    "lsrtip()",
-                                    "rstrip()",
-                                    "endswith()",
-                                    "startswith()",
-                                ]
+                                string_methods
                             )
                         elif "dict" in types:
                             results['{"%s"}%s' % (name, item_path)].add("keys()")
@@ -600,7 +558,7 @@ def histogram(cur, metadata, values, column):
         np_values = np.array([], dtype=np.float_)
 
     if stats["minimum"] is None:
-        LOGGER.info(
+        LOGGER.debug(
             "column %r does not have pre-computed stats; computing on the fly", column
         )
         if values:
@@ -613,7 +571,7 @@ def histogram(cur, metadata, values, column):
         maximum = stats["maximum"]
 
     range = (minimum, maximum)
-    LOGGER.info("Computing histogram...")
+    LOGGER.debug("Computing histogram...")
     counts, labels = np.histogram(np_values, bins=HISTOGRAM_BINS, range=range)
 
     # Compute stats for this set:
@@ -637,9 +595,9 @@ def histogram(cur, metadata, values, column):
                 "sum": np_values.sum().item(),  # ok
             }
         except Exception:
-            LOGGER.info("failed in computing statistics")
+            LOGGER.debug("failed in computing statistics")
 
-    LOGGER.info("Done!")
+    LOGGER.debug("Done!")
     return {
         "type": "histogram",
         "bins": counts.tolist(),
@@ -737,10 +695,11 @@ def get_group_by_rows(
 
     select_sql = "SELECT value FROM (SELECT {select_expr_as}, {group_by_field_expr} AS {group_by_field_name}, GROUP_CONCAT({distinct}REPLACE(IFNULL({field_expr},'None'), ',', '&comma;')) as value FROM {databases} WHERE {where} GROUP BY {group_by_field_name}) WHERE {group_by_field_name} is {column_value}"
     selection_sql = select_sql.format(**env)
-    LOGGER.info("SQL %s", selection_sql)
+
+    LOGGER.debug("SQL %s", selection_sql)
     start_time = time.time()
     cur.execute(selection_sql)
-    LOGGER.info("SQL %s seconds", time.time() - start_time)
+    LOGGER.debug("SQL %s seconds", time.time() - start_time)
     rows = cur.fetchall()
     return rows
 
@@ -805,9 +764,7 @@ def select_histogram(
         row = rows[0]
         if row:
             if row[0]:
-                LOGGER.info("Converting to list of values...")
                 values = parse_comma_separated_values(row[0])
-                LOGGER.info("Done!")
             if not isinstance(values, (list, tuple)):
                 values = [values]
 
@@ -1001,12 +958,10 @@ def select_category(
                         "columnType": column_type,
                     }
             else:
-                LOGGER.info("Sorting counts...")
                 counts = {
                     key: value
                     for (key, value) in sorted(counts.items(), key=lambda item: item[1])
                 }
-                LOGGER.info("Done!")
                 # values: {"Animal": 37, "Plant": 12}
                 results_json = {
                     "type": "category",
@@ -1064,13 +1019,13 @@ def select_asset_group_thumbnail(
     for asset_id in results_json["values"]:
         image_data = select_asset(dgid, asset_id, thumbnail=True)
         image = generate_image(generate_thumbnail(image_data))
-        background = Image.new(mode="RGBA", size=image_size, color=background_color)
+        background = PIL.Image.new(mode="RGBA", size=image_size, color=background_color)
         left = (background.size[0] - image.size[0]) // 2
         top = (background.size[1] - image.size[1]) // 2
         background.paste(image, (left, top))
         images.append(background)
 
-    gallery_image = Image.new(
+    gallery_image = PIL.Image.new(
         mode="RGBA",
         size=gallery_pixel_size,
         color=background_color,
@@ -1158,7 +1113,7 @@ def select_asset_group(
     # These are assetIds (strings):
     select_sql = "SELECT value FROM (SELECT {select_expr_as}, COUNT({field_name}) as value FROM {databases} WHERE {where} GROUP BY {group_by_field_name}) WHERE {group_by_field_name} is {column_value};"
     selection_sql = select_sql.format(**env)
-    LOGGER.info("SQL %s", selection_sql)
+    LOGGER.debug("SQL %s", selection_sql)
     start_time = time.time()
     try:
         cur.execute(selection_sql)
@@ -1166,7 +1121,7 @@ def select_asset_group(
         LOGGER.error("SQL: %s; %s", selection_sql, exc)
         raise Exception(str(exc))
 
-    LOGGER.info("SQL %s seconds", time.time() - start_time)
+    LOGGER.debug("SQL %s seconds", time.time() - start_time)
     total_rows = cur.fetchall()
     total = 0
     if total_rows:
@@ -1336,7 +1291,7 @@ def verify_where(
     select_sql = "SELECT {select_expr_as} FROM {databases} WHERE {where} LIMIT 1;"
 
     selection_sql = select_sql.format(**env)
-    LOGGER.info("SQL %s", selection_sql)
+    LOGGER.debug("SQL %s", selection_sql)
 
     try:
         cur.execute(selection_sql)
@@ -1359,6 +1314,7 @@ def query_sql(
     computed_columns=None,
     limit=None,
     offset=0,
+    debug=False,
 ):
     dgid = datagrid.filename
     select_columns = datagrid.get_columns()
@@ -1391,6 +1347,7 @@ def query_sql(
             select_columns=select_columns,
             computed_columns=computed_columns,
             where_expr=where_expr,
+            debug=debug,
         )
         return results["rows"]
 
@@ -1436,10 +1393,10 @@ def select_query_count(
     else:
         total_sql = "SELECT COUNT() FROM (SELECT {select_expr_as} FROM {databases} WHERE {where});"
     selection_sql = total_sql.format(**env)
-    LOGGER.info("SQL %s", selection_sql)
+    LOGGER.debug("SQL %s", selection_sql)
     start_time = time.time()
     total_rows = cur.execute(selection_sql).fetchone()[0]
-    LOGGER.info("SQL %s seconds", time.time() - start_time)
+    LOGGER.debug("SQL %s seconds", time.time() - start_time)
     return total_rows
 
 
@@ -1487,6 +1444,7 @@ def select_query_page(
     select_columns,
     computed_columns,
     where_expr=None,
+    debug=False,
 ):
     sort_desc = "DESC" if sort_desc else "ASC"
     conn = get_database_connection(dgid)
@@ -1561,7 +1519,9 @@ def select_query_page(
     else:
         select_sql = "%s;" % select_sql
     selection_sql = select_sql.format(**env)
-    LOGGER.info("SQL %s", selection_sql)
+    if debug:
+        print(selection_sql)
+    LOGGER.debug("SQL %s", selection_sql)
     start_time = time.time()
     try:
         cur.execute(selection_sql)
@@ -1569,7 +1529,7 @@ def select_query_page(
         LOGGER.error("SQL: %s; %s", selection_sql, exc)
         raise Exception(str(exc))
 
-    LOGGER.info("SQL %s seconds", time.time() - start_time)
+    LOGGER.debug("SQL %s seconds", time.time() - start_time)
     rows = cur.fetchall()
 
     if group_by:
@@ -1837,15 +1797,25 @@ def get_fields(dgid, metadata=None, computed_columns=None):
 def select_asset(dgid, asset_id, thumbnail=False):
     conn = get_database_connection(dgid)
     cur = conn.cursor()
-    selection = 'SELECT asset_data, asset_type, asset_thumbnail from assets where asset_id = "{asset_id}";'
+    selection = 'SELECT asset_data, asset_type, asset_thumbnail, json_extract(asset_metadata, "$.source") as asset_source from assets where asset_id = "{asset_id}";'
     env = {"asset_id": asset_id}
     selection_sql = selection.format(**env)
-    LOGGER.info("SQL %s", selection_sql)
+    LOGGER.debug("SQL %s", selection_sql)
     start_time = time.time()
     row = cur.execute(selection_sql).fetchone()
-    LOGGER.info("SQL %s seconds", time.time() - start_time)
+    LOGGER.debug("SQL %s seconds", time.time() - start_time)
+
     if row:
-        asset_data, asset_type, asset_thumbnail = row
+        asset_data, asset_type, asset_thumbnail, asset_source = row
+        if asset_source:
+            url_data = urllib.request.urlopen(asset_source)
+            with io.BytesIO() as fp:
+                fp.write(url_data.read())
+                image = PIL.Image.open(fp)
+                if image.mode == "CMYK":
+                    image = image.convert("RGB")
+                asset_data = image_to_fp(image, "png").read()
+
         if thumbnail and asset_type in ["Image"]:
             if asset_thumbnail:
                 return asset_thumbnail
@@ -1863,10 +1833,10 @@ def select_asset_metadata(dgid, asset_id):
     selection = 'SELECT asset_metadata from assets where asset_id = "{asset_id}";'
     env = {"asset_id": asset_id}
     selection_sql = selection.format(**env)
-    LOGGER.info("SQL %s", selection_sql)
+    LOGGER.debug("SQL %s", selection_sql)
     start_time = time.time()
     row = cur.execute(selection_sql).fetchone()
-    LOGGER.info("SQL %s seconds", time.time() - start_time)
+    LOGGER.debug("SQL %s seconds", time.time() - start_time)
     if row:
         return row[0]
     return None
@@ -2015,3 +1985,74 @@ STDOUT = printed
         output["stderr"] = ""
     output["stdout"] = local_env.get("STDOUT", "")
     return output
+
+
+def get_about(url, dgid):
+    db_path = get_dg_path(dgid)
+    conn = sqlite3.connect(db_path)
+
+    try:
+        about_text = conn.execute(
+            "SELECT value from settings where name = 'about';"
+        ).fetchone()[0]
+    except Exception:
+        about_text = ""
+
+    if about_text:
+        return process_about(url, dgid, about_text)
+    else:
+        return about_text
+
+
+def generate_chart_image(chart_type, data, width, height):
+    # data is a list of plotly traces
+    image_data = None
+    image = PIL.Image.new("RGBA", (width, height))
+
+    drawing = PIL.ImageDraw.Draw(image)
+
+    for trace in data:
+        if chart_type == "category":
+            spacing = height / len(trace["x"])
+            margin = max(spacing * 0.20, 1)
+            max_x = max(trace["x"])
+
+            for count, [x, y, color] in enumerate(
+                zip(trace["x"], trace["y"], trace["marker"]["color"])
+            ):
+                position = len(trace["x"]) - count - 1
+                drawing.rectangle(
+                    [
+                        (0, position * spacing),
+                        (width * x / max_x, (position + 1) * spacing - margin),
+                    ],
+                    fill=color,
+                )
+
+        elif chart_type == "histogram":
+            spacing = width / len(trace["y"])
+            margin = max(spacing * 0.20, 1)
+            max_y = max(trace["y"])
+            color = trace["marker"]["color"]
+
+            for count, [x, y] in enumerate(zip(trace["x"], trace["y"])):
+                position = count
+                drawing.rectangle(
+                    [
+                        (position * spacing, height),
+                        (
+                            (position + 1) * spacing - margin,
+                            height - height * y / max_y,
+                        ),
+                    ],
+                    fill=color,
+                )
+        else:
+            raise Exception("unknown chart_type: %r" % chart_type)
+
+    with io.BytesIO() as fp:
+        image.save(fp, format="png")
+        fp.seek(0)
+        image_data = fp.read()
+
+    return image_data

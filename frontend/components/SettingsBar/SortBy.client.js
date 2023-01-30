@@ -1,3 +1,5 @@
+'use client';
+
 import CustomizeColumnsModal from './CustomizeColumns.client';
 import usePopover from '../../lib/usePopover';
 import { Popover } from '@mui/material';

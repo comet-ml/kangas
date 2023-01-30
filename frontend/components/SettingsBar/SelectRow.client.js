@@ -1,3 +1,5 @@
+'use client';
+
 import DialogueModal from '../Modals/DialogueModalContainer.client';
 import FilterExpr from './FilterExpr.client';
 import GroupBy from './GroupBy.client';

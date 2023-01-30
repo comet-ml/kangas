@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ######################################################
 #     _____                  _____      _     _      #
@@ -44,6 +45,18 @@ def get_parser_arguments(parser):
     parser.add_argument(
         "--filter",
         help="A filter to be applied to a given DataGrid",
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
+        "--group",
+        help="Group to be applied to a given DataGrid",
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
+        "--sort",
+        help="Sort order to be applied to a given DataGrid",
         type=str,
         default=None,
     )
@@ -103,9 +116,15 @@ def get_parser_arguments(parser):
     )
     parser.add_argument(
         "--debug",
-        help="Use this flag to display output from servers",
-        default=False,
+        help="Use this flag to set display to DEBUG for output from servers",
+        default=None,
         action="store_true",
+    )
+    parser.add_argument(
+        "--debug-level",
+        help="Use this flag to set level of output from servers: DEBUG, INFO, WARNING, ERROR, or CRITICAL",
+        type=str,
+        default=None,
     )
     parser.add_argument(
         "--terminate",
@@ -164,6 +183,13 @@ def server(parsed_args, remaining=None):
     except Exception:
         nodejs = None
 
+    if parsed_args.debug_level is not None:
+        debug_level = parsed_args.debug_level
+    elif parsed_args.debug is not None:
+        debug_level = "INFO"
+    else:
+        debug_level = None
+
     KANGAS_FRONTEND_PORT = parsed_args.frontend_port
     KANGAS_HOST = parsed_args.host if parsed_args.host is not None else get_localhost()
     KANGAS_PROTOCOL = parsed_args.protocol
@@ -219,7 +245,7 @@ def server(parsed_args, remaining=None):
 
         if result == 0:  # Good! We'll use the pip-installed nodejs
             if hasattr(hasattr(nodejs, "node"), "Popen"):  # version 18
-                if not parsed_args.debug:
+                if debug_level is None:
                     node_process = nodejs.node.Popen(
                         [NODE_SERVER_PATH],
                         env=env,
@@ -235,7 +261,7 @@ def server(parsed_args, remaining=None):
                 else:
                     executable = os.path.join(node_folder, "bin/node")
 
-                if not parsed_args.debug:
+                if debug_level is None:
                     node_process = subprocess.Popen(
                         [executable, NODE_SERVER_PATH],
                         env=env,
@@ -254,7 +280,7 @@ def server(parsed_args, remaining=None):
             if result == 1:
                 raise Exception("Unable to find node executable")
 
-            if not parsed_args.debug:
+            if debug_level is None:
                 node_process = subprocess.Popen(
                     [executable, NODE_SERVER_PATH],
                     env=env,
@@ -322,6 +348,10 @@ def server(parsed_args, remaining=None):
             query_vars["datagrid"] = filename
             if parsed_args.filter:
                 query_vars["filter"] = parsed_args.filter
+            if parsed_args.group:
+                query_vars["group"] = parsed_args.group
+            if parsed_args.sort:
+                query_vars["sort"] = parsed_args.sort
         if query_vars:
             url = "%s?%s" % (host, urllib.parse.urlencode(query_vars))
         else:
@@ -334,17 +364,24 @@ def server(parsed_args, remaining=None):
             "Kangas backend is now running on %s://%s:%s/..."
             % (KANGAS_PROTOCOL, KANGAS_HOST, KANGAS_BACKEND_PORT)
         )
-        try:
+        if debug_level == 20:  # DEBUG
             kangas.server.start_tornado_server(
                 port=KANGAS_BACKEND_PORT,
-                debug=parsed_args.debug,
+                debug=debug_level,
                 max_workers=parsed_args.max_workers,
             )
-        except Exception:
-            print("Unable to start backend; perhaps already running")
-            if parsed_args.frontend != "no":
-                node_process.wait()
-            return
+        else:
+            try:
+                kangas.server.start_tornado_server(
+                    port=KANGAS_BACKEND_PORT,
+                    debug=debug_level,
+                    max_workers=parsed_args.max_workers,
+                )
+            except Exception:
+                print("Unable to start backend; perhaps already running")
+                if parsed_args.frontend != "no":
+                    node_process.wait()
+                return
 
         print("Stopping backend...")
         if parsed_args.frontend != "no":

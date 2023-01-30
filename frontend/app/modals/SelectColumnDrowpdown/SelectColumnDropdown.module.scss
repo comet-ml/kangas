@@ -1,0 +1,78 @@
+@use '../../Settings/Buttons/Buttons.module.scss';
+
+.select-modal {
+    width: 330px;
+    max-height: 90%;
+    padding: 16px;
+    background: white;
+    box-sizing: border-box;
+    box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.13);
+    border-radius: 4px;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+
+}
+.select-modal-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 17px 0;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 19px;
+
+    div {
+        display: flex;
+    }
+
+    .disabled {
+        color: #afb0fb;
+    }
+
+    .enabled {
+        color: #5155f5;
+
+    }
+}
+
+.reset-button {
+    font-size: 14px;
+    color: rgb(81, 85, 245);
+    cursor: pointer;
+    font-weight: 400;
+    line-height: 15px;
+}
+
+.select-modal-body {
+    border-top: 1px solid #f0f2f6;
+    width: 100%;
+    display: block;
+    align-items: center;
+}
+
+.react-select-container {
+    width: 100%;
+    display: flex;
+    div:first-child {
+        width: 100%;
+    }
+}
+
+.button-row-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin: 20px 0px;
+    
+    div {
+        margin-right: 12px;
+    }
+    :last-child {
+        margin-right: 0;
+    }
+}
+
+
+

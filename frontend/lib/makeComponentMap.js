@@ -18,6 +18,7 @@ import HistogramGroupCell from '../components/Cells/Histogram/HistogramGroupCell
 import HistogramGroupExpanded from '../components/Cells/Histogram/HistogramGroupExpanded.server';
 import CategoryGroupCell from '../components/Cells/Category/CategoryGroupCell.server';
 import CategoryGroupExpanded from '../components/Cells/Category/CategoryGroupExpanded.server';
+
 const SINGLE_VALUE_WIDTH = 75;
 const GROUPED_ASSET_WIDTH = 150;
 

@@ -24,14 +24,16 @@ import urllib
 import webbrowser
 from collections import defaultdict
 
-import tqdm
+import numpy as np
 
-from ..utils import _in_colab_environment, _in_jupyter_environment
+from ..utils import ProgressBar, _in_colab_environment, _in_jupyter_environment
 from .base import Asset
 from .serialize import ASSET_TYPE_MAP, DATAGRID_TYPES
 from .utils import (
     RESERVED_NAMES,
+    _verify_box,
     apply_converters,
+    combine_arrays,
     convert_row_dict,
     convert_string_to_value,
     convert_to_type,
@@ -177,6 +179,7 @@ class DataGrid:
         self.converters = converters if converters else self._get_default_converters()
         self.datetime_format = datetime_format
         self.heuristics = heuristics
+        self.about = ""
         self.create_thumbnails = False
         self.name = name
         self._data = []
@@ -226,7 +229,7 @@ class DataGrid:
         # Else, will have to add columns on the fly when we get some data
 
         if data:
-            self.extend(tqdm.tqdm(data))
+            self.extend(ProgressBar(data))
 
     def __repr__(self, row=None):
         nrows = self.nrows
@@ -305,10 +308,11 @@ class DataGrid:
         filter=None,
         host=None,
         port=4000,
-        debug=False,
+        debug=None,
         height="750px",
         width="100%",
         protocol="http",
+        **kwargs
     ):
         """
         Open DataGrid in an IFrame in the jupyter environment or browser.
@@ -318,10 +322,11 @@ class DataGrid:
                to listen to
             filter: (optional, str) a filter to set on the DataGrid
             port: (optional, int) the port number for the servers to listen to
-            debug: (optional, bool) if True, will display additional information
+            debug: (optional, str) will display additional information
                from the server (may not be visible in a notebook)
             height: (optional, str) the height of iframe in px or percentage
             width: (optional, str) the width of iframe in px or percentage
+            kwargs: additional URL parameters to pass to server
 
         Example:
 
@@ -331,6 +336,7 @@ class DataGrid:
         >>> # append data to DataGrid
         >>> dg.show()
         >>> dg.show("{'Column Name'} == 'category three'")
+        >>> dg.show("{'Column Name'} == 'category three'", group="Another Column Name")
         ```
         """
         from IPython.display import IFrame, clear_output, display
@@ -343,6 +349,8 @@ class DataGrid:
             self.save()
 
         query_vars = {"datagrid": self.filename}
+        query_vars.update(kwargs)
+
         if filter:
             query_vars["filter"] = filter
         qvs = "?" + urllib.parse.urlencode(query_vars)
@@ -458,7 +466,7 @@ class DataGrid:
             writer = csv.writer(fp, delimiter=sep, quotechar=quotechar)
             if header:
                 writer.writerow(self.get_columns())
-            for row in tqdm.tqdm(self):
+            for row in ProgressBar(self):
                 writer.writerow(
                     [
                         apply_converters(value, colname, converters)
@@ -692,6 +700,42 @@ class DataGrid:
         download_filename(url, ext)
 
     @classmethod
+    def read_sklearn(cls, dataset_name):
+        """
+        Load a sklearn dataset by name.
+
+        Args:
+            dataset_name: (str) one of: 'boston', 'breast_cancer',
+                'diabetes', 'digits', 'iris', 'wine'
+
+        Example:
+        ```python
+        >>> dg = DataGrid.read_sklearn("iris")
+        ```
+        """
+        import sklearn.datasets
+
+        dataset = getattr(sklearn.datasets, "load_%s" % dataset_name)()
+        if hasattr(dataset, "target_names"):
+            target_names = {
+                key: value for key, value in enumerate(dataset.target_names)
+            }
+
+        datagrid = DataGrid(
+            name=dataset_name,
+            columns=list(dataset.feature_names) + ["target"],
+        )
+
+        for i in range(len(dataset.data)):
+            if hasattr(dataset, "target_names"):
+                target = target_names[dataset.target[i]]
+            else:
+                target = dataset.target[i]
+            datagrid.append(list(dataset.data[i]) + [target])
+
+        return datagrid
+
+    @classmethod
     def read_parquet(cls, filename, **kwargs):
         """
         Takes a parquet filename or URL and returns a DataGrid.
@@ -733,7 +777,7 @@ class DataGrid:
         """
         print("Reading DataFrame...")
         columns = list(dataframe.columns)
-        data = [list(row) for r, row in tqdm.tqdm(dataframe.iterrows())]
+        data = [list(row) for r, row in ProgressBar(dataframe.iterrows())]
         return DataGrid(data=data, columns=columns, **kwargs)
 
     @classmethod
@@ -797,7 +841,7 @@ class DataGrid:
             json_lines = fp.read(1) == "{"
             fp.seek(0)
             if json_lines:
-                for line in tqdm.tqdm(fp):
+                for line in ProgressBar(fp):
                     dg.append(json.loads(line))
             else:
                 dg.extend(json.load(fp))
@@ -865,7 +909,7 @@ class DataGrid:
         print("Loading CSV file %r..." % filename)
         with open(filename) as csvfile:
             reader = csv.reader(csvfile, delimiter=sep, quotechar=quotechar)
-            for r, row in tqdm.tqdm(enumerate(reader)):
+            for r, row in ProgressBar(enumerate(reader)):
                 if header is not None:
                     if not read_header:
                         if header == r:
@@ -1127,6 +1171,93 @@ class DataGrid:
         # After conversion, apply a row-level conversion:
         convert_row_dict(row_dict, self.converters)
 
+    def _scale_value(self, value, column_name, stats):
+        if stats[column_name]["type"] == "VECTOR":
+            return value
+        elif (
+            (stats[column_name]["minimum"] is not None)
+            and (stats[column_name]["maximum"] is not None)
+            and (stats[column_name]["maximum"] != stats[column_name]["minimum"])
+        ):
+            return (value - stats[column_name]["minimum"]) / (
+                stats[column_name]["maximum"] - stats[column_name]["minimum"]
+            )
+        else:
+            return value
+
+    def append_pca_column(self, *columns, new_column=None, scale=True, **kwargs):
+        """
+        Append a PCA column given the name of a VECTOR column.
+
+        Args:
+            columns: (str) the name(s) of FLOAT or VECTOR column(s)
+            new_column: (str, optional) the new column name
+
+        Note:
+            You must save the DataGrid before adding a PCA column.
+
+        ```python
+        >>> dg = kg.DataGrid(
+        ...     columns=["vector column"],
+        ...     data=[[...], [...], ...]
+        >>> dg.save()
+        >>> dg.append_pca_column("vector column")
+        ```
+        """
+        from sklearn.decomposition import IncrementalPCA
+
+        if not self._on_disk:
+            raise Exception("Adding a PCA column requires a saved DataGrid")
+
+        indices = [
+            list(self._columns.keys()).index(column_name) - 1 for column_name in columns
+        ]
+        column_map = {
+            list(self._columns.keys()).index(column_name) - 1: column_name
+            for column_name in columns
+        }
+        metadata = self.get_metadata()
+
+        if new_column is None:
+            if len(columns) == 1:
+                new_column = "%s PCA" % columns[0]
+            else:
+                new_column = "PCA"
+
+        # 1, go through vectors and build pca
+        pca = IncrementalPCA(**kwargs)
+        batch = []
+        for row in self.select():
+            if scale:
+                vectors = [
+                    self._scale_value(row[index], column_map[index], metadata)
+                    for index in indices
+                ]
+            else:
+                vectors = [row[index] for index in indices]
+            vector = combine_arrays(vectors)
+            batch.append(vector)
+            if len(batch) == 10:
+                pca.partial_fit(batch)
+                batch = []
+        if len(batch) > 0:
+            pca.partial_fit(batch)
+
+        # 2, compute transform for each vector
+        transforms = []
+        for row in self.select():
+            if scale:
+                vectors = [
+                    self._scale_value(row[index], column_map[index], metadata)
+                    for index in indices
+                ]
+            else:
+                vectors = [row[index] for index in indices]
+            vector = combine_arrays(vectors)
+            transforms.append(pca.transform([vector])[0])
+        # 3, save transform
+        self.append_column(new_column, transforms)
+
     def append_column(self, column_name, rows, verify=True):
         """
         Append a column to the DataGrid.
@@ -1317,7 +1448,7 @@ class DataGrid:
             self._asset_id_cache = set(self.get_asset_ids())
             self.cursor = self.conn.cursor()
             print("Extending data...")
-            for row in tqdm.tqdm(rows):
+            for row in ProgressBar(rows):
                 if not isinstance(row, (dict,)):
                     row_dict = {
                         column_name: value
@@ -1768,6 +1899,7 @@ class DataGrid:
         computed_columns=None,
         limit=None,
         offset=0,
+        debug=False,
     ):
         """
         Perform a selection on the database, including possibly a
@@ -1818,6 +1950,7 @@ class DataGrid:
             computed_columns,
             limit,
             offset,
+            debug=debug,
         )
         if count:
             return results
@@ -1896,7 +2029,7 @@ class DataGrid:
             }
         )
         print("Saving data...")
-        for row in tqdm.tqdm(self._data):
+        for row in ProgressBar(self._data):
             for column_name in row:
                 row[column_name] = convert_to_type(
                     row[column_name], self._columns[column_name]
@@ -1955,6 +2088,33 @@ class DataGrid:
         if settings:
             self._save_settings(**settings)
 
+    def set_about(self, markdown):
+        """
+        Set the about page for this DataGrid.
+
+        Args:
+            markdown: (str) the text of the markdown About text
+        """
+        self._save_settings(about=markdown)
+
+    def get_about(self):
+        """
+        Get the about page for this DataGrid.
+        """
+        self._load_settings()
+        return self.about
+
+    def display_about(self):
+        """
+        Display the about page for this DataGrid as markdown.
+
+        Note: this requires being in an IPython-like environment.
+        """
+        from IPython.display import Markdown, display
+
+        self._load_settings()
+        display(Markdown(self.about))
+
     def _save_settings(self, **settings):
 
         try:
@@ -1987,6 +2147,7 @@ class DataGrid:
             "datetime_format": str,
             "name": str,
             "create_thumbnails": bool,
+            "about": str,
         }
 
         for row in self.conn.execute(select_settings_sql):
@@ -2017,15 +2178,13 @@ class DataGrid:
         """
         Compute the stats and metadata for all columns.
         """
-        import numpy as np
-
         insert_metadata_sql = """UPDATE metadata SET minimum = ?, maximum = ?, average = ?, variance = ?, total = ?, stddev= ? , other = ? WHERE name = ?;"""
 
         columns = columns if columns is not None else self.get_schema()
 
         data = []
         print("Computing statistics...")
-        for col_name in tqdm.tqdm(columns):
+        for col_name in ProgressBar(columns):
             col_type = columns[col_name]["type"]
             field_name = columns[col_name]["field_name"]
             if col_type in ["FLOAT", "INTEGER", "ROW_ID"]:
@@ -2085,6 +2244,7 @@ class DataGrid:
                         ragged = True
 
                     if ragged:
+                        other["shape"] = "ragged"
                         break
 
                     minimum = min(minimum, array.min())
@@ -2097,20 +2257,20 @@ class DataGrid:
                     elif other["shape"] != array.shape:
                         other["shape"] = "various"
 
-                if not ragged:
-                    # min, max, avg, variance, total, stddev, other, name
-                    data.append(
-                        [
-                            minimum,
-                            maximum,
-                            None,
-                            None,
-                            None,
-                            None,
-                            json.dumps(other),
-                            col_name,
-                        ]
-                    )
+                # min, max, avg, variance, total, stddev, other, name
+                ## NOTE: ragged arrays do not compute min/max
+                data.append(
+                    [
+                        minimum,
+                        maximum,
+                        None,
+                        None,
+                        None,
+                        None,
+                        json.dumps(other),
+                        col_name,
+                    ]
+                )
 
             elif col_type == "JSON":
                 rows = self.conn.execute(
@@ -2250,6 +2410,14 @@ class DataGrid:
                 "unable to serialize %r in column %r" % (item, column_name)
             )
 
+    def get_metadata(self):
+        from ..server.queries import get_metadata
+
+        if self._on_disk:
+            return get_metadata(self.conn)
+        else:
+            return None
+
     def _log(self, asset_id, asset_type, asset_data, metadata):
         """
         Log the asset. As a side-effect, possibly create a thumbnail.
@@ -2274,3 +2442,65 @@ class DataGrid:
                 [asset_id, asset_type, asset_data, json_string, asset_thumbnail],
             )
             self._asset_id_cache.add(asset_id)
+
+    def upgrade(self):
+        """
+        Upgrade to latest version of datagrid.
+        """
+        cursor = self.conn.cursor()
+
+        sql = "SELECT asset_id, asset_metadata FROM assets;"
+        sql_update = "UPDATE assets SET asset_metadata = ? where asset_id = ?"
+        rows = list(cursor.execute(sql).fetchall())
+
+        count = 0
+        for row in ProgressBar(rows):
+            asset_id, asset_json_string = row
+            asset_json = json.loads(asset_json_string)
+
+            # old style: "overlays": [{"label": "motorcycle", "type": "boxes",
+            # "data": [[[359.17, 146.17], [471.62, 359.74]]], "score": 0.9247971465564591},
+            # {"label": "person", "type": "regions", "data": [[352.55, 146.82, 35...]]}, ...]
+
+            # new style: {"annotations": [
+            #   {"name": str_layername,
+            #    "data": [{"label": str, "boxes": [], "regions": [], "score": float}, ...]}]}
+
+            if "overlays" in asset_json:
+                data = []
+                asset_json["annotations"] = {
+                    "name": "(uncategorized)",
+                    "data": data,
+                }
+                for overlay in asset_json["overlays"]:
+                    if overlay["type"] == "boxes":
+                        data.append(
+                            {
+                                "label": overlay["label"],
+                                "boxes": [_verify_box(box) for box in overlay["data"]],
+                                "score": overlay["score"],
+                                "metadata": overlay["metadata"]
+                                if "metadata" in overlay
+                                else None,
+                            }
+                        )
+                    if overlay["type"] == "regions":
+                        data.append(
+                            {
+                                "label": overlay["label"],
+                                "regions": overlay["data"],
+                                "score": overlay["score"],
+                                "metadata": overlay["metadata"]
+                                if "metadata" in overlay
+                                else None,
+                            }
+                        )
+                del asset_json["overlays"]
+
+            asset_json_new = json.dumps(asset_json)
+            if asset_json_new != asset_json_string:
+                cursor.execute(sql_update, [asset_json_new, asset_id])
+                count += 1
+
+        self.conn.commit()
+        print("Updated %s assets" % count)
