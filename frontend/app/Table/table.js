@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-key */
 
 import fetchDataGrid from '../../lib/fetchDatagrid';
-import { Cell } from '../cells/base';
+import Cell from '../cells/base';
 import styles from './Table.module.scss';
 import classNames from 'classnames/bind';
 import EMPTY from '../../lib/consts/emptyTable';

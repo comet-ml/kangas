@@ -5,7 +5,7 @@ import Table, { TableDisplay } from './Table/table';
 import SettingsBar from './Settings';
 import PagerBar from './PagerBar';
 import ViewProvider from './contexts/ViewContext';
-import { getDefaultCellSize } from './cells/base';
+import getDefaultCellSize from '../lib/getDefaultCellSize';
 import { Suspense, cache } from 'react';
 import fetchDatagrids from '../lib/fetchDatagrids';
 import fetchTimestamp from '../lib/fetchTimestamp';
@@ -24,17 +24,6 @@ const Main = async ({ query }) => {
             <SettingsBar query={query} />
             <Table data={data} query={query} />
             <PagerBar query={query} />
-        </ViewProvider>
-    );
-}
-
-const Loading = ({ query }) => {
-    const { columnTypes, columns } = EMPTY;
-    const view = Object.fromEntries( columns.map( ( col, idx ) => [ col, getDefaultCellSize(columnTypes[idx], query?.groupBy) ]));
-
-    return (
-        <ViewProvider value={{ columns: view }}>
-            <>Nah</>
         </ViewProvider>
     );
 }

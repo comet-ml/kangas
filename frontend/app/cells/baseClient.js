@@ -5,7 +5,7 @@ import { ViewContext } from "../contexts/ViewContext";
 import classNames from 'classnames/bind';
 import styles from './Cell.module.scss';
 import { Resizable } from 're-resizable';
-import { getDefaultCellSize } from "./base";
+import getDefaultCellSize from "../../lib/getDefaultCellSize";
 
 const cx = classNames.bind(styles);
 
