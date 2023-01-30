@@ -24,17 +24,6 @@ const CellClient = ({ columnName, type, isHeader, children, grouped }) => {
     const [isResizing, setIsResizing] = useState(false);
     const [width, setWidth] = useState(getDefaultCellSize(type, grouped));
 
-    // CHECKME: is this a good way to handle two different widths (grouped, and non-grouped)?
-    const isGrouped = useMemo(() => {
-        const width = getDefaultCellSize(type, !!grouped);
-        setWidth(width);
-        updateWidth({
-            [columnName]: {
-                width: width
-            }
-        });
-    }, [grouped]);
-
     const resize = useCallback((d) => {
         updateWidth({
             [columnName]: {
