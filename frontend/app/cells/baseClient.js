@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext, useCallback, useState, useEffect, useMemo } from "react";
+import { useContext, useCallback, useState, useEffect, useMemo, useRef } from "react";
 import { ViewContext } from "../contexts/ViewContext";
 import classNames from 'classnames/bind';
 import styles from './Cell.module.scss';
@@ -19,7 +19,6 @@ Using the startResizing/stopResizing/initWidth dynamic, we can force all widths 
 */
 
 const CellClient = ({ columnName, type, isHeader, children, grouped }) => {
-    // FIXME: need to reset when changing datagrids
     const { columns, updateWidth } = useContext(ViewContext);
     const [isResizing, setIsResizing] = useState(false);
     const [width, setWidth] = useState(getDefaultCellSize(type, grouped));
@@ -42,13 +41,13 @@ const CellClient = ({ columnName, type, isHeader, children, grouped }) => {
     }, [isResizing, columns?.[columnName]?.width, width]);
 
     const headerResizeStyle = {
-	'width': '1px',
-	'backgroundColor': 'silver',
-	'border': '2px ridge silver',
-	'borderRadius': '2px',
-	'right': '0px',
-	'height': '100%',
-	'top': '-2px',
+        'width': '1px',
+        'backgroundColor': 'silver',
+        'border': '2px ridge silver',
+        'borderRadius': '2px',
+        'right': '0px',
+        'height': '100%',
+        'top': '-2px',
     };
 
     return (

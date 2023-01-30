@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useEffect, useReducer } from 'react';
+import getDefaultCellSize from '../../lib/getDefaultCellSize';
 
 export const ViewContext = createContext({
     columns: {},
@@ -18,7 +19,7 @@ const reducer = (state, action) => {
         case 'NEW_COLUMNS':
             return {
                 columns: {
-                    ...action.payload
+                    ...action.payload.columns
                 }
             }
         case 'UPDATE_COL_STATUS':
@@ -39,13 +40,15 @@ const reducer = (state, action) => {
 const ViewProvider = ({ value, children }) => {
     const [state, dispatch] = useReducer(reducer, value);
 
+
     // TODO Find a more performant solution than this quick-and-dirty patch
     useEffect(() => {
         if (
             JSON.stringify(Object.keys(state?.columns)) !== JSON.stringify(Object.keys(value?.columns)) && 
             !!value?.columns
         ) {
-            dispatch({ type: 'NEW_COLUMNS', payload: value.columns })
+            const isGrouped = !! new URLSearchParams(window.location.search).get('groupBy')
+            dispatch({ type: 'NEW_COLUMNS', payload: { columns: value.columns, isGrouped } })
         }
     }, [state?.columns, value?.columns, dispatch])
 

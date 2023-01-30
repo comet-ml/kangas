@@ -3,7 +3,6 @@ import classNames from 'classnames/bind';
 import CellClient from './baseClient';
 import Header from './header';
 import cellMap from '../../lib/consts/cellMap';
-import getDefaultCellSize from '../../lib/getDefaultCellSize';
 
 const cx = classNames.bind(styles);
 
