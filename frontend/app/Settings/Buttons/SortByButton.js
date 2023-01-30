@@ -24,6 +24,7 @@ const SortByButton = () => {
                     horizontal: 'right',
                 }}
                 className={'popover-select'}
+                onClose={toggleOpen}
                 open={open}
                 anchorEl={anchor?.current}
             >

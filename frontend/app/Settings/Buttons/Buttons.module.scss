@@ -1,15 +1,27 @@
 .button {
     display: inline-block;
-    padding: 11px 32px;
-    font-size: 14px;
+    background-color: #3438d0;
+    color: white;
+    border-radius: 5px;
+    padding: 9px 18px;
+    font-family: 'Roboto';
     font-weight: 500;
+    display: inline-block;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    cursor: pointer;
+    max-height: 34px;
+    box-sizing: border-box;
+    white-space: nowrap;
+
 }
 
 .button-outline {
     color: #5155f5;
     border: 1px solid #5155f5;
     border-radius: 5px;
-    padding: 7.5px 12px;
+    padding: 9px 18px;
     font-family: 'Roboto';
     font-weight: 500;
     display: inline-block;

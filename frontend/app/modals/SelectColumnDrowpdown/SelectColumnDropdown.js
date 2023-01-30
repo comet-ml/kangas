@@ -1,17 +1,15 @@
 'use client';
 
-import { useCallback, useContext, useMemo } from 'react';
+import { useCallback, useContext, useMemo, useState } from 'react';
 import Select from 'react-select';
 import { ViewContext } from '../../contexts/ViewContext';
 import useQueryParams from '../../../lib/hooks/useQueryParams';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import styles from './SelectColumnDropdown.module.scss';
-import styles2 from '../../Settings/SettingsBar.module.scss';
 import classNames from 'classnames/bind';
 
 const cx = classNames.bind(styles);
-const cx2 = classNames.bind(styles2);
 
 import "./Mui.css";
 
@@ -27,6 +25,7 @@ const SortArrow = ({ toggle, sortDesc }) => {
 const SelectColumnDropdown = ({ toggleOpen, group = false }) => {
     const { params, updateParams } = useQueryParams();
     const { columns } = useContext(ViewContext);
+    const [selected, setSelected] = useState();
 
     const toggleDesc = useCallback(() => {
         updateParams({
@@ -34,22 +33,30 @@ const SelectColumnDropdown = ({ toggleOpen, group = false }) => {
         });
     }, [params, updateParams]);
 
-    const groupBy = useCallback((e) => {
-        updateParams({
-            group: e.value,
-            sort: e.value,
-            rows: 4,
-            page: undefined,
-        });
-        toggleOpen();
-    }, [updateParams, toggleOpen]);
 
-    const sortBy = useCallback((e) => {
-        updateParams({
-            sort: e.value
-        });
+    const cancelSelection = useCallback(() => {
+        setSelected(null);
         toggleOpen();
-    }, [updateParams, toggleOpen]);
+    }, [toggleOpen]);
+
+    const commitChange = useCallback((e) => {
+        console.log(selected)
+        if (!selected) return;
+
+        if (group) {
+            updateParams({
+                group: selected[0].value,
+                sort: selected[0].value,
+                rows: 4,
+                page: undefined,
+            });    
+        } else {
+            updateParams({
+                sort: selected[0].value
+            });    
+        }
+        toggleOpen();
+    }, [group, selected, updateParams, toggleOpen])
 
     const resetDefault = useCallback(() => {
         if (group) {
@@ -76,31 +83,39 @@ const SelectColumnDropdown = ({ toggleOpen, group = false }) => {
         [columns]
     );
 
+    const updateSelected = useCallback((e) => {
+        setSelected(options?.filter((o) => o.value === e.value));
+    }, [options]);
+
+
     return (
         <div>
             <div className={cx('select-modal-title')}>
                 <div>Select a column</div>
+                <div
+                    className={cx('reset-button')}
+                    onClick={resetDefault}
+                 >
+                    Reset to default
+                 </div>
             </div>
             <div className={cx('select-modal-body')}>
-            <div style={{display: 'flex'}}>
+            <div className={cx('react-select-container')}>
                 <Select
-                    value={options.filter(e => e.label === (group ? params?.group : params?.sort))}
+                    value={selected ?? options.filter(e => e.label === (group ? params?.group : params?.sort))}
                     options={options}
-                    onChange={group ? groupBy : sortBy}
+                    onChange={updateSelected}
 
                 />
                 { !group && <SortArrow toggle={toggleDesc} sortDesc={params?.descending === 'true'} /> }
               </div>
-              <div style={{display: 'flex', margin: '20px 0px'}}>
-                 <div
-                    className={`${cx('reset-button')} ${
-                        false ? 'enabled' : 'disabled'
-                    }`}
-                    onClick={resetDefault}
-                 >
-                 Reset to default
-                 </div>
-                 <button className={cx2('button')} onClick={toggleOpen}>Done</button>
+              <div className={cx('button-row-footer')}>
+                <div className={cx('button-outline')} onClick={cancelSelection}>
+                    Cancel
+                </div>
+                <div className={cx('button')} onClick={commitChange}>
+                    Done
+                </div>
               </div>
             </div>
         </div>
