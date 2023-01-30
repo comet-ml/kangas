@@ -40,7 +40,6 @@ const SelectColumnDropdown = ({ toggleOpen, group = false }) => {
     }, [toggleOpen]);
 
     const commitChange = useCallback((e) => {
-        console.log(selected)
         if (!selected) return;
 
         if (group) {
