@@ -21,6 +21,11 @@
         min-height: 120px;
     }
 
+    &.group > img {
+        max-height: 116px;
+        width: 100%;
+    }
+
     &.expanded {
         max-width: unset;
         border-bottom: unset;
