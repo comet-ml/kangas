@@ -15,6 +15,7 @@ import io
 import json
 import logging
 import math
+import urllib
 
 import numpy as np
 import PIL.Image
@@ -106,7 +107,7 @@ class Image(Asset):
             self._unserialize = unserialize
             return
         if self.source is not None:
-            filename = self.source["source"]
+            filename = self.source
             self._log_metadata(
                 name=name,
                 filename=filename,
@@ -151,7 +152,22 @@ class Image(Asset):
         >>> image.show()
         ```
         """
-        return generate_image(self.asset_data)
+        if self.source is not None:
+            asset_data = self._get_asset_data_from_source(self.source)
+        else:
+            asset_data = self.asset_data
+        return generate_image(asset_data)
+
+    def _get_asset_data_from_source(self, asset_source):
+        # Get the asset_data for an image source
+        url_data = urllib.request.urlopen(asset_source)
+        with io.BytesIO() as fp:
+            fp.write(url_data.read())
+            image = PIL.Image.open(fp)
+            if image.mode == "CMYK":
+                image = image.convert("RGB")
+            asset_data = image_to_fp(image, "png").read()
+        return asset_data
 
     def show(self):
         """

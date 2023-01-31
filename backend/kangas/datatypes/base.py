@@ -11,13 +11,9 @@
 #    All rights reserved                             #
 ######################################################
 
-import io
 import json
-import urllib
 
-import PIL.Image
-
-from .utils import generate_guid, image_to_fp
+from .utils import generate_guid
 
 
 class Asset:
@@ -38,8 +34,8 @@ class Asset:
         self.source = None
         if source is not None:
             # FIXME: check to make sure that source should be http, https, or file
-            self.source = {"source": source}
-            self.asset_data = json.dumps(self.source)
+            self.source = source
+            self.asset_data = json.dumps({"source": self.source})
             self.metadata["source"] = source
 
     @property
@@ -87,15 +83,9 @@ class Asset:
             if row:
                 asset_data, asset_metadata, asset_source = row
                 if asset_source:
-                    # FIXME: move to Image class
-                    url_data = urllib.request.urlopen(asset_source)
-                    with io.BytesIO() as fp:
-                        fp.write(url_data.read())
-                        image = PIL.Image.open(fp)
-                        if image.mode == "CMYK":
-                            image = image.convert("RGB")
-                        obj.asset_data = image_to_fp(image, "png").read()
-                        obj.metadata = asset_metadata
+                    obj.asset_data = obj._get_asset_data_from_source(asset_source)
+                    obj.metadata = asset_metadata
+                    obj.source = asset_source
                 else:
                     obj.asset_data = asset_data
                     obj.metadata = asset_metadata
@@ -103,6 +93,10 @@ class Asset:
         obj = cls(unserialize=_unserialize)
         obj.asset_id = asset_id
         return obj
+
+    def _get_asset_data_from_source(self, asset_source):
+        # Add this method in asset class
+        raise NotImplementedError("This asset subclass needs to implement this method")
 
     def _log_metadata(self, **metadata):
         """
