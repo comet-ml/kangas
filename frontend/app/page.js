@@ -21,7 +21,7 @@ const Main = async ({ query }) => {
 
     return (
         <ViewProvider value={{ columns: view, query }}>
-            <SettingsBar query={query} />
+            <SettingsBar query={query} columns={columns} />
             <Table data={data} query={query} />
             <PagerBar query={query} />
         </ViewProvider>

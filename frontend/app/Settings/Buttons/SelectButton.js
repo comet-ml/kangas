@@ -7,7 +7,7 @@ import MultiColumnSelectModal from '../../modals/MultiColumnSelectModal';
 
 const cx = classNames.bind(styles);
 
-const SelectButton = () => (
+const SelectButton = ({ columns }) => (
     <DialogueModal
         toggleElement={
             <div className={cx("button-outline")}>
@@ -23,7 +23,7 @@ const SelectButton = () => (
             },
             }}
         >
-            <MultiColumnSelectModal />
+            <MultiColumnSelectModal columns={columns} />
         </DialogueModal>
 );
 

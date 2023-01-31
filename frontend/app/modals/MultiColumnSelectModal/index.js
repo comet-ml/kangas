@@ -1,6 +1,6 @@
 'use client';
 
-import React, { MouseEventHandler, useCallback, useContext, useMemo, useState } from 'react';
+import React, { MouseEventHandler, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import Select, { components } from 'react-select';
 import { DndContext, DragEndEvent, useDroppable } from '@dnd-kit/core';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
@@ -11,7 +11,7 @@ import {
     useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { ViewContext } from '../../contexts/ViewContext';
+import { ModalContext } from '../../contexts/ModalContext';
 import useQueryParams from '../../../lib/hooks/useQueryParams';
 
 import classNames from 'classnames/bind';
@@ -93,11 +93,10 @@ const Menu = (props) => (
 	<components.Menu className={cx("react-select-list")} {...props} />
 );
 
-const MultiColumnSelectModal = ({  }) => {
+const MultiColumnSelectModal = ({ columns = {} }) => {
     const { params, updateParams } = useQueryParams();
-    const { columns } = useContext(ViewContext)
     const [selected, setSelected] = useState([]);
-
+    const { closeModal } = useContext(ModalContext); 
     const onChange = useCallback((selectedOptions) => setSelected([...selectedOptions], []));
 
     const onSortEnd = useCallback((event) => {
@@ -116,7 +115,7 @@ const MultiColumnSelectModal = ({  }) => {
 
     const options = useMemo(
         () =>
-            Object.keys(columns)?.map((col, i) => {
+            columns?.map((col, i) => {
                 // For dropdown selectors, we add an empty cell at id: 0, hence the i + 1 below
                 return { id: i + 1, label: col, value: col };
             }),
@@ -126,17 +125,27 @@ const MultiColumnSelectModal = ({  }) => {
     const resetSelected = useCallback(() => setSelected(options), [options]);
 
     const update = useCallback(() => {
-	if (selected.length > 0) {
+        if (selected.length > 0) {
             const parsedOptions = selected.map((col) => col.value);
             updateParams({
-		        select: parsedOptions.join(',')
+                select: parsedOptions.join(',')
             });
-	} else {
+        } else {
             updateParams({
-		        select: undefined
+                select: undefined
             });
-	}
-    }, [selected, updateParams]);
+        }
+        closeModal();
+    }, [selected, updateParams, closeModal]);
+
+    useEffect(() => {
+        const preselected = params?.select?.split(',').map(col => {
+            return options.find((option) => option.value.toLowerCase() === col.toLowerCase() )
+        });
+
+        if (preselected?.length) setSelected([ ...preselected ]);
+        else setSelected([ ...options ])
+    }, [options, params?.select]);
 
     // Note: react-select styling: https://react-select.com/styles
     const customStyles = useMemo(() => {
@@ -177,7 +186,7 @@ const MultiColumnSelectModal = ({  }) => {
     return (
             <div className={cx("multi-select-columns")}>
             <div className={cx("title")}>
-                {`Column Selection & Ordering`}
+                Column Selection & Ordering
             </div>
             <div className={cx("subtitle")}>
                 Add and remove column tags to update the table

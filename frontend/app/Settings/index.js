@@ -12,15 +12,16 @@ import styles from './SettingsBar.module.scss';
 import classNames from 'classnames/bind';
 import { Suspense } from 'react';
 import fetchDatagrids from '../../lib/fetchDatagrids';
+import fetchDataGrid from '../../lib/fetchDatagrid';
 
 const cx = classNames.bind(styles);
 
 
 const SettingsBar = async ({ query }) => {
     const status = await fetchStatus();
-    const columns  = [];
     const options = await fetchDatagrids();
     const completions = await fetchCompletions(query?.dgid);
+    const firstRow = await fetchDataGrid( { ...query, select: null, limit: 1 } );
 
     return (
         <div className={cx('settings-bar')}>
@@ -38,10 +39,10 @@ const SettingsBar = async ({ query }) => {
             <div className={cx('right-settings-bar')}>
                 <GroupByButton />
                 <SortByButton />
-                <SelectButton />
+                <SelectButton columns={firstRow?.displayColumns} />
                 <FilterExpr query={query} completions={completions} />
                 <DialogueModal fullScreen={false} toggleElement={<HelpButton />}>
-                  <HelpText />
+                    <HelpText />
                 </DialogueModal>
             </div>
         </div>

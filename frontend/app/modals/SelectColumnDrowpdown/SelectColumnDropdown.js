@@ -13,6 +13,9 @@ const cx = classNames.bind(styles);
 
 import "./Mui.css";
 
+
+// TODO: Fix the awkward fixed spacing in modals by creating a custom Menu component for react-select. See here: https://react-select.com/styles#inner-components
+
 const SortArrow = ({ toggle, sortDesc }) => {
     return (
         <div className={cx('arrow-toggle')} onClick={toggle}>

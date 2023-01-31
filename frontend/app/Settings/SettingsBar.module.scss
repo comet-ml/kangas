@@ -1,3 +1,5 @@
+@use './Buttons/Buttons.module.scss';
+
 .settings-bar {
     display: flex;
     flex-direction: row;
@@ -54,7 +56,7 @@
 .multi-select-columns {
     display: flex;
     flex-direction: column;
-    padding: 16px 14px 10px 14px;
+    padding: 26px 30px;
 }
 
 .multi-select-columns > .title {
@@ -214,6 +216,8 @@
 }
 
 
+
+
 /* react-select */
 
 .react-select-list {
@@ -256,23 +260,6 @@
 }
 
 /* Resets */
-
-/* Adapted from Normalize: https://github.com/necolas/normalize.css/blob/master/normalize.css */
-.button {
-    font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
-    font-size: 50%;
-    line-height: 1.15;
-    margin: 0;
-    overflow: visible;
-    text-transform: none;
-    border: 0;
-    border-radius: 10%;
-    color: white;
-    -webkit-appearance: button;
-    background-color: #3438d0;
-    cursor: pointer;
-    padding: 5px 10px;
-}
 
 .cell-verbatim {
     text-overflow: ellipsis;
