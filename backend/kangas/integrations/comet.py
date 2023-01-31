@@ -106,12 +106,13 @@ def import_to_comet(filename, comet_path=None, output_dir="."):
 
     * comet_path - (str, optional)
     * filename - (str) the name of the datagrid file
-    * output_dir - (optional, str) the name of the output dgz
+    * output_dir - (optional, str) the name of the output directory for
+        the zipped datagrid file
     """
     from comet_ml import ExistingExperiment, Experiment
 
     base, ext = os.path.splitext(filename)
-    zip_file = os.path.join(output_dir, base + "-comet.dgz")
+    zip_file = os.path.join(output_dir, base + "-comet.datagrid.zip")
     output = os.path.join(output_dir, base + "-comet.datagrid")
 
     if output_dir is None:
