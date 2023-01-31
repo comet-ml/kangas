@@ -104,11 +104,11 @@ const SelectColumnDropdown = ({ toggleOpen, group = false }) => {
                     value={selected ?? options.filter(e => e.label === (group ? params?.group : params?.sort))}
                     options={options}
                     onChange={updateSelected}
-
                 />
                 { !group && <SortArrow toggle={toggleDesc} sortDesc={params?.descending === 'true'} /> }
               </div>
-              <div className={cx('button-row-footer')}>
+            </div>
+            <div className={cx('button-row-footer')}>
                 <div className={cx('button-outline')} onClick={cancelSelection}>
                     Cancel
                 </div>
@@ -116,7 +116,7 @@ const SelectColumnDropdown = ({ toggleOpen, group = false }) => {
                     Done
                 </div>
               </div>
-            </div>
+
         </div>
 
     )
