@@ -24,7 +24,7 @@ const PlainImageCell = async ({ value, query, expanded=false, style }) => {
     return (
             <div className={cx("cell-content")} style={style}>
                 <img
-                    src={`http://localhost:4000/api/image?${queryString}`}
+                    src={`/api/image?${queryString}`}
                     alt="DataGrid Image"
                 />
             </div>
