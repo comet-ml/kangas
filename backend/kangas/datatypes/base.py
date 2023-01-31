@@ -11,12 +11,16 @@
 #    All rights reserved                             #
 ######################################################
 
+import io
 import json
+import urllib
 
-from .utils import generate_guid
+import PIL.Image
+
+from .utils import generate_guid, image_to_fp
 
 
-class Asset():
+class Asset:
     """
     The base class for any object that needs to be logged.
     """
@@ -75,13 +79,26 @@ class Asset():
 
         def _unserialize(obj):
             row = datagrid.conn.execute(
-                """SELECT asset_data, asset_metadata from assets WHERE asset_id = ?""",
+                """SELECT asset_data, asset_metadata,
+                          json_extract(asset_metadata, "$.source") as asset_source
+                   from assets WHERE asset_id = ?""",
                 [asset_id],
             ).fetchone()
             if row:
-                asset_data, asset_metadata = row
-                obj.asset_data = asset_data
-                obj.metadata = asset_metadata
+                asset_data, asset_metadata, asset_source = row
+                if asset_source:
+                    # FIXME: move to Image class
+                    url_data = urllib.request.urlopen(asset_source)
+                    with io.BytesIO() as fp:
+                        fp.write(url_data.read())
+                        image = PIL.Image.open(fp)
+                        if image.mode == "CMYK":
+                            image = image.convert("RGB")
+                        obj.asset_data = image_to_fp(image, "png").read()
+                        obj.metadata = asset_metadata
+                else:
+                    obj.asset_data = asset_data
+                    obj.metadata = asset_metadata
 
         obj = cls(unserialize=_unserialize)
         obj.asset_id = asset_id
