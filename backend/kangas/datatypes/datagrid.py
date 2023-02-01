@@ -361,7 +361,7 @@ class DataGrid:
         url = "%s%s" % (url, qvs)
 
         if _in_colab_environment():
-            from .colab_env import init_colab
+            from ..colab_env import init_colab
 
             init_colab(port, width, height, qvs)
 
