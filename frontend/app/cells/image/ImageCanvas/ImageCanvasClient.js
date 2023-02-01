@@ -5,16 +5,53 @@ import computeScale from '../../../../lib/computeScale';
 import styles from './ImageCanvas.module.scss';
 import classNames from 'classnames/bind';
 import useLabels from '../../../../lib/hooks/useLabels';
+import { getColor, getContrastingColor } from '../../../../lib/generateChartColor';
 import { CanvasContext } from '../../../contexts/CanvasContext';
 
 const cx = classNames.bind(styles);
 
+/*
+
+Old overlay structure (example):
+
+metadata = {"overlays": [
+    {
+     "label": "person",
+     "boxes": [[[x1, y1], [x2, y2]], ...],
+     "regions": [[[x1, y1, x2, y2, x3, y3, ...],
+     "score": 0.45,
+    },
+    ...
+]}
+
+New annotation structure (example):
+
+metadata = {"annotations": [
+    {
+     "name": "(uncategorized)",
+     "data": [
+         {
+          "label": "person",
+          "boxes": [[x, y, w, h], ...],
+          "regions": [[[x1, y1, x2, y2, x3, y3, ...],
+          "score": 0.45,
+         },
+         ...
+     ]
+    },
+    ...
+]}
+
+*/
+
 const Label = ({ label, toggle }) => {
+    const color = getColor(label.label);
+    const textColor = getContrastingColor(color);
     return (
-        <div onClick={() => toggle(label)} style={{ background: 'blue' }}>
+            <div onClick={() => toggle(label)} style={{ background: color, color: textColor}}>
             {`${label?.label}`}
         </div>
-    )
+    );
 }
 
 const ImageCanvasClient = ({ image }) => {
@@ -22,15 +59,17 @@ const ImageCanvasClient = ({ image }) => {
     const labelCanvas = useRef();
     const { metadata } = useContext(CanvasContext);
     const { labels, scoreRange, updateScore, toggleLabel } = useLabels(metadata);
-    
+
+    console.log(labels);
+
     const drawImage = useCallback(() => {
         const ctx = imageCanvas.current?.getContext("2d");
         // TODO That funky computeScale business
         ctx.clearRect(0, 0, imageCanvas.current.width, imageCanvas.current.height);
 
         const img = new Image;
-        img.onload = () => ctx.drawImage(img, 0, 0)
-        img.src = `data:application/octet-stream;base64,${image}`
+        img.onload = () => ctx.drawImage(img, 0, 0);
+        img.src = `data:application/octet-stream;base64,${image}`;
     }, [image]);
 
     const drawLabels = useCallback(() => {
@@ -42,17 +81,17 @@ const ImageCanvasClient = ({ image }) => {
         // Can also ignore mask logic because again, set as a constant
 
         // TODO Make this stateful
-        ctx.imageSmoothingEnabled = true
+        ctx.imageSmoothingEnabled = true;
 
-        for (const overlay of labels) {
-            if (overlay?.type === 'regions') {
-                for (const region of overlay?.data) {
+        for (const annotation of labels) {
+            if (annotation?.regions) {
+                for (const region of annotation.regions) {
                     // TODO Implement the color generator
-                    ctx.fillStyle = 'blue';
+                    ctx.fillStyle = getColor(annotation.label);
                     ctx.beginPath();
                     ctx.moveTo(
                         region[0],
-                        region[1] 
+                        region[1]
                     );
 
                     for (let i = 2; i < region.length; i += 2) {
@@ -65,22 +104,22 @@ const ImageCanvasClient = ({ image }) => {
                     ctx.closePath();
                     ctx.fill();
                 }
-            } else if (overlay?.type === 'boxes') {
-                for (const box of overlay.data) {
-                    const [[x1, y1], [x2, y2]] = box;
-                    ctx.strokeStyle = 'red';
+            } else if (annotation?.boxes) {
+                for (const box of annotation.boxes) {
+                    const [x, y, w, h] = box;
+                    ctx.strokeStyle = getColor(annotation.label);
                     ctx.lineWidth = 3;
                     ctx.beginPath();
-                    ctx.moveTo(x1 * imageScale, y1 * imageScale);
-                    ctx.lineTo(x2 * imageScale, y1 * imageScale);
-                    ctx.lineTo(x2 * imageScale, y2 * imageScale);
-                    ctx.lineTo(x1 * imageScale, y2 * imageScale);
+                    ctx.moveTo(x * imageScale, y * imageScale);
+                    ctx.lineTo((x + w) * imageScale, y * imageScale);
+                    ctx.lineTo((x + w) * imageScale, (y + h) * imageScale);
+                    ctx.lineTo(x * imageScale, (y + h) * imageScale);
                     ctx.closePath();
                     ctx.stroke();
                 }
             }
         }
-    }, [metadata, labels])
+    }, [metadata, labels]);
 
     useEffect(() => {
         drawImage();
@@ -119,7 +158,7 @@ const ImageCanvasClient = ({ image }) => {
                 </div>
             </div>
         </div>
-    )
+    );
 }
 
 export default ImageCanvasClient;
