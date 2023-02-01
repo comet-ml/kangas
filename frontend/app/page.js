@@ -1,4 +1,3 @@
-import config from '../config';
 import fetchDataGrid from '../lib/fetchDatagrid';
 import fetchAvailableMatrices from '../lib/fetchAvailableMatrices';
 import Table, { TableDisplay } from './Table/table';

@@ -70,20 +70,6 @@ def _in_ipython_environment():
         return True
 
 
-def _in_colab_environment():
-    # type: () -> bool
-    """
-    Check to see if code is running in Google colab.
-    """
-    try:
-        import IPython
-    except Exception:
-        return False
-
-    ipy = IPython.get_ipython()
-    return "google.colab" in str(ipy)
-
-
 try:
     import tqdm
 

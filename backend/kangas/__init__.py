@@ -22,7 +22,7 @@ import psutil
 from ._version import __version__  # noqa
 from .datatypes import Audio, Curve, DataGrid, Image, Text, Video  # noqa
 from .integrations import export_from_comet, import_to_comet  # noqa
-from .utils import _in_colab_environment, _in_jupyter_environment, get_localhost
+from .utils import _in_jupyter_environment, get_localhost
 
 
 def _is_running(name, command):
@@ -79,7 +79,7 @@ def terminate():
     _process_method("python", "kangas", "terminate")
 
 
-def launch(host=None, port=4000, debug=None, protocol="http"):
+def launch(host=None, port=4000, debug=None, protocol="http", hide_selector=None):
     """
     Launch the Kangas servers.
 
@@ -102,8 +102,12 @@ def launch(host=None, port=4000, debug=None, protocol="http"):
     ```
     """
     host = host if host is not None else get_localhost()
+    hide_selector = (
+        hide_selector if hide_selector is not None else _in_jupyter_environment()
+    )
 
     if not _is_running("node", "kangas"):
+        print("Terminating any stray Kangas servers...")
         terminate()
         subprocess.Popen(
             (
@@ -121,11 +125,18 @@ def launch(host=None, port=4000, debug=None, protocol="http"):
                     protocol,
                 ]
                 + (["--host", host] if host is not None else [])
-                + (["--colab", "True"] if _in_colab_environment() else [])
+                + (["--hide-selector"] if hide_selector else [])
                 + (["--debug-level", debug] if debug is not None else [])
             )
         )
-        time.sleep(2)
+        # FIXME: can we poll until it is ready?
+        time.sleep(0.5)
+        print("Starting Kangas server in 3...")
+        time.sleep(1)
+        print("Starting Kangas server in 2...")
+        time.sleep(1)
+        print("Starting Kangas server in 1...")
+        time.sleep(1)
 
     return "%s://%s:%s/" % (protocol, host, port)
 
@@ -139,6 +150,7 @@ def show(
     height="750px",
     width="100%",
     protocol="http",
+    hide_selector=False,
     **kwargs
 ):
     """
@@ -172,7 +184,7 @@ def show(
     """
     from IPython.display import IFrame, clear_output, display
 
-    url = launch(host, port, debug, protocol)
+    url = launch(host, port, debug, protocol, hide_selector)
 
     if datagrid:
         query_vars = {"datagrid": datagrid}
@@ -184,12 +196,7 @@ def show(
     else:
         qvs = ""
 
-    if _in_colab_environment():
-        from .colab_env import init_colab
-
-        init_colab(port, width, height, qvs)
-
-    elif _in_jupyter_environment():
+    if _in_jupyter_environment():
         clear_output(wait=True)
         display(IFrame(src=url, width=width, height=height))
 

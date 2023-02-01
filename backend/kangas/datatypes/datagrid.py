@@ -26,7 +26,7 @@ from collections import defaultdict
 
 import numpy as np
 
-from ..utils import ProgressBar, _in_colab_environment, _in_jupyter_environment
+from ..utils import ProgressBar, _in_jupyter_environment
 from .base import Asset
 from .serialize import ASSET_TYPE_MAP, DATAGRID_TYPES
 from .utils import (
@@ -191,7 +191,10 @@ class DataGrid:
         if isinstance(data, str):
             self.filename = download_filename(data)
             data = None
-            self.conn = sqlite3.connect(self.filename)
+            if os.path.isfile(self.filename):
+                self.conn = sqlite3.connect(self.filename)
+            else:
+                raise Exception("file not found: %r" % self.filename)
 
             self._on_disk = True
             schema = self.get_schema()
@@ -312,6 +315,7 @@ class DataGrid:
         height="750px",
         width="100%",
         protocol="http",
+        hide_selector=None,
         **kwargs
     ):
         """
@@ -343,7 +347,7 @@ class DataGrid:
 
         from kangas import launch
 
-        url = launch(host, port, debug, protocol)
+        url = launch(host, port, debug, protocol, hide_selector)
 
         if not self._on_disk:
             self.save()
@@ -356,11 +360,7 @@ class DataGrid:
         qvs = "?" + urllib.parse.urlencode(query_vars)
         url = "%s%s" % (url, qvs)
 
-        if _in_colab_environment():
-            from ..colab_env import init_colab
-
-            init_colab(port, width, height, qvs)
-        elif _in_jupyter_environment():
+        if _in_jupyter_environment():
             clear_output(wait=True)
             display(IFrame(src=url, width=width, height=height))
 
@@ -418,7 +418,11 @@ class DataGrid:
                 schema[column_name]["field_name"]: column_name for column_name in schema
             }
             # Make our own connection to use row_factory:
-            conn = sqlite3.connect(self.filename)
+            if os.path.isfile(self.filename):
+                conn = sqlite3.connect(self.filename)
+            else:
+                raise Exception("file not found: %r" % self.filename)
+
             conn.row_factory = make_dict_factory(column_name_map)
 
             cursor = conn.cursor()
@@ -526,7 +530,11 @@ class DataGrid:
                 schema[column_name]["field_name"]: column_name for column_name in schema
             }
             # Make our own connection to use row_factory:
-            conn = sqlite3.connect(self.filename)
+            if os.path.isfile(self.filename):
+                conn = sqlite3.connect(self.filename)
+            else:
+                raise Exception("file not found: %r" % self.filename)
+
             conn.row_factory = make_dict_factory(column_name_map)
 
             cursor = conn.cursor()

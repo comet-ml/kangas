@@ -37,7 +37,7 @@ const MatrixSelect = ({ query, options=['blah'] }) => {
     };
 
     // FIXME: don't use endsWith, but something smarter
-    return (
+    return (!config.hideSelector &&
         <Select
             id={'matrix-select-pulldown'}
             className={cx('matrix-select')}

@@ -3,11 +3,11 @@
 import { createContext, useReducer } from 'react';
 
 export const ConfigContext = createContext({
-    config: {     
+    config: {
         apiUrl: null,
         otherUrl: null,
         isColab: false,
-        isIframe: false
+        hideSelector: false,
     },
 });
 
@@ -19,9 +19,9 @@ const reducer = (state, action) => {
                     ...state.config,
                     ...action.payload
                 }
-            }
+            };
         default:
-            return state
+            return state;
     }
 }
 
@@ -34,7 +34,7 @@ const ConfigProvider = ({ value, children }) => {
         }}>
             { children }
         </ConfigContext.Provider>
-    )
+    );
 }
 
 

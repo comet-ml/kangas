@@ -21,7 +21,7 @@ import urllib
 import webbrowser
 
 import kangas.server
-from kangas import _in_colab_environment, get_localhost, terminate
+from kangas import get_localhost, terminate
 from kangas.datatypes.utils import download_filename
 
 try:
@@ -140,9 +140,10 @@ def get_parser_arguments(parser):
         default="http",
     )
     parser.add_argument(
-        "--colab",
-        help="Use this flag to specify if Kangas is in a Colab environment. Defaults to false",
+        "--hide-selector",
+        help="Use this flag to hide the DataGrid selector. Default is to show the selector",
         default=False,
+        action="store_true",
     )
     parser.add_argument(
         "--type",
@@ -193,13 +194,13 @@ def server(parsed_args, remaining=None):
     KANGAS_FRONTEND_PORT = parsed_args.frontend_port
     KANGAS_HOST = parsed_args.host if parsed_args.host is not None else get_localhost()
     KANGAS_PROTOCOL = parsed_args.protocol
-    IN_COLAB = (
-        parsed_args.colab if parsed_args.colab is not False else _in_colab_environment()
-    )
     if parsed_args.backend_port is None:
         KANGAS_BACKEND_PORT = parsed_args.frontend_port + 1
     else:
         KANGAS_BACKEND_PORT = parsed_args.backend_port
+    KANGAS_HIDE_SELECTOR = 1 if parsed_args.hide_selector else 0
+
+    print("KANGAS_HIDE_SELECTOR:", KANGAS_HIDE_SELECTOR)
 
     if parsed_args.terminate:
         terminate()
@@ -227,7 +228,7 @@ def server(parsed_args, remaining=None):
                 "KANGAS_BACKEND_PORT": str(KANGAS_BACKEND_PORT),
                 "KANGAS_HOST": str(KANGAS_HOST),
                 "KANGAS_PROTOCOL": KANGAS_PROTOCOL,
-                "IN_COLAB": str(IN_COLAB),
+                "KANGAS_HIDE_SELECTOR": str(KANGAS_HIDE_SELECTOR),
             }
         )
         # first, check to see if nodejs is good:

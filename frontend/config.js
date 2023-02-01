@@ -5,7 +5,8 @@ const localConfig = {
     rootUrl: `${env.KANGAS_PROTOCOL || 'http'}://${env.KANGAS_HOST}:${env.PORT}/`,
     defaultDecimalPrecision: 5,
     locale: 'en-US',
-    isColab: env.IN_COLAB === 'True',
+    isColab: false,
+    hideSelector: env.KANGAS_HIDE_SELECTOR === '1',
     cache: true,
     prefetch: false
 };

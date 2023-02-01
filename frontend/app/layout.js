@@ -9,7 +9,8 @@ const RootLayout = ({ children }) => {
             <ConfigProvider value={{
                 config: {
                     apiUrl: config.apiUrl,
-                    isColab: config.isColab
+                    isColab: false,
+                    hideSelector: config.hideSelector
                 }
             }}>
                 <body>
