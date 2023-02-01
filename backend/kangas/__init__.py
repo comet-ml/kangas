@@ -22,7 +22,7 @@ import psutil
 from ._version import __version__  # noqa
 from .datatypes import Audio, Curve, DataGrid, Image, Text, Video  # noqa
 from .integrations import export_from_comet, import_to_comet  # noqa
-from .utils import _in_jupyter_environment, get_localhost
+from .utils import _in_colab_environment, _in_jupyter_environment, get_localhost
 
 
 def _is_running(name, command):
@@ -196,7 +196,12 @@ def show(
     else:
         qvs = ""
 
-    if _in_jupyter_environment():
+    if _in_colab_environment():
+        from .colab_env import init_colab
+
+        init_colab(port, width, height, qvs)
+
+    elif _in_jupyter_environment():
         clear_output(wait=True)
         display(IFrame(src=url, width=width, height=height))
 

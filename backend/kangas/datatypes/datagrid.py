@@ -26,7 +26,7 @@ from collections import defaultdict
 
 import numpy as np
 
-from ..utils import ProgressBar, _in_jupyter_environment
+from ..utils import ProgressBar, _in_colab_environment, _in_jupyter_environment
 from .base import Asset
 from .serialize import ASSET_TYPE_MAP, DATAGRID_TYPES
 from .utils import (
@@ -360,7 +360,12 @@ class DataGrid:
         qvs = "?" + urllib.parse.urlencode(query_vars)
         url = "%s%s" % (url, qvs)
 
-        if _in_jupyter_environment():
+        if _in_colab_environment():
+            from .colab_env import init_colab
+
+            init_colab(port, width, height, qvs)
+
+        elif _in_jupyter_environment():
             clear_output(wait=True)
             display(IFrame(src=url, width=width, height=height))
 

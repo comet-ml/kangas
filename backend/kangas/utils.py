@@ -35,6 +35,20 @@ def get_localhost():
     return localhost
 
 
+def _in_colab_environment():
+    # type: () -> bool
+    """
+    Check to see if code is running in Google colab.
+    """
+    try:
+        import IPython
+    except Exception:
+        return False
+
+    ipy = IPython.get_ipython()
+    return "google.colab" in str(ipy)
+
+
 def _in_jupyter_environment():
     # type: () -> bool
     """
