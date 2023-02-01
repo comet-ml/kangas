@@ -16,7 +16,7 @@ import json
 from .utils import generate_guid
 
 
-class Asset():
+class Asset:
     """
     The base class for any object that needs to be logged.
     """
@@ -34,8 +34,8 @@ class Asset():
         self.source = None
         if source is not None:
             # FIXME: check to make sure that source should be http, https, or file
-            self.source = {"source": source}
-            self.asset_data = json.dumps(self.source)
+            self.source = source
+            self.asset_data = json.dumps({"source": self.source})
             self.metadata["source"] = source
 
     @property
@@ -75,17 +75,28 @@ class Asset():
 
         def _unserialize(obj):
             row = datagrid.conn.execute(
-                """SELECT asset_data, asset_metadata from assets WHERE asset_id = ?""",
+                """SELECT asset_data, asset_metadata,
+                          json_extract(asset_metadata, "$.source") as asset_source
+                   from assets WHERE asset_id = ?""",
                 [asset_id],
             ).fetchone()
             if row:
-                asset_data, asset_metadata = row
-                obj.asset_data = asset_data
-                obj.metadata = asset_metadata
+                asset_data, asset_metadata, asset_source = row
+                if asset_source:
+                    obj.asset_data = obj._get_asset_data_from_source(asset_source)
+                    obj.metadata = asset_metadata
+                    obj.source = asset_source
+                else:
+                    obj.asset_data = asset_data
+                    obj.metadata = asset_metadata
 
         obj = cls(unserialize=_unserialize)
         obj.asset_id = asset_id
         return obj
+
+    def _get_asset_data_from_source(self, asset_source):
+        # Add this method in asset class
+        raise NotImplementedError("This asset subclass needs to implement this method")
 
     def _log_metadata(self, **metadata):
         """

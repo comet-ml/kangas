@@ -543,6 +543,9 @@ class DataGrid:
                 yield {column_name: row[column_name] for column_name in column_names}
 
     def _raw_value_to_asset(self, value):
+        """
+        Takes an asset from query_sql and return unserialized asset
+        """
         if isinstance(value, dict):
             if "assetType" in value and "assetId" in value:
                 row = {"value": value["assetId"]}

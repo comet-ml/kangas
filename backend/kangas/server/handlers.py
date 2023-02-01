@@ -731,6 +731,8 @@ class VerifyWhereHandler(BaseHandler):
                 where_expr,
             )
             self.write_json(result)
+        else:
+            self.write_json({"valid": False, "message": "Invalid datagrid: %r" % dgid})
 
     @run_on_executor
     @auth_wrapper

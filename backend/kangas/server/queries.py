@@ -1808,6 +1808,7 @@ def select_asset(dgid, asset_id, thumbnail=False):
     if row:
         asset_data, asset_type, asset_thumbnail, asset_source = row
         if asset_source:
+            # FIXME: move to Image class
             url_data = urllib.request.urlopen(asset_source)
             with io.BytesIO() as fp:
                 fp.write(url_data.read())

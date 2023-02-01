@@ -15,6 +15,7 @@ import io
 import json
 import logging
 import math
+import urllib
 
 import numpy as np
 import PIL.Image
@@ -106,7 +107,7 @@ class Image(Asset):
             self._unserialize = unserialize
             return
         if self.source is not None:
-            filename = self.source["source"]
+            filename = self.source
             self._log_metadata(
                 name=name,
                 filename=filename,
@@ -151,7 +152,22 @@ class Image(Asset):
         >>> image.show()
         ```
         """
-        return generate_image(self.asset_data)
+        if self.source is not None:
+            asset_data = self._get_asset_data_from_source(self.source)
+        else:
+            asset_data = self.asset_data
+        return generate_image(asset_data)
+
+    def _get_asset_data_from_source(self, asset_source):
+        # Get the asset_data for an image source
+        url_data = urllib.request.urlopen(asset_source)
+        with io.BytesIO() as fp:
+            fp.write(url_data.read())
+            image = PIL.Image.open(fp)
+            if image.mode == "CMYK":
+                image = image.convert("RGB")
+            asset_data = image_to_fp(image, "png").read()
+        return asset_data
 
     def show(self):
         """
@@ -264,7 +280,8 @@ class Image(Asset):
         >>> image = Image()
         >>> box1 = [(x1, y1), (x2, y2)]
         >>> box2 = [x, y, width, height]
-        >>> image.add_bounding_boxes("Truth", "Person", box1, box2, ...)
+        >>> image.add_bounding_boxes("Truth", "Person", box1, box2, score=0.99)
+        >>> image.add_bounding_boxes("Prediction", "Person", box1, score=0.4)
         ```
         """
         self._init_annotations(layer_name)
@@ -273,6 +290,36 @@ class Image(Asset):
             {
                 "label": label,
                 "boxes": [_verify_box(box) for box in boxes],
+                "score": score,
+                "metadata": metadata,
+            },
+        )
+        return self
+
+    def add_bounding_box(self, layer_name, label, box, score=None, **metadata):
+        """
+        Add a bounding box to an image.
+
+        Args:
+            layer_name: (str) the layer for the label and bounding boxes
+            label: (str) the label for the regions
+            box: exactly 2 points (top-left, bottom-right),
+                or 4 ints (x, y, width, height)
+            score: (optional, number) a score associated with the region.
+
+        Example:
+        ```python
+        >>> image = Image()
+        >>> box = [(x1, y1), (x2, y2)]
+        >>> image.add_bounding_box("Truth", "Person", box, 0.56)
+        ```
+        """
+        self._init_annotations(layer_name)
+        self._update_annotation(
+            layer_name,
+            {
+                "label": label,
+                "boxes": [_verify_box(box)],
                 "score": score,
                 "metadata": metadata,
             },

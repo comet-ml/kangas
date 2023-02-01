@@ -1,33 +1,66 @@
 import { useState, useMemo, useCallback } from 'react';
 
+/*
+
+Old overlay structure (example):
+
+metadata = {"overlays": [
+    {
+     "label": "person",
+     "boxes": [[[x1, y1], [x2, y2]], ...],
+     "regions": [[[x1, y1, x2, y2, x3, y3, ...],
+     "score": 0.45,
+    },
+    ...
+]}
+
+New annotation structure (example):
+
+metadata = {"annotations": [
+    {
+     "name": "(uncategorized)",
+     "data": [
+         {
+          "label": "person",
+          "boxes": [[x, y, w, h], ...],
+          "regions": [[[x1, y1, x2, y2, x3, y3, ...],
+          "score": 0.45,
+         },
+         ...
+     ]
+    },
+    ...
+]}
+
+*/
+
 
 const useLabels = (metadata) => {
     const [score, setScore] = useState(0);
-    const [hiddenLabels, setHiddenLabels] = useState({ })
+    const [hiddenLabels, setHiddenLabels] = useState({ });
 
     const scoreRange = useMemo(() => {
-        let min = 0;
-        let max = 1;
+        let min = Number.MAX_VALUE;
+        let max = -Number.MAX_VALUE;
 
-        if (metadata?.overlays) {
-
-            for (const overlay of Object.values(metadata.overlays)) {
-
+        if (metadata?.annotations) {
+            for (const layer of Object.values(metadata.annotations)) {
+                for (const annotation of Object.values(layer)) {
                 // Filter logic
                 // TODO Fix below bug (potential) with 0-scores
-                if (overlay?.score) {
-                    if (min > overlay?.score) min = overlay?.score;
-                    if (max < overlay?.score) max = overlay?.score;
+                    if (typeof(annotation?.score) !== 'undefined') {
+                        if (annotation.score < min) min = annotation.score;
+                        if (annotation.score > max) max = annotation.score;
+                    }
                 }
             }
         }
-
-        return { min, max }
-    }, [metadata?.overlays]);
+        return { min, max };
+    }, [metadata?.annotations]);
 
     const labels = useMemo(() => {
-        if (metadata?.overlays) {
-            return Object.values(metadata.overlays).filter(label => (!label?.score || (label?.score > score)) && !hiddenLabels?.[label.label]);
+        if (metadata?.annotations) {
+            return metadata.annotations?.data.filter(data => (!data?.score || (data?.score > score)) && !hiddenLabels?.[data?.label]);
         } else {
             return [];
         }
@@ -39,20 +72,19 @@ const useLabels = (metadata) => {
             const { [label.label]: removed, ...remaining } = hiddenLabels;
             setHiddenLabels(remaining);
         } else {
-            setHiddenLabels({ 
+            setHiddenLabels({
                 ...hiddenLabels,
-                [label.label]: true 
-            })
+                [label.label]: true
+            });
         }
-    }, [hiddenLabels])
+    }, [hiddenLabels]);
 
     return {
         labels,
         scoreRange,
         updateScore,
         toggleLabel
-    }
-
-}
+    };
+};
 
 export default useLabels;
