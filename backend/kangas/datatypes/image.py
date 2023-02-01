@@ -280,7 +280,8 @@ class Image(Asset):
         >>> image = Image()
         >>> box1 = [(x1, y1), (x2, y2)]
         >>> box2 = [x, y, width, height]
-        >>> image.add_bounding_boxes("Truth", "Person", box1, box2, ...)
+        >>> image.add_bounding_boxes("Truth", "Person", box1, box2, score=0.99)
+        >>> image.add_bounding_boxes("Prediction", "Person", box1, score=0.4)
         ```
         """
         self._init_annotations(layer_name)
@@ -289,6 +290,36 @@ class Image(Asset):
             {
                 "label": label,
                 "boxes": [_verify_box(box) for box in boxes],
+                "score": score,
+                "metadata": metadata,
+            },
+        )
+        return self
+
+    def add_bounding_box(self, layer_name, label, box, score=None, **metadata):
+        """
+        Add a bounding box to an image.
+
+        Args:
+            layer_name: (str) the layer for the label and bounding boxes
+            label: (str) the label for the regions
+            box: exactly 2 points (top-left, bottom-right),
+                or 4 ints (x, y, width, height)
+            score: (optional, number) a score associated with the region.
+
+        Example:
+        ```python
+        >>> image = Image()
+        >>> box = [(x1, y1), (x2, y2)]
+        >>> image.add_bounding_box("Truth", "Person", box, 0.56)
+        ```
+        """
+        self._init_annotations(layer_name)
+        self._update_annotation(
+            layer_name,
+            {
+                "label": label,
+                "boxes": [_verify_box(box)],
                 "score": score,
                 "metadata": metadata,
             },
