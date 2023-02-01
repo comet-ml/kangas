@@ -1,14 +1,45 @@
 'use client';
 
 import Autocomplete from './ReactAutoComplete';
-import { TextField } from '@mui/material';
-import InputAdornment from '@mui/material/InputAdornment';
 import { useCallback, useEffect, useRef, useMemo, useState } from 'react';
 import useQueryParams from '../../lib/hooks/useQueryParams';
+import styles from './Filter.module.scss';
+import classNames from 'classnames/bind';
+
+const cx = classNames.bind(styles);
 
 const FilterExpr = ({ query, completions }) => {
     const { params, updateParams } = useQueryParams();
-    const filter = useRef();
+    const filterRef = useRef();
+    const timeout = useRef();
+    const [status, setStatus] = useState();
+
+    const fetchValidity = useCallback((filter) => {
+        setStatus('LOADING');
+
+        fetch(`/api/filter?dgid=${params?.datagrid}&where=${filter}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data?.valid) {
+                setStatus('VALID');
+            } else {
+                setStatus('INVALID');
+            }
+        });
+    }, [params]);
+
+    // Debounce call to verify-filter so that we don't spam the endpoint
+    const onChange = useCallback((filter) => {
+        if (status !== 'LOADING') {
+            try {
+                clearTimeout(timeout.current)
+            } catch {
+                
+            } finally {
+                timeout.current = setTimeout(() => fetchValidity(filter), 150)
+            }
+        }
+    }, [fetchValidity, status]);
 
     const getValue = (value) => {
         if (typeof(value) === 'undefined' || value === '')
@@ -17,13 +48,14 @@ const FilterExpr = ({ query, completions }) => {
     };
 
     const onKeyPress = useCallback((e) => {
-        if (e.key === 'Enter') {
+        // Only fire if filter is valid
+        if (e.key === 'Enter' && status === 'VALID') {
             updateParams({
-                filter: getValue(filter?.current?.value),
+                filter: getValue(filterRef?.current?.value),
                 page: undefined,
             });
         }
-    }, [updateParams]);
+    }, [updateParams, status]);
 
     const clearFilter = useCallback((event) => {
         updateParams({
@@ -33,25 +65,34 @@ const FilterExpr = ({ query, completions }) => {
     }, [updateParams]);
 
     useEffect(() => {
-        if (typeof(filter?.current?.value) !== "undefined")
-            filter.current.value = query?.whereExpr || '';
+        if (typeof(filterRef?.current?.value) !== "undefined")
+            filterRef.current.value = query?.whereExpr || '';
     }, [query]);
 
     const onChangeSelect = useCallback((trigger, slug) => {
-	if (trigger === '{') {
-	    return `{${slug}}`;
-	} else if (trigger.endsWith('.')) {
-	    return `${trigger}${slug}`;
-	} else {
-	    return ` ${slug}`;
-	}
+        if (trigger === '{') {
+            return `{${slug}}`;
+        } else if (trigger.endsWith('.')) {
+            return `${trigger}${slug}`;
+        } else {
+            return ` ${slug}`;
+        }
     }, [query]);
 
     const triggers = useMemo(() => {
         if (!completions) return ["{"];
-        
+
         return ["{"].concat(Object.keys(completions));
     }, [completions]);
+
+    // Underline text when filter is invalid
+    useEffect(() => {
+        if (status === 'INVALID') {
+            filterRef?.current?.classList?.add(cx('invalid'));
+        } else {
+            filterRef?.current?.classList?.remove(cx('invalid'));
+        }
+    }, [status]);
 
     return (
         <>
@@ -69,7 +110,8 @@ const FilterExpr = ({ query, completions }) => {
                 id="filter"
                 onKeyPress={onKeyPress}
                 clearFilter={clearFilter}
-                refInput={filter}
+                refInput={filterRef}
+                onChange={onChange}
             />
         </>
     );

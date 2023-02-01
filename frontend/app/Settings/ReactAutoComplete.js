@@ -17,6 +17,7 @@ import classNames from 'classnames/bind';
 const cx1 = classNames.bind(style1);
 const cx2 = classNames.bind(style2);
 
+
 const ClearButton = ({ callback }) => (
         <InputAdornment position="end" style={{cursor: 'pointer'}}>
             <ClearIcon onClick={callback} color="primary" fontSize={'small'} />
@@ -63,7 +64,8 @@ const propTypes = {
   offsetX: PropTypes.number,
   offsetY: PropTypes.number,
   passThroughEnter: PropTypes.bool,
-  refInput: PropTypes.shape({ current: PropTypes.any })
+  refInput: PropTypes.shape({ current: PropTypes.any }),
+  status: PropTypes.string
 };
 
 const defaultProps = {
@@ -88,6 +90,7 @@ const defaultProps = {
   offsetY: 0,
   value: null,
   passThroughEnter: false,
+  status: 'VALID'
 };
 
 class AutocompleteTextField extends React.Component {
@@ -437,8 +440,10 @@ class AutocompleteTextField extends React.Component {
       options,
       selection,
       top,
-      value,
+      value
     } = this.state;
+
+    const status = this.props.status;
 
     if (!helperVisible) {
       return null;
@@ -469,7 +474,9 @@ class AutocompleteTextField extends React.Component {
           onMouseEnter={() => { this.setState({ selection: idx }); }}
         >
           {val.slice(0, highlightStart)}
-          <strong>{val.substr(highlightStart, matchLength)}</strong>
+          <strong>
+            {val.substr(highlightStart, matchLength)}
+          </strong>
           {val.slice(highlightStart + matchLength)}
         </li>
       );
@@ -490,6 +497,7 @@ class AutocompleteTextField extends React.Component {
       disabled,
       onBlur,
       value,
+      status,
       ...rest
     } = this.props;
 
@@ -519,11 +527,14 @@ class AutocompleteTextField extends React.Component {
           inputRef={this.refInput}
           value={val}
           InputProps={{
-              endAdornment: <ClearButton callback={clearFilter} />,
+            endAdornment: <ClearButton callback={clearFilter} />,
             sx: {
                 fontSize: '13px',
-                width: '360px'
-            }
+                width: '360px',
+            },
+          }}
+          inputProps={{
+            spellCheck: false
           }}
           onKeyPress={onKeyPress}
           {...propagated}
