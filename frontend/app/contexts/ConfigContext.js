@@ -6,7 +6,6 @@ export const ConfigContext = createContext({
     config: {
         apiUrl: null,
         otherUrl: null,
-        isColab: false,
         hideSelector: false,
     },
 });
