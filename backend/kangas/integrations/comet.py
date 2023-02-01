@@ -77,10 +77,31 @@ def export_from_comet(comet_path, name):
     )
     for experiment in experiments:
         asset_list = experiment.get_asset_list()
+
+        # FIXME: temporary workaround until comet supports metadata on images:
+        metadata_json_list = [
+            asset
+            for asset in asset_list
+            if asset["fileName"].endswith("-datagrid-metadata.json")
+        ]
+
+        # Assuming just one datagrid per experiment for now:
+        if len(metadata_json_list) > 0:
+            print("Logged metadata found")
+            # Map of Comet asset Id to kangas metadata:
+            metadata = experiment.get_asset(
+                metadata_json_list[0]["assetId"], return_type="json"
+            )
         for asset in asset_list:
             # FIXME: pass in type(s) to get; currently gets all known
             # FIXME: each type will need its own column
             if asset["type"] == "image":
+                # FIXME: workaround; overwrites comet-provided data, if any
+                if asset["assetId"] in metadata:
+                    if asset["metadata"]:
+                        asset["metadata"].update(metadata[asset["assetId"]])
+                    else:
+                        asset["metadata"] = metadata[asset["assetId"]]
                 dg.append(
                     [
                         Image(source=asset["link"], metadata=asset["metadata"]),
@@ -111,9 +132,9 @@ def import_to_comet(filename, comet_path=None, output_dir="."):
     """
     from comet_ml import ExistingExperiment, Experiment
 
-    base, ext = os.path.splitext(filename)
-    zip_file = os.path.join(output_dir, base + "-comet.datagrid.zip")
-    output = os.path.join(output_dir, base + "-comet.datagrid")
+    base_name, ext = os.path.splitext(filename)
+    zip_file = os.path.join(output_dir, base_name + "-comet.datagrid.zip")
+    output = os.path.join(output_dir, base_name + "-comet.datagrid")
 
     if output_dir is None:
         output_dir = tempfile.TemporaryDirectory()
@@ -147,6 +168,7 @@ def import_to_comet(filename, comet_path=None, output_dir="."):
 
     # Log all of the assets:
     asset_map = {}
+    metadata_map = {}
     for row in ProgressBar(rows.fetchall(), "Uploading DataGrid assets to comet.com"):
         asset_id, asset_type, asset_data, asset_metadata, asset_thumbnail = row
         # FIXME: convert annotations to comet-style
@@ -171,6 +193,11 @@ def import_to_comet(filename, comet_path=None, output_dir="."):
             framework="kangas",
         )
         asset_map[asset_id] = asset_results
+        # Comet asset ID -> kangas asset metadata
+        metadata_map[asset_map[asset_id]["assetId"]] = metadata
+
+    ## FIXME: workaround until comet support metadata on image assets
+    experiment.log_asset_data(metadata_map, "%s-datagrid-metadata.json" % base_name)
 
     cur.execute("CREATE TABLE datagrid AS SELECT * from original.datagrid;")
     cur.execute("CREATE TABLE metadata AS SELECT * from original.metadata;")
