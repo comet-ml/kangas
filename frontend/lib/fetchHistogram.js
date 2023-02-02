@@ -2,8 +2,7 @@
 import config from '../config';
 
 // Utils
-import fetchIt from './fetchIt'
-import fetchData from './fetchData';
+import fetchIt from './fetchIt';
 import formatValue from './formatValue';
 import { getColor } from './generateChartColor';
 
@@ -14,7 +13,7 @@ const fetchHistogram = async (query) => {
         return {
             isVerbatim: true,
             ...data
-        }
+        };
     }
 
     const formattedData = [
@@ -33,10 +32,9 @@ const fetchHistogram = async (query) => {
                     )} ${data.message || ''}`
             ),
             marker: { color: getColor(data.column) },
+            statistics: data.statistics,
         },
     ];
-
-
 
     return formattedData;
 }

@@ -1,15 +1,18 @@
 'use client';
 
-import classNames from 'classnames/bind';
-import styles from '../Charts.module.scss'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useContext } from 'react';
 import dynamic from 'next/dynamic';
 import { getColor } from '../../../../lib/generateChartColor';
 import formatValue from '../../../../lib/formatValue';
+import truncateValue from '../../../../lib/truncateValue';
+import { ConfigContext } from '../../../contexts/ConfigContext';
+
 const Plot = dynamic(() => import("react-plotly.js"), {
     ssr: false
   });
 
+import classNames from 'classnames/bind';
+import styles from '../Charts.module.scss';
 const cx = classNames.bind(styles);
 
 const HistogramLayout = {
@@ -40,6 +43,7 @@ const HistogramConfig = {
 };
 
 const HistogramClient = ({ value, expanded, title, data }) => {
+    const { config } = useContext(ConfigContext);
     const [visible, setVisible] = useState(false);
     const plot = useRef();
 
@@ -48,8 +52,36 @@ const HistogramClient = ({ value, expanded, title, data }) => {
             if (entry.isIntersecting) {
                 setVisible(true);
             }
-        })
+        });
     }, []);
+
+    const makeStatsTable = (statistics) => {
+        if (statistics) {
+            return (
+                <div style={{ margin: 'auto', marginLeft: 'inherit' }}>
+                    {Object.keys(statistics).map((key, index) => {
+                        return (
+                            <ul style={{ paddingLeft: '0' }}>
+                                <b>{key}</b> :{' '}
+                                {truncateValue(
+                                    statistics[key],
+                                    3
+                                ).toLocaleString(config.locale)}
+                            </ul>
+                        );
+                    })}
+                </div>
+            );
+        }
+        return <div />;
+    };
+
+    const statisticsTable = useMemo(() => {
+        if (typeof(data) !== 'undefined' && Array.isArray(data) && data[0].statistics) {
+            return makeStatsTable(data[0].statistics);
+        }
+        return <div />;
+    }, [data]);
 
     useEffect(() => {
         const options = {
@@ -62,7 +94,6 @@ const HistogramClient = ({ value, expanded, title, data }) => {
         observer.observe(plot.current);
 
     }, [onIntersect]);
-
 
     const ExpandedLayout = useMemo(() => {
         return {
@@ -85,21 +116,24 @@ const HistogramClient = ({ value, expanded, title, data }) => {
                     color: '#3D4355',
                 },
             }
-        }
+        };
     }, [title]);
 
     return (
-        <div ref={plot} className={cx('plotly-container', { expanded })}>
+      <div style={{ minWidth: '700px', display: 'flex' }}>
+        <div ref={plot} className={cx('plotly-container-with-stats', { expanded })}>
             { visible &&
             <Plot
-                className={cx('plotly-chart', { expanded })}
+                className={cx('plotly-chart-with-stats', { expanded })}
                 data={data}
                 layout={expanded ? ExpandedLayout : HistogramLayout}
                 config={HistogramConfig}
             />
 }
         </div>
-    )
+        {statisticsTable}
+      </div>
+    );
 }
 
 export default HistogramClient;

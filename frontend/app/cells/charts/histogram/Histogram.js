@@ -11,10 +11,11 @@ const Histogram = async ({ value, expanded }) => {
     if (data?.isVerbatim) {
         return <>Verbatim</>
     } else if (!expanded) {
+        // FIXME: only pass enough of data to make thumbnail image
         const queryString =new URLSearchParams(
             Object.fromEntries(
                 Object.entries({
-                    chartType: 'histogram', 
+                    chartType: 'histogram',
                     data: JSON.stringify(data)
                 }).filter(([k, v]) => typeof(v) !== 'undefined' && v !== null)
             )
@@ -22,10 +23,10 @@ const Histogram = async ({ value, expanded }) => {
 
         return (
             <img src={`/api/charts?${queryString}`} loading="lazy" className={cx(['chart-thumbnail', 'category'])} />
-          )        
+        );
     } else {
-        return <HistogramClient expanded={expanded} title={value?.columnName} query={value} data={data} />
-    }    
+        return (<HistogramClient expanded={expanded} title={value?.columnName} query={value} data={data} />);
+    }
 }
 
 export default Histogram;
