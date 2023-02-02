@@ -1,22 +1,36 @@
-@use '../cells/Cell.module.scss'; 
+@use '../cells/Cell.module.scss';
 
 .tableRoot {
     min-width: 100%;
     max-width: 100%;
     overflow-x: auto;
     min-height: 100%;
-    display: flex;
 
     .column {
         width: fit-content;
         display: flex;
         flex-direction: column;
         border-bottom: 1px solid rgb(224, 224, 224);
-        
+
         &:hover {
             background-color: #eaecf2;
         }
 
+        &.group {
+            max-height: 110px;
+        }
+    }
+
+    .row {
+        min-width: 100%;
+        width: fit-content;
+        display: flex;
+        max-height: 55px;
+        border-bottom: 1px solid rgb(224, 224, 224);
+
+        &:hover {
+            background-color: #eaecf2;
+        }
         &.group {
             max-height: 110px;
         }
@@ -33,7 +47,7 @@
             background-color: #eaecf2;
         }
     }
-    
+
 }
 
 
