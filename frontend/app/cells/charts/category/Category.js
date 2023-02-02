@@ -35,12 +35,12 @@ const Category = async ({ value, expanded }) => {
     const data = await fetchCategory(value);
 
     if (data?.isVerbatim) {
-        return <>Verbatim</>
+        return <>{data.value}</>
     } else if (!expanded) {
         const queryString =new URLSearchParams(
             Object.fromEntries(
                 Object.entries({
-                    chartType: 'category', 
+                    chartType: 'category',
                     data: JSON.stringify(data)
                 }).filter(([k, v]) => typeof(v) !== 'undefined' && v !== null)
             )
@@ -48,10 +48,10 @@ const Category = async ({ value, expanded }) => {
 
         return (
             <img src={`/api/charts?${queryString}`} loading="lazy" className={cx(['chart-thumbnail', 'category'])} />
-          )        
+          )
     } else {
         return <CategoryClient expanded={expanded} title={value?.columnName} query={value} columnName={value?.columnName} data={data} />
-    }    
+    }
 }
 
 export default Category;

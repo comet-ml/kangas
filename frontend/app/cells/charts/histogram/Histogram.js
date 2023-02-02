@@ -9,7 +9,7 @@ const Histogram = async ({ value, expanded }) => {
     const data = await fetchHistogram(value);
 
     if (data?.isVerbatim) {
-        return <>Verbatim</>
+        return <>{data.value}</>
     } else if (!expanded) {
         // FIXME: only pass enough of data to make thumbnail image
         const queryString =new URLSearchParams(
