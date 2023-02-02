@@ -27,6 +27,9 @@
     <a rel="nofollow" href="https://doi.org/10.5281/zenodo.7410884">
         <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.7410884.svg" alt="DOI">
     </a>
+    <a href="https://trackgit.com">
+        <img src="https://us-central1-trackgit-analytics.cloudfunctions.net/token/ping/ldn6h026vu25r9kus8ld" alt="trackgit-views" />
+    </a>
 </p>
 
 # Kangas: Explore Multimedia Datasets at Scale :kangaroo:
