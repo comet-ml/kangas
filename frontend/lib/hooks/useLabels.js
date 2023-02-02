@@ -1,4 +1,5 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useContext } from 'react';
+import { CanvasContext } from '../../app/contexts/CanvasContext';
 
 /*
 
@@ -35,20 +36,21 @@ metadata = {"annotations": [
 */
 
 
-const useLabels = (metadata) => {
-    const [score, setScore] = useState(0);
-    const [hiddenLabels, setHiddenLabels] = useState({ });
+const useLabels = (assetId) => {
+    // TODO: Update this to use context
+    const { images, hiddenLabels, score, scoreRange } = useContext(CanvasContext);
+    const image = useMemo(() => images?.[assetId], [assetId, images?.[assetId]]);
+    const labels = useMemo(() => images?.[assetId]?.labels, [assetId, images?.[assetId]?.labels]);
+    const overlays = useMemo(() =>  images?.[assetId]?.overlays, [assetId, images?.[assetId]?.overlays]);
+    const annotations = useMemo(() => images?.[assetId]?.annotations, [images?.[assetId]?.annotations]);
 
-    const scoreRange = useMemo(() => {
-        let min = Number.MAX_VALUE;
-        let max = -Number.MAX_VALUE;
-
-        if (metadata?.annotations) {
-            for (const layer of Object.values(metadata.annotations)) {
+/*
+    useEffect(() => {
+        if (!!annotations) {
+            for (const layer of Object.values(annotations)) {
                 for (const annotation of Object.values(layer)) {
                 // Filter logic
-                // TODO Fix below bug (potential) with 0-scores
-                    if (typeof(annotation?.score) !== 'undefined') {
+                    if (typeof annotation?.score === 'number') {
                         if (annotation.score < min) min = annotation.score;
                         if (annotation.score > max) max = annotation.score;
                     }
@@ -56,35 +58,44 @@ const useLabels = (metadata) => {
             }
         }
         return { min, max };
-    }, [metadata?.annotations]);
+    }, [annotations]);
 
     const labels = useMemo(() => {
-        if (metadata?.annotations) {
-            return metadata.annotations?.data.filter(data => (!data?.score || (data?.score > score)) && !hiddenLabels?.[data?.label]);
+        if (!!annotations) {
+            return annotations?.data.filter(data => (!data?.score || (data?.score > score)) && !hiddenLabels?.[data?.label]);
         } else {
             return [];
         }
-    }, [metadata?.overlays, score, hiddenLabels]);
+    }, [score, hiddenLabels]);
 
     const updateScore = useCallback((e) => setScore(e.target.value), []);
     const toggleLabel = useCallback((label) => {
         if (hiddenLabels?.[label.label]) {
             const { [label.label]: removed, ...remaining } = hiddenLabels;
-            setHiddenLabels(remaining);
+            //setHiddenLabels(remaining);
         } else {
-            setHiddenLabels({
+            /*setHiddenLabels({
                 ...hiddenLabels,
                 [label.label]: true
-            });
-        }
-    }, [hiddenLabels]);
+            }); */
+       /* }
+    }, [hiddenLabels]); 
 
     return {
         labels,
         scoreRange,
         updateScore,
         toggleLabel
-    };
-};
+    }; */
+
+    return {
+        labels,
+        overlays,
+        scoreRange: {},
+        updateScore: () => console.log('e'),
+        toggleLabel: () => console.log('e'),
+        image
+    }
+}
 
 export default useLabels;

@@ -4,37 +4,30 @@ import fetchAsset from "../../../../lib/fetchAsset";
 import fetchAssetMetadata from "../../../../lib/fetchAssetMetadata";
 import CanvasProvider from "../../../contexts/CanvasContext";
 import ImageCanvasClient from "./ImageCanvasClient";
+import styles from './ImageCanvas.module.scss';
+import classNames from 'classnames/bind';
+import ImageCanvasControls from "./Controls";
+import ImageCanvasOutput from "./Output";
+const cx = classNames.bind(styles);
 
-const ImageCanvasCell = async ({ value, query }) => {
-    const { type, assetType, assetId } = value;
+const ImageCanvasCell = async ({ assets, query }) => {
     const { dgid, timestamp } = query;
-    const image = await fetchAsset({query: { assetId, dgid, timestamp },
-                                    returnUrl: true,
-                                    json: true});
-    const metadata = await fetchAssetMetadata({ assetId, dgid, timestamp });
+    /*const image = await fetchAsset({
+        query: { assetId, dgid, timestamp },
+        returnUrl: true,
+        json: true
+    });*/
 
-    // TODO: Abstract this into a fetchAssetMetadata method
-    /*
-    const data = await fetch(`${config.apiUrl}asset-metadata`, {
-        method: 'post',
-        body: JSON.stringify({
-            assetId,
-            dgid
-        })
-    })
-    const metadata = await data.json()
-    */
+    // const labels = await fetchAssetMetadata({ assetId, dgid, timestamp });
 
     return (
         <Suspense fallback={<>Loading</>}>
-            <CanvasProvider value={JSON.parse(metadata)}>
-                <ImageCanvasClient
-                    value={value}
-                    query={query}
-                    metadata={JSON.parse(metadata)}
-                    image={image}
-                />
-            </CanvasProvider>
+            <div className={cx('image-editor')}>
+                <ImageCanvasControls />
+                <div className={cx('canvas-column')}>
+                    { assets?.map(id => <ImageCanvasOutput assetId={id} /> )}
+                </div>
+            </div>
         </Suspense>
     )
 }

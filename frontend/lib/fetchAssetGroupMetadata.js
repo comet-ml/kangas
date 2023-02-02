@@ -2,13 +2,13 @@
 import config from '../config';
 
 // Utils
-import fetchData from './fetchData';
+import fetchData from './fetchIt';
 
 const fetchAssetGroupMetadata = async ({ query, returnType = 'json' }) => {
     const data = await fetchData({
         url: `${config.apiUrl}asset-group-metadata`,
         query,
-        method: 'POST',
+        method: 'GET',
         returnType,
     });
 
