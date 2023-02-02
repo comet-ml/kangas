@@ -6,7 +6,7 @@
 
 <p align="center">
     <a href="https://badge.fury.io/py/kangas">
-        <img src="https://badge.fury.io/py/kangas.svg" alt="PyPI version" height="18">
+        <img src="https://badge.fury.io/py/kangas.png" alt="PyPI version" height="18">
     </a>
     <a rel="nofollow" href="https://opensource.org/licenses/Apache-2.0">
         <img alt="GitHub" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg">
