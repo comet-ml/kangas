@@ -531,6 +531,7 @@ class AutocompleteTextField extends React.Component {
             sx: {
                 fontSize: '13px',
                 width: '360px',
+                lineHeight: '1.5',
             },
           }}
           inputProps={{
