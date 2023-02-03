@@ -1161,7 +1161,6 @@ def select_asset_group_metadata(
     computed_columns,
     where_expr,
     distinct,
-    metadata_path,
 ):
     conn = get_database_connection(dgid)
     cur = conn.cursor()
@@ -1208,7 +1207,15 @@ def select_asset_group_metadata(
         LOGGER.error("SQL: %s", exc)
         raise Exception(str(exc))
 
-    results = set()
+    # Return: {"layername": {"labels": [unique list of label names],
+    #                        "scoreMin": number, "scoreMax": number}}
+    summary = defaultdict(
+        lambda: {
+            "labels": defaultdict(
+                lambda: {"scoreMin": float("inf"), "scoreMax": -float("inf")}
+            )
+        }
+    )
     if rows:
         row = rows[0]
         if row and row[0]:
@@ -1220,27 +1227,51 @@ def select_asset_group_metadata(
                 )
             else:
                 values = str(tuple(values))
-            metadata_field_name = get_field_name(column_name + "--metadata", metadata)
-            if metadata_field_name is None:
-                return []
 
-            env = {
-                "metadata_field_name": metadata_field_name,
-                "field_name": field_name,
-                "values": values,
-            }
-            sql = """SELECT {metadata_field_name} FROM datagrid WHERE {field_name} IN {values}""".format(
-                **env
+            sql = """SELECT asset_metadata FROM assets WHERE asset_id IN {values}""".format(
+                values=values,
             )
             cur.execute(sql)
             all_asset_metadata = cur.fetchall()
             for asset_metadata in all_asset_metadata:
                 json_metadata = json.loads(asset_metadata[0])
-                ## FIXME: currently metadata_path is just a key; make work with a nested path:
-                if metadata_path in json_metadata:
-                    results.update(json_metadata[metadata_path])
+                # Annotation structure:
+                # {"annotations": [{
+                #     "name": layername,
+                #     "data": [{"label": label, "score": number}],
+                #  }, ...
+                #  ]
+                # }
+                if "annotations" in json_metadata:
+                    for annotation_layer in json_metadata["annotations"]:
+                        layer_name = annotation_layer["name"]
+                        for annotation in annotation_layer["data"]:
+                            minimum = summary[layer_name]["labels"][
+                                annotation["label"]
+                            ]["scoreMin"]
+                            maximum = summary[layer_name]["labels"][
+                                annotation["label"]
+                            ]["scoreMax"]
+                            if annotation["score"] is not None:
+                                summary[layer_name]["labels"][annotation["label"]][
+                                    "scoreMin"
+                                ] = min(annotation["score"], minimum)
+                                summary[layer_name]["labels"][annotation["label"]][
+                                    "scoreMax"
+                                ] = max(annotation["score"], maximum)
 
-    return sorted(list(results))
+    for layer_name in summary:
+        minimum, maximum = float("inf"), -float("inf")
+        for label_name in summary[layer_name]["labels"]:
+            minimum = min(
+                summary[layer_name]["labels"][label_name]["scoreMin"], minimum
+            )
+            maximum = max(
+                summary[layer_name]["labels"][label_name]["scoreMin"], maximum
+            )
+        summary[layer_name]["scoreMin"] = minimum
+        summary[layer_name]["scoreMax"] = maximum
+    return summary
 
 
 def verify_where(

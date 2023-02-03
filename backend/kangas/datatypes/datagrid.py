@@ -2463,10 +2463,30 @@ class DataGrid:
         """
         Upgrade to latest version of datagrid.
         """
-        cursor = self.conn.cursor()
+        self._upgrade_table("asset_id", "asset_metadata", "assets")
+        # FIXME: may want to upgrade datagrid columns:
+        # for column_name in metadata_columns:
+        #    self._upgrade_table("row_id", column_name, "datagrid")
 
-        sql = "SELECT asset_id, asset_metadata FROM assets;"
-        sql_update = "UPDATE assets SET asset_metadata = ? where asset_id = ?"
+    def _upgrade_table(self, column_id_name, column_metadata_name, table_name):
+        """
+        Upgrade to latest version of datagrid.
+        """
+        env = {
+            "column_id_name": column_id_name,
+            "column_metadata_name": column_metadata_name,
+            "table_name": table_name,
+        }
+        sql = (
+            "SELECT {column_id_name}, {column_metadata_name} FROM {table_name};".format(
+                **env
+            )
+        )
+        sql_update = "UPDATE {table_name} SET {column_metadata_name} = ? where {column_id_name} = ?".format(
+            **env
+        )
+
+        cursor = self.conn.cursor()
         rows = list(cursor.execute(sql).fetchall())
 
         count = 0
@@ -2484,10 +2504,12 @@ class DataGrid:
 
             if "overlays" in asset_json:
                 data = []
-                asset_json["annotations"] = {
-                    "name": "(uncategorized)",
-                    "data": data,
-                }
+                asset_json["annotations"] = [
+                    {
+                        "name": "(uncategorized)",
+                        "data": data,
+                    }
+                ]
                 for overlay in asset_json["overlays"]:
                     if overlay["type"] == "boxes":
                         data.append(

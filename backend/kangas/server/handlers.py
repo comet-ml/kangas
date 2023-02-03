@@ -435,7 +435,6 @@ class AssetGroupMetadataHandler(BaseHandler):
         computed_columns = data.get("computedColumns", None)
         where_expr = data.get("whereExpr", None)
         where_expr = where_expr.strip() if where_expr else None
-        metadata_path = data.get("metadataPath", "labels")
         distinct = data.get("distinct", True)
 
         if self.ensure_datagrid_path(dgid):
@@ -450,7 +449,6 @@ class AssetGroupMetadataHandler(BaseHandler):
                 computed_columns,
                 where_expr,
                 distinct,
-                metadata_path,
             )
             self.write_json(result)
 
@@ -470,7 +468,6 @@ class AssetGroupMetadataHandler(BaseHandler):
         computed_columns = self.get_query_argument("computedColumns", None)
         where_expr = self.get_query_argument("whereExpr", None)
         where_expr = where_expr.strip() if where_expr else None
-        metadata_path = self.get_query_argument("metadataPath", "labels")
         distinct = self.get_query_argument("distinct", "true") == "true"
 
         if self.ensure_datagrid_path(dgid):
@@ -485,7 +482,6 @@ class AssetGroupMetadataHandler(BaseHandler):
                 computed_columns,
                 where_expr,
                 distinct,
-                metadata_path,
             )
             self.write_json(result)
 
