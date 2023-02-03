@@ -2,7 +2,7 @@
 
 import classNames from 'classnames/bind';
 import { ModalContext } from '../../../modals/DialogueModal/DialogueModalClient';
-import styles from '../Charts.module.scss'
+import styles from '../Charts.module.scss';
 import { useContext, useMemo, useCallback, useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter } from "next/navigation";
 import dynamic from 'next/dynamic';
@@ -53,7 +53,7 @@ const CategoryClient = ({ expanded, title, query, columnName, data }) => {
             if (entry.isIntersecting) {
                 setVisible(true);
             }
-        })
+        });
     }, []);
 
     const ExpandedLayout = useMemo(() => {
@@ -79,6 +79,7 @@ const CategoryClient = ({ expanded, title, query, columnName, data }) => {
 
     const router = useRouter();
 
+    /*
     const onClick = useCallback((data) => {
         // FIXME: this doesn't stop the event:
         data.event.preventDefault();
@@ -92,6 +93,7 @@ const CategoryClient = ({ expanded, title, query, columnName, data }) => {
         // FIXME: build query string and encode:
         router.push(`/?datagrid=${query.dgid}&filter=${filter}`);
     }, [data, columnName]);
+    */
 
     useEffect(() => {
         const options = {
@@ -107,17 +109,17 @@ const CategoryClient = ({ expanded, title, query, columnName, data }) => {
 
     return (
         <div ref={plot} className={cx('plotly-container', { expanded })}>
-            { visible && 
+            { visible &&
             <Plot
                 className={cx('plotly-chart', { expanded })}
                 data={data}
                 layout={expanded ? ExpandedLayout : CategoryLayout}
                 config={CategoryConfig}
-                onClick={onClick}
             />
             }
         </div>
-    )
+    );
+    // onClick={onClick}
 }
 
 export default CategoryClient;
