@@ -7,7 +7,8 @@ import classNames from 'classnames/bind';
 import useLabels from '../../../../lib/hooks/useLabels';
 import { getColor, getContrastingColor } from '../../../../lib/generateChartColor';
 import { CanvasContext } from '../../../contexts/CanvasContext';
-
+import ImageCanvasOutput from './OutputClient';
+import ImageCanvasControls from './Controls';
 const cx = classNames.bind(styles);
 
 /*
@@ -44,37 +45,33 @@ metadata = {"annotations": [
 
 */
 
-const Label = ({ label, toggle }) => {
-    const color = getColor(label.label);
-    const textColor = getContrastingColor(color);
-    return (
-            <div onClick={() => toggle(label)} style={{ background: color, color: textColor}}>
-            {`${label?.label}`}
-        </div>
-    );
-}
 
-const ImageCanvasClient = ({ image }) => {
+const ImageCanvasClient = ({ image, metadata, assetId }) => {
     const imageCanvas = useRef();
     const labelCanvas = useRef();
-    const { metadata } = useContext(CanvasContext);
-    const { labels, scoreRange, updateScore, toggleLabel } = useLabels(metadata);
+    const { labels, scoreRange, updateScore, toggleLabel } = useLabels(assetId);
+    const { addImageMetadata } = useContext(CanvasContext);
 
-    console.log(labels);
+    useEffect(() => {
+        addImageMetadata({
+            assetId,
+            metadata
+        })
+    }, [metadata])
 
-    const drawImage = useCallback(() => {
-        const ctx = imageCanvas.current?.getContext("2d");
+    const drawImage = useCallback((imageCanvas) => {
+        const ctx = imageCanvas?.getContext("2d");
         // TODO That funky computeScale business
-        ctx.clearRect(0, 0, imageCanvas.current.width, imageCanvas.current.height);
+        ctx.clearRect(0, 0, imageCanvas.width, imageCanvas.height);
 
         const img = new Image;
         img.onload = () => ctx.drawImage(img, 0, 0);
         img.src = `data:application/octet-stream;base64,${image}`;
     }, [image]);
 
-    const drawLabels = useCallback(() => {
-        const ctx = labelCanvas.current?.getContext("2d");
-        ctx.clearRect(0, 0, labelCanvas.current.width, labelCanvas.current.height);
+    const drawLabels = useCallback((labelCanvas) => {
+        const ctx = labelCanvas.getContext("2d");
+        ctx.clearRect(0, 0, labelCanvas.width, labelCanvas.height);
 
         const imageScale = 1;
         // We don't need the alpha statements, since they are constants
@@ -121,41 +118,11 @@ const ImageCanvasClient = ({ image }) => {
         }
     }, [metadata, labels]);
 
-    useEffect(() => {
-        drawImage();
-    }, [drawImage]);
-
-    useEffect(() => {
-        drawLabels();
-    }, [drawLabels]);
-
     return (
         <div className={cx('image-editor')}>
-            <div className={cx('editor-controls')}>
-                <div className="score-control">
-                    <div className="slider-container">
-                        <div className="zoom-label">Score:</div>
-                        <input
-                            type="range"
-                            min={`${scoreRange.min}`}
-                            max={`${scoreRange.max}`}
-                            defaultValue={`${scoreRange.min}`}
-                            className="zoom-slider"
-                            id="zoom-slide"
-                            step="0.001"
-                            onChange={updateScore}
-                        />
-                    </div>
-                </div>
-                <div className={cx('labels-container')}>
-                    { labels?.map(l => <Label toggle={toggleLabel} label={l} />) }
-                </div>
-            </div>
+            <ImageCanvasControls />
             <div className={cx('canvas-column')}>
-                <div className={cx('canvas-container')}>
-                    <canvas ref={imageCanvas} height={472} width={492} />
-                    <canvas ref={labelCanvas} height={472} width={492} />
-                </div>
+                <ImageCanvasOutput assetId={assetId} />
             </div>
         </div>
     );

@@ -1,8 +1,11 @@
 import fetchAsset from '../../../lib/fetchAsset';
 import ImageCanvasCell from './ImageCanvas/ImageCanvasCell';
+import CanvasProvider from "../../contexts/CanvasContext";
 
 import classNames from 'classnames/bind';
 import styles from '../Cell.module.scss';
+import { Suspense } from 'react';
+import fetchAssetGroupMetadata from '../../../lib/fetchAssetGroupMetadata';
 const cx = classNames.bind(styles);
 
 const ThumbnailGroupCell = async ({ value, query, columnName, expanded }) => {
@@ -29,9 +32,33 @@ const ThumbnailGroupCell = async ({ value, query, columnName, expanded }) => {
     );
 };
 
+const ExpandedGroupedCell = async ({ value }) => {
+    const images = await fetchAsset({ query: value });
+    const labels = await fetchAssetGroupMetadata({ query: value });
+
+    const imageStore = {};
+    for (const image of images?.values) {
+        imageStore[image] = {
+            fetchedMeta: false
+        }
+    }
+
+    return ( 
+        <CanvasProvider value={{ images: imageStore, labels, isGroup: true }}>
+            <ImageCanvasCell assets={images.values} query={value} />
+        </CanvasProvider>
+    )
+}
+
 const GroupedImageCell = ({ value, query, columnName, expanded }) => {
     if (!expanded) return <ThumbnailGroupCell value={value} query={query} columnName={columnName} expanded={expanded} />
-    else return <ImageCanvasCell value={value} query={query} columnName={columnName} expanded={expanded} />
+    else { 
+        return (
+            <Suspense fallback={<>fds</>}>
+                <ExpandedGroupedCell value={value} />
+            </Suspense>
+        )
+    }
 }
 
 export default GroupedImageCell;
