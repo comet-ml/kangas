@@ -39,7 +39,7 @@ const ExpandedGroupedCell = async ({ value }) => {
     const imageStore = {};
     for (const image of images?.values) {
         imageStore[image] = {
-            metadata: {}
+            fetchedMeta: false
         }
     }
 

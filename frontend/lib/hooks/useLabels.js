@@ -1,5 +1,6 @@
-import { useState, useMemo, useCallback, useContext } from 'react';
+import { useState, useMemo, useCallback, useContext, useEffect } from 'react';
 import { CanvasContext } from '../../app/contexts/CanvasContext';
+import fetchAssetMetadata from '../fetchAssetMetadata';
 
 /*
 
@@ -36,13 +37,22 @@ metadata = {"annotations": [
 */
 
 
-const useLabels = (assetId) => {
+const useLabels = ({ assetId, dgid, timestamp }) => {
     // TODO: Update this to use context
-    const { images, hiddenLabels, score, scoreRange } = useContext(CanvasContext);
+    const { images, hiddenLabels, score, scoreRange, addImageMetadata } = useContext(CanvasContext);
     const image = useMemo(() => images?.[assetId], [assetId, images?.[assetId]]);
     const labels = useMemo(() => images?.[assetId]?.labels, [assetId, images?.[assetId]?.labels]);
     const overlays = useMemo(() =>  images?.[assetId]?.overlays, [assetId, images?.[assetId]?.overlays]);
     const annotations = useMemo(() => images?.[assetId]?.annotations, [images?.[assetId]?.annotations]);
+    const dimensions = useMemo(() => ({ ...images?.[assetId]?.image }), [images?.[assetId]?.image])
+
+    useEffect(() => {
+        if (!image?.fetchedMeta) {
+            fetch(`/api/assetMetadata?assetId=${assetId}&dgid=${dgid}`)
+            .then(res => res.json())
+            .then(metadata => addImageMetadata({ assetId, metadata }))
+        }
+    }, [image?.fetchedMeta]);
 
 /*
     useEffect(() => {
@@ -94,7 +104,8 @@ const useLabels = (assetId) => {
         scoreRange: {},
         updateScore: () => console.log('e'),
         toggleLabel: () => console.log('e'),
-        image
+        image,
+        dimensions
     }
 }
 

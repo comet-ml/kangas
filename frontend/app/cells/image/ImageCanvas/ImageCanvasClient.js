@@ -7,7 +7,7 @@ import classNames from 'classnames/bind';
 import useLabels from '../../../../lib/hooks/useLabels';
 import { getColor, getContrastingColor } from '../../../../lib/generateChartColor';
 import { CanvasContext } from '../../../contexts/CanvasContext';
-import ImageCanvasOutput from './Output';
+import ImageCanvasOutput from './OutputClient';
 import ImageCanvasControls from './Controls';
 const cx = classNames.bind(styles);
 
@@ -51,9 +51,6 @@ const ImageCanvasClient = ({ image, metadata, assetId }) => {
     const labelCanvas = useRef();
     const { labels, scoreRange, updateScore, toggleLabel } = useLabels(assetId);
     const { addImageMetadata } = useContext(CanvasContext);
-
-    console.log('CanvasClient')
-    console.log(labels)
 
     useEffect(() => {
         addImageMetadata({

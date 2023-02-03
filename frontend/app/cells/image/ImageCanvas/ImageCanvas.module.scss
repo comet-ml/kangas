@@ -13,19 +13,38 @@
     width: 682px;
     height: 672px;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
 }
 
 .canvas-container {
     position: relative;
-    width: 492px;
-    height: 472px;
+    min-height: 500px;
+    min-width: 400px;
     
-    canvas {
+    .output {
         position: absolute;
         left: 0;
         border-radius: 10px;
+        max-width: 100%;
+
+        &.canvas {
+            z-index: 999;
+
+            &.vertical {
+                height: 400px;
+            }
+
+        }
+
+        &.image {            
+            z-index: 998;
+
+            &.vertical {
+                height: 400px;
+            }
+
+        }
     }
 
 }

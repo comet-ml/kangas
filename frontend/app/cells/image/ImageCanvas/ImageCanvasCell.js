@@ -25,7 +25,7 @@ const ImageCanvasCell = async ({ assets, query }) => {
             <div className={cx('image-editor')}>
                 <ImageCanvasControls />
                 <div className={cx('canvas-column')}>
-                    { assets?.map(id => <ImageCanvasOutput assetId={id} /> )}
+                    { assets?.map(id => <ImageCanvasOutput dgid={dgid} timestamp={timestamp} assetId={id} /> )}
                 </div>
             </div>
         </Suspense>

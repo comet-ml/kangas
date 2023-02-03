@@ -1,35 +1,27 @@
-'use client';
+import ImageCanvasOutputClient from "./OutputClient"
+import fetchAsset from "../../../../lib/fetchAsset"
+import fetchAssetMetadata from "../../../../lib/fetchAssetMetadata";
 
-import { useCallback, useMemo, useEffect, useRef, useState, useContext } from 'react';
-import { CanvasContext } from '../../../contexts/CanvasContext';
-import useLabels from '../../../../lib/hooks/useLabels';
-import styles from './ImageCanvas.module.scss';
-import classNames from 'classnames/bind';
-const cx = classNames.bind(styles);
 
-const ImageCanvasOutput = ({ assetId, drawImage, drawLabels }) => {
-    const imageCanvas = useRef();
-    const labelCanvas = useRef();
-    const { metadata } = useContext(CanvasContext);
-    const { image, overlays, labels } = useLabels(assetId)
+const ImageCanvasOutput = async ({ assetId, dgid, timestamp }) => {
+    const querystring = new URLSearchParams({ 
+        assetId, 
+        dgid, 
+        timestamp, 
+        endpoint: 'download'
+    }).toString();
 
-    console.log('here I am');
-    console.log(assetId)
-    
-    useEffect(() => {
-        if (!imageCanvas?.current) return;
-
-    }, [drawImage]);
-
-    useEffect(() => {
-        if (!labelCanvas?.current) return;
-
-    }, [drawLabels]);
+    // TODO Fetch metadata here when we fix fetch retries/the open file limit on the server
+    //const metadata = await fetchAssetMetadata({ assetId, dgid, timestamp });
 
     return (
-        <div className={cx('canvas-container')}>
-            <canvas ref={imageCanvas} height={472} width={492} />
-            <canvas ref={labelCanvas} height={472} width={492} />
+        <div>
+            <ImageCanvasOutputClient 
+                assetId={assetId} 
+                timestamp={timestamp}
+                dgid={dgid}
+                imageSrc={`/api/image?${querystring}`}
+            />
         </div>
     )
 

@@ -21,7 +21,8 @@ const reducer = (state, action) => {
                 images: {
                     ...state.images,
                     [action.payload.assetId]: {
-                        ...action.payload.metadata
+                        ...action.payload.metadata,
+                        fetchedMeta: true
                     }
                 }
             }
@@ -61,10 +62,7 @@ const CanvasProvider = ({ value, children }) => {
     const [state, dispatch] = useReducer(reducer, value);
     // const visibleLabels = useMemo()
 
-    useEffect(() => {
-        console.log(state)
-    }, [state]);
-
+    console.log(state);
     return (
         <CanvasContext.Provider value={{ 
             metadata: { ...value },
