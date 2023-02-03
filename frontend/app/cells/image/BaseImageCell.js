@@ -7,6 +7,8 @@ import config from '../../../config';
 import classNames from 'classnames/bind';
 import styles from '../Cell.module.scss';
 import Image from 'next/image';
+import fetchAssetMetadata from '../../../lib/fetchAssetMetadata';
+import CanvasProvider from '../../contexts/CanvasContext';
 
 const cx = classNames.bind(styles);
 
@@ -31,8 +33,24 @@ const PlainImageCell = async ({ value, query, expanded=false, style }) => {
     );
 };
 
+const ExpandedWrapper = async ({ value, query }) => {
+    const labels = await fetchAssetMetadata({ assetId: value?.assetId, dgid: query?.dgid });
+    
+    return (
+        <CanvasProvider
+            value={{
+                labels: Object.keys(JSON.parse(labels)?.labels)
+            }}
+        >
+            <ImageCanvasCell assets={[value?.assetId]} query={query} />
+        </CanvasProvider>
+    )
+}
+
 const ImageCell = ({ value, query, expanded, style }) => {
-    const Component = expanded ? ImageCanvasCell : PlainImageCell;
+    const Component = expanded ? ExpandedWrapper : PlainImageCell;
+
+
     return (
         <Suspense fallback={<>Loading</>}>
             <Component value={value} query={query} expanded={expanded} style={style} />

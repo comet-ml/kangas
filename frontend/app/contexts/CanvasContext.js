@@ -4,7 +4,7 @@ import { createContext, useEffect, useMemo, useReducer } from 'react';
 
 export const CanvasContext = createContext({
     images: {},
-    labels: {},
+    labels: [],
     hiddenLabels: {},
     score: null,
     scoreRange: {
@@ -45,13 +45,22 @@ const reducer = (state, action) => {
             }
         }
         case 'SHOW_LABEL':
-            const hidden = { ...state.hiddenLabels }
-            delete hidden[action.payload];
-
             return {
                 ...state,
-                hiddenLabels: { ...hidden }
+                hiddenLabels: { 
+                    ...state.hiddenLabels,
+                    [action.payload]: false
+                }
             }
+        case 'ADD_LABELS': {
+            return {
+                ...state,
+                labels: [
+                    ...state.labels,
+                    ...action.payload
+                ]
+            }
+        }
         default:
             return state
     }
@@ -60,9 +69,7 @@ const reducer = (state, action) => {
 
 const CanvasProvider = ({ value, children }) => {
     const [state, dispatch] = useReducer(reducer, value);
-    // const visibleLabels = useMemo()
 
-    console.log(state);
     return (
         <CanvasContext.Provider value={{ 
             metadata: { ...value },
@@ -73,7 +80,11 @@ const CanvasProvider = ({ value, children }) => {
             updateScoreRange: (payload) => dispatch({ type: 'UPDATE_SCORE_RANGE', payload }),
             hideLabel: (payload) => dispatch({ type: 'HIDE_LABEL', payload }),
             showLabel: (payload) => dispatch({ type: 'SHOW_LABEL', payload }),
-            addImageMetadata: (payload) => dispatch({ type: 'ADD_IMAGE_METADATA', payload})
+            addImageMetadata: (payload) => dispatch({ type: 'ADD_IMAGE_METADATA', payload}),
+            addLabels: (payload) => dispatch({ type: 'ADD_LABELS', payload }),
+            score: state.score,
+            scoreRange: state.score,
+            hiddenLabels: state.hiddenLabels
         }}>
             { children }
         </CanvasContext.Provider>

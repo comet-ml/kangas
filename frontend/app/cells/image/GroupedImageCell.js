@@ -55,7 +55,7 @@ const GroupedImageCell = ({ value, query, columnName, expanded }) => {
     else { 
         return (
             <Suspense fallback={<>fds</>}>
-                    <ExpandedGroupedCell value={value} />
+                <ExpandedGroupedCell value={value} />
             </Suspense>
         )
     }

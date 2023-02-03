@@ -8,8 +8,6 @@ import styles from './ImageCanvas.module.scss';
 import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);
 
-const hiddenLabels = new Set([]);
-
 function computeScale(canvasWidth, canvasHeight, width, height) {
     if (width > height) {
         if (width < canvasWidth) {
@@ -32,10 +30,17 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
     const containerRef = useRef();
     const labelCanvas = useRef();
     const img = useRef();
-    const { overlays, labels, dimensions } = useLabels({ assetId, timestamp, dgid });
-    const isVertical = useMemo(() => dimensions?.height > dimensions?.width, [dimensions]);
-    const canvasDims = useMemo(() => isVertical ? { h: 400, w: 200 } : { h: 200, w: 400 }, [isVertical]);
+    const [loaded, setLoaded] = useState(false);
+    const { 
+        overlays, 
+        dimensions, 
+        score,
+        hiddenLabels
+    } = useLabels({ assetId, timestamp, dgid });
 
+    const isVertical = useMemo(() => dimensions?.height > dimensions?.width, [dimensions]);
+
+    const onLoad = useCallback(() => setLoaded(true), []);
 
     const drawLabels = useCallback(() => {
         labelCanvas.current.width = img.current.width;
@@ -45,8 +50,8 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
         if (overlays) {
             const ctx = labelCanvas.current.getContext("2d");
             for (let reg = 0; reg < overlays.length; reg++) {
-                /*if (overlays[reg]?.score) {
-                    const score = overlays[reg].score;
+                if (overlays[reg]?.score) {
+                    /*const score = overlays[reg].score;
                     // Update the score range, if appropriate
                     if (scoreRange.min > score)
                         setScoreRange({ ...scoreRange, min: score });
@@ -55,11 +60,12 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
 
                     // Filter labels outside of range. For multi-view, the individual canvas does this
                     if (!isMulti && scoreBound > score)
-                        removeLabel(overlays[reg].label);
-                }*/
+                        removeLabel(overlays[reg].label);*/
+                    if (overlays[reg]?.score < score) continue;
+                }
                 if (overlays[reg].type === 'regions') {
                     const regions = overlays[reg].data;
-                    if (!hiddenLabels.has(overlays[reg].label)) {
+                    if (!hiddenLabels?.[overlays[reg].label]) {
                         for (let r = 0; r < regions.length; r++) {
                             const region = regions[r];
                             ctx.fillStyle = getColor(
@@ -82,7 +88,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                     }
                 } else if (overlays[reg].type === 'boxes') {
                     const boxes = overlays[reg].data;
-                    if (!hiddenLabels.has(overlays[reg].label)) {
+                    if (!hiddenLabels?.[overlays[reg].label]) {
                         for (let r = 0; r < boxes.length; r++) {
                             const [[x1, y1], [x2, y2]] = boxes[r];
                             ctx.strokeStyle = getColor(
@@ -103,16 +109,22 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                 }
             }
         }
-    }, [overlays, canvasDims, isVertical]);
+    }, [overlays, score, isVertical, hiddenLabels]);
+
+    useEffect(() => {
+        if (loaded) {
+            drawLabels();
+        }
+    }, [loaded, drawLabels])
 
     return (
         <div className={cx('canvas-container', { vertical: isVertical })} ref={containerRef}>
-            <canvas className={cx(['output', 'canvas'], { vertical: isVertical })} height={canvasDims?.h} width={canvasDims?.w} ref={labelCanvas} />
+            <canvas className={cx(['output', 'canvas'], { vertical: isVertical })} ref={labelCanvas} />
             <img 
                 className={cx(['output', 'image'], { vertical: isVertical })} 
                 ref={img} src={imageSrc} 
                 loading="lazy" 
-                onLoad={drawLabels}
+                onLoad={onLoad}
             />
         </div>
     )

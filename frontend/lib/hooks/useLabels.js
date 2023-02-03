@@ -38,8 +38,18 @@ metadata = {"annotations": [
 
 
 const useLabels = ({ assetId, dgid, timestamp }) => {
-    // TODO: Update this to use context
-    const { images, hiddenLabels, score, scoreRange, addImageMetadata } = useContext(CanvasContext);
+    const { 
+        images, 
+        hiddenLabels, 
+        score, 
+        scoreRange, 
+        addImageMetadata, 
+        updateScore,
+        updateScoreRange,
+        showLabel,
+        hideLabel
+    } = useContext(CanvasContext);
+
     const image = useMemo(() => images?.[assetId], [assetId, images?.[assetId]]);
     const labels = useMemo(() => images?.[assetId]?.labels, [assetId, images?.[assetId]?.labels]);
     const overlays = useMemo(() =>  images?.[assetId]?.overlays, [assetId, images?.[assetId]?.overlays]);
@@ -102,10 +112,15 @@ const useLabels = ({ assetId, dgid, timestamp }) => {
         labels,
         overlays,
         scoreRange: {},
-        updateScore: () => console.log('e'),
+        updateScore,
+        updateScoreRange,
         toggleLabel: () => console.log('e'),
+        hideLabel,
+        showLabel,
         image,
-        dimensions
+        dimensions,
+        score,
+        hiddenLabels
     }
 }
 
