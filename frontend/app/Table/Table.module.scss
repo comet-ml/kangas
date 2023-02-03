@@ -17,7 +17,7 @@
         }
 
         &.group {
-            max-height: 110px;
+            max-height: 120px;
         }
     }
 
@@ -32,7 +32,7 @@
             background-color: #eaecf2;
         }
         &.group {
-            max-height: 110px;
+            max-height: 120px;
         }
     }
 
@@ -40,7 +40,7 @@
         min-width: 100%;
         width: fit-content;
         display: flex;
-        max-height: 110px;
+        max-height: 120px;
         border-bottom: 1px solid rgb(224, 224, 224);
 
         &:hover {
