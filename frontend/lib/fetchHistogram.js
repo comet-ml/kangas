@@ -16,6 +16,7 @@ const fetchHistogram = async (query) => {
         };
     }
 
+    // FIXME: show some version of stats for DATETIME
     const formattedData = [
         {
             type: 'bar',
@@ -32,7 +33,7 @@ const fetchHistogram = async (query) => {
                     )} ${data.message || ''}`
             ),
             marker: { color: getColor(data.column) },
-            statistics: data.statistics,
+            statistics: data.columnType === 'DATETIME' ? [] : data.statistics,
         },
     ];
 
