@@ -3,6 +3,7 @@ import FloatCell from "../../app/cells/float";
 import JSONCell from "../../app/cells/json/JSONCell";
 import ImageCell from "../../app/cells/image";
 import DateCell from "../../app/cells/date";
+import BooleanCell from "../../app/cells/boolean";
 
 const cellMap = {
     TEXT: {
@@ -14,6 +15,11 @@ const cellMap = {
         width: 200,
         groupedWidth: 200,
         component: DateCell,
+    },
+    BOOLEAN: {
+        width: 200,
+        groupedWidth: 200,
+        component: BooleanCell,
     },
     FLOAT: {
         width: 150,
