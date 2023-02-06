@@ -35,7 +35,7 @@ const PlainImageCell = async ({ value, query, expanded=false, style }) => {
 
 const ExpandedWrapper = async ({ value, query }) => {
     const labels = await fetchAssetMetadata({ assetId: value?.assetId, dgid: query?.dgid });
-    
+        
     return (
         <CanvasProvider
             value={{

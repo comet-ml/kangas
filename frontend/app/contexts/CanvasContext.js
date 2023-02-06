@@ -75,7 +75,7 @@ const CanvasProvider = ({ value, children }) => {
             metadata: { ...value.metadata },
             images: { ...state.images },
             isGroup: !!value?.isGroup,
-            labels:  Object.keys(value?.metadata?.['(uncategorized)']?.labels),
+            labels:  value?.isGroup ? Object.keys(value?.metadata?.['(uncategorized)']?.labels) : value?.labels,
             updateScore: (payload) => dispatch({ type: 'UPDATE_SCORE', payload }),
             updateScoreRange: (payload) => dispatch({ type: 'UPDATE_SCORE_RANGE', payload }),
             hideLabel: (payload) => dispatch({ type: 'HIDE_LABEL', payload }),
