@@ -46,6 +46,8 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
     const drawLabels = useCallback(() => {
         labelCanvas.current.width = img.current.width;
         labelCanvas.current.height = img.current.height;
+        containerRef.current.style.width = `${img.current.width}.px`;
+        containerRef.current.style.height = `${img.current.height + 4}px`;
         const imageScale = computeScale(img.current.width, img.current.height, img.current.naturalWidth, img.current.naturalHeight)
 
         if (labels) {

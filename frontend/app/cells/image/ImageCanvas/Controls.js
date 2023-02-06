@@ -45,8 +45,8 @@ const ImageCanvasControls = ({  }) => {
 
     return (
         <div className={cx('editor-controls')}>
-            <div className="score-control">
-                <div className="slider-container">
+            <div className={cx('score-control')}>
+                <div className={cx('slider-container')}>
                     <div className="zoom-label">Score:</div>
                     <input
                         type="range"
