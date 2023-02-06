@@ -50,10 +50,9 @@ const useLabels = ({ assetId, dgid, timestamp }) => {
         hideLabel
     } = useContext(CanvasContext);
 
+    // TODO Support annotations from multiple groups, not just [0] == '(uncategorized)'
     const image = useMemo(() => images?.[assetId], [assetId, images?.[assetId]]);
-    const labels = useMemo(() => images?.[assetId]?.labels, [assetId, images?.[assetId]?.labels]);
-    const overlays = useMemo(() =>  images?.[assetId]?.overlays, [assetId, images?.[assetId]?.overlays]);
-    const annotations = useMemo(() => images?.[assetId]?.annotations, [images?.[assetId]?.annotations]);
+    const annotations = useMemo(() => images?.[assetId]?.annotations?.[0], [images?.[assetId]?.annotations?.[0]]);
     const dimensions = useMemo(() => ({ ...images?.[assetId]?.image }), [images?.[assetId]?.image])
 
     useEffect(() => {
@@ -64,53 +63,23 @@ const useLabels = ({ assetId, dgid, timestamp }) => {
         }
     }, [image?.fetchedMeta]);
 
-/*
-    useEffect(() => {
-        if (!!annotations) {
-            for (const layer of Object.values(annotations)) {
-                for (const annotation of Object.values(layer)) {
-                // Filter logic
-                    if (typeof annotation?.score === 'number') {
-                        if (annotation.score < min) min = annotation.score;
-                        if (annotation.score > max) max = annotation.score;
-                    }
-                }
-            }
-        }
-        return { min, max };
-    }, [annotations]);
-
     const labels = useMemo(() => {
-        if (!!annotations) {
-            return annotations?.data.filter(data => (!data?.score || (data?.score > score)) && !hiddenLabels?.[data?.label]);
+        if (!!annotations?.data) {
+            if (typeof score !== 'number') {
+                return annotations?.data
+            }
+            else {
+                const filtered =  annotations?.data?.filter(data => (!data?.score || (data?.score > score) && !hiddenLabels?.[data?.label]));
+                return filtered;
+            }
         } else {
             return [];
         }
-    }, [score, hiddenLabels]);
-
-    const updateScore = useCallback((e) => setScore(e.target.value), []);
-    const toggleLabel = useCallback((label) => {
-        if (hiddenLabels?.[label.label]) {
-            const { [label.label]: removed, ...remaining } = hiddenLabels;
-            //setHiddenLabels(remaining);
-        } else {
-            /*setHiddenLabels({
-                ...hiddenLabels,
-                [label.label]: true
-            }); */
-       /* }
-    }, [hiddenLabels]); 
+    }, [score, hiddenLabels, annotations]);
 
     return {
+        annotations,
         labels,
-        scoreRange,
-        updateScore,
-        toggleLabel
-    }; */
-
-    return {
-        labels,
-        overlays,
         scoreRange: {},
         updateScore,
         updateScoreRange,

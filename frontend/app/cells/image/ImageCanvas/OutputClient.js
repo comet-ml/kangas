@@ -32,9 +32,10 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
     const img = useRef();
     const [loaded, setLoaded] = useState(false);
     const { 
-        overlays, 
+        annotations, 
         dimensions, 
         score,
+        labels,
         hiddenLabels
     } = useLabels({ assetId, timestamp, dgid });
 
@@ -47,29 +48,19 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
         labelCanvas.current.height = img.current.height;
         const imageScale = computeScale(img.current.width, img.current.height, img.current.naturalWidth, img.current.naturalHeight)
 
-        if (overlays) {
+        if (labels) {
             const ctx = labelCanvas.current.getContext("2d");
-            for (let reg = 0; reg < overlays.length; reg++) {
-                if (overlays[reg]?.score) {
-                    /*const score = overlays[reg].score;
-                    // Update the score range, if appropriate
-                    if (scoreRange.min > score)
-                        setScoreRange({ ...scoreRange, min: score });
-                    if (scoreRange.max < score)
-                        setScoreRange({ ...scoreRange, max: score });
-
-                    // Filter labels outside of range. For multi-view, the individual canvas does this
-                    if (!isMulti && scoreBound > score)
-                        removeLabel(overlays[reg].label);*/
-                    if (overlays[reg]?.score < score) continue;
+            for (let reg = 0; reg < labels.length; reg++) {
+                if (labels[reg]?.score) {
+                    if (annotations[reg]?.score < score) continue;
                 }
-                if (overlays[reg].type === 'regions') {
-                    const regions = overlays[reg].data;
-                    if (!hiddenLabels?.[overlays[reg].label]) {
+                if (!!labels[reg]?.regions) {
+                    const regions = labels[reg].regions;
+                    if (!hiddenLabels?.[labels[reg].label]) {
                         for (let r = 0; r < regions.length; r++) {
                             const region = regions[r];
                             ctx.fillStyle = getColor(
-                                overlays[reg].label
+                                labels[reg].label
                             );
                             ctx.beginPath();
                             ctx.moveTo(
@@ -86,13 +77,13 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                             ctx.fill();
                         }
                     }
-                } else if (overlays[reg].type === 'boxes') {
-                    const boxes = overlays[reg].data;
-                    if (!hiddenLabels?.[overlays[reg].label]) {
+                } else if (!!labels[reg]?.boxes) {
+                    const boxes = labels[reg].boxes;
+                    if (!hiddenLabels?.[labels[reg]?.label]) {
                         for (let r = 0; r < boxes.length; r++) {
-                            const [[x1, y1], [x2, y2]] = boxes[r];
+                            const [x1, y1, x2, y2] = boxes[r];
                             ctx.strokeStyle = getColor(
-                                overlays[reg].label
+                                labels[reg].label
                             );
                             ctx.lineWidth = 3;
                             ctx.beginPath();
@@ -104,12 +95,12 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                             ctx.stroke();
                         }
                     }
-                } else if (overlays[reg].type === 'annotations') {
-                    // FIXME: text, anchor, points
+                } else if (labels[reg]?.annotations) {
+                    // TODO: text, anchor, points
                 }
             }
         }
-    }, [overlays, score, isVertical, hiddenLabels]);
+    }, [score, isVertical, hiddenLabels, labels]);
 
     useEffect(() => {
         if (loaded) {
