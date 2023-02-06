@@ -32,12 +32,12 @@ const reducer = (state, action) => {
                 score: action.payload
             }
         }
-        case 'UPDATE_SCORE_RANGE': {
+       /* case 'UPDATE_SCORE_RANGE': {
             return {
                 ...state,
                 scoreRange: { ...action.payload }
             }
-        }
+        }*/
         case 'HIDE_LABEL': {
             return {
                 ...state,
@@ -72,10 +72,10 @@ const CanvasProvider = ({ value, children }) => {
 
     return (
         <CanvasContext.Provider value={{ 
-            metadata: { ...value },
+            metadata: { ...value.metadata },
             images: { ...state.images },
-            labels: [ ...value.labels ],
             isGroup: !!value?.isGroup,
+            labels:  Object.keys(value?.metadata?.['(uncategorized)']?.labels),
             updateScore: (payload) => dispatch({ type: 'UPDATE_SCORE', payload }),
             updateScoreRange: (payload) => dispatch({ type: 'UPDATE_SCORE_RANGE', payload }),
             hideLabel: (payload) => dispatch({ type: 'HIDE_LABEL', payload }),
@@ -83,7 +83,6 @@ const CanvasProvider = ({ value, children }) => {
             addImageMetadata: (payload) => dispatch({ type: 'ADD_IMAGE_METADATA', payload}),
             addLabels: (payload) => dispatch({ type: 'ADD_LABELS', payload }),
             score: state.score,
-            scoreRange: state.score,
             hiddenLabels: state.hiddenLabels
         }}>
             { children }

@@ -34,7 +34,7 @@ const ThumbnailGroupCell = async ({ value, query, columnName, expanded }) => {
 
 const ExpandedGroupedCell = async ({ value }) => {
     const images = await fetchAsset({ query: value });
-    const labels = await fetchAssetGroupMetadata({ query: value });
+    const metadata = await fetchAssetGroupMetadata({ query: value });
 
     const imageStore = {};
     for (const image of images?.values) {
@@ -44,7 +44,7 @@ const ExpandedGroupedCell = async ({ value }) => {
     }
 
     return ( 
-        <CanvasProvider value={{ images: imageStore, labels, isGroup: true }}>
+        <CanvasProvider value={{ images: imageStore, metadata, isGroup: true }}>
             <ImageCanvasCell assets={images.values} query={value} />
         </CanvasProvider>
     )
@@ -52,7 +52,8 @@ const ExpandedGroupedCell = async ({ value }) => {
 
 const GroupedImageCell = ({ value, query, columnName, expanded }) => {
     if (!expanded) return <ThumbnailGroupCell value={value} query={query} columnName={columnName} expanded={expanded} />
-    else { 
+
+    else {
         return (
             <Suspense fallback={<>fds</>}>
                 <ExpandedGroupedCell value={value} />

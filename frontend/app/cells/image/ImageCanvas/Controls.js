@@ -9,7 +9,7 @@ import Label from './Label';
 const cx = classNames.bind(styles);
 
 const ImageCanvasControls = ({  }) => {
-    const { updateScore, labels=[], showLabel, hiddenLabels, hideLabel, addLabels } = useContext(CanvasContext);
+    const { updateScore, labels=[], showLabel, hiddenLabels, hideLabel, metadata } = useContext(CanvasContext);
     const onChange = useCallback((e) => updateScore(Number(e.target.value)), []);
     const toggleLabel = useCallback((label) => {
         if (!!hiddenLabels?.[label]) {
@@ -18,6 +18,29 @@ const ImageCanvasControls = ({  }) => {
             hideLabel(label)
         }
     }, [hiddenLabels, showLabel, hideLabel]);
+
+    const scoreRange = useMemo(() => {
+        let min = 0;
+        let max = 0;
+
+        for (const group in metadata) {
+            const groupMin = group?.scoreMin ?? 0;
+            const groupMax = group?.scoreMax ?? 0;
+            
+            if (groupMin < min) {
+                min = groupMin;
+            }
+
+            if (groupMax > max) {
+                max = groupMax
+            }
+        }
+
+        return {
+            min,
+            max
+        } 
+    }, [metadata])
 
 
     return (
