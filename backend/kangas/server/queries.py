@@ -1210,11 +1210,7 @@ def select_asset_group_metadata(
     # Return: {"layername": {"labels": [unique list of label names],
     #                        "scoreMin": number, "scoreMax": number}}
     summary = defaultdict(
-        lambda: {
-            "labels": defaultdict(
-                lambda: {"scoreMin": float("inf"), "scoreMax": -float("inf")}
-            )
-        }
+        lambda: {"labels": defaultdict(lambda: {"scoreMin": None, "scoreMax": None})}
     )
     if rows:
         row = rows[0]
@@ -1227,6 +1223,12 @@ def select_asset_group_metadata(
                 )
             else:
                 values = str(tuple(values))
+
+            if values.endswith(",)"):
+                values = values[:-2] + ")"
+
+            if values == "()":
+                return {}
 
             sql = """SELECT asset_metadata FROM assets WHERE asset_id IN {values}""".format(
                 values=values,
@@ -1255,20 +1257,28 @@ def select_asset_group_metadata(
                             if annotation["score"] is not None:
                                 summary[layer_name]["labels"][annotation["label"]][
                                     "scoreMin"
-                                ] = min(annotation["score"], minimum)
+                                ] = (
+                                    min(annotation["score"], minimum)
+                                    if minimum is not None
+                                    else annotation["score"]
+                                )
                                 summary[layer_name]["labels"][annotation["label"]][
                                     "scoreMax"
-                                ] = max(annotation["score"], maximum)
+                                ] = (
+                                    max(annotation["score"], maximum)
+                                    if maximum is not None
+                                    else annotation["score"]
+                                )
 
     for layer_name in summary:
-        minimum, maximum = float("inf"), -float("inf")
+        minimum, maximum = None, None
         for label_name in summary[layer_name]["labels"]:
-            minimum = min(
-                summary[layer_name]["labels"][label_name]["scoreMin"], minimum
-            )
-            maximum = max(
-                summary[layer_name]["labels"][label_name]["scoreMin"], maximum
-            )
+            scoreMin = summary[layer_name]["labels"][label_name]["scoreMin"]
+            scoreMax = summary[layer_name]["labels"][label_name]["scoreMax"]
+            if scoreMin:
+                minimum = min(scoreMin, minimum) if minimum is not None else scoreMin
+            if scoreMax:
+                maximum = max(scoreMax, maximum) if maximum is not None else scoreMax
         summary[layer_name]["scoreMin"] = minimum
         summary[layer_name]["scoreMax"] = maximum
     return summary

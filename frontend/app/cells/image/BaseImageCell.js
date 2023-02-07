@@ -15,12 +15,12 @@ const cx = classNames.bind(styles);
 
 const PlainImageCell = async ({ value, query, expanded=false, style }) => {
     const endpoint = parseEndpoint({ thumbnail: true, group: !!query?.groupBy });
-    const queryString = new URLSearchParams({ 
-        assetId: value?.assetId, 
-        dgid: query?.dgid, 
-        timestamp: query?.timestamp, 
+    const queryString = new URLSearchParams({
+        assetId: value?.assetId,
+        dgid: query?.dgid,
+        timestamp: query?.timestamp,
         thumbnail: true,
-        endpoint 
+        endpoint
     }).toString();
 
     return (
@@ -35,11 +35,20 @@ const PlainImageCell = async ({ value, query, expanded=false, style }) => {
 
 const ExpandedWrapper = async ({ value, query }) => {
     const labels = await fetchAssetMetadata({ assetId: value?.assetId, dgid: query?.dgid });
-        
+    let jsonLabels = [];
+
+    if (labels) {
+        try {
+            jsonLabels = Object.keys(JSON.parse(labels)?.labels);
+        } catch {
+            console.log("Can't decode labels");
+        }
+    }
+
     return (
         <CanvasProvider
             value={{
-                labels: Object.keys(JSON.parse(labels)?.labels)
+                labels: jsonLabels
             }}
         >
             <ImageCanvasCell assets={[value?.assetId]} query={query} />
