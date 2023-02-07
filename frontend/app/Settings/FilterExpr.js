@@ -95,7 +95,7 @@ const FilterExpr = ({ query, completions }) => {
     }, [status]);
 
     return (
-        <>
+        <div className={cx('filter-bar')}>
             <Autocomplete
                 defaultValue={query?.whereExpr || ''}
                 trigger={triggers}
@@ -113,7 +113,7 @@ const FilterExpr = ({ query, completions }) => {
                 refInput={filterRef}
                 onChange={onChange}
             />
-        </>
+        </div>
     );
 };
 

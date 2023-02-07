@@ -26,9 +26,9 @@ const RefreshButton = ({ query }) => {
     });
 
     return (
-        <div onClick={clearCache}>
+        <div className={cx('refresh-button')} onClick={clearCache}>
             <CachedIcon className={cx("cached-icon")} />
-	</div>
+        </div>
     );
 
 };

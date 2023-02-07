@@ -21,7 +21,7 @@
     color: #5155f5;
     border: 1px solid #5155f5;
     border-radius: 5px;
-    padding: 9px 18px;
+    padding: 7.5px 12px;
     font-family: 'Roboto';
     font-weight: 500;
     display: inline-block;
@@ -32,6 +32,7 @@
     max-height: 34px;
     box-sizing: border-box;
     white-space: nowrap;
+    max-height: 34px;
 }
 
 .button-outline > img {

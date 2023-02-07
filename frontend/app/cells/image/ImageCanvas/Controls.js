@@ -9,8 +9,20 @@ import Label from './Label';
 const cx = classNames.bind(styles);
 
 const ImageCanvasControls = ({  }) => {
-    const { updateScore, labels=[], showLabel, hiddenLabels, hideLabel, metadata } = useContext(CanvasContext);
+    const { 
+        updateScore, 
+        labels=[], 
+        showLabel, 
+        hiddenLabels, 
+        hideLabel, 
+        metadata, 
+        isGroup, 
+        updateSettings, 
+        settings 
+    } = useContext(CanvasContext);
+    
     const onChange = useCallback((e) => updateScore(Number(e.target.value)), []);
+    
     const toggleLabel = useCallback((label) => {
         if (!!hiddenLabels?.[label]) {
             showLabel(label);
@@ -18,6 +30,11 @@ const ImageCanvasControls = ({  }) => {
             hideLabel(label)
         }
     }, [hiddenLabels, showLabel, hideLabel]);
+
+    const updateCanvasScale = useCallback((value) => {
+        updateSettings({ zoom: value.target.value });
+    }, [updateSettings]);
+
 
     const scoreRange = useMemo(() => {
         let min = 0;
@@ -45,9 +62,25 @@ const ImageCanvasControls = ({  }) => {
 
     return (
         <div className={cx('editor-controls')}>
+            <div className={cx('zoom-control')}>
+                <div className={cx('slider-container')}>
+                <div>Zoom:</div>
+                    <input
+                        type="range"
+                        min={1}
+                        max={5}
+                        defaultValue={`${settings?.zoom ?? 1.0}`}
+                        className="zoom-slider"
+                        id="zoom-slide"
+                        step="0.001"
+                        onChange={updateCanvasScale}
+                    />
+
+                </div>
+            </div>
             <div className={cx('score-control')}>
                 <div className={cx('slider-container')}>
-                    <div className="zoom-label">Score:</div>
+                    <div>Score:</div>
                     <input
                         type="range"
                         //min={`${scoreRange.min}`}

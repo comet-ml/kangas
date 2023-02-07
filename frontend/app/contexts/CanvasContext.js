@@ -11,6 +11,9 @@ export const CanvasContext = createContext({
         min: 0,
         max: 1
     },
+    settings: {
+        zoom: 1.0
+    }
 });
 
 const reducer = (state, action) => {
@@ -61,6 +64,15 @@ const reducer = (state, action) => {
                 ]
             }
         }
+        case 'UPDATE_CANVAS_SETTINGS': {
+            return {
+                ...state,
+                settings: {
+                    ...state.settings,
+                    ...action.payload
+                }
+            }
+        }
         default:
             return state
     }
@@ -83,7 +95,9 @@ const CanvasProvider = ({ value, children }) => {
             addImageMetadata: (payload) => dispatch({ type: 'ADD_IMAGE_METADATA', payload}),
             addLabels: (payload) => dispatch({ type: 'ADD_LABELS', payload }),
             score: state.score,
-            hiddenLabels: state.hiddenLabels
+            hiddenLabels: state.hiddenLabels,
+            settings: state.settings,
+            updateSettings: (payload) => dispatch({ type: 'UPDATE_CANVAS_SETTINGS', payload }),
         }}>
             { children }
         </CanvasContext.Provider>

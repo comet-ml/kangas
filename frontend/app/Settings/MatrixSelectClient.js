@@ -33,7 +33,8 @@ const MatrixSelect = ({ query, options=['blah'] }) => {
 
     const customStyles = {
         menuPortal: (provided) => ({ ...provided, zIndex: 9999 }),
-        menu: (provided) => ({ ...provided, zIndex: 9999 }),
+        menu: (provided) => ({ ...provided, height: '34px', zIndex: 9999 }),
+        control: (provided) => ({ ...provided, height: '34px', marginBottom: '10px' })
     };
 
     // FIXME: don't use endsWith, but something smarter

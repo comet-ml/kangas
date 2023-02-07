@@ -38,17 +38,21 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
         labels,
         hiddenLabels
     } = useLabels({ assetId, timestamp, dgid });
+    const { settings } = useContext(CanvasContext);
 
     const isVertical = useMemo(() => dimensions?.height > dimensions?.width, [dimensions]);
 
     const onLoad = useCallback(() => setLoaded(true), []);
 
     const drawLabels = useCallback(() => {
-        labelCanvas.current.width = img.current.width;
-        labelCanvas.current.height = img.current.height;
-        containerRef.current.style.width = `${img.current.width}.px`;
+        const zoom = Math.max(settings?.zoom ?? 1.0, settings?.zoom ?? 1.0);
+        const imageScale = Math.max(computeScale(img.current.width * zoom, img.current.height * zoom, img.current.naturalWidth, img.current.naturalHeight), 1.0)
+        //img.current.height = img.current.height * imageScale;
+        //img.current.width = img.current.width * imageScale;
+        labelCanvas.current.width = img.current.width * imageScale;
+        labelCanvas.current.height = img.current.height * imageScale;
+        containerRef.current.style.width = `${img.current.height}.px`;
         containerRef.current.style.height = `${img.current.height + 4}px`;
-        const imageScale = computeScale(img.current.width, img.current.height, img.current.naturalWidth, img.current.naturalHeight)
 
         if (labels) {
             const ctx = labelCanvas.current.getContext("2d");
@@ -102,7 +106,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                 }
             }
         }
-    }, [score, isVertical, hiddenLabels, labels]);
+    }, [score, isVertical, hiddenLabels, labels, settings?.zoom]);
 
     useEffect(() => {
         if (loaded) {

@@ -517,7 +517,7 @@ class AutocompleteTextField extends React.Component {
     }
 
     return (
-      <div style={{ position: 'relative ', display: 'flex' }}>
+      <div style={{ position: 'relative ', display: 'flex', maxHeight: '34px' }}>
         <TextField
           autoComplete={'off'}
           disabled={disabled}
@@ -532,6 +532,7 @@ class AutocompleteTextField extends React.Component {
                 fontSize: '13px',
                 width: '360px',
                 lineHeight: '1.5',
+                maxHeight: '34px'
             },
           }}
           inputProps={{
