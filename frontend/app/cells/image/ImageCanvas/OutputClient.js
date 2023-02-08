@@ -18,9 +18,9 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
     const labelCanvas = useRef();
     const img = useRef();
     const [loaded, setLoaded] = useState(false);
-    const { 
-        annotations, 
-        dimensions, 
+    const {
+        annotations,
+        dimensions,
         score,
         labels,
         hiddenLabels,
@@ -41,15 +41,13 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
     const imageScale = useMemo(() => {
         if (!loaded) return 1;
 
-        return Math.max(
-            computeScale(
-                isGroup ? labelCanvas.current.height : 300 * zoom,
+        return computeScale(
                 isGroup ? labelCanvas.current.width : isVertical ? 400 * zoom : 300 * zoom,
+                isGroup ? labelCanvas.current.height : 300 * zoom,
                 img.current.naturalWidth,
                 img.current.naturalHeight
-            )
-        )
-    }, [settings?.zoom, isVertical, loaded, zoom]);
+        );
+    }, [settings?.zoom, isVertical, loaded, zoom, isGroup]);
 
     const drawLabels = useCallback(() => {
         if (labels) {
@@ -107,46 +105,46 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
         }
     }, [imageScale, score, hiddenLabels, labels]);
 
-    
+
 
     useEffect(() => {
-        if (loaded) { 
+        if (loaded) {
             if (!isGroup) {
                 labelCanvas.current.width = img.current.naturalWidth * imageScale;
                 labelCanvas.current.height = img.current.naturalHeight * imageScale;
                 containerRef.current.style.width = `${img.current.naturalWidth * imageScale}px`;
                 containerRef.current.style.height = `${img.current.naturalHeight * imageScale + 4}px`;
-    
+
                 img.current.height = img.current.naturalHeight * imageScale;
                 img.current.width = img.current.naturalWidth * imageScale;
             }
-    
+
             else if (isGroup) {
                 labelCanvas.current.width = img.current.width;
                 labelCanvas.current.height = img.current.height;
                 containerRef.current.style.width = `${img.current.width}px`;
                 containerRef.current.style.height = `${img.current.height + 4}px`;
             }
-    
+
             /*
             if (!isGroup) {
                 labelCanvas.current.width = img.current.naturalWidth * imageScale;
                 labelCanvas.current.height = img.current.naturalHeight * imageScale;
                 containerRef.current.style.width = `${img.current.naturalWidth * imageScale}px`;
-                containerRef.current.style.height = `${img.current.naturalHeight * imageScale + 4}px`;    
+                containerRef.current.style.height = `${img.current.naturalHeight * imageScale + 4}px`;
             }*/
 
             drawLabels();
         }
-    }, [loaded, drawLabels])
+    }, [loaded, drawLabels, isGroup])
 
     return (
         <div className={cx('canvas-container', { vertical: isGroup && isVertical })} ref={containerRef}>
             <canvas className={cx(['output', 'canvas'], { vertical: isGroup && isVertical })} ref={labelCanvas} />
-            <img 
+            <img
                 className={cx(['output', 'image'], { vertical: isGroup && isVertical })}
-                ref={img} src={imageSrc} 
-                loading="lazy" 
+                ref={img} src={imageSrc}
+                loading="lazy"
                 onLoad={onLoad}
                 onChange={(e) => console.log(e)}
             />
