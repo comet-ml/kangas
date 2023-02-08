@@ -52,7 +52,7 @@ export const TableDisplay = ({ query, data }) => {
     } else {
 
       return (
-        <div className={styles.tableRoot} style={{display: 'unset'}}>
+        <div className={styles.tableRoot}>
             {[ displayColumns, ...displayRows ]?.map((row, ridx) => (
                 <div className={cx('row', { group: !!query?.groupBy, headerRow: ridx < 1 })} key={`row-${ridx}`}>
                     {
