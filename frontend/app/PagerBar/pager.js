@@ -103,6 +103,7 @@ const Pager = ({ aboutText, firstRow, totalRows, currentPage, totalPages, maxRow
                         textAlign: 'center',
                         fontSize: '12px',
                         fontWeight: '500',
+                        height: '25px',
                 }}
             />
 	    <span>
