@@ -85,7 +85,7 @@ const CanvasProvider = ({ value, children }) => {
         <CanvasContext.Provider value={{ 
             metadata: { ...value.metadata },
             images: { ...state.images },
-            hasScore: !!(value?.metadata?.['(uncategorized)']?.scoreMin || value?.metadata?.['(uncategorized)']?.scoreMax),
+            hasScore: !!(value?.metadata?.['(uncategorized)']?.scoreMin && value?.metadata?.['(uncategorized)']?.scoreMax),
             isGroup: !!value?.isGroup,
             labels:  value?.isGroup ? Object.keys(value?.metadata?.['(uncategorized)']?.labels ?? {}) : value?.labels,
             updateScore: (payload) => dispatch({ type: 'UPDATE_SCORE', payload }),
