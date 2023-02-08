@@ -9,20 +9,20 @@ import Label from './Label';
 const cx = classNames.bind(styles);
 
 const ImageCanvasControls = ({  }) => {
-    const { 
-        updateScore, 
-        labels=[], 
-        showLabel, 
-        hiddenLabels, 
-        hideLabel, 
-        metadata, 
-        isGroup, 
-        updateSettings, 
+    const {
+        updateScore,
+        labels=[],
+        showLabel,
+        hiddenLabels,
+        hideLabel,
+        metadata,
+        isGroup,
+        updateSettings,
         settings,
     } = useContext(CanvasContext);
-    
+
     const onChange = useCallback((e) => updateScore(Number(e.target.value)), []);
-    
+
     const toggleLabel = useCallback((label) => {
         if (!!hiddenLabels?.[label]) {
             showLabel(label);
@@ -43,7 +43,7 @@ const ImageCanvasControls = ({  }) => {
         for (const group in metadata) {
             const groupMin = group?.scoreMin ?? 0;
             const groupMax = group?.scoreMax ?? 0;
-            
+
             if (groupMin < min) {
                 min = groupMin;
             }
@@ -56,7 +56,7 @@ const ImageCanvasControls = ({  }) => {
         return {
             min,
             max
-        } 
+        }
     }, [metadata])
 
     return (
@@ -95,9 +95,9 @@ const ImageCanvasControls = ({  }) => {
                 </div>
             </div>
             <div className={cx('labels-container')}>
-                { labels?.map(l => <Label toggle={toggleLabel} label={l} />) }
+                { labels?.sort().map(l => <Label toggle={toggleLabel} label={l} />) }
             </div>
-        </div>    
+        </div>
     )
 }
 
