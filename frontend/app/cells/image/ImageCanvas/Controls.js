@@ -19,7 +19,6 @@ const ImageCanvasControls = ({  }) => {
         isGroup, 
         updateSettings, 
         settings,
-        hasScore
     } = useContext(CanvasContext);
     
     const onChange = useCallback((e) => updateScore(Number(e.target.value)), []);
@@ -39,7 +38,7 @@ const ImageCanvasControls = ({  }) => {
 
     const scoreRange = useMemo(() => {
         let min = 0;
-        let max = 0;
+        let max = 1;
 
         for (const group in metadata) {
             const groupMin = group?.scoreMin ?? 0;
@@ -59,7 +58,6 @@ const ImageCanvasControls = ({  }) => {
             max
         } 
     }, [metadata])
-
 
     return (
         <div className={cx('editor-controls')}>
@@ -81,23 +79,21 @@ const ImageCanvasControls = ({  }) => {
                     </div>
                 </div>
             ) }
-            { hasScore && (
-                <div className={cx('score-control')}>
-                    <div className={cx('slider-container')}>
-                        <div>Score:</div>
-                        <input
-                            type="range"
-                            min={`${scoreRange.min}`}
-                            max={`${scoreRange.max}`}
-                            defaultValue={`${scoreRange.min}`}
-                            className="zoom-slider"
-                            id="zoom-slide"
-                            step="0.001"
-                            onChange={onChange}
-                        />
-                    </div>
+            <div className={cx('score-control')}>
+                <div className={cx('slider-container')}>
+                    <div>Score:</div>
+                    <input
+                        type="range"
+                        min={`${scoreRange.min}`}
+                        max={`${scoreRange.max}`}
+                        defaultValue={`${scoreRange.min}`}
+                        className="zoom-slider"
+                        id="zoom-slide"
+                        step="0.001"
+                        onChange={onChange}
+                    />
                 </div>
-            ) }
+            </div>
             <div className={cx('labels-container')}>
                 { labels?.map(l => <Label toggle={toggleLabel} label={l} />) }
             </div>

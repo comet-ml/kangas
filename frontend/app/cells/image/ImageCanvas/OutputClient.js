@@ -9,9 +9,7 @@ import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);
 
 function computeScale(canvasWidth, canvasHeight, width, height) {
-    if (width > height) return canvasHeight / height;
-    console.log('skinny')
-    console.log(canvasHeight/height)
+    if (width > height) return canvasWidth / width;
     return canvasHeight / height;
 }
 
@@ -32,7 +30,12 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
 
     const isVertical = useMemo(() => dimensions?.height > dimensions?.width, [dimensions]);
 
-    const onLoad = useCallback(() => setLoaded(true), []);
+    const onLoad = useCallback((e) => {
+        labelCanvas.current.height = e.target.height;
+        labelCanvas.current.width = e.target.width;
+        setLoaded(true);
+    }, []);
+
     const zoom = useMemo(() => Math.max(settings?.zoom ?? 1, 1), [settings?.zoom]);
 
     const imageScale = useMemo(() => {
@@ -40,8 +43,8 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
 
         return Math.max(
             computeScale(
-                300 * zoom,
-                isVertical ? 400 * zoom : 300 * zoom,
+                isGroup ? labelCanvas.current.height : 300 * zoom,
+                isGroup ? labelCanvas.current.width : isVertical ? 400 * zoom : 300 * zoom,
                 img.current.naturalWidth,
                 img.current.naturalHeight
             )
@@ -145,6 +148,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                 ref={img} src={imageSrc} 
                 loading="lazy" 
                 onLoad={onLoad}
+                onChange={(e) => console.log(e)}
             />
         </div>
     )
