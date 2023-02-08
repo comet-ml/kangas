@@ -1,5 +1,6 @@
 .markdown-body {
     overflow: auto;
+    padding: 16px;
 }
 
 .markdown-body code,

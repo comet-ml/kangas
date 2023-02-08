@@ -11,10 +11,10 @@ const AboutDialog = ({ status }) => {
     ));
 
     return (
-        <div>
+        <div className={cx("kangas-dialog")}>
             <h1 className={cx("kangas-title")}>&#129432; Kangas DataGrid</h1>
             <hr />
-            <p className={cx("kangas-text")}>© 2022 Kangas DataGrid Development Team</p>
+            <p className={cx("kangas-text")}>© 2023 Kangas DataGrid Development Team</p>
             <div className={cx("kangas-text")}>
                 {items}
             </div>
