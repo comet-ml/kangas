@@ -86,6 +86,7 @@ def export_from_comet(comet_path, name):
         ]
 
         # Assuming just one datagrid per experiment for now:
+        metadata = {}
         if len(metadata_json_list) > 0:
             print("Logged metadata found")
             # Map of Comet asset Id to kangas metadata:
@@ -130,7 +131,13 @@ def import_to_comet(filename, comet_path=None, output_dir="."):
     * output_dir - (optional, str) the name of the output directory for
         the zipped datagrid file
     """
-    from comet_ml import ExistingExperiment, Experiment
+    import comet_ml
+
+    comet_ml.init()
+    if comet_ml.config.get_config("comet.api_key") is None:
+        raise Exception(
+            "You will need to set your Comet API key; see: https://www.comet.com/docs/v2/guides/getting-started/quickstart/"
+        )
 
     base_name, ext = os.path.splitext(filename)
     zip_file = os.path.join(output_dir, base_name + "-comet.datagrid.zip")
@@ -150,20 +157,20 @@ def import_to_comet(filename, comet_path=None, output_dir="."):
     cur.execute("ATTACH DATABASE '{filename}' as original;".format(filename=filename))
     rows = conn.execute("SELECT * from original.assets;")
 
-    if comet_path.count("/") == 2:
+    if comet_path is None:
+        experiment = comet_ml.Experiment()
+        experiment.log_other("Created from", "kangas")
+    elif comet_path.count("/") == 2:
         # FIXME: id or name:
         workspace, project_name, experiment_id = comet_path.split("/", 2)
-        experiment = ExistingExperiment(previous_experiment=experiment_id)
+        experiment = comet_ml.ExistingExperiment(previous_experiment=experiment_id)
     elif comet_path.count("/") == 1:
         workspace, project_name = comet_path.split("/", 1)
-        experiment = Experiment(workspace=workspace, project_name=project_name)
-        experiment.log_other("Created from", "kangas")
-    elif comet_path:
-        project_name = comet_path
-        experiment = Experiment(project_name=project_name)
+        experiment = comet_ml.Experiment(workspace=workspace, project_name=project_name)
         experiment.log_other("Created from", "kangas")
     else:
-        experiment = Experiment()
+        project_name = comet_path
+        experiment = comet_ml.Experiment(project_name=project_name)
         experiment.log_other("Created from", "kangas")
 
     # Log all of the assets:

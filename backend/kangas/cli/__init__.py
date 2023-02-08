@@ -30,6 +30,7 @@ name_map = {
     "export-from": "export_command",
     "server": "server",
     "viewer": "viewer",
+    "upgrade": "upgrade",
 }
 
 
@@ -57,7 +58,7 @@ def add_subparser(subparsers, module, name):
 
 def main(raw_args=sys.argv[1:]):
     # Import CLI commands:
-    from . import export_command, import_command, server, viewer
+    from . import export_command, import_command, server, upgrade, viewer
 
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
@@ -76,6 +77,7 @@ def main(raw_args=sys.argv[1:]):
     add_subparser(subparsers, viewer, "viewer")
     add_subparser(subparsers, import_command, "import-into")
     add_subparser(subparsers, export_command, "export-from")
+    add_subparser(subparsers, upgrade, "upgrade")
 
     # First identify the subparser as some subparser pass additional args to
     # the subparser and other not
