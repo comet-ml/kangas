@@ -34,15 +34,15 @@ export const TableDisplay = ({ query, data }) => {
                         <div className={cx('column')} key={`col-${colidx}`}>
                         {
                             Object.values(column).map( (cell, cidx) => (
-                                    <Suspense fallback={<Skeleton message={`suspending ${cell} - ${colidx}/${cidx}`} />}>
+                                <Suspense fallback={<Skeleton message={`suspending ${cell} - ${colidx}/${cidx}`} />}>
                                     <Cell
-                                value={cell}
-                                type={columnTypes[colidx]}
-                                columnName={columns[colidx]}
-                                query={query}
-                                isHeader={cidx < 1}
+                                        value={cell}
+                                        type={columnTypes[colidx]}
+                                        columnName={columns[colidx]}
+                                        query={query}
+                                        isHeader={cidx < 1}
                                     />
-                                    </Suspense>
+                                </Suspense>
                         ) )
                     }
                     </div>

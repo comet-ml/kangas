@@ -81,13 +81,13 @@ const reducer = (state, action) => {
 
 const CanvasProvider = ({ value, children }) => {
     const [state, dispatch] = useReducer(reducer, value);
-
     return (
         <CanvasContext.Provider value={{ 
             metadata: { ...value.metadata },
             images: { ...state.images },
+            hasScore: !!(value?.metadata?.['(uncategorized)']?.scoreMin || value?.metadata?.['(uncategorized)']?.scoreMax),
             isGroup: !!value?.isGroup,
-            labels:  value?.isGroup ? Object.keys(value?.metadata?.['(uncategorized)']?.labels) : value?.labels,
+            labels:  value?.isGroup ? Object.keys(value?.metadata?.['(uncategorized)']?.labels ?? {}) : value?.labels,
             updateScore: (payload) => dispatch({ type: 'UPDATE_SCORE', payload }),
             updateScoreRange: (payload) => dispatch({ type: 'UPDATE_SCORE_RANGE', payload }),
             hideLabel: (payload) => dispatch({ type: 'HIDE_LABEL', payload }),
