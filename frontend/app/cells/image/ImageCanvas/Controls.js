@@ -8,10 +8,10 @@ import Label from './Label';
 
 const cx = classNames.bind(styles);
 
-const ImageCanvasControls = ({  }) => {
+const ImageCanvasControls = ({ initLabels=[] }) => {
     const {
         updateScore,
-        labels=[],
+        labels=initLabels,
         showLabel,
         hiddenLabels,
         hideLabel,
