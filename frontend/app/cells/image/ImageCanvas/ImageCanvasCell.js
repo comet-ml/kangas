@@ -59,12 +59,14 @@ const ImageCanvasCellStandAlone = async ({dgid, timestamp, assetId}) => {
 const ImageCanvasCell = async ({ assets, query }) => {
     const { dgid, timestamp } = query;
 
+    const isGroup = typeof(query.groupBy) !== 'undefined';
+
     return (
         <Suspense fallback={<>Loading</>}>
             <div className={cx('image-editor')}>
                 <ImageCanvasControls />
                 <div className={cx('canvas-column')}>
-                    { assets?.map(id => (
+                    { isGroup ? assets?.map(id => (
                       <Deferred>
                           <DialogueModal fullScreen={false} toggleElement={
                             <ImageCanvasOutput dgid={dgid} timestamp={timestamp} assetId={id} />
@@ -72,7 +74,11 @@ const ImageCanvasCell = async ({ assets, query }) => {
                               <ImageCanvasCellStandAlone dgid={dgid} timestamp={timestamp} assetId={id} />
                           </DialogueModal>
                       </Deferred>
-                    ) ) }
+                    ) ) : (
+                      <Deferred>
+                          <ImageCanvasOutput dgid={dgid} timestamp={timestamp} assetId={assets[0]} />
+                      </Deferred>
+                    )}
                 </div>
             </div>
         </Suspense>
