@@ -27,8 +27,9 @@
     }
 
     &.expanded {
-        max-width: unset;
+        max-width: max-content;
         border-bottom: unset;
+        width: 100%;
     }
 }
 
@@ -47,6 +48,9 @@
     font-size: 13px;
     color: #3d4355;
 
+    height: 100%;
+    display: flex;
+    justify-content: flex-start;
 }
 
 .cell-content > img {

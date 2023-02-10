@@ -10,11 +10,11 @@ const cx = classNames.bind(styles);
 const GroupedFloatCell = ({ value, expanded = false}) => {
     const primitive = isPrimitive(value);
     return (
-        <div className={cx(['cell', 'group'], { expanded })}>
+        <div className={cx(['cell', 'group', 'cell-content'], { expanded })}>
             { primitive && formatValue(value)}
             { !primitive && <Suspense fallback={<>Loading</>}><Histogram value={value} expanded={expanded} /></Suspense>}
         </div>
-    )
+    );
 }
 
 export default GroupedFloatCell;

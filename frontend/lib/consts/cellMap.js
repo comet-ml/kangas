@@ -8,32 +8,38 @@ import BooleanCell from "../../app/cells/boolean";
 const cellMap = {
     TEXT: {
         width: 200,
-        groupedWidth: 200,
+        groupedWidth: 220,
         component: TextCell,
     },
     DATETIME: {
         width: 200,
-        groupedWidth: 200,
+        groupedWidth: 220,
         component: DateCell,
     },
     BOOLEAN: {
         width: 200,
-        groupedWidth: 200,
+        groupedWidth: 220,
         component: BooleanCell,
     },
     FLOAT: {
-        width: 150,
-        groupedWidth: 200,
+        width: 100,
+        groupedWidth: 220,
         component: FloatCell
     },
     INTEGER: {
-        width: 100,
-        groupedWidth: 200,
+        width: 90,
+        groupedWidth: 220,
         component: TextCell,
     },
     JSON: {
         width: 400,
-        groupedWidth: 200,
+        groupedWidth: 220,
+        component: JSONCell
+
+    },
+    VECTOR: {
+        width: 400,
+        groupedWidth: 220,
         component: JSONCell
 
     },
@@ -44,7 +50,7 @@ const cellMap = {
     },
     ROW_ID: {
         width: 50,
-        groupedWidth: 100,
+        groupedWidth: 220,
         component: TextCell
     }
 };

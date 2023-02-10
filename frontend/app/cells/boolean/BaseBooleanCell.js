@@ -3,9 +3,13 @@
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 
+import classNames from 'classnames/bind';
+import styles from '../Cell.module.scss';
+const cx = classNames.bind(styles);
+
 const BooleanCell = ({ value, style }) => {
     return (
-        <div className="cell-content" style={style}>
+        <div className={cx("cell-content")} style={style}>
             {
                 (value === null) ?
                     <>None</> :

@@ -4,14 +4,13 @@ import { Suspense } from 'react';
 import config from '../../../config';
 // TODO create a parseDataURL helper
 
-import classNames from 'classnames/bind';
-import styles from '../Cell.module.scss';
 import Image from 'next/image';
 import fetchAssetMetadata from '../../../lib/fetchAssetMetadata';
 import CanvasProvider from '../../contexts/CanvasContext';
 
+import classNames from 'classnames/bind';
+import styles from '../Cell.module.scss';
 const cx = classNames.bind(styles);
-
 
 const PlainImageCell = async ({ value, query, expanded=false, style }) => {
     const endpoint = parseEndpoint({ thumbnail: true, group: !!query?.groupBy });
