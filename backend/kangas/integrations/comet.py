@@ -133,7 +133,7 @@ def import_to_comet(filename, comet_path=None, output_dir="."):
     """
     import comet_ml
 
-    comet_ml.init()
+    comet_ml.config._init(should_prompt_user=True)
     if comet_ml.config.get_config("comet.api_key") is None:
         raise Exception(
             "You will need to set your Comet API key; see: https://www.comet.com/docs/v2/guides/getting-started/quickstart/"
