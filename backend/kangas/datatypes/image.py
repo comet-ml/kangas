@@ -201,6 +201,9 @@ class Image(Asset):
         self.metadata["extension"] = "png"
 
     def _init_annotations(self, layer_name):
+        if not isinstance(layer_name, str):
+            raise Exception("layer_name must be a string")
+
         if "annotations" not in self.metadata:
             # Structure:
             # {"annotations": [
@@ -213,27 +216,29 @@ class Image(Asset):
             #         "metadata": {},
             #       }
             # }
-            self.metadata["annotations"] = {}
+            self.metadata["annotations"] = []
+        if "labels" not in self.metadata:
+            self.metadata["labels"] = {}
 
-        if layer_name not in [
-            layers["name"] for layers in self.metadata["annotations"]
-        ]:
+        layer = self._get_layer(self.metadata["annotations"], layer_name)
+        if layer is None:
             self.metadata["annotations"].append({"name": layer_name, "data": []})
 
-    def _update_annotations(self, layer_name, data):
-        inserted = False
-        for layer in self.metadata["annotations"]:
+    def _get_layer(self, annotations, layer_name):
+        for layer in annotations:
             if layer["name"] == layer_name:
-                layer["data"].append(data)
-                inserted = True
+                return layer
+        return None
 
-        if not inserted:
-            self.metadata["annotations"].append(
-                {
-                    "name": layer_name,
-                    "data": data,
-                }
-            )
+    def _update_annotations(self, layer_name, data):
+        layer = self._get_layer(self.metadata["annotations"], layer_name)
+        layer["data"].append(data)
+
+        label = data["label"]
+        if label not in self.metadata["labels"]:
+            self.metadata["labels"][label] = 0
+        else:
+            self.metadata["labels"][label] += 1
 
     def add_regions(self, layer_name, label, *regions, score=None, **metadata):
         """
@@ -252,6 +257,12 @@ class Image(Asset):
         >>> image.add_regions("Predictions", "car", [(x1, y1), ...], [(x2, y2), ...])
         ```
         """
+        if not isinstance(layer_name, str):
+            raise Exception("layer_name must be a string")
+
+        if not isinstance(label, str):
+            raise Exception("label must be a string")
+
         self._init_annotations(layer_name)
         self._update_annotations(
             layer_name,
@@ -284,8 +295,14 @@ class Image(Asset):
         >>> image.add_bounding_boxes("Prediction", "Person", box1, score=0.4)
         ```
         """
+        if not isinstance(layer_name, str):
+            raise Exception("layer_name must be a string")
+
+        if not isinstance(label, str):
+            raise Exception("label must be a string")
+
         self._init_annotations(layer_name)
-        self._update_annotation(
+        self._update_annotations(
             layer_name,
             {
                 "label": label,
@@ -314,8 +331,14 @@ class Image(Asset):
         >>> image.add_bounding_box("Truth", "Person", box, 0.56)
         ```
         """
+        if not isinstance(layer_name, str):
+            raise Exception("layer_name must be a string")
+
+        if not isinstance(label, str):
+            raise Exception("label must be a string")
+
         self._init_annotations(layer_name)
-        self._update_annotation(
+        self._update_annotations(
             layer_name,
             {
                 "label": label,
@@ -345,6 +368,9 @@ class Image(Asset):
         >>> image.add_mask("Ground Truth", "attention", {0: "person"}, Image(MASK))
         ```
         """
+        if not isinstance(layer_name, str):
+            raise Exception("layer_name must be a string")
+
         if not isinstance(image, Image):
             raise ValueError(
                 "Image.add_mask() requires a layer_name, label_map, and mask image"
@@ -376,6 +402,12 @@ class Image(Asset):
         >>> image.add_annotations("General", "Tumors", (50, 50), (100, 100), (200, 200), ...)
         ```
         """
+        if not isinstance(layer_name, str):
+            raise Exception("layer_name must be a string")
+
+        if not isinstance(text, str):
+            raise Exception("text must be a string")
+
         self._init_annotations(layer_name)
         self._update_annotations(
             layer_name,
