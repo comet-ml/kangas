@@ -36,6 +36,16 @@ const ImageCanvasControls = ({ initLabels=[] }) => {
     }, [updateSettings]);
 
 
+    const updateCanvasSmooth = useCallback((value) => {
+        updateSettings({ smooth: !value.target.checked });
+    }, [updateSettings]);
+
+
+    const updateCanvasGray = useCallback((value) => {
+        updateSettings({ gray: value.target.checked });
+    }, [updateSettings]);
+
+
     const scoreRange = useMemo(() => {
         let min = 0;
         let max = 1;
@@ -61,6 +71,33 @@ const ImageCanvasControls = ({ initLabels=[] }) => {
 
     return (
         <div className={cx('editor-controls')}>
+            <div className={cx('image-controls')}>
+                <div className={cx('checkbox')}>
+                    <input
+                        type="checkbox"
+                        className={cx("image-smoothing-checkbox")}
+                        id="image-smoothing"
+                        onChange={updateCanvasSmooth}
+                    />
+                    <label
+                        htmlFor="image-smoothing"
+                        className={cx("checkbox-label")}
+                    >
+                        Pixelated
+                    </label>
+	        </div>
+                <div className={cx("checkbox")}>
+                        <input
+                            type="checkbox"
+                            className={cx("grayscale-checkbox")}
+                            id="grayscale"
+                            onChange={updateCanvasGray}
+                        />
+                       <label htmlFor="grayscale" className={cx("checkbox-label")}>
+                            Grayscale
+                        </label>
+                </div>
+	    </div>
             { !isGroup && (
                 <div className={cx('zoom-control')}>
                     <div className={cx('slider-container')}>
@@ -70,7 +107,7 @@ const ImageCanvasControls = ({ initLabels=[] }) => {
                             min={1}
                             max={5}
                             defaultValue={`${settings?.zoom ?? 1.0}`}
-                            className="zoom-slider"
+                            className={cx("zoom-slider")}
                             id="zoom-slide"
                             step="0.001"
                             onChange={updateCanvasScale}
@@ -87,7 +124,7 @@ const ImageCanvasControls = ({ initLabels=[] }) => {
                         min={`${scoreRange.min}`}
                         max={`${scoreRange.max}`}
                         defaultValue={`${scoreRange.min}`}
-                        className="zoom-slider"
+                        className={cx("zoom-slider")}
                         id="zoom-slide"
                         step="0.001"
                         onChange={onChange}

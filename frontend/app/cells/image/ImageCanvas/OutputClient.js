@@ -37,6 +37,8 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
     }, []);
 
     const zoom = useMemo(() => Math.max(settings?.zoom ?? 1, 1), [settings?.zoom]);
+    const smooth = useMemo(() => settings?.smooth ?? true, [settings?.smooth]);
+    const gray = useMemo(() => settings?.gray ?? false, [settings?.gray]);
 
     const imageScale = useMemo(() => {
         if (!loaded) return 1;
@@ -126,6 +128,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                 containerRef.current.style.height = `${img.current.height + 4}px`;
             }
 
+
             /*
             if (!isGroup) {
                 labelCanvas.current.width = img.current.naturalWidth * imageScale;
@@ -142,7 +145,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
         <div className={cx('canvas-container', { vertical: isGroup && isVertical })} ref={containerRef}>
             <canvas className={cx(['output', 'canvas'], { vertical: isGroup && isVertical })} ref={labelCanvas} />
             <img
-                className={cx(['output', 'image'], { vertical: isGroup && isVertical })}
+        className={cx(['output', 'image'], { vertical: isGroup && isVertical, pixelated: !smooth, grayscale: gray })}
                 ref={img} src={imageSrc}
                 loading="lazy"
                 onLoad={onLoad}

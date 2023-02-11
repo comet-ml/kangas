@@ -12,7 +12,9 @@ export const CanvasContext = createContext({
         max: 1
     },
     settings: {
-        zoom: 1.0
+        zoom: 1.0,
+	smooth: true,
+	gray: false,
     }
 });
 
@@ -50,7 +52,7 @@ const reducer = (state, action) => {
         case 'SHOW_LABEL':
             return {
                 ...state,
-                hiddenLabels: { 
+                hiddenLabels: {
                     ...state.hiddenLabels,
                     [action.payload]: false
                 }
@@ -82,7 +84,7 @@ const reducer = (state, action) => {
 const CanvasProvider = ({ value, children }) => {
     const [state, dispatch] = useReducer(reducer, value);
     return (
-        <CanvasContext.Provider value={{ 
+        <CanvasContext.Provider value={{
             metadata: { ...value.metadata },
             images: { ...state.images },
             isGroup: !!value?.isGroup,

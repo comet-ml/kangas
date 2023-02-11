@@ -8,7 +8,7 @@
         width: 228px;
         height: 100%;
         position: relative;
-        overflow-y: auto;    
+        overflow-y: auto;
     }
 }
 
@@ -30,7 +30,7 @@
     position: relative;
     width: 400px;
     height: 300px;
-    
+
     &.vertical {
         height: 400px;
     }
@@ -50,13 +50,19 @@
 
         }
 
-        &.image {            
+        &.image {
             z-index: 998;
 
             &.vertical {
                 height: 400px;
             }
 
+	    &.pixelated {
+		image-rendering: pixelated;
+	    }
+	    &.grayscale {
+		filter: grayscale(1);
+	    }
         }
     }
 
@@ -108,3 +114,25 @@
         }
     }
 }
+
+.image-controls {
+    padding-top: 40px;
+    padding-bottom: 20px;
+}
+
+.checkbox {
+    padding-bottom: 26px;
+}
+
+.checkbox-label {
+    padding-left: 12px;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 21px;
+}
+
+.checkbox-container {
+    display: flex;
+    justify-content: space-between;
+}
+
