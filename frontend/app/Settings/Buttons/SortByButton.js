@@ -12,7 +12,7 @@ const SortByButton = () => {
     return (
         <>
             <div className={cx('button-outline')} onClick={toggleOpen} ref={anchor}>
-                <img src="/group_placeholder.png" /> <span>Sort By</span>
+                <img src="/sort_icon.png" /> <span>Sort By</span>
             </div>
             <Popover
                 anchorOrigin={{

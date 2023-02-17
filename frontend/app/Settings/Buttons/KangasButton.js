@@ -4,7 +4,7 @@ import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);
 
 const KangasButton = () => (
-    <div className={cx("button-outline")}>
+    <div className={cx("button-outline")} style={{border: 'unset'}}>
         <img src="/favicon.png" />
         <span>Kangas</span>
     </div>
