@@ -509,8 +509,7 @@ class DataGrid:
             sql = "SELECT * FROM datagrid;"
             schema = self.get_schema()
             column_name_map = {
-                schema[column_name]["field_name"]: column_name
-                for column_name in column_names
+                schema[column_name]["field_name"]: column_name for column_name in schema
             }
             # Make our own connection to use row_factory:
             if os.path.isfile(self.filename):
@@ -552,7 +551,7 @@ class DataGrid:
         if column_name in self._columns:
             dg_type = self._columns[column_name]
             value = DATAGRID_TYPES[dg_type]["unserialize"](self, row, column_name)
-            if dg_type in format_map:
+            if format_map is not None and dg_type in format_map:
                 value = format_map[dg_type](value)
             return value
         return row[column_name]
