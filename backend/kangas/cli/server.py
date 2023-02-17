@@ -24,12 +24,6 @@ import kangas.server
 from kangas import get_localhost, terminate
 from kangas.datatypes.utils import download_filename
 
-try:
-    from datasets import load_dataset as huggingface_load_dataset
-except Exception:
-    huggingface_load_dataset = None
-
-
 ADDITIONAL_ARGS = False
 HERE = os.path.abspath(os.path.dirname(__file__))
 
@@ -149,30 +143,6 @@ def get_parser_arguments(parser):
         "--type",
         help="If you are viewing a non-datagrid filename that doesn't have appropriate extension, set the type",
         type=str,
-        default=None,
-    )
-    parser.add_argument(
-        "--split",
-        help="If you are viewing a HuggingFace dataset, set the split name",
-        type=str,
-        default=None,
-    )
-    parser.add_argument(
-        "--streaming",
-        help="If you are viewing a HuggingFace dataset, load it streaming",
-        default=False,
-        action="store_true",
-    )
-    parser.add_argument(
-        "--seed",
-        help="If you are viewing a HuggingFace dataset, set the seed",
-        type=int,
-        default=None,
-    )
-    parser.add_argument(
-        "--samples",
-        help="If you are viewing a HuggingFace dataset, set the sample value",
-        type=int,
         default=None,
     )
 
@@ -302,7 +272,7 @@ def server(parsed_args, remaining=None):
             elif "." in filename:
                 basefile, file_type = filename.rsplit(".", 1)
             else:
-                file_type = "huggingface"
+                raise Exception("unknown file type")
 
             if file_type == "datagrid":
                 # Nothing to do; already a datagrid
@@ -313,34 +283,6 @@ def server(parsed_args, remaining=None):
                 filename = dg.filename
             elif file_type == "json":
                 dg = kangas.read_json(filename)
-                dg.save()
-                filename = dg.filename
-            elif file_type == "huggingface":
-                if huggingface_load_dataset is None:
-                    raise Exception("requires `pip install datasets`")
-
-                if parsed_args.split is not None:
-                    dataset = huggingface_load_dataset(
-                        filename,
-                        split=parsed_args.split,
-                        streaming=parsed_args.streaming,
-                    )
-                else:
-                    dataset_splits = huggingface_load_dataset(filename)
-                    split = list(dataset_splits.keys())[0]
-                    dataset = huggingface_load_dataset(
-                        filename, split=split, streaming=parsed_args.streaming
-                    )
-
-                if parsed_args.seed is not None:
-                    dataset = dataset.shuffle(seed=parsed_args.seed)
-                if parsed_args.samples is not None:
-                    try:
-                        dataset = dataset.take(parsed_args.samples)
-                    except AttributeError:
-                        print("Unable to take samples; using entire dataset")
-
-                dg = kangas.DataGrid(dataset)
                 dg.save()
                 filename = dg.filename
             else:
