@@ -22,8 +22,8 @@ class Options:
         key, value = key_value.split("=")
         self._dict[key.strip()] = value.strip()
 
-    def get(self, key):
+    def get(self, key, default=None):
         if key in self._dict:
             return self._dict[key]
         else:
-            return None
+            return default

@@ -132,7 +132,7 @@ def import_to_comet(path, name, options):
     """
     import comet_ml
 
-    output_dir = options.get("output_dir") or "."
+    output_dir = options.get("output_dir", ".")
 
     comet_ml.config._init(should_prompt_user=True)
     if comet_ml.config.get_config("comet.api_key") is None:

@@ -59,7 +59,7 @@ def get_parser_arguments(parser):
     parser.add_argument(
         "--options",
         metavar="KEY=VALUE",
-        help="Pass the following KEY=VALUE pairs",
+        help="Pass the following KEY=VALUE pairs; for --comet: --options output_dir=DIR",
         nargs="+",
         default=[],
     )

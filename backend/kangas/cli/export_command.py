@@ -49,7 +49,7 @@ def get_parser_arguments(parser):
     parser.add_argument(
         "--options",
         metavar="KEY=VALUE",
-        help="Pass the following KEY=VALUE pairs",
+        help="Pass the following KEY=VALUE pairs; for --huggingface: --options split=train streaming=True seed=42 samples=100 private=True push=False",
         nargs="+",
         default=[],
     )

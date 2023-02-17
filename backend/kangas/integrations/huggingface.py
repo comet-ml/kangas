@@ -36,20 +36,20 @@ def export_from_huggingface(path, name, options):
         dataset = huggingface_load_dataset(
             path,
             split=options.get("split"),
-            streaming=options.get("streaming"),
+            streaming=bool(options.get("streaming", "False")),
         )
     else:
         dataset_splits = huggingface_load_dataset(path)
         split = list(dataset_splits.keys())[0]
         dataset = huggingface_load_dataset(
-            path, split=split, streaming=options.get("streaming")
+            path, split=split, streaming=bool(options.get("streaming", "False"))
         )
 
     if options.get("seed") is not None:
-        dataset = dataset.shuffle(seed=options.get("seed"))
+        dataset = dataset.shuffle(seed=int(options.get("seed")))
     if options.get("samples") is not None:
         try:
-            dataset = dataset.take(options.get("samples"))
+            dataset = dataset.take(int(options.get("samples")))
         except AttributeError:
             print("Unable to take samples; using entire dataset")
 
@@ -142,8 +142,8 @@ def import_to_huggingface(path, name, options):
             fp.write(template)
 
         ds = datasets.load_dataset(basename)
-        private = options.get("private") if options.get("private") is not None else True
-        if options.get("push") in [True, None]:
+        private = bool(options.get("private", "True"))
+        if bool(options.get("push", "True")):
             ds.push_to_hub(path, private=private)
     else:
         raise Exception("datasets is not available; pip install datasets")
