@@ -211,7 +211,7 @@ class Image(Asset):
             #     "data":
             #       {
             #         "label": [],
-            #         "boxes": [] | "regions": [] | "mask": mask,
+            #         "boxes": [] | "points": [] | "mask": mask,
             #         "score": score,
             #         "metadata": {},
             #       }
@@ -268,7 +268,7 @@ class Image(Asset):
             layer_name,
             {
                 "label": label,
-                "regions": list(regions),
+                "points": list(regions),
                 "score": score,
                 "metadata": metadata,
             },

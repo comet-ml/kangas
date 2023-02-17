@@ -34,7 +34,7 @@ metadata = {"annotations": [
          {
           "label": "person",
           "boxes": [[x, y, w, h], ...],
-          "regions": [[[x1, y1, x2, y2, x3, y3, ...],
+          "points": [[[x1, y1, x2, y2, x3, y3, ...],
           "score": 0.45,
          },
          ...
@@ -81,20 +81,20 @@ const ImageCanvasClient = ({ image, metadata, assetId }) => {
         ctx.imageSmoothingEnabled = true;
 
         for (const annotation of labels) {
-            if (annotation?.regions) {
-                for (const region of annotation.regions) {
+            if (annotation?.points) {
+                for (const points of annotation.points) {
                     // TODO Implement the color generator
                     ctx.fillStyle = getColor(annotation.label);
                     ctx.beginPath();
                     ctx.moveTo(
-                        region[0],
-                        region[1]
+                        points[0],
+                        points[1]
                     );
 
-                    for (let i = 2; i < region.length; i += 2) {
+                    for (let i = 2; i < points.length; i += 2) {
                         ctx.lineTo(
-                            region[i],
-                            region[i + 1]
+                            points[i],
+                            points[i + 1]
                         );
                     };
 

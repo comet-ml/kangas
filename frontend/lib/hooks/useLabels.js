@@ -25,7 +25,7 @@ metadata = {"annotations": [
          {
           "label": "person",
           "boxes": [[x, y, w, h], ...],
-          "regions": [[[x1, y1, x2, y2, x3, y3, ...],
+          "points": [[[x1, y1, x2, y2, x3, y3, ...],
           "score": 0.45,
          },
          ...
@@ -38,12 +38,12 @@ metadata = {"annotations": [
 
 
 const useLabels = ({ assetId, dgid, timestamp }) => {
-    const { 
-        images, 
-        hiddenLabels, 
-        score, 
-        scoreRange, 
-        addImageMetadata, 
+    const {
+        images,
+        hiddenLabels,
+        score,
+        scoreRange,
+        addImageMetadata,
         updateScore,
         updateScoreRange,
         showLabel,

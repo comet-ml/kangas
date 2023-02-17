@@ -2480,7 +2480,7 @@ class DataGrid:
 
             # new style: {"annotations": [
             #   {"name": str_layername,
-            #    "data": [{"label": str, "boxes": [], "regions": [], "score": float}, ...]}]}
+            #    "data": [{"label": str, "boxes": [], "points": [], "score": float}, ...]}]}
 
             if "overlays" in asset_json:
                 data = []
@@ -2506,7 +2506,7 @@ class DataGrid:
                         data.append(
                             {
                                 "label": overlay["label"],
-                                "regions": overlay["data"],
+                                "points": overlay["data"],
                                 "score": overlay["score"],
                                 "metadata": overlay["metadata"]
                                 if "metadata" in overlay
