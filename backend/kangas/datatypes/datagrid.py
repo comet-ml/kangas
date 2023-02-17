@@ -279,32 +279,7 @@ class DataGrid:
         return "<table>%s</table>" % output
 
     def _get_default_converters(self):
-        from .image import Image
-
-        def huggingface_annotations(row):
-            cppe_labels = ["Coverall", "FaceShield", "Gloves", "Goggles", "Mask"]
-            if "image" in row and "objects" in row:
-                # cppe
-                if isinstance(row["image"], Image) and isinstance(row["objects"], dict):
-                    if ("bbox" in row["objects"]) and ("category" in row["objects"]):
-                        boxes = row["objects"]["bbox"]
-                        labels = row["objects"]["category"]
-                        for box, label in zip(boxes, labels):
-                            x, y, w, h = box
-                            row["image"].add_bounding_boxes(
-                                cppe_labels[label], [[x, y], [x + w, y + h]]
-                            )
-                elif isinstance(row["image"], Image) and isinstance(row["faces"], dict):
-                    if ("bbox" in row["faces"]) and ("blur" in row["faces"]):
-                        boxes = row["faces"]["bbox"]
-                        labels = row["faces"]["blur"]
-                        for box, label in zip(boxes, labels):
-                            x, y, w, h = box
-                            row["image"].add_bounding_boxes(
-                                "blur-%s" % label, [[x, y], [x + w, y + h]]
-                            )
-
-        return {"row": huggingface_annotations}
+        return {}  # {"row": huggingface_annotations}
 
     def show(
         self,
@@ -501,13 +476,15 @@ class DataGrid:
         data = self.to_dicts()
         return pandas.DataFrame(data=data, columns=self.get_columns())
 
-    def to_dicts(self, column_names=None):
+    def to_dicts(self, column_names=None, format_map=None):
         """
         Iterate over data, returning dicts.
 
         Args:
             column_names: (optional, list of str) only return the given
                 column names
+            format_map: (optional, dict) dictionary of column type to
+                function that takes a value, and returns a new value.
 
         ```python
         >>> dg = DataGrid(columns=["column 1", "column 2"])
@@ -532,7 +509,8 @@ class DataGrid:
             sql = "SELECT * FROM datagrid;"
             schema = self.get_schema()
             column_name_map = {
-                schema[column_name]["field_name"]: column_name for column_name in schema
+                schema[column_name]["field_name"]: column_name
+                for column_name in column_names
             }
             # Make our own connection to use row_factory:
             if os.path.isfile(self.filename):
@@ -546,7 +524,7 @@ class DataGrid:
             results = cursor.execute(sql)
             for row in results:
                 yield {
-                    column_name: self._value_to_asset(row, column_name)
+                    column_name: self._value_to_asset(row, column_name, format_map)
                     for column_name in column_names
                 }
             conn.row_factory = None
@@ -568,12 +546,15 @@ class DataGrid:
 
         return value
 
-    def _value_to_asset(self, row, column_name):
+    def _value_to_asset(self, row, column_name, format_map=None):
         # if this is an asset column, return Object, with asset_id, asset_data,
         # and asset_metadata
         if column_name in self._columns:
             dg_type = self._columns[column_name]
-            return DATAGRID_TYPES[dg_type]["unserialize"](self, row, column_name)
+            value = DATAGRID_TYPES[dg_type]["unserialize"](self, row, column_name)
+            if dg_type in format_map:
+                value = format_map[dg_type](value)
+            return value
         return row[column_name]
 
     def __getitem__(self, item):

@@ -123,6 +123,11 @@ def unserialize_boolean(datagrid, row, column_name):
 # Mapping from Datatype to allowed types, and serialize
 # function:
 DATAGRID_TYPES = {
+    "ROW_ID": {
+        "types": [int],
+        "serialize": serialize_int_function,
+        "unserialize": unserialize,
+    },
     "BOOLEAN": {
         "types": [bool],
         "serialize": serialize_bool_function,

@@ -31,7 +31,7 @@ import six
 from .._typing import IO, Any
 
 THUMBNAIL_SIZE = (150, 55)  # width, height
-RESERVED_NAMES = ["ROW-ID"]
+RESERVED_NAMES = ["row-id"]
 LOGGER = logging.getLogger(__name__)
 INFINITY = float("inf")
 CONVERSION_METHODS = ["as_py", "to_pydatetime"]

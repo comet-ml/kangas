@@ -16,7 +16,6 @@ import io
 import json
 import os
 import sqlite3
-import tempfile
 import zipfile
 
 from ..utils import ProgressBar
@@ -34,22 +33,22 @@ def get_comet_type(asset_type):
         return asset_type.lower()
 
 
-def export_from_comet(comet_path, name):
+def export_from_comet(path, name, options):
     from comet_ml import API
 
     from kangas import DataGrid, Image
 
     api = API()
 
-    if comet_path.count("/") == 2:
+    if path.count("/") == 2:
         # FIXME: id or name:
-        workspace, project_name, experiment_id = comet_path.split("/", 2)
+        workspace, project_name, experiment_id = path.split("/", 2)
         experiments = [api.get_experiment(workspace, project_name, experiment_id)]
-    elif comet_path.count("/") == 1:
-        workspace, project_name = comet_path.split("/", 1)
+    elif path.count("/") == 1:
+        workspace, project_name = path.split("/", 1)
         experiments = api.get_experiments(workspace, project_name)
-    elif comet_path:
-        workspace = comet_path
+    elif path:
+        workspace = path
         experiments = api.get_experiments(workspace)
     else:
         raise Exception(
@@ -119,19 +118,21 @@ def export_from_comet(comet_path, name):
     dg.save()
 
 
-def import_to_comet(filename, comet_path=None, output_dir="."):
+def import_to_comet(path, name, options):
     """
     Create the SQLite database, zip it, and log it to
     an experiment.
 
     Args:
 
-    * comet_path - (str, optional)
-    * filename - (str) the name of the datagrid file
-    * output_dir - (optional, str) the name of the output directory for
-        the zipped datagrid file
+    * path - (str, optional)
+    * name - (str) the name of the datagrid file
+    * options: "output_dir" (optional, str) the name of the output directory
+        for the zipped datagrid file
     """
     import comet_ml
+
+    output_dir = options.get("output_dir") or "."
 
     comet_ml.config._init(should_prompt_user=True)
     if comet_ml.config.get_config("comet.api_key") is None:
@@ -139,12 +140,9 @@ def import_to_comet(filename, comet_path=None, output_dir="."):
             "You will need to set your Comet API key; see: https://www.comet.com/docs/v2/guides/getting-started/quickstart/"
         )
 
-    base_name, ext = os.path.splitext(filename)
+    base_name, ext = os.path.splitext(name)
     zip_file = os.path.join(output_dir, base_name + "-comet.datagrid.zip")
     output = os.path.join(output_dir, base_name + "-comet.datagrid")
-
-    if output_dir is None:
-        output_dir = tempfile.TemporaryDirectory()
 
     if os.path.isfile(output):
         os.remove(output)
@@ -154,22 +152,22 @@ def import_to_comet(filename, comet_path=None, output_dir="."):
 
     conn = sqlite3.connect(output)
     cur = conn.cursor()
-    cur.execute("ATTACH DATABASE '{filename}' as original;".format(filename=filename))
+    cur.execute("ATTACH DATABASE '{name}' as original;".format(name=name))
     rows = conn.execute("SELECT * from original.assets;")
 
-    if comet_path is None:
+    if path is None:
         experiment = comet_ml.Experiment()
         experiment.log_other("Created from", "kangas")
-    elif comet_path.count("/") == 2:
+    elif path.count("/") == 2:
         # FIXME: id or name:
-        workspace, project_name, experiment_id = comet_path.split("/", 2)
+        workspace, project_name, experiment_id = path.split("/", 2)
         experiment = comet_ml.ExistingExperiment(previous_experiment=experiment_id)
-    elif comet_path.count("/") == 1:
-        workspace, project_name = comet_path.split("/", 1)
+    elif path.count("/") == 1:
+        workspace, project_name = path.split("/", 1)
         experiment = comet_ml.Experiment(workspace=workspace, project_name=project_name)
         experiment.log_other("Created from", "kangas")
     else:
-        project_name = comet_path
+        project_name = path
         experiment = comet_ml.Experiment(project_name=project_name)
         experiment.log_other("Created from", "kangas")
 

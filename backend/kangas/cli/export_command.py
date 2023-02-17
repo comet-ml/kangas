@@ -15,6 +15,8 @@
 import argparse
 import sys
 
+from .utils import Options
+
 ADDITIONAL_ARGS = False
 
 
@@ -38,6 +40,19 @@ def get_parser_arguments(parser):
         action="store_true",
         default=False,
     )
+    parser.add_argument(
+        "--huggingface",
+        help="Use huggingface as the source",
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
+        "--options",
+        metavar="KEY=VALUE",
+        help="Pass the following KEY=VALUE pairs",
+        nargs="+",
+        default=[],
+    )
 
 
 def export_command(parsed_args, remaining=None):
@@ -52,12 +67,19 @@ def export_command(parsed_args, remaining=None):
 
 def export_cli(parsed_args):
     # Include source-specific files here:
-    from ..integrations import export_from_comet
+    from ..integrations.comet import export_from_comet
+    from ..integrations.huggingface import export_from_huggingface
+
+    options = Options(parsed_args.options)
 
     if parsed_args.comet:
-        export_from_comet(comet_path=parsed_args.PATH, name=parsed_args.NAME)
+        export_from_comet(path=parsed_args.PATH, name=parsed_args.NAME, options=options)
+    elif parsed_args.huggingface:
+        export_from_huggingface(
+            path=parsed_args.PATH, name=parsed_args.NAME, options=options
+        )
     else:
-        raise Exception("You need to add a source: --comet")
+        raise Exception("You need to add a source: --comet OR --huggingface")
 
 
 def main(args):

@@ -14,6 +14,9 @@
 
 import argparse
 import sys
+import traceback
+
+from .utils import Options
 
 ADDITIONAL_ARGS = False
 
@@ -29,8 +32,8 @@ def get_parser_arguments(parser):
         type=str,
     )
     parser.add_argument(
-        "FILENAME",
-        help=("The filename of the DataGrid to upload to host"),
+        "NAME",
+        help=("The name of the DataGrid to upload to host"),
         type=str,
     )
     ## Add integrations here:
@@ -39,6 +42,26 @@ def get_parser_arguments(parser):
         help="Use comet as the target",
         action="store_true",
         default=False,
+    )
+    parser.add_argument(
+        "--debug",
+        help="Show debugging information",
+        action="store_true",
+        default=False,
+    )
+    ## Add integrations here:
+    parser.add_argument(
+        "--huggingface",
+        help="Use huggingface as the target",
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
+        "--options",
+        metavar="KEY=VALUE",
+        help="Pass the following KEY=VALUE pairs",
+        nargs="+",
+        default=[],
     )
 
 
@@ -50,22 +73,29 @@ def import_command(parsed_args, remaining=None):
         print("Canceled by CONTROL+C")
     except Exception as exc:
         print("ERROR: " + str(exc))
+        if parsed_args.debug:
+            traceback.print_exc()
 
 
 def import_cli(parsed_args):
     # Include target-specific files here:
-    from ..integrations import import_to_comet
+    from ..integrations.comet import import_to_comet
+    from ..integrations.huggingface import import_to_huggingface
 
-    if parsed_args.FILENAME is None:
-        parsed_args.FILENAME = parsed_args.PATH
+    options = Options(parsed_args.options)
+
+    if parsed_args.NAME is None:
+        parsed_args.NAME = parsed_args.PATH
         parsed_args.PATH = None
 
     if parsed_args.comet:
-        import_to_comet(
-            parsed_args.FILENAME, comet_path=parsed_args.PATH, output_dir="."
+        import_to_comet(path=parsed_args.PATH, name=parsed_args.NAME, options=options)
+    elif parsed_args.huggingface:
+        import_to_huggingface(
+            path=parsed_args.PATH, name=parsed_args.NAME, options=options
         )
     else:
-        raise Exception("You need to add a target: --comet")
+        raise Exception("You need to add a target: --comet OR --huggingface")
 
 
 def main(args):
