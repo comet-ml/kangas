@@ -2480,7 +2480,7 @@ class DataGrid:
 
             # new style: {"annotations": [
             #   {"name": str_layername,
-            #    "data": [{"label": str, "boxes": [], "points": [], "score": float}, ...]}]}
+            #    "data": [{"label": str, "boxes": [], "points": [], "score": float, "id": str}, ...]}]}
 
             if "overlays" in asset_json:
                 data = []
@@ -2496,10 +2496,14 @@ class DataGrid:
                             {
                                 "label": overlay["label"],
                                 "boxes": [_verify_box(box) for box in overlay["data"]],
+                                "points": None,
+                                "id": None,
                                 "score": overlay["score"],
-                                "metadata": overlay["metadata"]
-                                if "metadata" in overlay
-                                else None,
+                                "metadata": (
+                                    overlay["metadata"]
+                                    if "metadata" in overlay
+                                    else None
+                                ),
                             }
                         )
                     if overlay["type"] == "regions":
@@ -2507,13 +2511,26 @@ class DataGrid:
                             {
                                 "label": overlay["label"],
                                 "points": overlay["data"],
+                                "boxes": None,
+                                "id": None,
                                 "score": overlay["score"],
-                                "metadata": overlay["metadata"]
-                                if "metadata" in overlay
-                                else None,
+                                "metadata": (
+                                    overlay["metadata"]
+                                    if "metadata" in overlay
+                                    else None
+                                ),
                             }
                         )
                 del asset_json["overlays"]
+
+            elif "annotations" in asset_json:
+                for annotation in asset_json["annotations"]:
+                    if "data" in annotation:
+                        for data in annotation["data"]:
+                            if "regions" in data:
+                                data["points"] = data["regions"]
+                                data["id"] = None
+                                del data["regions"]
 
             asset_json_new = json.dumps(asset_json)
             if asset_json_new != asset_json_string:

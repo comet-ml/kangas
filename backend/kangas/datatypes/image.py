@@ -213,6 +213,7 @@ class Image(Asset):
             #         "label": [],
             #         "boxes": [] | "points": [] | "mask": mask,
             #         "score": score,
+            #         "id": "some-id",
             #         "metadata": {},
             #       }
             # }
@@ -240,7 +241,7 @@ class Image(Asset):
         else:
             self.metadata["labels"][label] += 1
 
-    def add_regions(self, layer_name, label, *regions, score=None, **metadata):
+    def add_regions(self, layer_name, label, *regions, score=None, id=None, **metadata):
         """
         Add polygon regions to an image.
 
@@ -249,6 +250,8 @@ class Image(Asset):
             label: (str) the label for the regions
             regions: list or tuples of at least 3 points
             score: (optional, number) a score associated
+               with the region.
+            id: (optional, str) an id associated
                with the region.
 
         Example:
@@ -269,13 +272,17 @@ class Image(Asset):
             {
                 "label": label,
                 "points": list(regions),
+                "boxes": None,
                 "score": score,
+                "id": id,
                 "metadata": metadata,
             },
         )
         return self
 
-    def add_bounding_boxes(self, layer_name, label, *boxes, score=None, **metadata):
+    def add_bounding_boxes(
+        self, layer_name, label, *boxes, score=None, id=None, **metadata
+    ):
         """
         Add bounding boxes to an image.
 
@@ -285,6 +292,8 @@ class Image(Asset):
             boxes: list or tuples of exactly 2 points (top-left, bottom-right),
                 or 4 ints (x, y, width, height)
             score: (optional, number) a score associated with the region.
+            id: (optional, str) an id associated
+               with the region.
 
         Example:
         ```python
@@ -307,13 +316,15 @@ class Image(Asset):
             {
                 "label": label,
                 "boxes": [_verify_box(box) for box in boxes],
+                "points": None,
                 "score": score,
+                "id": id,
                 "metadata": metadata,
             },
         )
         return self
 
-    def add_bounding_box(self, layer_name, label, box, score=None, **metadata):
+    def add_bounding_box(self, layer_name, label, box, score=None, id=None, **metadata):
         """
         Add a bounding box to an image.
 
@@ -323,6 +334,8 @@ class Image(Asset):
             box: exactly 2 points (top-left, bottom-right),
                 or 4 ints (x, y, width, height)
             score: (optional, number) a score associated with the region.
+            id: (optional, str) an id associated
+               with the region.
 
         Example:
         ```python
@@ -343,13 +356,15 @@ class Image(Asset):
             {
                 "label": label,
                 "boxes": [_verify_box(box)],
+                "points": None,
                 "score": score,
+                "id": id,
                 "metadata": metadata,
             },
         )
         return self
 
-    def add_mask(self, layer_name, label_map, image, score=None, **metadata):
+    def add_mask(self, layer_name, label_map, image, score=None, id=None, **metadata):
         """
         Add a mask to an image.
 
@@ -358,6 +373,8 @@ class Image(Asset):
             label_map: (str) the label for the regions
             image: (Image) a DataGrid Image instance of the mask
             score: (optional, number) a score associated with the region.
+            id: (optional, str) an id associated
+               with the region.
 
         Under development.
 
@@ -382,14 +399,17 @@ class Image(Asset):
             {
                 "label": label_map,
                 "mask": image,
+                "boxes": None,
+                "points": None,
                 "score": score,
+                "id": id,
                 "metadata": metadata,
             },
         )
         return self
 
     def add_annotations(
-        self, layer_name, text, anchor, *points, score=None, **metadata
+        self, layer_name, text, anchor, *points, score=None, id=None, **metadata
     ):
         """
         Add an annotation to an image.
@@ -415,6 +435,7 @@ class Image(Asset):
                 "label": text,
                 "annotation": [list(anchor), list(points)],
                 "score": score,
+                "id": id,
                 "metadata": metadata,
             },
         )
