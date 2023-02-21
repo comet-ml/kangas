@@ -241,7 +241,15 @@ class Image(Asset):
         else:
             self.metadata["labels"][label] += 1
 
-    def add_regions(self, layer_name, label, *regions, score=None, id=None, **metadata):
+    def add_regions(
+        self,
+        layer_name="(uncategorized)",
+        label=None,
+        *regions,
+        score=None,
+        id=None,
+        **metadata
+    ):
         """
         Add polygon regions to an image.
 
@@ -281,7 +289,13 @@ class Image(Asset):
         return self
 
     def add_bounding_boxes(
-        self, layer_name, label, *boxes, score=None, id=None, **metadata
+        self,
+        layer_name="(uncategorized)",
+        label=None,
+        *boxes,
+        score=None,
+        id=None,
+        **metadata
     ):
         """
         Add bounding boxes to an image.
@@ -324,7 +338,15 @@ class Image(Asset):
         )
         return self
 
-    def add_bounding_box(self, layer_name, label, box, score=None, id=None, **metadata):
+    def add_bounding_box(
+        self,
+        layer_name="(uncategorized)",
+        label=None,
+        box=None,
+        score=None,
+        id=None,
+        **metadata
+    ):
         """
         Add a bounding box to an image.
 
@@ -364,7 +386,15 @@ class Image(Asset):
         )
         return self
 
-    def add_mask(self, layer_name, label_map, image, score=None, id=None, **metadata):
+    def add_mask(
+        self,
+        layer_name="(uncategorized)",
+        label_map=None,
+        image=None,
+        score=None,
+        id=None,
+        **metadata
+    ):
         """
         Add a mask to an image.
 
@@ -409,7 +439,14 @@ class Image(Asset):
         return self
 
     def add_annotations(
-        self, layer_name, text, anchor, *points, score=None, id=None, **metadata
+        self,
+        layer_name="(uncategorized)",
+        text=None,
+        anchor=None,
+        *points,
+        score=None,
+        id=None,
+        **metadata
     ):
         """
         Add an annotation to an image.
