@@ -2478,7 +2478,10 @@ class DataGrid:
         count = 0
         for row in ProgressBar(rows):
             asset_id, asset_json_string = row
-            asset_json = json.loads(asset_json_string)
+            try:
+                asset_json = json.loads(asset_json_string)
+            except Exception:
+                asset_json = {}
 
             # old style: "overlays": [{"label": "motorcycle", "type": "boxes",
             # "data": [[[359.17, 146.17], [471.62, 359.74]]], "score": 0.9247971465564591},
@@ -2531,7 +2534,7 @@ class DataGrid:
 
             elif "annotations" in asset_json:
                 for annotation in asset_json["annotations"]:
-                    if "data" in annotation:
+                    if isinstance(annotation, dict) and "data" in annotation:
                         for data in annotation["data"]:
                             if "regions" in data:
                                 data["points"] = data["regions"]
