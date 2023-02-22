@@ -27,6 +27,12 @@ def get_parser_arguments(parser):
         help=("The filename of the DataGrid to upgrade"),
         type=str,
     )
+    parser.add_argument(
+        "--debug",
+        help=("To debug an exception"),
+        action="store_true",
+        default=False,
+    )
 
 
 def upgrade(parsed_args, remaining=None):
@@ -36,7 +42,10 @@ def upgrade(parsed_args, remaining=None):
     except KeyboardInterrupt:
         print("Canceled by CONTROL+C")
     except Exception as exc:
-        print("ERROR: " + str(exc))
+        if parsed_args.debug:
+            raise
+        else:
+            print("ERROR: " + str(exc))
 
 
 def upgrade_cli(parsed_args):

@@ -2444,9 +2444,15 @@ class DataGrid:
         Upgrade to latest version of datagrid.
         """
         self._upgrade_table("asset_id", "asset_metadata", "assets")
-        # FIXME: may want to upgrade datagrid columns:
-        # for column_name in metadata_columns:
-        #    self._upgrade_table("row_id", column_name, "datagrid")
+        schema = self.get_schema()
+        for column_name in schema:
+            if (
+                column_name.endswith("--metadata")
+                and schema[column_name]["type"] == "JSON"
+            ):
+                self._upgrade_table(
+                    "column_0", schema[column_name]["field_name"], "datagrid"
+                )
 
     def _upgrade_table(self, column_id_name, column_metadata_name, table_name):
         """
