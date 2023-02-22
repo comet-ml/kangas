@@ -243,10 +243,10 @@ class Image(Asset):
 
     def add_regions(
         self,
-        layer_name="(uncategorized)",
         label=None,
         *regions,
         score=None,
+        layer_name="(uncategorized)",
         id=None,
         **metadata
     ):
@@ -290,10 +290,10 @@ class Image(Asset):
 
     def add_bounding_boxes(
         self,
-        layer_name="(uncategorized)",
         label=None,
         *boxes,
         score=None,
+        layer_name="(uncategorized)",
         id=None,
         **metadata
     ):
@@ -340,10 +340,10 @@ class Image(Asset):
 
     def add_bounding_box(
         self,
-        layer_name="(uncategorized)",
         label=None,
         box=None,
         score=None,
+        layer_name="(uncategorized)",
         id=None,
         **metadata
     ):
@@ -388,10 +388,10 @@ class Image(Asset):
 
     def add_mask(
         self,
-        layer_name="(uncategorized)",
         label_map=None,
         image=None,
         score=None,
+        layer_name="(uncategorized)",
         id=None,
         **metadata
     ):
@@ -440,11 +440,11 @@ class Image(Asset):
 
     def add_annotations(
         self,
-        layer_name="(uncategorized)",
         text=None,
         anchor=None,
         *points,
         score=None,
+        layer_name="(uncategorized)",
         id=None,
         **metadata
     ):
