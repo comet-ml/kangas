@@ -110,7 +110,7 @@ def get_parser_arguments(parser):
     parser.add_argument("--sort-by", type=str, default=None)
     parser.add_argument("--sort-desc", action="store_true", default=False)
     parser.add_argument("--select", nargs="+", type=str, default=[])
-    parser.add_argument("--query-type", type=str, default="query")
+    parser.add_argument("--query-type", type=str, default="query-page")
     parser.add_argument("--column-name", type=str, default=None)
     parser.add_argument("--column-value", type=str, default=None)
     parser.add_argument("--column-offset", type=int, default=0)
@@ -231,6 +231,7 @@ def query(parsed_args):
         return
     else:
         table = post(parsed_args, parsed_args.query_type)
+        total = post(parsed_args, "query-total")["total"]
 
     if parsed_args.width:
         MAX_WIDTH = parsed_args.width
@@ -289,7 +290,7 @@ def query(parsed_args):
                 console.display()
         if parsed_args.debug:
             console.display(
-                "Showing {} matches out of {}".format(table["nrows"], table["total"])
+                "Showing {} matches out of {}".format(table["nrows"], total)
             )
             console.display()
             console.display("Cell details:")
@@ -393,7 +394,7 @@ def query(parsed_args):
             if "query_type" in args:
                 query_type = args.query_type
             else:
-                query_type = "query"
+                query_type = "query-page"
             if type == "link":
                 return (r, args)
             else:
@@ -469,9 +470,7 @@ def query(parsed_args):
                     if table["columns"][c] in selected:
                         console.display(display("-" * width, width, 0, f="<y>"), end="")
                 console.display()
-        console.display(
-            "Showing {} matches out of {}".format(table["nrows"], table["total"])
-        )
+        console.display("Showing {} matches out of {}".format(table["nrows"], total))
 
     else:
         console.display(table)
@@ -526,7 +525,7 @@ def make_args(args):
         "sort_by": None,
         "sort_desc": False,
         "select": [],
-        "query_type": "query",
+        "query_type": "query-page",
         "column_name": None,
         "column_value": None,
         "column_offset": 0,
