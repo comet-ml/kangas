@@ -23,9 +23,7 @@ ADDITIONAL_ARGS = False
 def get_parser_arguments(parser):
     parser.add_argument(
         "PATH",
-        help=(
-            "The source-specific path: workspace/project/exp, workspace/project, or workspace"
-        ),
+        help=("The source-specific path: workspace/project"),
         type=str,
     )
     parser.add_argument(
@@ -47,9 +45,15 @@ def get_parser_arguments(parser):
         default=False,
     )
     parser.add_argument(
+        "--debug",
+        help="Show debugging information",
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
         "--options",
         metavar="KEY=VALUE",
-        help="Pass the following KEY=VALUE pairs; for --huggingface: --options split=train streaming=True seed=42 samples=100 private=True push=False",
+        help="Pass the following KEY=VALUE pairs; for --huggingface: --options split=train streaming=True seed=42 samples=100 private=True push=False labels=objects:category bbox=objects:bbox:xyxy ids=objects:bbox_id",
         nargs="+",
         default=[],
     )
@@ -62,7 +66,10 @@ def export_command(parsed_args, remaining=None):
     except KeyboardInterrupt:
         print("Canceled by CONTROL+C")
     except Exception as exc:
-        print("ERROR: " + str(exc))
+        if parsed_args.debug:
+            raise
+        else:
+            print("ERROR: " + str(exc))
 
 
 def export_cli(parsed_args):

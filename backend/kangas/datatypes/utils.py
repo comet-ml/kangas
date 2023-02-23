@@ -701,5 +701,7 @@ def _verify_box(box):
         height = y2 - y
     elif len(box) == 4:  # new style [x, y, width, height]
         x, y, width, height = box
+    else:
+        raise Exception("Invalid bounding box format: %r" % box)
 
     return [x, y, width, height]

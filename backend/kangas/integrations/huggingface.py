@@ -59,32 +59,15 @@ def export_from_huggingface(path, name, options):
     if os.path.isfile(name + ".datagrid"):
         os.remove(name + ".datagrid")
 
-    ## FIXME: how to handle huggingface annotations in general?
-    """
-    def huggingface_annotations(row):
-        cppe_labels = ["Coverall", "FaceShield", "Gloves", "Goggles", "Mask"]
-        if "image" in row and "objects" in row:
-            # cppe
-            if isinstance(row["image"], Image) and isinstance(row["objects"], dict):
-                if ("bbox" in row["objects"]) and ("category" in row["objects"]):
-                    boxes = row["objects"]["bbox"]
-                    labels = row["objects"]["category"]
-                    for box, label in zip(boxes, labels):
-                        x, y, w, h = box
-                        row["image"].add_bounding_boxes(
-                            "(uncategorized)", cppe_labels[label], [[x, y, w, h]]
-                        )
-            elif isinstance(row["image"], Image) and isinstance(row["faces"], dict):
-                if ("bbox" in row["faces"]) and ("blur" in row["faces"]):
-                    boxes = row["faces"]["bbox"]
-                    labels = row["faces"]["blur"]
-                    for box, label in zip(boxes, labels):
-                        x, y, w, h = box
-                        row["image"].add_bounding_boxes(
-                            "(uncategorized)", "blur-%s" % label, [[x, y, w, h]]
-                        )
-    """
     # Preprocess rows (remove "row-id", assemble Images, assets):
+    bbox = options.get("bbox")
+    labels = options.get("labels")
+    if labels:
+        label_column, label_field = labels.split(":")  # objects:category
+        label_list = dataset.info.features[label_column].feature[label_field].names
+    ids = options.get("ids")
+    if ids:
+        id_column, id_field = ids.split(":")  # objects:bbox_id
     data = []
     for row in ProgressBar(dataset):
         if "row-id" in row:
@@ -100,7 +83,35 @@ def export_from_huggingface(path, name, options):
                 if metadata_column in row:
                     metadata = json.loads(row[metadata_column])
                     del row[metadata_column]
-                row[column_name] = kangas.Image(column, metadata=metadata)
+                image = kangas.Image(column, metadata=metadata)
+                # Get annotations:
+                if bbox:
+                    bbox_column, bbox_field, bbox_type = bbox.split(
+                        ":"
+                    )  # objects:bbox:xywh
+                    bboxes = row[bbox_column][bbox_field]
+                    if labels:
+                        label_ids = row[label_column][label_field]
+                    for index, bbox_data in enumerate(bboxes):
+                        if bbox_type == "xyxy":
+                            x1, y1, x2, y2 = bbox_data
+                            bbox_data = [x1, y1, x2 - x1, y2 - y1]
+                        elif bbox_type == "xywh":
+                            pass
+                        else:
+                            raise Exception("Unknown bbox type: %r" % bbox_type)
+                        if labels:
+                            label_id = label_ids[index]
+                            label = label_list[label_id]
+                        else:
+                            label = "unknown"
+                        if ids:
+                            id = row[id_column][id_field][index]
+                        else:
+                            id = None
+
+                        image.add_bounding_box(label, bbox_data, id=id)
+                row[column_name] = image
         data.append(row)
 
     dg = kangas.DataGrid(name=name, data=data)
