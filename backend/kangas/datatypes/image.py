@@ -237,7 +237,7 @@ class Image(Asset):
 
         label = data["label"]
         if label not in self.metadata["labels"]:
-            self.metadata["labels"][label] = 0
+            self.metadata["labels"][label] = 1
         else:
             self.metadata["labels"][label] += 1
 
