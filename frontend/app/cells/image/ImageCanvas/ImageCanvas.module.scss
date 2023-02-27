@@ -39,13 +39,16 @@
         position: absolute;
         left: 0;
         border-radius: 10px;
-        max-width: 100%;
 
         &.canvas {
             z-index: 999;
 
             &.vertical {
                 height: 400px;
+            }
+
+            &.horizontal {
+                width: 400px;
             }
 
         }
@@ -57,12 +60,18 @@
                 height: 400px;
             }
 
-	    &.pixelated {
-		image-rendering: pixelated;
-	    }
-	    &.grayscale {
-		filter: grayscale(1);
-	    }
+            &.horizontal {
+                width: 400px;
+            }
+
+            &.pixelated {
+                image-rendering: pixelated;
+            }
+
+            &.grayscale {
+                filter: grayscale(1);
+            }
+
         }
     }
 
