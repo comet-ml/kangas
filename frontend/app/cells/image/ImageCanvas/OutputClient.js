@@ -17,7 +17,10 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
     const containerRef = useRef();
     const labelCanvas = useRef();
     const img = useRef();
+    const [listenerAttached, setListenerAttached] = useState(false);
     const [loaded, setLoaded] = useState(false);
+    const [canvasDims, setCanvasDims] = useState({ w: 400, h: 300 });
+
     const {
         annotations,
         dimensions,
@@ -29,12 +32,6 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
     const { settings, isGroup } = useContext(CanvasContext);
 
     const isVertical = useMemo(() => dimensions?.height > dimensions?.width, [dimensions]);
-
-    const onLoad = useCallback((e) => {
-        labelCanvas.current.height = e.target.height;
-        labelCanvas.current.width = e.target.width;
-        setLoaded(true);
-    }, []);
 
     const zoom = useMemo(() => Math.max(settings?.zoom ?? 1, 1), [settings?.zoom]);
     const smooth = useMemo(() => settings?.smooth ?? true, [settings?.smooth]);
@@ -51,10 +48,10 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
         );
     }, [settings?.zoom, isVertical, loaded, zoom, isGroup]);
 
-    const drawLabels = useCallback(() => {
+    const drawLabels = useCallback((w, h) => {
         if (labels) {
             const ctx = labelCanvas.current.getContext("2d");
-            ctx.clearRect(0, 0, labelCanvas.current.width, labelCanvas.current.height);
+            ctx.clearRect(0, 0, w, h);
             for (let reg = 0; reg < labels.length; reg++) {
                 if (labels[reg]?.score) {
                     if (annotations[reg]?.score < score) continue;
@@ -107,49 +104,61 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
         }
     }, [imageScale, score, hiddenLabels, labels]);
 
+    // This observer updates the canvasDims variable anytime the image resizes,
+    // triggering a cascade of side effects that draw the labels at correct scale
+    const onLoad = useCallback((e) => {
+        const resizeObserver = new ResizeObserver((entries) => {
+            const image = entries[0]?.contentRect;
+            setCanvasDims({
+                w: image.width,
+                h: image.height
+            })
+        });
+        resizeObserver.observe(img.current);
+        setListenerAttached(true)
 
+        setLoaded(true);
+    }, []);
 
+    // Update our label and container divs when we change dimensions
+    // Should be triggered initially by onLoad
     useEffect(() => {
         if (loaded) {
-            if (!isGroup) {
-                labelCanvas.current.width = img.current.naturalWidth * imageScale;
-                labelCanvas.current.height = img.current.naturalHeight * imageScale;
-                containerRef.current.style.width = `${img.current.naturalWidth * imageScale}px`;
-                containerRef.current.style.height = `${img.current.naturalHeight * imageScale + 4}px`;
-
-                img.current.height = img.current.naturalHeight * imageScale;
-                img.current.width = img.current.naturalWidth * imageScale;
-            }
-
-            else if (isGroup) {
-                labelCanvas.current.width = img.current.width;
-                labelCanvas.current.height = img.current.height;
-                containerRef.current.style.width = `${img.current.width}px`;
-                containerRef.current.style.height = `${img.current.height + 4}px`;
-            }
-
-
-            /*
-            if (!isGroup) {
-                labelCanvas.current.width = img.current.naturalWidth * imageScale;
-                labelCanvas.current.height = img.current.naturalHeight * imageScale;
-                containerRef.current.style.width = `${img.current.naturalWidth * imageScale}px`;
-                containerRef.current.style.height = `${img.current.naturalHeight * imageScale + 4}px`;
-            }*/
-
-            drawLabels();
+            labelCanvas.current.width = canvasDims.w;
+            labelCanvas.current.height = canvasDims.h;
+            containerRef.current.style.width = `${canvasDims.w}px`;
+            containerRef.current.style.height = `${canvasDims.h + 4}px`;
         }
-    }, [loaded, drawLabels, isGroup])
+    }, [canvasDims, loaded])
+
+
+    // Update our image for zoom, if in single view
+    useEffect(() => {
+        if (listenerAttached && loaded && !isGroup) {
+            img.current.height = img.current.naturalHeight * imageScale;
+            img.current.width = img.current.naturalWidth * imageScale;
+        }
+    }, [imageScale, listenerAttached, loaded, isGroup]);
+
+    // Draw our labels anytime we update the dimensions, assuming we've attached our listeners
+    useEffect(() => {
+        if (loaded && listenerAttached) {
+            drawLabels(canvasDims.w, canvasDims.h);
+        }
+    }, [loaded, listenerAttached, drawLabels, canvasDims.h, canvasDims.w])
 
     return (
         <div className={cx('canvas-container', { vertical: isGroup && isVertical })} ref={containerRef}>
-            <canvas className={cx(['output', 'canvas'], { vertical: isGroup && isVertical })} ref={labelCanvas} />
+            <canvas 
+                className={cx(['output', 'canvas'], { vertical: isGroup && isVertical })} ref={labelCanvas}
+                height={canvasDims.h}
+                width={canvasDims.w}
+            />
             <img
-        className={cx(['output', 'image'], { vertical: isGroup && isVertical, pixelated: !smooth, grayscale: gray })}
+                className={cx(['output', 'image'], { vertical: isGroup && isVertical, pixelated: !smooth, grayscale: gray })}
                 ref={img} src={imageSrc}
                 loading="lazy"
                 onLoad={onLoad}
-                onChange={(e) => console.log(e)}
             />
         </div>
     )
@@ -157,3 +166,6 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
 }
 
 export default ImageCanvasOutputClient;
+
+
+// for dev, add this to <canvas> title={`asset: ${assetId} imscale: ${imageScale} cd: ${labelCanvas.current?.height} x ${labelCanvas.current?.width} id: ${img.current?.height} x ${img.current?.width}`} 
