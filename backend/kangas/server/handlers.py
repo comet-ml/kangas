@@ -129,8 +129,8 @@ class BaseHandler(RequestHandler):
 
         if dgid is not None:
             logging.error("dgid '%s' not found; ignoring" % dgid)
+
         self.set_status(404)
-        self.finish("<html><body><p>DataGrid file not found.</p></body></html>")
         return False
 
 
