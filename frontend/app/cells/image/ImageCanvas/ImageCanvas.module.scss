@@ -28,12 +28,14 @@
 
 .canvas-container {
     position: relative;
-    width: 400px;
-    height: 300px;
 
-    &.vertical {
-        height: 400px;
+    &.grouped {
+        max-width: 400px;
+        max-height: 400px;
+        padding-top: 2px;
+        padding-bottom: 2px;
     }
+
 
     .output {
         position: absolute;
@@ -43,26 +45,11 @@
         &.canvas {
             z-index: 999;
 
-            &.vertical {
-                height: 400px;
-            }
-
-            &.horizontal {
-                width: 400px;
-            }
-
         }
 
         &.image {
             z-index: 998;
 
-            &.vertical {
-                height: 400px;
-            }
-
-            &.horizontal {
-                width: 400px;
-            }
 
             &.pixelated {
                 image-rendering: pixelated;
@@ -75,6 +62,30 @@
         }
     }
 
+}
+
+.vertical {
+    height: 400px;
+
+    &.single {
+        min-height: 400px;
+        height: unset;
+    }
+}
+
+.horizontal {
+    width: 400px;
+
+    &.single {
+        min-height: 400px;
+        width: unset;
+    }
+
+}
+
+.single {
+    max-width: unset;
+    max-height: unset;
 }
 
 .slider-container {
@@ -143,5 +154,11 @@
 .checkbox-container {
     display: flex;
     justify-content: space-between;
+}
+
+.output-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
 }
 
