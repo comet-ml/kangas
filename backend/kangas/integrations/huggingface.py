@@ -11,6 +11,7 @@
 #    All rights reserved                             #
 ######################################################
 
+import datetime
 import json
 import os
 
@@ -26,6 +27,14 @@ try:
 except Exception:
     datasets = None
     huggingface_load_dataset = None
+
+
+class JSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime.datetime):
+            return obj.timestamp()
+
+        return json.JSONEncoder.default(self, obj)
 
 
 def import_from_huggingface(path, name, options):
@@ -146,7 +155,7 @@ def export_to_huggingface(path, name, options):
             for row in ProgressBar(
                 dg.to_dicts(column_names=column_names, format_map=format_map)
             ):
-                fp.write(json.dumps(row) + "\n")
+                fp.write(json.dumps(row, cls=JSONEncoder) + "\n")
 
         template = create_loader_from_datagrid(dg, basename)
         with open("%s/%s.py" % (basename, basename), "w") as fp:

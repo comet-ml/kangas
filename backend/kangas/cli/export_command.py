@@ -14,7 +14,6 @@
 
 import argparse
 import sys
-import traceback
 
 from .utils import Options
 
@@ -74,7 +73,7 @@ def export_command(parsed_args, remaining=None):
     except Exception as exc:
         print("ERROR: " + str(exc))
         if parsed_args.debug:
-            traceback.print_exc()
+            raise
 
 
 def export_cli(parsed_args):
