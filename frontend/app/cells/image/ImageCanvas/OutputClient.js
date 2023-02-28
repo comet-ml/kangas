@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useEffect, useRef, useState, useContext } from 'react';
+import { useCallback, useMemo, useEffect, useRef, useState, useContext, useLayoutEffect } from 'react';
 import { CanvasContext } from '../../../contexts/CanvasContext';
 import useLabels from '../../../../lib/hooks/useLabels';
 import { getColor } from '../../../../lib/generateChartColor';
@@ -8,53 +8,55 @@ import styles from './ImageCanvas.module.scss';
 import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);
 
-function computeScale(canvasWidth, canvasHeight, width, height) {
-    if (width > height) return canvasWidth / width;
-    return canvasHeight / height;
-}
 
 const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
     const containerRef = useRef();
     const labelCanvas = useRef();
     const img = useRef();
     const [loaded, setLoaded] = useState(false);
+
     const {
         annotations,
-        dimensions,
         score,
         labels,
         hiddenLabels,
     } = useLabels({ assetId, timestamp, dgid });
 
+    const [dimensions, setDimensions] = useState({ height: 400, width: 400 })
     const { settings, isGroup } = useContext(CanvasContext);
-
-    const isVertical = useMemo(() => dimensions?.height > dimensions?.width, [dimensions]);
-
-    const onLoad = useCallback((e) => {
-        labelCanvas.current.height = e.target.height;
-        labelCanvas.current.width = e.target.width;
-        setLoaded(true);
-    }, []);
-
-    const zoom = useMemo(() => Math.max(settings?.zoom ?? 1, 1), [settings?.zoom]);
+    const zoom = useMemo(() => {
+        if (isGroup) return 1;
+        else return Math.max(settings?.zoom ?? 1, 1)
+    }, [settings?.zoom]);
     const smooth = useMemo(() => settings?.smooth ?? true, [settings?.smooth]);
     const gray = useMemo(() => settings?.gray ?? false, [settings?.gray]);
 
+
+    const isVertical = useMemo(() => dimensions?.height > dimensions?.width, [dimensions]);
     const imageScale = useMemo(() => {
         if (!loaded) return 1;
 
-        return computeScale(
-                isGroup ? labelCanvas.current.width : isVertical ? 400 * zoom : 300 * zoom,
-                isGroup ? labelCanvas.current.height : 300 * zoom,
-                img.current.naturalWidth,
-                img.current.naturalHeight
-        );
-    }, [settings?.zoom, isVertical, loaded, zoom, isGroup]);
+        if (isVertical) {
+            return ( 400 / dimensions?.height ) * ( zoom ?? 1 )
+        }
+        else {
+            return ( 400 / dimensions?.width ) * ( zoom ?? 1 )
+        }
+    }, [settings?.zoom, isVertical, loaded, zoom, isGroup, dimensions]);
+
+
+    const imgDims = useMemo(() => {
+        return {
+            height: ( dimensions.height * imageScale ) || 400,
+            width: ( dimensions.width * imageScale ) || 400
+        }
+    }, [dimensions, imageScale])
+
 
     const drawLabels = useCallback(() => {
         if (labels) {
             const ctx = labelCanvas.current.getContext("2d");
-            ctx.clearRect(0, 0, labelCanvas.current.width, labelCanvas.current.height);
+            ctx.clearRect(0, 0, imgDims.width, imgDims.height);
             for (let reg = 0; reg < labels.length; reg++) {
                 if (labels[reg]?.score) {
                     if (annotations[reg]?.score < score) continue;
@@ -105,51 +107,55 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                 }
             }
         }
-    }, [imageScale, score, hiddenLabels, labels]);
+    }, [imageScale, score, hiddenLabels, labels, imgDims]);
 
+
+    const onLoad = useCallback((e) => {
+        setDimensions({
+            width: e.target.naturalWidth,
+            height: e.target.naturalHeight
+        });
+        setLoaded(true);
+    }, []);
 
 
     useEffect(() => {
         if (loaded) {
-            if (!isGroup) {
-                labelCanvas.current.width = img.current.naturalWidth * imageScale;
-                labelCanvas.current.height = img.current.naturalHeight * imageScale;
-                containerRef.current.style.width = `${img.current.naturalWidth * imageScale}px`;
-                containerRef.current.style.height = `${img.current.naturalHeight * imageScale + 4}px`;
+            labelCanvas.current.width = imgDims.width;
+            labelCanvas.current.height = imgDims.height;
+            containerRef.current.style.width = `${imgDims.width}px`;
+            containerRef.current.style.height = `${imgDims.height}px`;
+        }
+    }, [imgDims])
 
-                img.current.height = img.current.naturalHeight * imageScale;
-                img.current.width = img.current.naturalWidth * imageScale;
-            }
-
-            else if (isGroup) {
-                labelCanvas.current.width = img.current.width;
-                labelCanvas.current.height = img.current.height;
-                containerRef.current.style.width = `${img.current.width}px`;
-                containerRef.current.style.height = `${img.current.height + 4}px`;
-            }
-
-
-            /*
-            if (!isGroup) {
-                labelCanvas.current.width = img.current.naturalWidth * imageScale;
-                labelCanvas.current.height = img.current.naturalHeight * imageScale;
-                containerRef.current.style.width = `${img.current.naturalWidth * imageScale}px`;
-                containerRef.current.style.height = `${img.current.naturalHeight * imageScale + 4}px`;
-            }*/
-
+    useEffect(() => {
+        if (loaded) {
             drawLabels();
         }
-    }, [loaded, drawLabels, isGroup])
+    }, [loaded, drawLabels])
 
     return (
-        <div className={cx('canvas-container', { vertical: isGroup && isVertical })} ref={containerRef}>
-            <canvas className={cx(['output', 'canvas'], { vertical: isGroup && isVertical })} ref={labelCanvas} />
+        <div className={cx('canvas-container', { vertical: isVertical, horizontal: !isVertical, grouped: isGroup })} ref={containerRef}>
+            <canvas 
+                className={cx(['output', 'canvas'], { vertical: isVertical, horizontal: !isVertical, single: !isGroup })} ref={labelCanvas}
+            />
             <img
-        className={cx(['output', 'image'], { vertical: isGroup && isVertical, pixelated: !smooth, grayscale: gray })}
-                ref={img} src={imageSrc}
+                className={cx(
+                    ['output', 'image'], 
+                    { 
+                        vertical: isVertical,
+                        horizontal: !isVertical,
+                        pixelated: !smooth,
+                        grayscale: gray,
+                        single: !isGroup
+                    }
+                )}
+                ref={img} 
+                src={imageSrc}
                 loading="lazy"
+                height={imgDims?.height}
+                width={imgDims?.width}
                 onLoad={onLoad}
-                onChange={(e) => console.log(e)}
             />
         </div>
     )
@@ -157,3 +163,6 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
 }
 
 export default ImageCanvasOutputClient;
+
+
+// for dev, add this to <canvas> title={`asset: ${assetId} imscale: ${imageScale} cd: ${labelCanvas.current?.height} x ${labelCanvas.current?.width} id: ${img.current?.height} x ${img.current?.width}`} 

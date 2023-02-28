@@ -67,13 +67,17 @@ const ImageCanvasCell = async ({ assets, query }) => {
                 <ImageCanvasControls />
                 <div className={cx('canvas-column')}>
                     { isGroup ? assets?.map(id => (
-                      <Deferred>
-                          <DialogueModal fullScreen={false} toggleElement={
-                            <ImageCanvasOutput dgid={dgid} timestamp={timestamp} assetId={id} />
-                          } >
-                              <ImageCanvasCellStandAlone dgid={dgid} timestamp={timestamp} assetId={id} />
-                          </DialogueModal>
-                      </Deferred>
+                        <Deferred fallbackProps={{ style: { height: '400px' }}}>
+                            <DialogueModal fullScreen={false} toggleElement={
+                                <ImageCanvasOutput dgid={dgid} timestamp={timestamp} assetId={id} />
+                            } >
+                                
+                                <Suspense fallback={<>Loading</>}>
+                                    <ImageCanvasCellStandAlone dgid={dgid} timestamp={timestamp} assetId={id} />
+                                </Suspense>
+                                
+                            </DialogueModal>
+                        </Deferred>
                     ) ) : (
                       <Deferred>
                           <ImageCanvasOutput dgid={dgid} timestamp={timestamp} assetId={assets[0]} />

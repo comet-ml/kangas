@@ -28,8 +28,7 @@ const fetchDataGrid = async (query, url=config.apiUrl) => {
             displayColumns
         }
     } catch (error) {
-        console.log(error);
-        console.log("NOOOOOOO")
+        //console.log(error);
     }
 };
 
