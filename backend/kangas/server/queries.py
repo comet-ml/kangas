@@ -522,13 +522,17 @@ def _get_metadata(conn):
 
 
 def plural(count, noun):
-    if count == 0 or count > 1:
-        if noun.endswith("s"):
-            return "%s %ses" % (count, noun)
+    if noun.endswith("'"):
+        nouns = noun
+    elif count == 0 or count > 1:
+        if noun.endswith("s") or noun.endswith("x"):
+            nouns = noun + "es"
         else:
-            return "%s %ss" % (count, noun)
+            nouns = noun + "s"
     else:
-        return "1 %s" % noun
+        nouns = noun
+
+    return "%s %s" % (count, nouns)
 
 
 def histogram(cur, metadata, values, column):
@@ -850,7 +854,7 @@ def select_description(
                 if delims == 0:
                     results_json["value"] = row[0]
                 else:
-                    results_json["value"] = plural(delims + 1, column_name)
+                    results_json["value"] = plural(delims + 1, "value")
 
     return results_json
 
@@ -932,7 +936,7 @@ def select_category(
             if length == 0:
                 results_json = {
                     "type": "verbatim",
-                    "value": plural(length, column_name),
+                    "value": plural(length, "value"),
                     "columnType": column_type,
                 }
             elif length == 1:
@@ -945,16 +949,17 @@ def select_category(
                 if length == ulength:
                     results_json = {
                         "type": "verbatim",
-                        "value": plural(length, column_name) + " unique values",
+                        "value": plural(length, "unique value"),
                         "columnType": column_type,
                     }
                 else:
                     results_json = {
                         "type": "verbatim",
-                        "value": plural(length, column_name)
-                        + ", "
-                        + str(ulength)
-                        + " unique values",
+                        "value": (
+                            plural(length, "value")
+                            + ", "
+                            + plural(ulength, " unique value")
+                        ),
                         "columnType": column_type,
                     }
             else:
