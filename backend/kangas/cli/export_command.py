@@ -23,24 +23,22 @@ ADDITIONAL_ARGS = False
 def get_parser_arguments(parser):
     parser.add_argument(
         "PATH",
-        help=("The source-specific path: workspace/project"),
+        help=(
+            "The target-specific path: workspace/project/exp, workspace/project, project, or nothing"
+        ),
+        nargs="?",
+        default=None,
         type=str,
     )
     parser.add_argument(
         "NAME",
-        help=("The name of the DataGrid to create"),
+        help=("The name of the DataGrid to upload to host"),
         type=str,
     )
     ## Add integrations here:
     parser.add_argument(
         "--comet",
-        help="Use comet as the source",
-        action="store_true",
-        default=False,
-    )
-    parser.add_argument(
-        "--huggingface",
-        help="Use huggingface as the source",
+        help="Use comet as the target",
         action="store_true",
         default=False,
     )
@@ -50,10 +48,17 @@ def get_parser_arguments(parser):
         action="store_true",
         default=False,
     )
+    ## Add integrations here:
+    parser.add_argument(
+        "--huggingface",
+        help="Use huggingface as the target",
+        action="store_true",
+        default=False,
+    )
     parser.add_argument(
         "--options",
         metavar="KEY=VALUE",
-        help="Pass the following KEY=VALUE pairs; for --huggingface: --options split=train streaming=True seed=42 samples=100 private=True push=False labels=objects:category bbox=objects:bbox:xyxy ids=objects:bbox_id",
+        help="Pass the following KEY=VALUE pairs; for --comet: --options output_dir=DIR; for --huggingface --options limit=N",
         nargs="+",
         default=[],
     )
@@ -66,27 +71,30 @@ def export_command(parsed_args, remaining=None):
     except KeyboardInterrupt:
         print("Canceled by CONTROL+C")
     except Exception as exc:
+        print("ERROR: " + str(exc))
         if parsed_args.debug:
             raise
-        else:
-            print("ERROR: " + str(exc))
 
 
 def export_cli(parsed_args):
-    # Include source-specific files here:
-    from ..integrations.comet import export_from_comet
-    from ..integrations.huggingface import export_from_huggingface
+    # Include target-specific files here:
+    from ..integrations.comet import export_to_comet
+    from ..integrations.huggingface import export_to_huggingface
 
     options = Options(parsed_args.options)
 
+    if parsed_args.NAME is None:
+        parsed_args.NAME = parsed_args.PATH
+        parsed_args.PATH = None
+
     if parsed_args.comet:
-        export_from_comet(path=parsed_args.PATH, name=parsed_args.NAME, options=options)
+        export_to_comet(path=parsed_args.PATH, name=parsed_args.NAME, options=options)
     elif parsed_args.huggingface:
-        export_from_huggingface(
+        export_to_huggingface(
             path=parsed_args.PATH, name=parsed_args.NAME, options=options
         )
     else:
-        raise Exception("You need to add a source: --comet OR --huggingface")
+        raise Exception("You need to add a target: --comet OR --huggingface")
 
 
 def main(args):

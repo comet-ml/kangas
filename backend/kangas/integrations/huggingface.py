@@ -11,6 +11,7 @@
 #    All rights reserved                             #
 ######################################################
 
+import datetime
 import json
 import os
 
@@ -28,7 +29,19 @@ except Exception:
     huggingface_load_dataset = None
 
 
-def export_from_huggingface(path, name, options):
+class JSONEncoder(json.JSONEncoder):
+    """
+    Class to encode JSON structure; decoded in template below.
+    """
+
+    def default(self, obj):
+        if isinstance(obj, datetime.datetime):
+            return {"value": obj.timestamp(), "dtype": "datetime"}
+
+        return json.JSONEncoder.default(self, obj)
+
+
+def import_from_huggingface(path, name, options):
     if huggingface_load_dataset is None:
         raise Exception("requires `pip install datasets`")
 
@@ -36,13 +49,15 @@ def export_from_huggingface(path, name, options):
         dataset = huggingface_load_dataset(
             path,
             split=options.get("split"),
-            streaming=bool(options.get("streaming", "False")),
+            streaming=bool(options.get("streaming", "False") == "True"),
         )
     else:
         dataset_splits = huggingface_load_dataset(path)
         split = list(dataset_splits.keys())[0]
         dataset = huggingface_load_dataset(
-            path, split=split, streaming=bool(options.get("streaming", "False"))
+            path,
+            split=split,
+            streaming=bool(options.get("streaming", "False") == "True"),
         )
 
     if options.get("seed") is not None:
@@ -118,7 +133,7 @@ def export_from_huggingface(path, name, options):
     dg.save()
 
 
-def import_to_huggingface(path, name, options):
+def export_to_huggingface(path, name, options):
     if datasets is not None:
         dg = kangas.read_datagrid(name)
 
@@ -142,19 +157,24 @@ def import_to_huggingface(path, name, options):
         os.makedirs(basename, exist_ok=True)
         filename = "%s/%s.jsonl" % (basename, basename)
         column_names = dg.get_schema().keys()
+        limit = int(options.get("limit", "0"))
+        count = 0
         with open(filename, "w") as fp:
             for row in ProgressBar(
                 dg.to_dicts(column_names=column_names, format_map=format_map)
             ):
-                fp.write(json.dumps(row) + "\n")
+                fp.write(json.dumps(row, cls=JSONEncoder) + "\n")
+                count += 1
+                if limit != 0 and count >= limit:
+                    break
 
         template = create_loader_from_datagrid(dg, basename)
         with open("%s/%s.py" % (basename, basename), "w") as fp:
             fp.write(template)
 
         ds = datasets.load_dataset(basename)
-        private = bool(options.get("private", "True"))
-        if bool(options.get("push", "True")):
+        private = bool(options.get("private", "True") == "True")
+        if bool(options.get("push", "True") == "True"):
             ds.push_to_hub(path, private=private)
     else:
         raise Exception("datasets is not available; pip install datasets")
@@ -177,7 +197,7 @@ def dg_type_to_ds_type(column_name, schema):
     elif dg_type == "VECTOR":
         return 'datasets.Value("large_string")'
     elif dg_type == "DATETIME":
-        return 'datasets.Value("date32")'
+        return 'datasets.Value("float32")'  # FIXME: should be  'date32' or something, but HF chokes
     elif dg_type == "BOOLEAN":
         return 'datasets.Value("bool")'
     else:
@@ -209,6 +229,7 @@ def create_loader_from_datagrid(
 
     TEMPLATE = """
 import datasets
+import datetime
 import json
 
 class KangasDataset(datasets.GeneratorBasedBuilder):
@@ -247,6 +268,9 @@ class KangasDataset(datasets.GeneratorBasedBuilder):
                             if value["asset_type"] == "Image":
                                 bytes = open(value["filename"], "rb").read()
                                 row[column_name] = {{"path": value["filename"], "bytes": bytes}}
+                        elif isinstance(value, dict) and "dtype" in value:
+                            if value["dtype"] == "datetime":
+                                row[column_name] = value["value"] # FIXME: should be a datetime, but HF chokes
                     yield idx, row
                     idx += 1
 """

@@ -13,5 +13,5 @@
 
 # Add or import vendor specific code here
 
-from .comet import export_from_comet, import_to_comet  # noqa
-from .huggingface import export_from_huggingface, import_to_huggingface  # noqa
+from .comet import export_to_comet, import_from_comet  # noqa
+from .huggingface import export_to_huggingface, import_from_huggingface  # noqa

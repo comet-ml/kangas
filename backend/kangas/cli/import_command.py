@@ -14,7 +14,6 @@
 
 import argparse
 import sys
-import traceback
 
 from .utils import Options
 
@@ -24,22 +23,24 @@ ADDITIONAL_ARGS = False
 def get_parser_arguments(parser):
     parser.add_argument(
         "PATH",
-        help=(
-            "The target-specific path: workspace/project/exp, workspace/project, project, or nothing"
-        ),
-        nargs="?",
-        default=None,
+        help=("The source-specific path: workspace/project"),
         type=str,
     )
     parser.add_argument(
         "NAME",
-        help=("The name of the DataGrid to upload to host"),
+        help=("The name of the DataGrid to create"),
         type=str,
     )
     ## Add integrations here:
     parser.add_argument(
         "--comet",
-        help="Use comet as the target",
+        help="Use comet as the source",
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
+        "--huggingface",
+        help="Use huggingface as the source",
         action="store_true",
         default=False,
     )
@@ -49,17 +50,10 @@ def get_parser_arguments(parser):
         action="store_true",
         default=False,
     )
-    ## Add integrations here:
-    parser.add_argument(
-        "--huggingface",
-        help="Use huggingface as the target",
-        action="store_true",
-        default=False,
-    )
     parser.add_argument(
         "--options",
         metavar="KEY=VALUE",
-        help="Pass the following KEY=VALUE pairs; for --comet: --options output_dir=DIR",
+        help="Pass the following KEY=VALUE pairs; for --huggingface: --options split=train streaming=True seed=42 samples=100 private=True push=False labels=objects:category bbox=objects:bbox:xyxy ids=objects:bbox_id",
         nargs="+",
         default=[],
     )
@@ -72,30 +66,27 @@ def import_command(parsed_args, remaining=None):
     except KeyboardInterrupt:
         print("Canceled by CONTROL+C")
     except Exception as exc:
-        print("ERROR: " + str(exc))
         if parsed_args.debug:
-            traceback.print_exc()
+            raise
+        else:
+            print("ERROR: " + str(exc))
 
 
 def import_cli(parsed_args):
-    # Include target-specific files here:
-    from ..integrations.comet import import_to_comet
-    from ..integrations.huggingface import import_to_huggingface
+    # Include source-specific files here:
+    from ..integrations.comet import import_from_comet
+    from ..integrations.huggingface import import_from_huggingface
 
     options = Options(parsed_args.options)
 
-    if parsed_args.NAME is None:
-        parsed_args.NAME = parsed_args.PATH
-        parsed_args.PATH = None
-
     if parsed_args.comet:
-        import_to_comet(path=parsed_args.PATH, name=parsed_args.NAME, options=options)
+        import_from_comet(path=parsed_args.PATH, name=parsed_args.NAME, options=options)
     elif parsed_args.huggingface:
-        import_to_huggingface(
+        import_from_huggingface(
             path=parsed_args.PATH, name=parsed_args.NAME, options=options
         )
     else:
-        raise Exception("You need to add a target: --comet OR --huggingface")
+        raise Exception("You need to add a source: --comet OR --huggingface")
 
 
 def main(args):

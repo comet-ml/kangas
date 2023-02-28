@@ -33,7 +33,7 @@ def get_comet_type(asset_type):
         return asset_type.lower()
 
 
-def export_from_comet(path, name, options):
+def import_from_comet(path, name, options):
     from comet_ml import API
 
     from kangas import DataGrid, Image
@@ -118,7 +118,7 @@ def export_from_comet(path, name, options):
     dg.save()
 
 
-def import_to_comet(path, name, options):
+def export_to_comet(path, name, options):
     """
     Create the SQLite database, zip it, and log it to
     an experiment.
@@ -188,15 +188,26 @@ def import_to_comet(path, name, options):
             step = metadata["step"]
         else:
             step = 0
-        asset_results = experiment._log_asset(
-            binary_io,
-            file_name=file_name,
-            copy_to_tmp=True,  # NOTE: comet_ml no longer supports False
-            asset_type=comet_type,
-            metadata=metadata,
-            step=step,
-            framework="kangas",
-        )
+
+        try:
+            asset_results = experiment.log_image(
+                binary_io,
+                name=file_name,
+                annotations=metadata["annotations"],
+                step=step,
+            )
+            asset_results["assetId"] = asset_results["imageId"]
+        except Exception:
+            asset_results = experiment._log_asset(
+                binary_io,
+                file_name=file_name,
+                copy_to_tmp=True,  # NOTE: comet_ml no longer supports False
+                asset_type=comet_type,
+                metadata=metadata,
+                step=step,
+                framework="kangas",
+            )
+
         asset_map[asset_id] = asset_results
         # Comet asset ID -> kangas asset metadata
         metadata_map[asset_map[asset_id]["assetId"]] = metadata
