@@ -28,7 +28,7 @@ except Exception:
     huggingface_load_dataset = None
 
 
-def export_from_huggingface(path, name, options):
+def import_from_huggingface(path, name, options):
     if huggingface_load_dataset is None:
         raise Exception("requires `pip install datasets`")
 
@@ -118,7 +118,7 @@ def export_from_huggingface(path, name, options):
     dg.save()
 
 
-def import_to_huggingface(path, name, options):
+def export_to_huggingface(path, name, options):
     if datasets is not None:
         dg = kangas.read_datagrid(name)
 

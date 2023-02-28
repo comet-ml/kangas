@@ -33,7 +33,7 @@ def get_comet_type(asset_type):
         return asset_type.lower()
 
 
-def export_from_comet(path, name, options):
+def import_from_comet(path, name, options):
     from comet_ml import API
 
     from kangas import DataGrid, Image
@@ -118,7 +118,7 @@ def export_from_comet(path, name, options):
     dg.save()
 
 
-def import_to_comet(path, name, options):
+def export_to_comet(path, name, options):
     """
     Create the SQLite database, zip it, and log it to
     an experiment.

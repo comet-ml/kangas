@@ -12,10 +12,11 @@
 ######################################################
 """
 Examples:
-    datagrid server
-    datagrid viewer
-    datagrid import-into --comet workspace/project/experiment-id
-    datagrid export-from --comet workspace/project/experiment-id
+    datagrid server [filename.datagrid]
+    datagrid export --comet workspace/project/experiment-id filename.datagrid --options ...
+    datagrid import --comet workspace/project/experiment-id filename.datagrid --options ...
+    datagrid export --huggingface team/dataset filename.datagrid --options ...
+    datagrid import --huggingface team/dataset filename.datagrid --options ...
 
 For more information:
     datagrid COMMAND --help
@@ -26,8 +27,8 @@ import sys
 from .. import __version__
 
 name_map = {
-    "import-into": "import_command",
-    "export-from": "export_command",
+    "import": "import_command",
+    "export": "export_command",
     "server": "server",
     "viewer": "viewer",
     "upgrade": "upgrade",
@@ -75,8 +76,8 @@ def main(raw_args=sys.argv[1:]):
     # Register CLI commands:
     add_subparser(subparsers, server, "server")
     add_subparser(subparsers, viewer, "viewer")
-    add_subparser(subparsers, import_command, "import-into")
-    add_subparser(subparsers, export_command, "export-from")
+    add_subparser(subparsers, import_command, "import")
+    add_subparser(subparsers, export_command, "export")
     add_subparser(subparsers, upgrade, "upgrade")
 
     # First identify the subparser as some subparser pass additional args to
