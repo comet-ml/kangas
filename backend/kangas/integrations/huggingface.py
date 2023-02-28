@@ -49,13 +49,15 @@ def import_from_huggingface(path, name, options):
         dataset = huggingface_load_dataset(
             path,
             split=options.get("split"),
-            streaming=bool(options.get("streaming", "False")),
+            streaming=bool(options.get("streaming", "False") == "True"),
         )
     else:
         dataset_splits = huggingface_load_dataset(path)
         split = list(dataset_splits.keys())[0]
         dataset = huggingface_load_dataset(
-            path, split=split, streaming=bool(options.get("streaming", "False"))
+            path,
+            split=split,
+            streaming=bool(options.get("streaming", "False") == "True"),
         )
 
     if options.get("seed") is not None:
@@ -171,8 +173,8 @@ def export_to_huggingface(path, name, options):
             fp.write(template)
 
         ds = datasets.load_dataset(basename)
-        private = bool(options.get("private", "True"))
-        if bool(options.get("push", "True")):
+        private = bool(options.get("private", "True") == "True")
+        if bool(options.get("push", "True") == "True"):
             ds.push_to_hub(path, private=private)
     else:
         raise Exception("datasets is not available; pip install datasets")
