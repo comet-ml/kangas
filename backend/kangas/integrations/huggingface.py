@@ -197,7 +197,7 @@ def dg_type_to_ds_type(column_name, schema):
     elif dg_type == "VECTOR":
         return 'datasets.Value("large_string")'
     elif dg_type == "DATETIME":
-        return 'datasets.Value("date32")'
+        return 'datasets.Value("float32")'  # FIXME: should be  'date32' or something, but HF chokes
     elif dg_type == "BOOLEAN":
         return 'datasets.Value("bool")'
     else:
@@ -270,7 +270,7 @@ class KangasDataset(datasets.GeneratorBasedBuilder):
                                 row[column_name] = {{"path": value["filename"], "bytes": bytes}}
                         elif isinstance(value, dict) and "dtype" in value:
                             if value["dtype"] == "datetime":
-                                row[column_name] = datetime.datetime.fromtimestamp(value["value"])
+                                row[column_name] = value["value"] # FIXME: should be a datetime, but HF chokes
                     yield idx, row
                     idx += 1
 """
