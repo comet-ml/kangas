@@ -188,15 +188,26 @@ def export_to_comet(path, name, options):
             step = metadata["step"]
         else:
             step = 0
-        asset_results = experiment._log_asset(
-            binary_io,
-            file_name=file_name,
-            copy_to_tmp=True,  # NOTE: comet_ml no longer supports False
-            asset_type=comet_type,
-            metadata=metadata,
-            step=step,
-            framework="kangas",
-        )
+
+        try:
+            asset_results = experiment.log_image(
+                binary_io,
+                name=file_name,
+                annotations=metadata["annotations"],
+                step=step,
+            )
+            asset_results["assetId"] = asset_results["imageId"]
+        except Exception:
+            asset_results = experiment._log_asset(
+                binary_io,
+                file_name=file_name,
+                copy_to_tmp=True,  # NOTE: comet_ml no longer supports False
+                asset_type=comet_type,
+                metadata=metadata,
+                step=step,
+                framework="kangas",
+            )
+
         asset_map[asset_id] = asset_results
         # Comet asset ID -> kangas asset metadata
         metadata_map[asset_map[asset_id]["assetId"]] = metadata

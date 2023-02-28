@@ -1246,29 +1246,34 @@ def select_asset_group_metadata(
                 # }
                 if "annotations" in json_metadata:
                     for annotation_layer in json_metadata["annotations"]:
-                        layer_name = annotation_layer["name"]
-                        for annotation in annotation_layer["data"]:
-                            minimum = summary[layer_name]["labels"][
-                                annotation["label"]
-                            ]["scoreMin"]
-                            maximum = summary[layer_name]["labels"][
-                                annotation["label"]
-                            ]["scoreMax"]
-                            if annotation["score"] is not None:
-                                summary[layer_name]["labels"][annotation["label"]][
-                                    "scoreMin"
-                                ] = (
-                                    min(annotation["score"], minimum)
-                                    if minimum is not None
-                                    else annotation["score"]
-                                )
-                                summary[layer_name]["labels"][annotation["label"]][
-                                    "scoreMax"
-                                ] = (
-                                    max(annotation["score"], maximum)
-                                    if maximum is not None
-                                    else annotation["score"]
-                                )
+                        layer_name = (
+                            annotation_layer["name"]
+                            if "name" in annotation_layer
+                            else "(uncategorized)"
+                        )
+                        if "data" in annotation_layer:
+                            for annotation in annotation_layer["data"]:
+                                minimum = summary[layer_name]["labels"][
+                                    annotation["label"]
+                                ]["scoreMin"]
+                                maximum = summary[layer_name]["labels"][
+                                    annotation["label"]
+                                ]["scoreMax"]
+                                if annotation["score"] is not None:
+                                    summary[layer_name]["labels"][annotation["label"]][
+                                        "scoreMin"
+                                    ] = (
+                                        min(annotation["score"], minimum)
+                                        if minimum is not None
+                                        else annotation["score"]
+                                    )
+                                    summary[layer_name]["labels"][annotation["label"]][
+                                        "scoreMax"
+                                    ] = (
+                                        max(annotation["score"], maximum)
+                                        if maximum is not None
+                                        else annotation["score"]
+                                    )
 
     for layer_name in summary:
         minimum, maximum = None, None
