@@ -30,9 +30,13 @@ except Exception:
 
 
 class JSONEncoder(json.JSONEncoder):
+    """
+    Class to encode JSON structure; decoded in template below.
+    """
+
     def default(self, obj):
         if isinstance(obj, datetime.datetime):
-            return obj.timestamp()
+            return {"value": obj.timestamp(), "dtype": "datetime"}
 
         return json.JSONEncoder.default(self, obj)
 
@@ -151,11 +155,16 @@ def export_to_huggingface(path, name, options):
         os.makedirs(basename, exist_ok=True)
         filename = "%s/%s.jsonl" % (basename, basename)
         column_names = dg.get_schema().keys()
+        limit = int(options.get("limit", "0"))
+        count = 0
         with open(filename, "w") as fp:
             for row in ProgressBar(
                 dg.to_dicts(column_names=column_names, format_map=format_map)
             ):
                 fp.write(json.dumps(row, cls=JSONEncoder) + "\n")
+                count += 1
+                if limit != 0 and count >= limit:
+                    break
 
         template = create_loader_from_datagrid(dg, basename)
         with open("%s/%s.py" % (basename, basename), "w") as fp:
@@ -218,6 +227,7 @@ def create_loader_from_datagrid(
 
     TEMPLATE = """
 import datasets
+import datetime
 import json
 
 class KangasDataset(datasets.GeneratorBasedBuilder):
@@ -256,6 +266,9 @@ class KangasDataset(datasets.GeneratorBasedBuilder):
                             if value["asset_type"] == "Image":
                                 bytes = open(value["filename"], "rb").read()
                                 row[column_name] = {{"path": value["filename"], "bytes": bytes}}
+                        elif isinstance(value, dict) and "dtype" in value:
+                            if value["dtype"] == "datetime":
+                                row[column_name] = datetime.datetime.fromtimestamp(value["value"])
                     yield idx, row
                     idx += 1
 """
