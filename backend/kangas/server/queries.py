@@ -958,7 +958,7 @@ def select_category(
                         "value": (
                             plural(length, "value")
                             + ", "
-                            + plural(ulength, " unique value")
+                            + ("%s %s" % (ulength, "unique"))
                         ),
                         "columnType": column_type,
                     }
