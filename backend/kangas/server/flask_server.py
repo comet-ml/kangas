@@ -650,11 +650,7 @@ def get_datagrid_about_handler():
         return error(404)
 
 
-def main():
-    application.logger.info("Starting Kangas Backend Python Server...")
-    application.run(host="127.0.1.1", port=4001, debug=True)
-    application.logger.info("Kangas Kangas Python Server done.")
-
-
-if __name__ == "__main__":
-    main()
+def run(host, port, debug, processes):
+    application.run(
+        host=host, port=port, debug=debug, threaded=False, processes=processes
+    )
