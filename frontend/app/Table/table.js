@@ -24,9 +24,6 @@ export const TableDisplay = ({ query, data }) => {
         Object.entries(row).filter(([name]) => displayColumns.includes(name))
     ));
 
-    console.log(displayRows);
-
-
     if (transposeTable) {
         const transposed = transpose([ displayColumns, ...displayRows ]);
 
