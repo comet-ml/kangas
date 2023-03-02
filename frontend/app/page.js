@@ -20,9 +20,9 @@ const Main = async ({ query }) => {
 
     return (
         <ViewProvider value={{ columns: view, query }}>
-            <SettingsBar query={query} columns={columns} />
+            <Suspense fallback={<>Loading</>}><SettingsBar query={query} columns={columns} /></Suspense>
             <Table data={data} query={query} />
-            <PagerBar query={query} />
+            <Suspense fallback={<>Loading</>}><PagerBar query={query} /></Suspense>
         </ViewProvider>
     );
 }
@@ -72,6 +72,8 @@ const Page = async ({ searchParams }) => {
         </div>
     );
 };
+
+export const fetchCache = 'force-cache';
 
 export default Page;
 

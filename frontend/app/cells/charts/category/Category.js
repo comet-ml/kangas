@@ -1,4 +1,3 @@
-import { DataArraySharp } from "@mui/icons-material";
 import fetchCategory from "../../../../lib/fetchCategory"
 import fetchIt from "../../../../lib/fetchIt";
 import CategoryClient from "./CategoryClient";
