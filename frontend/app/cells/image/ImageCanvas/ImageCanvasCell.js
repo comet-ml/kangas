@@ -22,8 +22,7 @@ const ImageCanvasCellStandAlone = async ({dgid, timestamp, assetId}) => {
         timestamp,
         assetId,
     };
-    const metadataRaw = await fetchAssetMetadata(query);
-    const metadata = JSON.parse(metadataRaw);
+    const metadata = await fetchAssetMetadata(query);
 
     const getLabels = (metadata) => {
         const labels = new Set();
@@ -71,11 +70,11 @@ const ImageCanvasCell = async ({ assets, query }) => {
                             <DialogueModal fullScreen={false} toggleElement={
                                 <ImageCanvasOutput dgid={dgid} timestamp={timestamp} assetId={id} />
                             } >
-                                
+
                                 <Suspense fallback={<>Loading</>}>
                                     <ImageCanvasCellStandAlone dgid={dgid} timestamp={timestamp} assetId={id} />
                                 </Suspense>
-                                
+
                             </DialogueModal>
                         </Deferred>
                     ) ) : (

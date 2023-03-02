@@ -395,7 +395,7 @@ def get_asset_metadata_handler():
 
     if ensure_datagrid_path(dgid):
         result = select_asset_metadata(dgid, asset_id)
-        return result
+        return json.loads(result)
     else:
         return error(404)
 

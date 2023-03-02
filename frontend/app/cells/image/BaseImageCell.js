@@ -33,12 +33,12 @@ const PlainImageCell = async ({ value, query, expanded=false, style }) => {
 };
 
 const ExpandedWrapper = async ({ value, query }) => {
-    const labels = await fetchAssetMetadata({ assetId: value?.assetId, dgid: query?.dgid });
-    let jsonLabels = [];
+    const metadata = await fetchAssetMetadata({ assetId: value?.assetId, dgid: query?.dgid });
+    let labels = [];
 
-    if (labels) {
+    if (metadata) {
         try {
-            jsonLabels = Object.keys(JSON.parse(labels)?.labels);
+            labels = Object.keys(metadata?.labels);
         } catch {
             console.log("Can't decode labels");
         }
@@ -47,23 +47,22 @@ const ExpandedWrapper = async ({ value, query }) => {
     return (
         <CanvasProvider
             value={{
-                labels: jsonLabels
+                labels
             }}
         >
             <ImageCanvasCell assets={[value?.assetId]} query={query} />
         </CanvasProvider>
-    )
+    );
 }
 
 const ImageCell = ({ value, query, expanded, style }) => {
     const Component = expanded ? ExpandedWrapper : PlainImageCell;
 
-
     return (
         <Suspense fallback={<>Loading</>}>
             <Component value={value} query={query} expanded={expanded} style={style} />
         </Suspense>
-    )
+    );
 }
 
 export default ImageCell;
