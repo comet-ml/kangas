@@ -57,7 +57,7 @@ const useLabels = ({ assetId, dgid, timestamp }) => {
 
     useEffect(() => {
         if (!image?.fetchedMeta) {
-            fetch(`/api/assetMetadata?assetId=${assetId}&dgid=${dgid}`)
+            fetch(`/api/assetMetadata?assetId=${assetId}&dgid=${dgid}`, { next: { revalidate: 10000 }, cache: 'force-cache' })
             .then(res => res.json())
             .then(metadata => addImageMetadata({ assetId, metadata }))
         }

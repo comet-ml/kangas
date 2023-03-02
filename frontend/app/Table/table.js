@@ -21,11 +21,8 @@ export const TableDisplay = ({ query, data }) => {
 
     // Remove any row keys that are not in displayColumns:
     const displayRows = rows.map(row => Object.fromEntries(
-	Object.entries(row).filter(([name]) => displayColumns.includes(name))
+        Object.entries(row).filter(([name]) => displayColumns.includes(name))
     ));
-
-    console.log(displayRows);
-
 
     if (transposeTable) {
         const transposed = transpose([ displayColumns, ...displayRows ]);
