@@ -66,7 +66,7 @@ def get_parser_arguments(parser):
         "--backend",
         help="The backend to use; use 'no' for no backend",
         type=str,
-        default="tornado",
+        default="flask",
     )
     parser.add_argument(
         "-bp",
@@ -104,7 +104,7 @@ def get_parser_arguments(parser):
     )
     parser.add_argument(
         "--max-workers",
-        help="Use this flag to set the tornado max_workers",
+        help="Use this flag to set the backend max_workers",
         default=None,
         type=int,
     )
@@ -308,18 +308,40 @@ def server(parsed_args, remaining=None):
             % (KANGAS_PROTOCOL, KANGAS_HOST, KANGAS_BACKEND_PORT)
         )
         if debug_level == 20:  # DEBUG
-            kangas.server.start_tornado_server(
-                port=KANGAS_BACKEND_PORT,
-                debug=debug_level,
-                max_workers=parsed_args.max_workers,
-            )
-        else:
-            try:
+            if parsed_args.backend == "tornado":
                 kangas.server.start_tornado_server(
                     port=KANGAS_BACKEND_PORT,
                     debug=debug_level,
                     max_workers=parsed_args.max_workers,
                 )
+            elif parsed_args.backend == "flask":
+                kangas.server.start_flask_server(
+                    host=KANGAS_HOST,
+                    port=KANGAS_BACKEND_PORT,
+                    debug=True,
+                    max_workers=parsed_args.max_workers,
+                )
+            else:
+                raise Exception("unknown backend: %s" % parsed_args.backend)
+        else:
+            try:
+                if parsed_args.backend == "tornado":
+                    kangas.server.start_tornado_server(
+                        port=KANGAS_BACKEND_PORT,
+                        debug=debug_level,
+                        max_workers=parsed_args.max_workers,
+                    )
+                elif parsed_args.backend == "flask":
+                    kangas.server.start_flask_server(
+                        host=KANGAS_HOST,
+                        port=KANGAS_BACKEND_PORT,
+                        debug=bool(debug_level),
+                        max_workers=parsed_args.max_workers,
+                    )
+                else:
+                    raise ValueError("unknown backend: %s" % parsed_args.backend)
+            except ValueError:
+                raise
             except Exception:
                 print("Unable to start backend; perhaps already running")
                 if parsed_args.frontend != "no":
