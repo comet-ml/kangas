@@ -155,7 +155,7 @@ def post(args, endpoint):
         else None,
     }
     start_time = time.time()
-    response = requests.get(url, headers=headers, params=data)
+    response = requests.post(url, headers=headers, data=json.dumps(data))
     if args.debug:
         console.display("POST: <r>complete in %s seconds" % (time.time() - start_time))
     response.raise_for_status()
