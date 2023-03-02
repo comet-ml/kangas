@@ -24,6 +24,8 @@ export const TableDisplay = ({ query, data }) => {
 	Object.entries(row).filter(([name]) => displayColumns.includes(name))
     ));
 
+    console.log(displayRows);
+
 
     if (transposeTable) {
         const transposed = transpose([ displayColumns, ...displayRows ]);
@@ -59,7 +61,7 @@ export const TableDisplay = ({ query, data }) => {
                         Object.values(row).map( (cell, cidx) => (
                           <Suspense fallback={<Skeleton message={`suspending ${cell} - ${cidx}`} />}>
                             <Cell
-                                value={cell}
+                                value={row[columns[cidx]]}
                                 type={columnTypes[cidx]}
                                 columnName={columns[cidx]}
                                 query={query}
