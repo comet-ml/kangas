@@ -12,11 +12,8 @@
 ######################################################
 
 import inspect
-import os
 import re
-import time
 import urllib
-import urllib.parse
 
 try:
     import marko
@@ -200,31 +197,3 @@ def process_about(url, dgid, text):
         return marko.Markdown().convert(retval)
     else:
         return ""
-
-
-def get_time():
-    """
-    Get a never-decreasing time value, in milliseconds.
-    """
-    return int(time.monotonic() * 1000)
-
-
-def add_url_query(url, **query):
-    # First parse url query
-    parsed_url = urllib.parse.urlsplit(url)
-    url_query = urllib.parse.parse_qs(parsed_url.query)
-
-    # Add but not replace query variables
-    for query_variable_name, query_variable_value in query.items():
-        if query_variable_name not in url_query:
-            url_query[query_variable_name] = query_variable_value
-
-    # And regenerate the url
-    new_url_query = urllib.parse.urlencode(url_query, doseq=True)
-    new_url = parsed_url._replace(query=new_url_query)
-
-    return urllib.parse.urlunsplit(new_url)
-
-
-def get_bool_from_env(key: str) -> bool:
-    return os.environ.get(key, "0").lower() in ("1", "true", "yes")
