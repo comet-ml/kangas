@@ -24,7 +24,6 @@ from flask_caching import Cache
 
 from .._version import __version__
 from ..datatypes.utils import THUMBNAIL_SIZE
-from .json_encoder import NestedEncoder
 from .queries import (  # custom_output,
     KANGAS_ROOT,
     generate_chart_image,
@@ -51,25 +50,25 @@ from .queries import (  # custom_output,
 
 USE_AUTH = False
 KANGAS_CACHE_FOLDER = os.environ.get("KANGAS_CACHE_FOLDER", "/var/cache/kangas-server/")
-os.makedirs(KANGAS_CACHE_FOLDER, exist_ok=True)
+# os.makedirs(KANGAS_CACHE_FOLDER, exist_ok=True)
 
 SECONDS_IN_DAY = 60 * 60 * 24
 SECONDS_IN_MONTH = SECONDS_IN_DAY * 31
 
 application = Flask(__name__)
-application.json_encoder = NestedEncoder
 
 KANGAS_CACHE_DAYS = float(
     os.environ.get("KANGAS_CACHE_DAYS", "30.0")
 )  # Use 0.0 to disable
-cache = Cache(
-    application,
-    config={
-        "CACHE_TYPE": "FileSystemCache" if KANGAS_CACHE_DAYS > 0 else "null",
-        "CACHE_DIR": KANGAS_CACHE_FOLDER,
-        "CACHE_DEFAULT_TIMEOUT": int(KANGAS_CACHE_DAYS * SECONDS_IN_DAY),
-    },
-)
+if os.path.exists(KANGAS_CACHE_FOLDER):
+    cache = Cache(
+        application,
+        config={
+            "CACHE_TYPE": "FileSystemCache" if KANGAS_CACHE_DAYS > 0 else "null",
+            "CACHE_DIR": KANGAS_CACHE_FOLDER,
+            "CACHE_DEFAULT_TIMEOUT": int(KANGAS_CACHE_DAYS * SECONDS_IN_DAY),
+        },
+    )
 
 log_file = os.environ.get("KANGAS_LOG_FILE")
 if log_file:
@@ -79,6 +78,12 @@ if log_file:
     application.logger.setLevel(KANGAS_LOG_FILE_LEVEL)
 
 application.logger.info("Loading Kangas Server version %s...", __version__)
+
+
+def error(error_code):
+    response = make_response(str(error_code))
+    response.status_code = error_code
+    return response
 
 
 def auth_wrapper(function):
@@ -132,6 +137,7 @@ def _build_cors_preflight_response():
 
 def _corsify_actual_response(response):
     response.headers.add("Access-Control-Allow-Origin", "*")
+    response.headers.add("x-requested-with", "Cache-Control")
     return response
 
 
@@ -142,10 +148,6 @@ def ensure_datagrid_path(dgid):
         if os.path.exists(db_path):
             return True
 
-    if dgid is not None:
-        application.logging.error("dgid '%s' not found; ignoring" % dgid)
-
-    # self.set_status(404)
     return False
 
 
@@ -162,15 +164,15 @@ def allow_cors(response):
 
 @application.route("/datagrid/category", methods=["GET"])
 @auth_wrapper
-@cache.cached(
-    key_prefix=make_cache_key_fn(
-        "dgid",
-        "groupBy",
-        "columnName",
-        "columnValue",
-        "whereExpr",
-    )
-)
+# @cache.cached(
+#    key_prefix=make_cache_key_fn(
+#        "dgid",
+#        "groupBy",
+#        "columnName",
+#        "columnValue",
+#        "whereExpr",
+#    )
+# )
 def get_datagrid_category_handler():
     application.logger.debug("GET /datagrid/category")
 
@@ -198,19 +200,21 @@ def get_datagrid_category_handler():
             where_expr,
         )
         return result
+    else:
+        return error(404)
 
 
 @application.route("/datagrid/histogram", methods=["GET"])
 @auth_wrapper
-@cache.cached(
-    key_prefix=make_cache_key_fn(
-        "dgid",
-        "groupBy",
-        "columnName",
-        "columnValue",
-        "whereExpr",
-    )
-)
+# @cache.cached(
+#    key_prefix=make_cache_key_fn(
+#        "dgid",
+#        "groupBy",
+#        "columnName",
+#        "columnValue",
+#        "whereExpr",
+#    )
+# )
 def get_datagrid_histogram_handler():
     application.logger.debug("GET /datagrid/histogram")
 
@@ -237,6 +241,8 @@ def get_datagrid_histogram_handler():
             where_expr,
         )
         return results
+    else:
+        return error(404)
 
 
 @application.route("/datagrid/query-total")
@@ -261,6 +267,8 @@ def get_datagrid_query_total_handler():
         )
         result = {"total": total}
         return result
+    else:
+        return error(404)
 
 
 @application.route("/datagrid/query-page")
@@ -271,8 +279,8 @@ def get_datagrid_query_page_handler():
     # Required:
     dgid = request.args.get("dgid")
     # Optional:
-    offset = request.args.get("offset", 0)
-    limit = request.args.get("limit", 10)
+    offset = int(request.args.get("offset", "0"))
+    limit = int(request.args.get("limit", "10"))
     group_by = request.args.get("groupBy", None)
     sort_by = request.args.get("sortBy", None)
     sort_desc = request.args.get("sortDesc", "false") == "true"
@@ -298,6 +306,8 @@ def get_datagrid_query_page_handler():
             where_expr,
         )
         return result
+    else:
+        return error(404)
 
 
 @application.route("/datagrid/description")
@@ -332,6 +342,8 @@ def get_datagrid_description_handler():
             where_expr,
         )
         return result
+    else:
+        return error(404)
 
 
 @application.route("/datagrid/timestamp")
@@ -378,12 +390,14 @@ def get_asset_metadata_handler():
     application.logger.debug("GET /datagrid/asset-metadata")
 
     # Required:
-    asset_id = request.args.get("assetId", None)
+    asset_id = request.args.get("assetId")
     dgid = request.args.get("dgid")
 
     if ensure_datagrid_path(dgid):
         result = select_asset_metadata(dgid, asset_id)
         return result
+    else:
+        return error(404)
 
 
 @application.route("/datagrid/download", methods=["GET"])
@@ -392,20 +406,22 @@ def get_datagrid_download_handler():
     application.logger.debug("GET /datagrid/download")
 
     # Required:
-    asset_id = request.args.get("assetId", None)
+    asset_id = request.args.get("assetId")
     dgid = request.args.get("dgid")
     return_url = request.args.get("returnUrl", "false") == "true"
     thumbnail = request.args.get("thumbnail", "false") == "true"
 
-    if ensure_datagrid_path(dgid):
-        result = select_asset(dgid, asset_id, thumbnail)
-        if return_url:
-            return {"uri": base64.b64encode(result).decode("utf-8")}
-        else:
-            response = make_response(result)
-            response.headers.add("Cache-Control", "max-age=604800")
-            response.headers.add("Content-type", "image")
-            return response
+    if not ensure_datagrid_path(dgid):
+        return error(404)
+
+    result = select_asset(dgid, asset_id, thumbnail)
+    if return_url:
+        return {"uri": base64.b64encode(result).decode("utf-8")}
+    else:
+        response = make_response(result)
+        response.headers.add("Cache-Control", "max-age=604800")
+        response.headers.add("Content-type", "image")
+        return response
 
 
 @application.route("/datagrid/metadata", methods=["GET"])
@@ -414,11 +430,13 @@ def get_datagrid_metadata_handler():
     application.logger.debug("GET /datagrid/metadata")
 
     # Required:
-    dgid = request.args.get("dgid", None)
+    dgid = request.args.get("dgid")
 
     if ensure_datagrid_path(dgid):
         result = select_metadata(dgid)
         return result
+    else:
+        return error(404)
 
 
 @application.route("/datagrid/asset-group", methods=["GET"])
@@ -458,7 +476,10 @@ def get_datagrid_asset_group_handler():
         else:
             response = make_response(result)
             response.headers.add("Cache-Control", "max-age=604800")
+            response.headers.add("Content-type", "image/png")
             return response
+    else:
+        return error(404)
 
 
 @application.route("/datagrid/asset-group-metadata", methods=["GET"])
@@ -494,6 +515,8 @@ def get_datagrid_asset_group_metadata_handler():
             distinct,
         )
         return result
+    else:
+        return error(404)
 
 
 @application.route("/datagrid/asset-group-thumbnail", methods=["GET"])
@@ -549,6 +572,8 @@ def get_datagrid_asset_group_thumbnail_handler():
             response.headers.add("Cache-Control", "max-age=604800")
             response.headers.add("Content-type", "image/png")
             return response
+    else:
+        return error(404)
 
 
 @application.route("/datagrid/verify-where", methods=["GET"])
@@ -557,7 +582,7 @@ def get_datagrid_verify_where_handler():
     application.logger.debug("GET /datagrid/verify-where")
 
     # Required:
-    dgid = request.args.get("dgid", None)
+    dgid = request.args.get("dgid")
     computed_columns = request.args.get("computedColumns", None)
     where_expr = request.args.get("whereExpr", None)
     where_expr = where_expr.strip() if where_expr else None
@@ -569,6 +594,8 @@ def get_datagrid_verify_where_handler():
             where_expr,
         )
         return result
+    else:
+        return error(404)
 
 
 @application.route("/datagrid/completions", methods=["GET"])
@@ -577,11 +604,13 @@ def get_datagrid_completions_handler():
     application.logger.debug("GET /datagrid/completions")
 
     # Required:
-    dgid = request.args.get("dgid", None)
+    dgid = request.args.get("dgid")
 
     if ensure_datagrid_path(dgid):
         results = get_completions(dgid)
         return results
+    else:
+        return error(404)
 
 
 @application.route("/datagrid/chart-image", methods=["GET"])
@@ -611,12 +640,14 @@ def get_datagrid_chart_image_handler():
 def get_datagrid_about_handler():
     application.logger.debug("GET /datagrid/about")
 
-    dgid = request.args.get("dgid", None)
-    url = request.args.get("url", None)
+    dgid = request.args.get("dgid")
+    url = request.args.get("url")
 
     if ensure_datagrid_path(dgid):
         result = get_about(url, dgid)
         return result
+    else:
+        return error(404)
 
 
 def run(host, port, debug, processes):
