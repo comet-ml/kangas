@@ -11,6 +11,8 @@
 #    All rights reserved                             #
 ######################################################
 
+import os
+
 from .queries import KANGAS_ROOT  # noqa
 
 
@@ -58,13 +60,16 @@ def start_tornado_server(port, debug=None, max_workers=None):
 def start_flask_server(host, port, debug=None, max_workers=None):
     from .flask_server import run
 
+    if max_workers is None:
+        max_workers = min(32, os.cpu_count() + 4)
+
     print("Kangas flask backend server starting with %s max workers" % max_workers)
     try:
         run(
             host=host,
             port=port,
-            debug=bool(debug),
-            processes=max_workers if max_workers is not None else 1,
+            debug=debug,
+            processes=max_workers,
         )
     except KeyboardInterrupt:
         print()

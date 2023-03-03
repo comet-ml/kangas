@@ -77,8 +77,6 @@ if log_file:
     application.logger.addHandler(file_handler)
     application.logger.setLevel(KANGAS_LOG_FILE_LEVEL)
 
-application.logger.info("Loading Kangas Server version %s...", __version__)
-
 
 def error(error_code):
     response = make_response(str(error_code))
@@ -651,6 +649,19 @@ def get_datagrid_about_handler():
 
 
 def run(host, port, debug, processes):
+    if debug:
+        level = {
+            "INFO": logging.INFO,
+            "DEBUG": logging.DEBUG,
+            "WARNING": logging.WARNING,
+        }[debug.upper()]
+    else:
+        level = 0
+    application.logger.setLevel(level)
     application.run(
-        host=host, port=port, debug=debug, threaded=False, processes=processes
+        host=host,
+        port=port,
+        debug=(level >= logging.INFO),
+        threaded=False,
+        processes=processes,
     )

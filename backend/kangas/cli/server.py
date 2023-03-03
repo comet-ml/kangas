@@ -155,7 +155,7 @@ def server(parsed_args, remaining=None):
         nodejs = None
 
     if parsed_args.debug_level is not None:
-        debug_level = parsed_args.debug_level
+        debug_level = parsed_args.debug_level.upper()
     elif parsed_args.debug is not None:
         debug_level = "INFO"
     else:
@@ -307,7 +307,8 @@ def server(parsed_args, remaining=None):
             "Kangas backend is now running on %s://%s:%s/..."
             % (KANGAS_PROTOCOL, KANGAS_HOST, KANGAS_BACKEND_PORT)
         )
-        if debug_level == 20:  # DEBUG
+        if debug_level == "DEBUG":
+            # No try
             if parsed_args.backend == "tornado":
                 kangas.server.start_tornado_server(
                     port=KANGAS_BACKEND_PORT,
@@ -335,7 +336,7 @@ def server(parsed_args, remaining=None):
                     kangas.server.start_flask_server(
                         host=KANGAS_HOST,
                         port=KANGAS_BACKEND_PORT,
-                        debug=bool(debug_level),
+                        debug=debug_level,
                         max_workers=parsed_args.max_workers,
                     )
                 else:
