@@ -51,6 +51,7 @@ setup_args = dict(
         "numpy",
         "tornado",
         "flask",
+        "flask-caching",
         "matplotlib",
         "marko",
         "Pillow",
