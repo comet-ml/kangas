@@ -645,7 +645,7 @@ def get_datagrid_about_handler():
 
     if ensure_datagrid_path(dgid):
         result = get_about(url, dgid)
-        return result
+        return {"about": result}
     else:
         return error(404)
 
