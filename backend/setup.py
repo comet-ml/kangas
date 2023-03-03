@@ -50,6 +50,7 @@ setup_args = dict(
         "astor",
         "numpy",
         "tornado",
+        "flask",
         "matplotlib",
         "marko",
         "Pillow",

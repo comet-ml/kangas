@@ -11,15 +11,6 @@
 #    All rights reserved                             #
 ######################################################
 
-import asyncio
-from concurrent.futures import ThreadPoolExecutor
-
-import tornado
-import tornado.log
-import tornado.options
-import tornado.web
-
-from .handlers import datagrid_handlers
 from .queries import KANGAS_ROOT  # noqa
 
 
@@ -29,6 +20,15 @@ def start_tornado_server(port, debug=None, max_workers=None):
         port: (int) the port to start the frontend server
         debug: (str) None means suppress output from servers
     """
+    import asyncio
+    from concurrent.futures import ThreadPoolExecutor
+
+    import tornado
+    import tornado.log
+    import tornado.options
+    import tornado.web
+
+    from .tornado_server import datagrid_handlers
 
     async def main():
         if debug is not None:
@@ -38,7 +38,8 @@ def start_tornado_server(port, debug=None, max_workers=None):
         # set max_workers
         executor = ThreadPoolExecutor(max_workers=max_workers)
         print(
-            "Kangas backend server starting with %s max workers" % executor._max_workers
+            "Kangas tornado backend server starting with %s max workers"
+            % executor._max_workers
         )
         for handler in datagrid_handlers:
             handler[1].executor = executor
@@ -51,4 +52,20 @@ def start_tornado_server(port, debug=None, max_workers=None):
         asyncio.run(main())
     except KeyboardInterrupt:
         print()
-        print("Exiting datagrid server")
+        print("Exiting Kangas tornado backend server")
+
+
+def start_flask_server(host, port, debug=None, max_workers=None):
+    from .flask_server import run
+
+    print("Kangas flask backend server starting with %s max workers" % max_workers)
+    try:
+        run(
+            host=host,
+            port=port,
+            debug=bool(debug),
+            processes=max_workers if max_workers is not None else 1,
+        )
+    except KeyboardInterrupt:
+        print()
+        print("Exiting Kangas flask backend server")

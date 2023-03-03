@@ -782,7 +782,7 @@ class AssetMetadataHandler(BaseHandler):
 
         if self.ensure_datagrid_path(dgid):
             result = select_asset_metadata(dgid, asset_id)
-            self.write_json(result)
+            self.write_json(json.loads(result))
 
     @run_on_executor
     @auth_wrapper
@@ -793,7 +793,7 @@ class AssetMetadataHandler(BaseHandler):
 
         if self.ensure_datagrid_path(dgid):
             result = select_asset_metadata(dgid, asset_id)
-            self.write_json(result)
+            self.write_json(json.loads(result))
 
 
 class DownloadHandler(BaseHandler):
