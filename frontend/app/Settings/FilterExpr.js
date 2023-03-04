@@ -17,7 +17,7 @@ const FilterExpr = ({ query, completions }) => {
     const fetchValidity = useCallback((filter) => {
         setStatus('LOADING');
 
-        fetch(`/api/filter?dgid=${params?.datagrid}&where=${filter}`)
+        fetch(`/api/filter?dgid=${params?.datagrid}&timestamp=${query?.timestamp}&where=${filter}`, { next: { revalidate: 10000 }})
         .then(res => res.json())
         .then(data => {
             if (data?.valid) {
@@ -34,7 +34,7 @@ const FilterExpr = ({ query, completions }) => {
             try {
                 clearTimeout(timeout.current)
             } catch {
-                
+
             } finally {
                 timeout.current = setTimeout(() => fetchValidity(filter), 150)
             }

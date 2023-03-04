@@ -7,7 +7,7 @@ const handler = async (req, res) => {
     const result = await fetch(`${config.apiUrl}${endpoint}?${queryString}`, { next: { revalidate: 100000 } });
     const image = await result.body;
     const passthrough = new Stream.PassThrough();
-    stream.pipeline(image, passthrough, (err) => console.error(err));
+    stream.pipeline(image, passthrough, (err) => err ? console.error(err) : null);
     res.setHeader('Cache-Control', 'max-age=604800')
     passthrough.pipe(res);
 }

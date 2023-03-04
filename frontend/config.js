@@ -7,7 +7,8 @@ const localConfig = {
     locale: 'en-US',
     hideSelector: env.KANGAS_HIDE_SELECTOR === '1',
     cache: true,
-    prefetch: false
+    prefetch: false,
+    debug: false
 };
 
 export default localConfig;

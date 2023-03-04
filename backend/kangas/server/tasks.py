@@ -1,6 +1,21 @@
-import os
+# -*- coding: utf-8 -*-
+######################################################
+#     _____                  _____      _     _      #
+#    (____ \       _        |  ___)    (_)   | |     #
+#     _   \ \ ____| |_  ____| | ___ ___ _  _ | |     #
+#    | |  | )/ _  |  _)/ _  | |(_  / __) |/ || |     #
+#    | |__/ ( ( | | | ( ( | | |__| | | | ( (_| |     #
+#    |_____/ \_||_|___)\_||_|_____/|_| |_|\____|     #
+#                                                    #
+#    Copyright (c) 2022 Kangas Development Team      #
+#    All rights reserved                             #
+######################################################
+
 import json
+import os
+
 from celery import Celery
+
 from .queries import (
     generate_chart_image,
     get_dg_path,
@@ -10,8 +25,9 @@ from .queries import (
     select_asset_group_thumbnail,
     select_asset_metadata,
     select_category,
-    select_histogram
+    select_histogram,
 )
+
 
 def ensure_datagrid_path(dgid):
     if dgid is not None:
@@ -21,7 +37,9 @@ def ensure_datagrid_path(dgid):
 
     return False
 
-app = Celery('tasks', broker='pyamqp://guest@localhost//')
+
+app = Celery("tasks", broker="pyamqp://guest@localhost//")
+
 
 @app.task(bind=True)
 def generate_chart_image_task(self, chart_type, data, width, height):
@@ -38,7 +56,7 @@ def generate_chart_image_task(self, chart_type, data, width, height):
 
 
 @app.task(bind=True)
-def asset_metadata(self, dgid, asset_id):
+def asset_metadata_task(self, dgid, asset_id):
     try:
         result = select_asset_metadata(dgid, asset_id)
         return json.loads(result)
@@ -46,14 +64,16 @@ def asset_metadata(self, dgid, asset_id):
         print(e)
         raise self.retry(exc=e, countdown=1)
 
+
 @app.task(bind=True)
-def download(self, dgid, asset_id, thumbnail):
+def download_task(self, dgid, asset_id, thumbnail):
     try:
         result = select_asset(dgid, asset_id, thumbnail)
         return result
     except Exception as e:
         print(e)
         raise self.retry(exc=e, countdown=1)
+
 
 @app.task(bind=True)
 def select_asset_group_task(
@@ -87,6 +107,7 @@ def select_asset_group_task(
         print(e)
         raise self.retry(exc=e, countdown=1)
 
+
 @app.task(bind=True)
 def select_asset_group_thumbnail_task(
     self,
@@ -102,7 +123,7 @@ def select_asset_group_thumbnail_task(
     background_color,
     image_size,
     border_width,
-    distinct
+    distinct,
 ):
     try:
         result = select_asset_group_thumbnail(
@@ -118,7 +139,7 @@ def select_asset_group_thumbnail_task(
             background_color,
             image_size,
             border_width,
-            distinct
+            distinct,
         )
         return result
     except Exception as e:
@@ -159,6 +180,7 @@ def select_asset_group_metadata_task(
         print(e)
         raise self.retry(exc=e, countdown=1)
 
+
 @app.task(bind=True)
 def select_histogram_task(
     self,
@@ -169,7 +191,7 @@ def select_histogram_task(
     column_value,
     where_description,
     computed_columns,
-    where_expr
+    where_expr,
 ):
     try:
         result = select_histogram(
@@ -180,13 +202,14 @@ def select_histogram_task(
             column_value,
             where_description,
             computed_columns,
-            where_expr
+            where_expr,
         )
         return result
 
     except Exception as e:
         print(e)
         raise self.retry(exc=e, countdown=1)
+
 
 @app.task(bind=True)
 def select_category_task(
@@ -198,7 +221,7 @@ def select_category_task(
     column_value,
     where_description,
     computed_columns,
-    where_expr
+    where_expr,
 ):
     try:
         result = select_category(
@@ -209,10 +232,10 @@ def select_category_task(
             column_value,
             where_description,
             computed_columns,
-            where_expr
+            where_expr,
         )
         return result
-        
+
     except Exception as e:
         print(e)
         raise self.retry(exc=e, countdown=1)

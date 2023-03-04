@@ -21,40 +21,31 @@ import sys
 
 from flask import Flask, jsonify, make_response, request
 from flask_caching import Cache
-from celery import Celery
 
 from .._version import __version__
 from ..datatypes.utils import THUMBNAIL_SIZE
 from .queries import (  # custom_output,
     KANGAS_ROOT,
-    generate_chart_image,
     get_about,
     get_completions,
     get_datagrid_timestamp,
     get_dg_path,
     list_datagrids,
-    select_asset,
-    select_asset_group,
-    select_asset_group_metadata,
-    select_asset_group_thumbnail,
-    select_asset_metadata,
-    select_category,
     select_description,
-    select_histogram,
     select_metadata,
     select_query_count,
     select_query_page,
     verify_where,
 )
 from .tasks import (
+    asset_metadata_task,
+    download_task,
     generate_chart_image_task,
-    asset_metadata,
-    download,
-    select_asset_group_task,
     select_asset_group_metadata_task,
+    select_asset_group_task,
     select_asset_group_thumbnail_task,
     select_category_task,
-    select_histogram_task
+    select_histogram_task,
 )
 
 # from .utils import get_bool_from_env
@@ -199,16 +190,18 @@ def get_datagrid_category_handler():
     where_expr = where_expr.strip() if where_expr else None
 
     if ensure_datagrid_path(dgid):
-        result = select_category_task.apply(args=(
-            dgid,
-            group_by,
-            where,
-            column_name,
-            column_value,
-            where_description,
-            computed_columns,
-            where_expr,
-        )).get()
+        result = select_category_task.apply(
+            args=(
+                dgid,
+                group_by,
+                where,
+                column_name,
+                column_value,
+                where_description,
+                computed_columns,
+                where_expr,
+            )
+        ).get()
         return result
     else:
         return error(404)
@@ -240,16 +233,18 @@ def get_datagrid_histogram_handler():
     computed_columns = request.args.get("computedColumns", None)
 
     if ensure_datagrid_path(dgid):
-        results = select_histogram_task.apply(args=(
-            dgid,
-            group_by,
-            where,
-            column_name,
-            column_value,
-            where_description,
-            computed_columns,
-            where_expr,
-        )).get()
+        results = select_histogram_task.apply(
+            args=(
+                dgid,
+                group_by,
+                where,
+                column_name,
+                column_value,
+                where_description,
+                computed_columns,
+                where_expr,
+            )
+        ).get()
         return results
     else:
         return error(404)
@@ -333,7 +328,7 @@ def get_datagrid_description_handler():
     select = request.args.get("select", None)
     if select:
         select = select.split(",")
-    
+
     computed_columns = request.args.get("computedColumns", None)
     column_name = request.args.get("columnName", None)
     column_value = get_column_value(request.args.get("columnValue", None))
@@ -406,7 +401,7 @@ def get_asset_metadata_handler():
     dgid = request.args.get("dgid")
 
     if ensure_datagrid_path(dgid):
-        metadata = asset_metadata.apply(args=(dgid, asset_id))
+        metadata = asset_metadata_task.apply(args=(dgid, asset_id))
 
         return metadata.get()
     else:
@@ -427,7 +422,7 @@ def get_datagrid_download_handler():
     if not ensure_datagrid_path(dgid):
         return error(404)
 
-    result = download.apply(args=(dgid, asset_id, thumbnail)).get()
+    result = download_task.apply(args=(dgid, asset_id, thumbnail)).get()
     if return_url:
         return {"uri": base64.b64encode(result).decode("utf-8")}
     else:
@@ -472,17 +467,19 @@ def get_datagrid_asset_group_handler():
     return_url = request.args.get("returnUrl", "false") == "true"
 
     if ensure_datagrid_path(dgid):
-        result = select_asset_group_task.apply(args=(
-            dgid,
-            group_by,
-            where,
-            column_name,
-            column_value,
-            column_offset,
-            column_limit,
-            computed_columns,
-            where_expr
-        )).get()
+        result = select_asset_group_task.apply(
+            args=(
+                dgid,
+                group_by,
+                where,
+                column_name,
+                column_value,
+                column_offset,
+                column_limit,
+                computed_columns,
+                where_expr,
+            )
+        ).get()
 
         if return_url:
             return {"uri": base64.b64encode(result).decode("utf-8")}
@@ -515,18 +512,20 @@ def get_datagrid_asset_group_metadata_handler():
     distinct = request.args.get("distinct", "true") == "true"
 
     if ensure_datagrid_path(dgid):
-        result = select_asset_group_metadata_task.apply(args=(
-            dgid,
-            group_by,
-            where,
-            column_name,
-            column_value,
-            column_offset,
-            column_limit,
-            computed_columns,
-            where_expr,
-            distinct,
-        )).get()
+        result = select_asset_group_metadata_task.apply(
+            args=(
+                dgid,
+                group_by,
+                where,
+                column_name,
+                column_value,
+                column_offset,
+                column_limit,
+                computed_columns,
+                where_expr,
+                distinct,
+            )
+        ).get()
         return result
     else:
         return error(404)
@@ -564,23 +563,23 @@ def get_datagrid_asset_group_thumbnail_handler():
     distinct = True
 
     if ensure_datagrid_path(dgid):
-        result = select_asset_group_thumbnail_task.apply(args=(
-            dgid,
-            group_by,
-            where,
-            column_name,
-            column_value,
-            column_offset,
-            computed_columns,
-            where_expr,
-            gallery_size,
-            background_color,
-            image_size,
-            border_width,
-            distinct,
-        )).get()
-
-        print(result)
+        result = select_asset_group_thumbnail_task.apply(
+            args=(
+                dgid,
+                group_by,
+                where,
+                column_name,
+                column_value,
+                column_offset,
+                computed_columns,
+                where_expr,
+                gallery_size,
+                background_color,
+                image_size,
+                border_width,
+                distinct,
+            )
+        ).get()
 
         if return_url:
             return {"uri": base64.b64encode(result).decode("utf-8")}
@@ -641,7 +640,9 @@ def get_datagrid_chart_image_handler():
     height = int(request.args.get("height", "116"))
     width = int(request.args.get("width", "0"))
 
-    image = generate_chart_image_task.apply(args=(chart_type, data, width, height)).get()
+    image = generate_chart_image_task.apply(
+        args=(chart_type, data, width, height)
+    ).get()
 
     response = make_response(image)
     response.headers.add("Cache-Control", "max-age=604800")

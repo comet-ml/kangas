@@ -33,7 +33,7 @@ const PlainImageCell = async ({ value, query, expanded=false, style }) => {
 };
 
 const ExpandedWrapper = async ({ value, query }) => {
-    const metadata = await fetchAssetMetadata({ assetId: value?.assetId, dgid: query?.dgid });
+    const metadata = await fetchAssetMetadata({ assetId: value?.assetId, dgid: query?.dgid, timestamp: query?.timestamp });
     let labels = [];
 
     if (metadata) {

@@ -20,8 +20,8 @@ const cx = classNames.bind(styles);
 const SettingsBar = async ({ query }) => {
     const status = await fetchStatus();
     const options = await fetchDatagrids();
-    const completions = await fetchCompletions(query?.dgid);
-    const firstRow = await fetchDataGrid( { ...query, select: null, limit: 1 } );
+    const completions = await fetchCompletions(query?.dgid, query?.timestamp);
+    const firstRow = await fetchDataGrid( { ...query, select: null, limit: 1, offset: 0} );
 
     return (
         <div className={cx('settings-bar')}>

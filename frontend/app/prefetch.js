@@ -12,7 +12,6 @@ const Prefetch = async ({ datagrids, query }) => {
             try {
                 const temp = await fetchDataGrid({ dgid: dgid.value, timestamp: dgid.timestamp, limit });
             } catch (error) {
-                console.log('here it is')
                 console.log(error);
             }
         }
