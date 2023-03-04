@@ -19,6 +19,7 @@ from celery import Celery
 from .queries import (
     generate_chart_image,
     get_dg_path,
+    list_datagrids,
     select_asset,
     select_asset_group,
     select_asset_group_metadata,
@@ -70,6 +71,15 @@ def download_task(self, dgid, asset_id, thumbnail):
     try:
         result = select_asset(dgid, asset_id, thumbnail)
         return result
+    except Exception as e:
+        print(e)
+        raise self.retry(exc=e, countdown=1)
+
+
+@app.task(bind=True)
+def list_datagrids_task(self):
+    try:
+        return list_datagrids()
     except Exception as e:
         print(e)
         raise self.retry(exc=e, countdown=1)

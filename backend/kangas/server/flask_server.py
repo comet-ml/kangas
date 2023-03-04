@@ -30,7 +30,6 @@ from .queries import (  # custom_output,
     get_completions,
     get_datagrid_timestamp,
     get_dg_path,
-    list_datagrids,
     select_description,
     select_metadata,
     select_query_count,
@@ -41,6 +40,7 @@ from .tasks import (
     asset_metadata_task,
     download_task,
     generate_chart_image_task,
+    list_datagrids_task,
     select_asset_group_metadata_task,
     select_asset_group_task,
     select_asset_group_thumbnail_task,
@@ -369,7 +369,7 @@ def get_datagrid_timestamp_handler():
 def get_datagrid_list_handler():
     application.logger.debug("GET /datagrid/list")
 
-    result = list_datagrids()
+    result = list_datagrids_task.apply().get()
     return jsonify(result)
 
 
@@ -671,14 +671,35 @@ def run(host, port, debug, processes):
             "INFO": logging.INFO,
             "DEBUG": logging.DEBUG,
             "WARNING": logging.WARNING,
+            "CRITICAL": logging.CRITICAL,
+            "ERROR": logging.ERROR,
         }[debug.upper()]
     else:
-        level = 0
-    application.logger.setLevel(level)
+        level = logging.WARNING
+
+    logger = logging.getLogger("__name__")
+
+    logging.basicConfig(
+        level=level,
+        filename="HISTORYlistener.log",
+        format="%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
+    # debugHandler = logging.StreamHandler(sys.stdout)
+    # debugHandler.setLevel(level)
+    # format = logging.Formatter("%(module)s:%(asctime)s, %(message)s", "%m/%d/%Y %H:%M:%S")
+    # debugHandler.setFormatter(format)
+    # logger.addHandler(debugHandler)
+
+    application.logger.propagate = False
+    logger.propagate = False
+
+    # application.logger.setLevel(level)
     application.run(
         host=host,
         port=port,
-        debug=(level >= logging.INFO),
+        debug=(level > logging.INFO),
         threaded=False,
         processes=processes,
     )

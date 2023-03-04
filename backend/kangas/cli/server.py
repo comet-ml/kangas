@@ -21,8 +21,9 @@ import urllib
 import webbrowser
 
 import kangas.server
-from kangas import get_localhost, terminate
 from kangas.datatypes.utils import download_filename
+
+from kangas import get_localhost, terminate
 
 ADDITIONAL_ARGS = False
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -299,7 +300,7 @@ def server(parsed_args, remaining=None):
             url = "%s?%s" % (host, urllib.parse.urlencode(query_vars))
         else:
             url = host
-        time.sleep(1)
+        time.sleep(3)
         webbrowser.open(url, new=new, autoraise=True)
 
     if parsed_args.backend != "no":
@@ -319,7 +320,7 @@ def server(parsed_args, remaining=None):
                 kangas.server.start_flask_server(
                     host=KANGAS_HOST,
                     port=KANGAS_BACKEND_PORT,
-                    debug=True,
+                    debug=debug_level,
                     max_workers=parsed_args.max_workers,
                 )
             else:
