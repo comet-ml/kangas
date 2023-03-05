@@ -1,12 +1,12 @@
 import config from '../config';
 
 const fetchIt = async ({
-    url, 
+    url,
     query = {},
-    method='GET', 
-    cache=config.cache, 
+    method='GET',
+    cache=config.cache,
     json=true,
-    returnUrl=false, 
+    returnUrl=false,
     ...args
 }) => {
     try {
@@ -50,12 +50,8 @@ const fetchIt = async ({
             return res;
         }
     } catch (error) {
-        return {}
-        /*
-        if (error.toString().includes('TypeError')) {
-            await fetchIt({url, query, method, cache, json, returnUrl, ...args})
-        }
-        */
+        console.log("fetchIt: server not ready");
+	return {};
     }
 
 };

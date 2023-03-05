@@ -49,6 +49,7 @@ setup_args = dict(
     install_requires=[
         "astor",
         "celery",
+        "click",
         "numpy",
         "tornado",
         "flask",

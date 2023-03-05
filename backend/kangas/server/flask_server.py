@@ -16,10 +16,12 @@ import json
 import logging
 import os
 import platform
+import re
 import subprocess
 import sys
 
 from flask import Flask, jsonify, make_response, request
+from flask.logging import default_handler
 from flask_caching import Cache
 
 from .._version import __version__
@@ -58,6 +60,7 @@ SECONDS_IN_DAY = 60 * 60 * 24
 SECONDS_IN_MONTH = SECONDS_IN_DAY * 31
 
 application = Flask(__name__)
+application.logger.removeHandler(default_handler)
 
 KANGAS_CACHE_DAYS = float(
     os.environ.get("KANGAS_CACHE_DAYS", "30.0")
@@ -143,7 +146,6 @@ def _corsify_actual_response(response):
 
 
 def ensure_datagrid_path(dgid):
-    application.logger.debug("DataGrid dgid: %s", dgid)
     if dgid is not None:
         db_path = get_dg_path(dgid)
         if os.path.exists(db_path):
@@ -175,8 +177,6 @@ def allow_cors(response):
 #    )
 # )
 def get_datagrid_category_handler():
-    application.logger.debug("GET /datagrid/category")
-
     # Required:
     dgid = request.args.get("dgid")
     # Optional:
@@ -219,8 +219,6 @@ def get_datagrid_category_handler():
 #    )
 # )
 def get_datagrid_histogram_handler():
-    application.logger.debug("GET /datagrid/histogram")
-
     # Required:
     dgid = request.args.get("dgid")
     # Optional:
@@ -253,8 +251,6 @@ def get_datagrid_histogram_handler():
 @application.route("/datagrid/query-total")
 @auth_wrapper
 def get_datagrid_query_total_handler():
-    application.logger.debug("GET /datagrid/query-total")
-
     # Required:
     dgid = request.args.get("dgid")
     # Optional:
@@ -279,8 +275,6 @@ def get_datagrid_query_total_handler():
 @application.route("/datagrid/query-page")
 @auth_wrapper
 def get_datagrid_query_page_handler():
-    application.logger.debug("GET /datagrid/query-page")
-
     # Required:
     dgid = request.args.get("dgid")
     # Optional:
@@ -318,8 +312,6 @@ def get_datagrid_query_page_handler():
 @application.route("/datagrid/description")
 @auth_wrapper
 def get_datagrid_description_handler():
-    application.logger.debug("GET /datagrid/description")
-
     # Required:
     dgid = request.args.get("dgid")
 
@@ -356,19 +348,17 @@ def get_datagrid_description_handler():
 @application.route("/datagrid/timestamp")
 @auth_wrapper
 def get_datagrid_timestamp_handler():
-    application.logger.debug("GET /datagrid/timestamp")
-
     dgid = request.args.get("dgid")
     if dgid:
         result = get_datagrid_timestamp(dgid)
         return result
+    else:
+        return error(404)
 
 
 @application.route("/datagrid/list", methods=["GET"])
 @auth_wrapper
 def get_datagrid_list_handler():
-    application.logger.debug("GET /datagrid/list")
-
     result = list_datagrids_task.apply().get()
     return jsonify(result)
 
@@ -376,8 +366,6 @@ def get_datagrid_list_handler():
 @application.route("/datagrid/status", methods=["GET"])
 @auth_wrapper
 def get_datagrid_status_handler():
-    application.logger.debug("GET /datagrid/status")
-
     result = {
         "Kangas version": __version__,
         "Kangas license": "Apache Version 2.0",
@@ -394,8 +382,6 @@ def get_datagrid_status_handler():
 @application.route("/datagrid/asset-metadata", methods=["GET"])
 @auth_wrapper
 def get_asset_metadata_handler():
-    application.logger.debug("GET /datagrid/asset-metadata")
-
     # Required:
     asset_id = request.args.get("assetId")
     dgid = request.args.get("dgid")
@@ -411,8 +397,6 @@ def get_asset_metadata_handler():
 @application.route("/datagrid/download", methods=["GET"])
 @auth_wrapper
 def get_datagrid_download_handler():
-    application.logger.debug("GET /datagrid/download")
-
     # Required:
     asset_id = request.args.get("assetId")
     dgid = request.args.get("dgid")
@@ -435,8 +419,6 @@ def get_datagrid_download_handler():
 @application.route("/datagrid/metadata", methods=["GET"])
 @auth_wrapper
 def get_datagrid_metadata_handler():
-    application.logger.debug("GET /datagrid/metadata")
-
     # Required:
     dgid = request.args.get("dgid")
 
@@ -450,8 +432,6 @@ def get_datagrid_metadata_handler():
 @application.route("/datagrid/asset-group", methods=["GET"])
 @auth_wrapper
 def get_datagrid_asset_group_handler():
-    application.logger.debug("GET /datagrid/asset-group")
-
     # Required:
     dgid = request.args.get("dgid")
     # Optional:
@@ -495,8 +475,6 @@ def get_datagrid_asset_group_handler():
 @application.route("/datagrid/asset-group-metadata", methods=["GET"])
 @auth_wrapper
 def get_datagrid_asset_group_metadata_handler():
-    application.logger.debug("GET /datagrid/asset-group-metadata")
-
     # Required:
     dgid = request.args.get("dgid")
     # Optional:
@@ -534,8 +512,6 @@ def get_datagrid_asset_group_metadata_handler():
 @application.route("/datagrid/asset-group-thumbnail", methods=["GET"])
 @auth_wrapper
 def get_datagrid_asset_group_thumbnail_handler():
-    application.logger.debug("GET /datagrid/asset-group-metadata")
-
     # Required:
     dgid = request.args.get("dgid")
     # Optional:
@@ -595,8 +571,6 @@ def get_datagrid_asset_group_thumbnail_handler():
 @application.route("/datagrid/verify-where", methods=["GET"])
 @auth_wrapper
 def get_datagrid_verify_where_handler():
-    application.logger.debug("GET /datagrid/verify-where")
-
     # Required:
     dgid = request.args.get("dgid")
     computed_columns = request.args.get("computedColumns", None)
@@ -617,8 +591,6 @@ def get_datagrid_verify_where_handler():
 @application.route("/datagrid/completions", methods=["GET"])
 @auth_wrapper
 def get_datagrid_completions_handler():
-    application.logger.debug("GET /datagrid/completions")
-
     # Required:
     dgid = request.args.get("dgid")
 
@@ -632,8 +604,6 @@ def get_datagrid_completions_handler():
 @application.route("/datagrid/chart-image", methods=["GET"])
 @auth_wrapper
 def get_datagrid_chart_image_handler():
-    application.logger.debug("GET /datagrid/chart-image")
-
     # Required:
     data = json.loads(request.args.get("data", "{}"))
     chart_type = request.args.get("chartType", None)
@@ -653,8 +623,6 @@ def get_datagrid_chart_image_handler():
 @application.route("/datagrid/about", methods=["GET"])
 @auth_wrapper
 def get_datagrid_about_handler():
-    application.logger.debug("GET /datagrid/about")
-
     dgid = request.args.get("dgid")
     url = request.args.get("url")
 
@@ -665,41 +633,46 @@ def get_datagrid_about_handler():
         return error(404)
 
 
-def run(host, port, debug, processes):
-    if debug:
-        level = {
-            "INFO": logging.INFO,
-            "DEBUG": logging.DEBUG,
-            "WARNING": logging.WARNING,
-            "CRITICAL": logging.CRITICAL,
-            "ERROR": logging.ERROR,
-        }[debug.upper()]
-    else:
-        level = logging.WARNING
+def run(host, port, debug_level, processes):
+    if debug_level is None:
+        debug_level = "CRITICAL"
 
-    logger = logging.getLogger("__name__")
+    # Default flask logger has already been removed above
 
-    logging.basicConfig(
-        level=level,
-        filename="HISTORYlistener.log",
-        format="%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
+    # Turn off werkzeug logger:
+    logger = logging.getLogger("werkzeug")
+    logger.setLevel(debug_level)
 
-    # debugHandler = logging.StreamHandler(sys.stdout)
-    # debugHandler.setLevel(level)
-    # format = logging.Formatter("%(module)s:%(asctime)s, %(message)s", "%m/%d/%Y %H:%M:%S")
-    # debugHandler.setFormatter(format)
-    # logger.addHandler(debugHandler)
+    class Colorize:
+        P_REQUEST_LOG = re.compile(r'^(.*?) - - \[(.*?)\] "(.*?)" (.*?) (.*?)$')
 
-    application.logger.propagate = False
+        def filter(self, record):
+            # record.args: ('GET /datagrid/list HTTP/1.1', '200', '-')
+            match = self.P_REQUEST_LOG.match(record.msg)
+            if match:
+                # ('127.0.0.1', '05/Mar/2023 11:44:48', '%s', '%s', '%s')
+                host, date, f1, f2, f3 = match.groups()
+                print(host, date, record.args)
+                # record.msg = ('%s - - [%s] "%%s" %%s %%s - OK!' % (host, date)) % (1, 2, 3)
+                # record.args = []
+            return record
+
+    # logger.addFilter(Colorize())
     logger.propagate = False
 
-    # application.logger.setLevel(level)
+    # We could also add our own logger for other (INFO) logs:
+
+    # handler = logging.StreamHandler(sys.stdout)
+    # handler.setFormatter(logging.Formatter(
+    #    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    ## handler.addFilter(Colorize())
+    # application.logger.addHandler(handler)
+    # application.logger.setLevel(debug_level)
+
     application.run(
         host=host,
         port=port,
-        debug=(level > logging.INFO),
+        debug=False,
         threaded=False,
         processes=processes,
     )

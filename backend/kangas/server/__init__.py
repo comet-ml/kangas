@@ -16,11 +16,11 @@ import os
 from .queries import KANGAS_ROOT  # noqa
 
 
-def start_tornado_server(port, debug=None, max_workers=None):
+def start_tornado_server(port, debug_level=None, max_workers=None):
     """
     Args:
         port: (int) the port to start the frontend server
-        debug: (str) None means suppress output from servers
+        debug_level: (str) None means suppress output from servers
     """
     import asyncio
     from concurrent.futures import ThreadPoolExecutor
@@ -33,8 +33,8 @@ def start_tornado_server(port, debug=None, max_workers=None):
     from .tornado_server import datagrid_handlers
 
     async def main():
-        if debug is not None:
-            tornado.options.options["logging"] = debug
+        if debug_level is not None:
+            tornado.options.options["logging"] = debug_level
             tornado.log.enable_pretty_logging()
 
         # set max_workers
@@ -57,7 +57,7 @@ def start_tornado_server(port, debug=None, max_workers=None):
         print("Exiting Kangas tornado backend server")
 
 
-def start_flask_server(host, port, debug=None, max_workers=None):
+def start_flask_server(host, port, debug_level=None, max_workers=None):
     from .flask_server import run
 
     if max_workers is None:
@@ -68,7 +68,7 @@ def start_flask_server(host, port, debug=None, max_workers=None):
         run(
             host=host,
             port=port,
-            debug=debug,
+            debug_level=debug_level,
             processes=max_workers,
         )
     except KeyboardInterrupt:

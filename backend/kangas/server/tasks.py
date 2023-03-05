@@ -39,7 +39,15 @@ def ensure_datagrid_path(dgid):
     return False
 
 
-app = Celery("tasks", broker="pyamqp://guest@localhost//")
+app = Celery(
+    "tasks",
+    broker="pyamqp://guest@localhost//",
+)
+
+
+def get_retry_kwargs(e):
+    print(e)
+    return {"retry_backoff": True, "max_retries": 5, "countdown": 5}
 
 
 @app.task(bind=True)
@@ -52,8 +60,8 @@ def generate_chart_image_task(self, chart_type, data, width, height):
 
         return image
     except Exception as e:
-        print(e)
-        raise self.retry(exc=e, countdown=1)
+        kwargs = get_retry_kwargs(e)
+        raise self.retry(exc=e, **kwargs)
 
 
 @app.task(bind=True)
@@ -62,8 +70,8 @@ def asset_metadata_task(self, dgid, asset_id):
         result = select_asset_metadata(dgid, asset_id)
         return json.loads(result)
     except Exception as e:
-        print(e)
-        raise self.retry(exc=e, countdown=1)
+        kwargs = get_retry_kwargs(e)
+        raise self.retry(exc=e, **kwargs)
 
 
 @app.task(bind=True)
@@ -72,8 +80,8 @@ def download_task(self, dgid, asset_id, thumbnail):
         result = select_asset(dgid, asset_id, thumbnail)
         return result
     except Exception as e:
-        print(e)
-        raise self.retry(exc=e, countdown=1)
+        kwargs = get_retry_kwargs(e)
+        raise self.retry(exc=e, **kwargs)
 
 
 @app.task(bind=True)
@@ -81,8 +89,8 @@ def list_datagrids_task(self):
     try:
         return list_datagrids()
     except Exception as e:
-        print(e)
-        raise self.retry(exc=e, countdown=1)
+        kwargs = get_retry_kwargs(e)
+        raise self.retry(exc=e, **kwargs)
 
 
 @app.task(bind=True)
@@ -114,8 +122,8 @@ def select_asset_group_task(
         )
         return result
     except Exception as e:
-        print(e)
-        raise self.retry(exc=e, countdown=1)
+        kwargs = get_retry_kwargs(e)
+        raise self.retry(exc=e, **kwargs)
 
 
 @app.task(bind=True)
@@ -153,8 +161,8 @@ def select_asset_group_thumbnail_task(
         )
         return result
     except Exception as e:
-        print(e)
-        raise self.retry(exc=e, countdown=1)
+        kwargs = get_retry_kwargs(e)
+        raise self.retry(exc=e, **kwargs)
 
 
 @app.task(bind=True)
@@ -187,8 +195,8 @@ def select_asset_group_metadata_task(
 
         return result
     except Exception as e:
-        print(e)
-        raise self.retry(exc=e, countdown=1)
+        kwargs = get_retry_kwargs(e)
+        raise self.retry(exc=e, **kwargs)
 
 
 @app.task(bind=True)
@@ -217,8 +225,8 @@ def select_histogram_task(
         return result
 
     except Exception as e:
-        print(e)
-        raise self.retry(exc=e, countdown=1)
+        kwargs = get_retry_kwargs(e)
+        raise self.retry(exc=e, **kwargs)
 
 
 @app.task(bind=True)
@@ -247,5 +255,5 @@ def select_category_task(
         return result
 
     except Exception as e:
-        print(e)
-        raise self.retry(exc=e, countdown=1)
+        kwargs = get_retry_kwargs(e)
+        raise self.retry(exc=e, **kwargs)
