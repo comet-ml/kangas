@@ -42,7 +42,7 @@ const MatrixSelect = ({ query, options=['blah'] }) => {
         <Select
             className={cx('matrix-select')}
             value={
-                options.find((item) => item?.value?.endsWith(params?.datagrid)) || ''
+                options?.find((item) => item?.value?.endsWith(params?.datagrid)) || ''
             }
             options={options}
             styles={customStyles}

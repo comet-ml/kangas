@@ -19,10 +19,12 @@ import sys
 import time
 import urllib
 import webbrowser
+from threading import Thread
 
 import kangas.server
-from kangas import get_localhost, terminate
 from kangas.datatypes.utils import download_filename
+
+from kangas import get_localhost, terminate
 
 ADDITIONAL_ARGS = False
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -170,7 +172,7 @@ def server(parsed_args, remaining=None):
         KANGAS_BACKEND_PORT = parsed_args.backend_port
     KANGAS_HIDE_SELECTOR = 1 if parsed_args.hide_selector else 0
 
-    print("KANGAS_HIDE_SELECTOR:", KANGAS_HIDE_SELECTOR)
+    print("debug_level:", debug_level)
 
     if parsed_args.terminate:
         terminate()
@@ -299,8 +301,13 @@ def server(parsed_args, remaining=None):
             url = "%s?%s" % (host, urllib.parse.urlencode(query_vars))
         else:
             url = host
-        time.sleep(1)
-        webbrowser.open(url, new=new, autoraise=True)
+
+        def open_webbrowser():
+            time.sleep(1.0)
+            webbrowser.open(url, new=new, autoraise=True)
+
+        thread = Thread(target=open_webbrowser)
+        thread.start()
 
     if parsed_args.backend != "no":
         print(
@@ -312,14 +319,14 @@ def server(parsed_args, remaining=None):
             if parsed_args.backend == "tornado":
                 kangas.server.start_tornado_server(
                     port=KANGAS_BACKEND_PORT,
-                    debug=debug_level,
+                    debug_level=debug_level,
                     max_workers=parsed_args.max_workers,
                 )
             elif parsed_args.backend == "flask":
                 kangas.server.start_flask_server(
                     host=KANGAS_HOST,
                     port=KANGAS_BACKEND_PORT,
-                    debug=True,
+                    debug_level=debug_level,
                     max_workers=parsed_args.max_workers,
                 )
             else:
@@ -329,14 +336,14 @@ def server(parsed_args, remaining=None):
                 if parsed_args.backend == "tornado":
                     kangas.server.start_tornado_server(
                         port=KANGAS_BACKEND_PORT,
-                        debug=debug_level,
+                        debug_level=debug_level,
                         max_workers=parsed_args.max_workers,
                     )
                 elif parsed_args.backend == "flask":
                     kangas.server.start_flask_server(
                         host=KANGAS_HOST,
                         port=KANGAS_BACKEND_PORT,
-                        debug=debug_level,
+                        debug_level=debug_level,
                         max_workers=parsed_args.max_workers,
                     )
                 else:
@@ -344,7 +351,9 @@ def server(parsed_args, remaining=None):
             except ValueError:
                 raise
             except Exception:
-                print("Unable to start backend; perhaps already running")
+                print(
+                    "Unable to start backend; perhaps already running? Running frontend anyway..."
+                )
                 if parsed_args.frontend != "no":
                     node_process.wait()
                 return

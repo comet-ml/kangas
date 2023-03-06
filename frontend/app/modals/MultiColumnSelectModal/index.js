@@ -96,7 +96,7 @@ const Menu = (props) => (
 const MultiColumnSelectModal = ({ columns = {} }) => {
     const { params, updateParams } = useQueryParams();
     const [selected, setSelected] = useState([]);
-    const { closeModal } = useContext(ModalContext); 
+    const { closeModal } = useContext(ModalContext);
     const onChange = useCallback((selectedOptions) => setSelected([...selectedOptions], []));
 
     const onSortEnd = useCallback((event) => {
@@ -140,7 +140,7 @@ const MultiColumnSelectModal = ({ columns = {} }) => {
 
     useEffect(() => {
         const preselected = params?.select?.split(',').map(col => {
-            return options.find((option) => option.value.toLowerCase() === col.toLowerCase() )
+            return options?.find((option) => option.value.toLowerCase() === col.toLowerCase() )
         });
 
         if (preselected?.length) setSelected([ ...preselected ]);

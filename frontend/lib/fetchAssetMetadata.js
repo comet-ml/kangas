@@ -23,7 +23,6 @@ const fetchAssetMetadata = async ({ assetId, dgid, timestamp }) => {
         returnType: 'json',
     });
     */
-
     return data;
 };
 

@@ -2,9 +2,6 @@ import config from '../config';
 import fetchIt from './fetchIt';
 
 const fetchDataGrid = async (query, url=config.apiUrl) => {
-    // TODO: Rip this conditional return out. This is just here for testing purposes.
-    // console.log(headersList);
-
     if (!query?.dgid) return {
         columnTypes: [],
         columns: [],
@@ -18,17 +15,18 @@ const fetchDataGrid = async (query, url=config.apiUrl) => {
 
         const { columnTypes, columns, rows } = data;
         const typeMap = Object.fromEntries(
-            columns.map((col, idx) => [col, columnTypes[idx]])
+	    columns.map((col, idx) => [col, columnTypes[idx]])
         )
         const displayColumns = columns.filter(colName => !colName.endsWith('--metadata'));
 
         return {
-            ...data,
-            typeMap,
-            displayColumns
+	    ...data,
+	    typeMap,
+	    displayColumns
         }
     } catch (error) {
-        //console.log(error);
+        console.log("fetchDatagrid: server not ready");
+	return null;
     }
 };
 

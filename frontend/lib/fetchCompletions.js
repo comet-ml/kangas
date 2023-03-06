@@ -4,15 +4,15 @@ import config from '../config';
 // Utils
 import fetchIt from './fetchIt';
 
-const fetchCompletions = async ( dgid ) => {
+const fetchCompletions = async ( dgid, timestamp ) => {
     if (!!dgid) {
         const data = await fetchIt({
             url: `${config.apiUrl}completions`,
-            query: {dgid},
+            query: {dgid, timestamp},
         });
         return data;
     }
-    
+
     return {};
 };
 
