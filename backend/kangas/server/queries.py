@@ -2065,7 +2065,7 @@ def generate_chart_image(chart_type, data, width, height):
 
     for trace in data:
         if chart_type == "category":
-            if "x" in trace and len(trace["x"]) == 0:
+            if "x" not in trace or len(trace["x"]) == 0:
                 continue
             spacing = height / len(trace["x"])
             margin = max(spacing * 0.20, 1)
@@ -2084,7 +2084,7 @@ def generate_chart_image(chart_type, data, width, height):
                 )
 
         elif chart_type == "histogram":
-            if "y" in trace and len(trace["y"]) == 0:
+            if "y" not in trace or len(trace["y"]) == 0:
                 continue
             spacing = width / len(trace["y"])
             margin = max(spacing * 0.20, 1)

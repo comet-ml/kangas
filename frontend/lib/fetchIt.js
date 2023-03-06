@@ -9,37 +9,36 @@ const fetchIt = async ({
     returnUrl=false,
     ...args
 }) => {
+    let queryArgs = '';
+    const headers = {};
+    const request = {
+        method,
+        headers,
+        ...args
+    };
+
+    if (method === 'GET') {
+        queryArgs = new URLSearchParams(
+            Object.fromEntries(
+                Object.entries({
+                    ...query,
+                    returnUrl: returnUrl ? true : undefined
+                }).filter(([k, v]) => typeof(v) !== 'undefined' && v !== null)
+            )
+        ).toString();
+    } else {
+        request.body = JSON.stringify(query);
+    }
+
+    if (cache) {
+        request.next = {
+            revalidate: 1440
+        }; // 60 * 24 = 1440, 1 day
+    } else {
+        request.cache = 'no-store';
+    }
+
     try {
-        let queryArgs = '';
-        const headers = {};
-        const request = {
-            method,
-            headers,
-            ...args
-        };
-
-        if (method === 'GET') {
-            queryArgs = new URLSearchParams(
-                Object.fromEntries(
-                    Object.entries({
-                        ...query,
-                        returnUrl: returnUrl ? true : undefined
-                    }).filter(([k, v]) => typeof(v) !== 'undefined' && v !== null)
-                )
-            ).toString();
-
-        } else {
-            request.body = JSON.stringify(query);
-        }
-
-        if (cache) {
-            request.next = {
-                revalidate: 1440
-            }; // 60 * 24 = 1440, 1 day
-        } else {
-            request.cache = 'no-store';
-        }
-
         const res = await fetch(`${url}?${queryArgs}`, request);
 
         if (json) {
@@ -50,7 +49,8 @@ const fetchIt = async ({
             return res;
         }
     } catch (error) {
-        console.log("fetchIt: server not ready");
+        console.log(`fetchIt: server not ready: ${url}?${queryArgs}`);
+        console.log(error);
 	return {};
     }
 

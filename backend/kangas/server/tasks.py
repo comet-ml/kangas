@@ -47,7 +47,14 @@ app = Celery(
 
 def get_retry_kwargs(e):
     print(e)
-    return {"retry_backoff": True, "max_retries": 5, "countdown": 5}
+    return {
+        "retry_backoff": True,  # exponential backoff to prevent swamping server
+        "max_retries": 5,  # max int retries
+        "countdown": 10,  # seconds
+        "retry_jitter": True,  # randomness in countdown
+        # "retry_backoff_max": 10,
+        # "rate_limit": 20,
+    }
 
 
 @app.task(bind=True)
