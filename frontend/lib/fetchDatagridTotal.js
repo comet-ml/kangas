@@ -7,7 +7,8 @@ import fetchIt from './fetchIt';
 const fetchDatagridTotal = async (query) => {
     if (query?.dgid) {
 	const myQuery = {
-	    dgid: query.dgid
+	    dgid: query.dgid,
+	    timestamp: query.timestamp
 	};
 	if (!!query?.whereExpr)
 	    myQuery.whereExpr = query.whereExpr;

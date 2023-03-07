@@ -9,12 +9,19 @@ export const parseEndpoint = ({ thumbnail, group }) => {
     }
 };
 
-const parseRequestType = (endpoint) => endpoint.includes('asset-group') ? 'POST' : 'GET';
+// const parseRequestType = (endpoint) => endpoint.includes('asset-group') ? 'POST' : 'GET';
 
 const fetchData = async ({ query, endpoint, requestType }) => {
     if (requestType === 'GET') {
         const queryString = new URLSearchParams(query).toString();
-        const data = await fetch(`${config.apiUrl}${endpoint}?${queryString}`);
+        const data = await fetch(`${config.apiUrl}${endpoint}?${queryString}`, {
+            headers: {
+                'Cache-Control': 'max-age=604800',
+                next: {
+                    revalidate: 1440
+                },
+            },
+        });
         return data;
     } else if (requestType === 'POST') {
         const data = await fetch(`${config.apiUrl}${endpoint}`, {
@@ -23,7 +30,7 @@ const fetchData = async ({ query, endpoint, requestType }) => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(query)
-        })
+        });
 
         if (endpoint === 'asset-group-thumbnail') {
             return data;
