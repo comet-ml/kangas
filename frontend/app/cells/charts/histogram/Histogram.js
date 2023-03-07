@@ -8,6 +8,17 @@ const cx = classNames.bind(styles);
 const Histogram = async ({ value, expanded }) => {
     const data = await fetchHistogram(value);
 
+    if (data?.error) {
+        return (
+            <HistogramClient
+                expanded={expanded}
+                title={''}
+                query={value}
+                data={data}
+            />
+        )
+    }
+
     if (data?.isVerbatim) {
         return <>{data.value}</>
     } else if (!expanded) {

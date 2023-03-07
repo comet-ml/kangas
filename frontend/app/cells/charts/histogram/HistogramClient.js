@@ -13,6 +13,7 @@ const Plot = dynamic(() => import("react-plotly.js"), {
 
 import classNames from 'classnames/bind';
 import styles from '../Charts.module.scss';
+import useQueryParams from '../../../../lib/hooks/useQueryParams';
 const cx = classNames.bind(styles);
 
 const HistogramLayout = {
@@ -43,6 +44,7 @@ const HistogramConfig = {
 };
 
 const HistogramClient = ({ value, expanded, title, data }) => {
+    const { params, updateParams } = useQueryParams();
     const { config } = useContext(ConfigContext);
     const [visible, setVisible] = useState(false);
     const plot = useRef();
@@ -118,6 +120,16 @@ const HistogramClient = ({ value, expanded, title, data }) => {
             }
         };
     }, [title]);
+
+    useEffect(() => {
+        if (data?.error) {
+            const time = Date.now();
+            updateParams({
+                last: time
+            })
+        }
+    }, [data?.error, updateParams]);
+
 
     return (
       <div style={{ minWidth: '700px', display: 'flex' }}>

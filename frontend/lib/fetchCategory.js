@@ -7,7 +7,13 @@ import fetchData from './fetchData';
 import { getColor } from './generateChartColor';
 
 const fetchCategory = async (query) => {
+    //const queryString = new URLSearchParams(query).toString();
+    //const data = await fetch(`http://localhost:4000/category?${queryString}`)
+
     const data = await fetchIt({url: `${config.apiUrl}category`, query});
+    if (data?.error) {
+        return data;
+    }
 
     if (data?.type === 'verbatim') {
         return {

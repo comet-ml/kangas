@@ -49,9 +49,9 @@ def get_retry_kwargs(e):
     print(e)
     return {
         "retry_backoff": True,  # exponential backoff to prevent swamping server
-        "max_retries": 5,  # max int retries
-        "countdown": 10,  # seconds
-        "retry_jitter": True,  # randomness in countdown
+        "max_retries": 10,  # max int retries
+        "countdown": 1,  # seconds
+        #"retry_jitter": True,  # randomness in countdown
         # "retry_backoff_max": 10,
         # "rate_limit": 20,
     }

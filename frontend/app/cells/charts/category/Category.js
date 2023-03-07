@@ -33,6 +33,19 @@ const layout =  {
 const Category = async ({ value, expanded }) => {
     const data = await fetchCategory(value);
 
+    if (data?.error) {
+        console.log('error right here')
+        return (
+            <CategoryClient 
+                expanded={expanded} 
+                title={''} 
+                query={value} 
+                columnName={''} 
+                data={data} 
+            />
+        )
+    }
+
     if (data?.isVerbatim) {
         return <>{data.value}</>
     } else if (!expanded) {

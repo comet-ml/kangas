@@ -4,9 +4,8 @@ module.exports = {
     domains: ['localhost', 'comet.com']
   },
   experimental: {
-    runtime: 'nodejs',
     appDir: true,
-    fetchCache: true
+    enableUndici: false
   },
   eslint: {
     ignoreDuringBuilds: true,

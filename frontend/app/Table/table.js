@@ -5,6 +5,8 @@ import styles from './Table.module.scss';
 import classNames from 'classnames/bind';
 import { Suspense } from 'react';
 import Skeleton from '../Skeleton';
+import Deferred from '../DeferredComponent';
+import Boundary from './boundary';
 
 const cx = classNames.bind(styles);
 
@@ -15,41 +17,94 @@ const transpose = (matrix) => {
     ), []);
 };
 
-export const TableDisplay = ({ query, data }) => {
+const CellSorter = ({ cell, cidx, start, end, row, columns, columnTypes, ridx, query}) => {
+
+    if (!query?.groupBy) {
+        return (
+            <Cell
+                value={row[columns[cidx]]}
+                type={columnTypes[cidx]}
+                columnName={columns[cidx]}
+                query={query}
+                isHeader={ridx < 1}
+            />
+        )
+    }
+
+    if (cidx < start) {
+        return (
+            <Cell
+                value={''}
+                type={'LOADING'}
+                columnName={columns[cidx]}
+                query={query}
+                isHeader={ridx < 1}
+            />
+        )
+    }
+
+    if (cidx > end) {
+        return (
+            <Cell
+                value={''}
+                type={'LOADING'}
+                columnName={columns[cidx]}
+                query={query}
+                isHeader={ridx < 1}
+            />
+        )
+
+    }
+    else {
+
+        if (cidx == start && start > 0) {
+            return (
+                <Boundary id={cidx} begin={true}>
+                    <Cell
+                        value={row[columns[cidx]]}
+                        type={columnTypes[cidx]}
+                        columnName={columns[cidx]}
+                        query={query}
+                        isHeader={ridx < 1}
+                    />
+                </Boundary>
+            )
+        }
+
+        if (cidx == end - 10) {
+            return (
+                <Boundary id={cidx}>
+                    <Cell
+                        value={row[columns[cidx]]}
+                        type={columnTypes[cidx]}
+                        columnName={columns[cidx]}
+                        query={query}
+                        isHeader={ridx < 1}
+                    />
+                </Boundary>
+            )
+        }
+
+        return (
+            <Cell
+                value={row[columns[cidx]]}
+                type={columnTypes[cidx]}
+                columnName={columns[cidx]}
+                query={query}
+                isHeader={ridx < 1}
+            />
+        )
+    }
+ 
+}
+export const TableDisplay = ({ query, data, start=0, end=20 }) => {
     const { columnTypes, columns, rows, displayColumns } = data;
-    const transposeTable = false;
 
     // Remove any row keys that are not in displayColumns:
     const displayRows = rows.map(row => Object.fromEntries(
         Object.entries(row).filter(([name]) => displayColumns.includes(name))
     ));
-
-    if (transposeTable) {
-        const transposed = transpose([ displayColumns, ...displayRows ]);
-
-        return (
-                <div className={styles.tableRoot} style={{display: 'flex'}}>
-                {transposed?.map((column, colidx) => (
-                        <div className={cx('column')} key={`col-${colidx}`}>
-                        {
-                            Object.values(column).map( (cell, cidx) => (
-                                <Suspense fallback={<Skeleton message={`suspending ${cell} - ${colidx}/${cidx}`} />}>
-                                    <Cell
-                                        value={cell}
-                                        type={columnTypes[colidx]}
-                                        columnName={columns[colidx]}
-                                        query={query}
-                                        isHeader={cidx < 1}
-                                    />
-                                </Suspense>
-                        ) )
-                    }
-                    </div>
-                ))}
-                </div>
-        );
-    } else {
-
+    
       return (
         <div className={styles.tableRoot}>
             {[ displayColumns, ...displayRows ]?.map((row, ridx) => (
@@ -57,12 +112,16 @@ export const TableDisplay = ({ query, data }) => {
                     {
                         Object.values(row).map( (cell, cidx) => (
                           <Suspense fallback={<Skeleton message={`suspending ${cell} - ${cidx}`} />}>
-                            <Cell
-                                value={row[columns[cidx]]}
-                                type={columnTypes[cidx]}
-                                columnName={columns[cidx]}
+                            <CellSorter
+                                cell={cell}
+                                cidx={cidx}
+                                row={row}
                                 query={query}
-                                isHeader={ridx < 1}
+                                start={start}
+                                end={end}
+                                columns={columns}
+                                columnTypes={columnTypes}
+                                ridx={ridx}
                             />
                           </Suspense>
                         ) )
@@ -72,6 +131,5 @@ export const TableDisplay = ({ query, data }) => {
         </div>
      );
    }
-};
 
 export default TableDisplay;

@@ -59,7 +59,7 @@ setup_args = dict(
         "Pillow",
         "scipy",
         "scikit-learn",
-        "nodejs-bin==16.15.1a4",
+        "nodejs-bin==18.4.0a4",
         "requests",
         "psutil",
     ],

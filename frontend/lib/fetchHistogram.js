@@ -9,6 +9,10 @@ import { getColor } from './generateChartColor';
 const fetchHistogram = async (query) => {
     const data = await fetchIt({url: `${config.apiUrl}histogram`, query});
 
+    if (data?.error) {
+        return data;
+    }
+
     if (data?.type === 'verbatim') {
         return {
             isVerbatim: true,

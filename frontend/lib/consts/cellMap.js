@@ -4,6 +4,7 @@ import JSONCell from "../../app/cells/json/JSONCell";
 import ImageCell from "../../app/cells/image";
 import DateCell from "../../app/cells/date";
 import BooleanCell from "../../app/cells/boolean";
+import LoadingCell from "../../app/cells/loading";
 
 const cellMap = {
     TEXT: {
@@ -52,6 +53,11 @@ const cellMap = {
         width: 50,
         groupedWidth: 220,
         component: TextCell
+    },
+    LOADING: {
+        width: 200,
+        groupedWidth: 220,
+        component: LoadingCell
     }
 };
 

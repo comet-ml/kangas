@@ -7,6 +7,7 @@ import { useContext, useMemo, useCallback, useState, useRef, useEffect, Suspense
 import { useRouter } from "next/navigation";
 import dynamic from 'next/dynamic';
 import { getColor } from '../../../../lib/generateChartColor';
+import useQueryParams from '../../../../lib/hooks/useQueryParams';
 
 const Plot = dynamic(() => import("react-plotly.js"), {
     ssr: false,
@@ -45,6 +46,7 @@ const CategoryConfig = {
 
 
 const CategoryClient = ({ expanded, title, query, columnName, data }) => {
+    const { params, updateParams } = useQueryParams();
     const [visible, setVisible] = useState(false);
     const plot = useRef();
 
@@ -106,6 +108,15 @@ const CategoryClient = ({ expanded, title, query, columnName, data }) => {
         observer.observe(plot.current);
 
     }, [onIntersect]);
+
+    useEffect(() => {
+        if (data?.error) {
+            const time = Date.now();
+            updateParams({
+                last: time
+            })
+        }
+    }, [data?.error, updateParams]);
 
     return (
         <div ref={plot} className={cx('plotly-container', { expanded })}>

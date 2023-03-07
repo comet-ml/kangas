@@ -51,10 +51,12 @@ const SelectColumnDropdown = ({ toggleOpen, group = false }) => {
                 sort: selected[0].value,
                 rows: 4,
                 page: undefined,
-            });    
+                //begin: Math.max(params?.boundary - 40, 0),
+            });
         } else {
             updateParams({
-                sort: selected[0].value
+                sort: selected[0].value,
+                //begin: Math.max(params?.boundary - 40, 0)
             });    
         }
         toggleOpen();

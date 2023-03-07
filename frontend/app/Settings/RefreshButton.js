@@ -18,9 +18,9 @@ const RefreshButton = ({ query }) => {
             group: undefined,
             page: undefined,
             rows: undefined,
-	    filter: undefined,
-	    descending: undefined,
-	    select: undefined
+            filter: undefined,
+            descending: undefined,
+            select: undefined
         });
 	// FIXME: do something here to force cache delete or update
     });

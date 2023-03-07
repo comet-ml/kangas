@@ -1,4 +1,10 @@
 import config from '../config';
+import retry from 'fetch-retry';
+
+const wrappedFetch = retry(fetch, {
+    retries: 5,
+    retryDelay: 0
+});
 
 const fetchIt = async ({
     url,
@@ -39,19 +45,36 @@ const fetchIt = async ({
     }
 
     try {
+        
+        /*const res = await wrappedFetch(`${url}?${queryArgs}`, {
+            retryOn: function (attempt, error, response) {
+                if (url?.includes('undefined:undefined')) return false;
+                console.log('retrying')
+                if (attempt > 20) return false;
+                console.log(error);
+                if (error) return true;
+            },
+            retryDelay:  2000,
+            ...request
+        });*/
+        
+
         const res = await fetch(`${url}?${queryArgs}`, request);
 
         if (json) {
             const data = await res.json();
             if (returnUrl) return data.uri;
+            
             return data;
         } else {
             return res;
         }
     } catch (error) {
-        console.log(`fetchIt: server not ready: ${url}?${queryArgs}`);
+        console.log(`fetch error: ${url}?${queryArgs}`);
         console.log(error);
-	return {};
+        return {
+            error: true
+        };
     }
 
 };
