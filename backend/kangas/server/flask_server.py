@@ -16,38 +16,35 @@ import json
 import logging
 import os
 import platform
-import re
 import subprocess
 import sys
+import re
 
 from flask import Flask, jsonify, make_response, request
-from flask.logging import default_handler
 from flask_caching import Cache
 
 from .._version import __version__
 from ..datatypes.utils import THUMBNAIL_SIZE
 from .queries import (  # custom_output,
     KANGAS_ROOT,
+    generate_chart_image,
     get_about,
     get_completions,
     get_datagrid_timestamp,
     get_dg_path,
+    list_datagrids,
+    select_asset,
+    select_asset_group,
+    select_asset_group_metadata,
+    select_asset_group_thumbnail,
+    select_asset_metadata,
+    select_category,
     select_description,
+    select_histogram,
     select_metadata,
     select_query_count,
     select_query_page,
     verify_where,
-)
-from .tasks import (
-    asset_metadata_task,
-    download_task,
-    generate_chart_image_task,
-    list_datagrids_task,
-    select_asset_group_metadata_task,
-    select_asset_group_task,
-    select_asset_group_thumbnail_task,
-    select_category_task,
-    select_histogram_task,
 )
 
 # from .utils import get_bool_from_env
@@ -60,7 +57,6 @@ SECONDS_IN_DAY = 60 * 60 * 24
 SECONDS_IN_MONTH = SECONDS_IN_DAY * 31
 
 application = Flask(__name__)
-application.logger.removeHandler(default_handler)
 
 KANGAS_CACHE_DAYS = float(
     os.environ.get("KANGAS_CACHE_DAYS", "30.0")
@@ -76,7 +72,6 @@ if os.path.exists(KANGAS_CACHE_FOLDER):
     )
 
 log_file = os.environ.get("KANGAS_LOG_FILE")
-
 if log_file:
     KANGAS_LOG_FILE_LEVEL = os.environ.get("KANGAS_LOG_FILE_LEVEL", logging.DEBUG)
     file_handler = logging.FileHandler(log_file, "w+")
@@ -146,6 +141,7 @@ def _corsify_actual_response(response):
 
 
 def ensure_datagrid_path(dgid):
+    application.logger.debug("DataGrid dgid: %s", dgid)
     if dgid is not None:
         db_path = get_dg_path(dgid)
         if os.path.exists(db_path):
@@ -177,6 +173,8 @@ def allow_cors(response):
 #    )
 # )
 def get_datagrid_category_handler():
+    application.logger.debug("GET /datagrid/category")
+
     # Required:
     dgid = request.args.get("dgid")
     # Optional:
@@ -190,18 +188,16 @@ def get_datagrid_category_handler():
     where_expr = where_expr.strip() if where_expr else None
 
     if ensure_datagrid_path(dgid):
-        result = select_category_task.apply(
-            args=(
-                dgid,
-                group_by,
-                where,
-                column_name,
-                column_value,
-                where_description,
-                computed_columns,
-                where_expr,
-            )
-        ).get()
+        result = select_category(
+            dgid,
+            group_by,
+            where,
+            column_name,
+            column_value,
+            where_description,
+            computed_columns,
+            where_expr,
+        )
         return result
     else:
         return error(404)
@@ -219,6 +215,8 @@ def get_datagrid_category_handler():
 #    )
 # )
 def get_datagrid_histogram_handler():
+    application.logger.debug("GET /datagrid/histogram")
+
     # Required:
     dgid = request.args.get("dgid")
     # Optional:
@@ -231,18 +229,16 @@ def get_datagrid_histogram_handler():
     computed_columns = request.args.get("computedColumns", None)
 
     if ensure_datagrid_path(dgid):
-        results = select_histogram_task.apply(
-            args=(
-                dgid,
-                group_by,
-                where,
-                column_name,
-                column_value,
-                where_description,
-                computed_columns,
-                where_expr,
-            )
-        ).get()
+        results = select_histogram(
+            dgid,
+            group_by,
+            where,
+            column_name,
+            column_value,
+            where_description,
+            computed_columns,
+            where_expr,
+        )
         return results
     else:
         return error(404)
@@ -251,6 +247,8 @@ def get_datagrid_histogram_handler():
 @application.route("/datagrid/query-total")
 @auth_wrapper
 def get_datagrid_query_total_handler():
+    application.logger.debug("GET /datagrid/query-total")
+
     # Required:
     dgid = request.args.get("dgid")
     # Optional:
@@ -275,6 +273,8 @@ def get_datagrid_query_total_handler():
 @application.route("/datagrid/query-page")
 @auth_wrapper
 def get_datagrid_query_page_handler():
+    application.logger.debug("GET /datagrid/query-page")
+
     # Required:
     dgid = request.args.get("dgid")
     # Optional:
@@ -312,15 +312,15 @@ def get_datagrid_query_page_handler():
 @application.route("/datagrid/description")
 @auth_wrapper
 def get_datagrid_description_handler():
+    application.logger.debug("GET /datagrid/description")
+
     # Required:
     dgid = request.args.get("dgid")
-
     # Optional:
     group_by = request.args.get("groupBy", None)
     select = request.args.get("select", None)
     if select:
         select = select.split(",")
-
     computed_columns = request.args.get("computedColumns", None)
     column_name = request.args.get("columnName", None)
     column_value = get_column_value(request.args.get("columnValue", None))
@@ -348,24 +348,28 @@ def get_datagrid_description_handler():
 @application.route("/datagrid/timestamp")
 @auth_wrapper
 def get_datagrid_timestamp_handler():
+    application.logger.debug("GET /datagrid/timestamp")
+
     dgid = request.args.get("dgid")
     if dgid:
         result = get_datagrid_timestamp(dgid)
         return result
-    else:
-        return error(404)
 
 
 @application.route("/datagrid/list", methods=["GET"])
 @auth_wrapper
 def get_datagrid_list_handler():
-    result = list_datagrids_task.apply().get()
+    application.logger.debug("GET /datagrid/list")
+
+    result = list_datagrids()
     return jsonify(result)
 
 
 @application.route("/datagrid/status", methods=["GET"])
 @auth_wrapper
 def get_datagrid_status_handler():
+    application.logger.debug("GET /datagrid/status")
+
     result = {
         "Kangas version": __version__,
         "Kangas license": "Apache Version 2.0",
@@ -382,14 +386,15 @@ def get_datagrid_status_handler():
 @application.route("/datagrid/asset-metadata", methods=["GET"])
 @auth_wrapper
 def get_asset_metadata_handler():
+    application.logger.debug("GET /datagrid/asset-metadata")
+
     # Required:
     asset_id = request.args.get("assetId")
     dgid = request.args.get("dgid")
 
     if ensure_datagrid_path(dgid):
-        metadata = asset_metadata_task.apply(args=(dgid, asset_id))
-
-        return metadata.get()
+        result = select_asset_metadata(dgid, asset_id)
+        return json.loads(result)
     else:
         return error(404)
 
@@ -397,6 +402,8 @@ def get_asset_metadata_handler():
 @application.route("/datagrid/download", methods=["GET"])
 @auth_wrapper
 def get_datagrid_download_handler():
+    application.logger.debug("GET /datagrid/download")
+
     # Required:
     asset_id = request.args.get("assetId")
     dgid = request.args.get("dgid")
@@ -406,7 +413,7 @@ def get_datagrid_download_handler():
     if not ensure_datagrid_path(dgid):
         return error(404)
 
-    result = download_task.apply(args=(dgid, asset_id, thumbnail)).get()
+    result = select_asset(dgid, asset_id, thumbnail)
     if return_url:
         return {"uri": base64.b64encode(result).decode("utf-8")}
     else:
@@ -419,6 +426,8 @@ def get_datagrid_download_handler():
 @application.route("/datagrid/metadata", methods=["GET"])
 @auth_wrapper
 def get_datagrid_metadata_handler():
+    application.logger.debug("GET /datagrid/metadata")
+
     # Required:
     dgid = request.args.get("dgid")
 
@@ -432,6 +441,8 @@ def get_datagrid_metadata_handler():
 @application.route("/datagrid/asset-group", methods=["GET"])
 @auth_wrapper
 def get_datagrid_asset_group_handler():
+    application.logger.debug("GET /datagrid/asset-group")
+
     # Required:
     dgid = request.args.get("dgid")
     # Optional:
@@ -447,20 +458,18 @@ def get_datagrid_asset_group_handler():
     return_url = request.args.get("returnUrl", "false") == "true"
 
     if ensure_datagrid_path(dgid):
-        result = select_asset_group_task.apply(
-            args=(
-                dgid,
-                group_by,
-                where,
-                column_name,
-                column_value,
-                column_offset,
-                column_limit,
-                computed_columns,
-                where_expr,
-            )
-        ).get()
-
+        result = select_asset_group(
+            dgid,
+            group_by,
+            where,
+            column_name,
+            column_value,
+            column_offset,
+            column_limit,
+            computed_columns,
+            where_expr,
+            distinct=True,
+        )
         if return_url:
             return {"uri": base64.b64encode(result).decode("utf-8")}
         else:
@@ -475,6 +484,8 @@ def get_datagrid_asset_group_handler():
 @application.route("/datagrid/asset-group-metadata", methods=["GET"])
 @auth_wrapper
 def get_datagrid_asset_group_metadata_handler():
+    application.logger.debug("GET /datagrid/asset-group-metadata")
+
     # Required:
     dgid = request.args.get("dgid")
     # Optional:
@@ -490,20 +501,18 @@ def get_datagrid_asset_group_metadata_handler():
     distinct = request.args.get("distinct", "true") == "true"
 
     if ensure_datagrid_path(dgid):
-        result = select_asset_group_metadata_task.apply(
-            args=(
-                dgid,
-                group_by,
-                where,
-                column_name,
-                column_value,
-                column_offset,
-                column_limit,
-                computed_columns,
-                where_expr,
-                distinct,
-            )
-        ).get()
+        result = select_asset_group_metadata(
+            dgid,
+            group_by,
+            where,
+            column_name,
+            column_value,
+            column_offset,
+            column_limit,
+            computed_columns,
+            where_expr,
+            distinct,
+        )
         return result
     else:
         return error(404)
@@ -512,6 +521,8 @@ def get_datagrid_asset_group_metadata_handler():
 @application.route("/datagrid/asset-group-thumbnail", methods=["GET"])
 @auth_wrapper
 def get_datagrid_asset_group_thumbnail_handler():
+    application.logger.debug("GET /datagrid/asset-group-metadata")
+
     # Required:
     dgid = request.args.get("dgid")
     # Optional:
@@ -536,27 +547,23 @@ def get_datagrid_asset_group_thumbnail_handler():
         background_color = [int(n) for n in background_color.split(",")]
     border_width = int(request.args.get("borderWidth", "1"))
     return_url = request.args.get("returnUrl", "false") == "true"
-    distinct = True
 
     if ensure_datagrid_path(dgid):
-        result = select_asset_group_thumbnail_task.apply(
-            args=(
-                dgid,
-                group_by,
-                where,
-                column_name,
-                column_value,
-                column_offset,
-                computed_columns,
-                where_expr,
-                gallery_size,
-                background_color,
-                image_size,
-                border_width,
-                distinct,
-            )
-        ).get()
-
+        result = select_asset_group_thumbnail(
+            dgid,
+            group_by,
+            where,
+            column_name,
+            column_value,
+            column_offset,
+            computed_columns,
+            where_expr,
+            gallery_size,
+            background_color,
+            image_size,
+            border_width,
+            distinct=True,
+        )
         if return_url:
             return {"uri": base64.b64encode(result).decode("utf-8")}
         else:
@@ -571,6 +578,8 @@ def get_datagrid_asset_group_thumbnail_handler():
 @application.route("/datagrid/verify-where", methods=["GET"])
 @auth_wrapper
 def get_datagrid_verify_where_handler():
+    application.logger.debug("GET /datagrid/verify-where")
+
     # Required:
     dgid = request.args.get("dgid")
     computed_columns = request.args.get("computedColumns", None)
@@ -591,6 +600,8 @@ def get_datagrid_verify_where_handler():
 @application.route("/datagrid/completions", methods=["GET"])
 @auth_wrapper
 def get_datagrid_completions_handler():
+    application.logger.debug("GET /datagrid/completions")
+
     # Required:
     dgid = request.args.get("dgid")
 
@@ -604,15 +615,18 @@ def get_datagrid_completions_handler():
 @application.route("/datagrid/chart-image", methods=["GET"])
 @auth_wrapper
 def get_datagrid_chart_image_handler():
+    application.logger.debug("GET /datagrid/chart-image")
+
     # Required:
     data = json.loads(request.args.get("data", "{}"))
     chart_type = request.args.get("chartType", None)
     height = int(request.args.get("height", "116"))
     width = int(request.args.get("width", "0"))
 
-    image = generate_chart_image_task.apply(
-        args=(chart_type, data, width, height)
-    ).get()
+    if width == 0:
+        width = int(height * 4.5 / 2.75)  # keep same ratio as expanded chart
+
+    image = generate_chart_image(chart_type, data, width, height)
 
     response = make_response(image)
     response.headers.add("Cache-Control", "max-age=604800")
@@ -623,6 +637,8 @@ def get_datagrid_chart_image_handler():
 @application.route("/datagrid/about", methods=["GET"])
 @auth_wrapper
 def get_datagrid_about_handler():
+    application.logger.debug("GET /datagrid/about")
+
     dgid = request.args.get("dgid")
     url = request.args.get("url")
 

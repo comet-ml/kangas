@@ -48,7 +48,6 @@ setup_args = dict(
     long_description_content_type="text/markdown",
     install_requires=[
         "astor",
-        "celery",
         "click",
         "numpy",
         "tornado",
@@ -59,7 +58,7 @@ setup_args = dict(
         "Pillow",
         "scipy",
         "scikit-learn",
-        "nodejs-bin==18.4.0a4",
+        "nodejs-bin==16.15.1a4",
         "requests",
         "psutil",
     ],

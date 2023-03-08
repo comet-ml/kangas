@@ -5,17 +5,8 @@ import styles from './Table.module.scss';
 import classNames from 'classnames/bind';
 import { Suspense } from 'react';
 import Skeleton from '../Skeleton';
-import Deferred from '../DeferredComponent';
-import Boundary from './boundary';
 
 const cx = classNames.bind(styles);
-
-const transpose = (matrix) => {
-    return matrix.reduce((prev, next) => Object.values(next).map(
-        (item, i) =>
-            (prev[i] || []).concat(Object.values(next)[i])
-    ), []);
-};
 
 const CellSorter = ({ cell, cidx, start, end, row, columns, columnTypes, ridx, query}) => {
 

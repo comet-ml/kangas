@@ -124,13 +124,9 @@ const HistogramClient = ({ value, expanded, ssrData }) => {
     }, [value])
 
     useEffect(() => {
-        console.log(`ssrData`)
-        console.log(ssrData)
         if (ssrData) setData(ssrData);
     }, [ssrData]);
 
-    console.log(`normal data`)
-    console.log(data)
     /*
     useEffect(() => {
         if (data?.error) {

@@ -9,7 +9,6 @@ build::
 	cd frontend; yarn; yarn build
 	rm -rf backend/kangas/frontend
 	cp -rf frontend/.next backend/kangas/frontend
-	echo ";server.keepAliveTimeout = 620000;" >> backend/kangas/frontend/standalone/server.js
 	rm -rf backend/kangas/frontend/cache/*
 
 wheel::

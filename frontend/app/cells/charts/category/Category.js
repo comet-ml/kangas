@@ -1,6 +1,4 @@
 import fetchCategory from "../../../../lib/fetchCategory"
-import fetchIt from "../../../../lib/fetchIt";
-import dynamic from 'next/dynamic'
 import CategoryClient from './CategoryClient';
 
 const Category = async ({ value, expanded, ssr }) => {

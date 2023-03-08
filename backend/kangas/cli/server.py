@@ -350,7 +350,8 @@ def server(parsed_args, remaining=None):
                     raise ValueError("unknown backend: %s" % parsed_args.backend)
             except ValueError:
                 raise
-            except Exception:
+            except Exception as e:
+                print(e)
                 print(
                     "Unable to start backend; perhaps already running? Running frontend anyway..."
                 )

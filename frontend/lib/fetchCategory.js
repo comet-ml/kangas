@@ -3,7 +3,6 @@ import config from '../config';
 
 // Utils
 import fetchIt from './fetchIt';
-import fetchData from './fetchData';
 import { getColor } from './generateChartColor';
 
 const fetchCategory = async (query, ssr=false) => {
@@ -13,7 +12,7 @@ const fetchCategory = async (query, ssr=false) => {
     const data = ssr ? 
         await fetchIt({ url: `${config.apiUrl}category`, query}) : 
         await fetchIt({url: `/api/category`, query});
-        
+
     if (data?.error) {
         return data;
     }
