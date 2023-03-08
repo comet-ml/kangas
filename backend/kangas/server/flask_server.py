@@ -412,12 +412,6 @@ def get_datagrid_download_handler():
     else:
         response = make_response(result)
         response.headers.add("Cache-Control", "max-age=604800")
-        response.headers.add(
-            "next",
-            {
-                "revalidate": 1440,
-            },
-        )
         response.headers.add("Content-type", "image")
         return response
 
@@ -472,12 +466,6 @@ def get_datagrid_asset_group_handler():
         else:
             response = make_response(result)
             response.headers.add("Cache-Control", "max-age=604800")
-            response.headers.add(
-                "next",
-                {
-                    "revalidate": 1440,
-                },
-            )
             response.headers.add("Content-type", "image/png")
             return response
     else:
@@ -574,12 +562,6 @@ def get_datagrid_asset_group_thumbnail_handler():
         else:
             response = make_response(result)
             response.headers.add("Cache-Control", "max-age=604800")
-            response.headers.add(
-                "next",
-                {
-                    "revalidate": 1440,
-                },
-            )
             response.headers.add("Content-type", "image/png")
             return response
     else:
@@ -634,12 +616,6 @@ def get_datagrid_chart_image_handler():
 
     response = make_response(image)
     response.headers.add("Cache-Control", "max-age=604800")
-    response.headers.add(
-        "next",
-        {
-            "revalidate": 1440,
-        },
-    )
     response.headers.add("Content-type", "image/png")
     return response
 

@@ -12,9 +12,9 @@ const handler = async (req, res) => {
     const result = await fetch(`${config.apiUrl}asset-metadata?${query.toString()}`, {
         headers: {
             'Cache-Control': 'max-age=604800',
-            next: {
-                revalidate: 1440
-            },
+        },
+        next: {
+            revalidate: 1440
         },
     });
     const json = await result.json();

@@ -17,9 +17,9 @@ const fetchData = async ({ query, endpoint, requestType }) => {
         const data = await fetch(`${config.apiUrl}${endpoint}?${queryString}`, {
             headers: {
                 'Cache-Control': 'max-age=604800',
-                next: {
-                    revalidate: 1440
-                },
+            },
+            next: {
+                revalidate: 1440
             },
         });
         return data;
