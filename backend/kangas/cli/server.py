@@ -22,9 +22,8 @@ import webbrowser
 from threading import Thread
 
 import kangas.server
-from kangas.datatypes.utils import download_filename
-
 from kangas import get_localhost, terminate
+from kangas.datatypes.utils import download_filename
 
 ADDITIONAL_ARGS = False
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -171,8 +170,6 @@ def server(parsed_args, remaining=None):
     else:
         KANGAS_BACKEND_PORT = parsed_args.backend_port
     KANGAS_HIDE_SELECTOR = 1 if parsed_args.hide_selector else 0
-
-    print("debug_level:", debug_level)
 
     if parsed_args.terminate:
         terminate()
