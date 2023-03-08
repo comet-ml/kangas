@@ -19,7 +19,7 @@ const Main = async ({ query }) => {
     const viewStart = query?.begin ?? 0;
     const viewEnd = query?.boundary ?? 20;
 
-    const view =  Object.fromEntries( columns.slice(viewStart, viewEnd).map( ( col, idx ) => [ col, { width: getDefaultCellSize(columnTypes[idx], query?.groupBy) } ]));
+    const view =  Object.fromEntries( columns.map( ( col, idx ) => [ col, { width: getDefaultCellSize(columnTypes[idx], query?.groupBy) } ]));
 
     return (
         <ViewProvider value={{ columns: view, query }}>
