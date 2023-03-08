@@ -1,10 +1,4 @@
 import config from '../config';
-import retry from 'fetch-retry';
-
-const wrappedFetch = retry(fetch, {
-    retries: 5,
-    retryDelay: 0
-});
 
 const fetchIt = async ({
     url,
@@ -44,21 +38,7 @@ const fetchIt = async ({
         request.cache = 'no-store';
     }
 
-    try {
-        
-        /*const res = await wrappedFetch(`${url}?${queryArgs}`, {
-            retryOn: function (attempt, error, response) {
-                if (url?.includes('undefined:undefined')) return false;
-                console.log('retrying')
-                if (attempt > 20) return false;
-                console.log(error);
-                if (error) return true;
-            },
-            retryDelay:  2000,
-            ...request
-        });*/
-        
-
+    try {        
         const res = await fetch(`${url}?${queryArgs}`, request);
 
         if (json) {

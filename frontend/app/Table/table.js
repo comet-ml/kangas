@@ -27,64 +27,12 @@ const CellSorter = ({ cell, cidx, start, end, row, columns, columnTypes, ridx, q
                 columnName={columns[cidx]}
                 query={query}
                 isHeader={ridx < 1}
+                cidx={cidx}
             />
         )
     }
 
-    if (cidx < start) {
-        return (
-            <Cell
-                value={''}
-                type={'LOADING'}
-                columnName={columns[cidx]}
-                query={query}
-                isHeader={ridx < 1}
-            />
-        )
-    }
-
-    if (cidx > end) {
-        return (
-            <Cell
-                value={''}
-                type={'LOADING'}
-                columnName={columns[cidx]}
-                query={query}
-                isHeader={ridx < 1}
-            />
-        )
-
-    }
-    else {
-
-        if (cidx == start && start > 0) {
-            return (
-                <Boundary id={cidx} begin={true}>
-                    <Cell
-                        value={row[columns[cidx]]}
-                        type={columnTypes[cidx]}
-                        columnName={columns[cidx]}
-                        query={query}
-                        isHeader={ridx < 1}
-                    />
-                </Boundary>
-            )
-        }
-
-        if (cidx == end - 10) {
-            return (
-                <Boundary id={cidx}>
-                    <Cell
-                        value={row[columns[cidx]]}
-                        type={columnTypes[cidx]}
-                        columnName={columns[cidx]}
-                        query={query}
-                        isHeader={ridx < 1}
-                    />
-                </Boundary>
-            )
-        }
-
+    if (cidx > end || cidx < start) {
         return (
             <Cell
                 value={row[columns[cidx]]}
@@ -92,12 +40,27 @@ const CellSorter = ({ cell, cidx, start, end, row, columns, columnTypes, ridx, q
                 columnName={columns[cidx]}
                 query={query}
                 isHeader={ridx < 1}
+                cidx={cidx}
             />
         )
+
     }
- 
+
+    return (
+        <Cell
+            value={row[columns[cidx]]}
+            type={columnTypes[cidx]}
+            columnName={columns[cidx]}
+            query={query}
+            isHeader={ridx < 1}
+            cidx={cidx}
+            ssr={true}
+        />
+    )
 }
-export const TableDisplay = ({ query, data, start=0, end=20 }) => {
+ 
+
+export const TableDisplay = ({ query, data, start=0, end=10 }) => {
     const { columnTypes, columns, rows, displayColumns } = data;
 
     // Remove any row keys that are not in displayColumns:

@@ -2,12 +2,18 @@
 
 import { createContext, useEffect, useReducer } from 'react';
 
-export const ViewContext = createContext({
-    columns: {},
-    query: {}
-});
+export const ViewContext = createContext();
 
-const reducer = (state, action) => {
+const initialState = {
+    columns: {},
+    query: {},
+    view: {
+        start: 0,
+        stop: 10
+    }
+}
+
+const reducer = (state=initialState, action) => {
     switch (action.type) {
         case 'RESIZE_COL_WIDTH':
             return {
@@ -19,6 +25,7 @@ const reducer = (state, action) => {
             }
         case 'NEW_COLUMNS':
             return {
+                ...state,
                 columns: {
                     ...action.payload.columns
                 },
@@ -44,13 +51,21 @@ const reducer = (state, action) => {
                     ...action.payload.query
                 }
             }
+        case 'UPDATE_VIEW':
+            return {
+                ...state,
+                view: {
+                    ...state.view,
+                    ...action.payload.view
+                }
+            }
         default:
             return state
     }
 }
 
 const ViewProvider = ({ value, children }) => {
-    const [state, dispatch] = useReducer(reducer, value);
+    const [state, dispatch] = useReducer(reducer, { ...initialState, ...value });
 
 
     // TODO Find a more performant solution than this quick-and-dirty patch
@@ -64,8 +79,10 @@ const ViewProvider = ({ value, children }) => {
     return (
         <ViewContext.Provider value={{
             columns: state.columns,
+            view: state.view,
             updateWidth: (payload) => dispatch({ type: 'RESIZE_COL_WIDTH', payload }),
-            toggleLoading: (payload) => dispatch({ type: 'UPDATE_COL_STATUS', payload })
+            toggleLoading: (payload) => dispatch({ type: 'UPDATE_COL_STATUS', payload }),
+            updateView: (payload) => dispatch({ type: 'UPDATE_VIEW', payload })
         }}>
             { children }
         </ViewContext.Provider>

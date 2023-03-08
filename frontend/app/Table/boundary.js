@@ -19,9 +19,9 @@ const Boundary = ({ id, begin=false, children }) => {
 
     useEffect(() => {
         if (begin) {
-            updateParams({ begin: Math.max(id - 20, 0) })
+            updateParams({ begin: Math.max(id - 100, 0) })
         } else {
-            updateParams({ boundary: id + 40 })
+            updateParams({ boundary: id + 100 })
         }
     }, [id, updateParams, begin])
 
