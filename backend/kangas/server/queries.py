@@ -2071,6 +2071,9 @@ def generate_chart_image(chart_type, data, width, height):
             margin = max(spacing * 0.20, 1)
             max_x = max(trace["x"])
 
+            if max_x == 0:
+                continue
+
             for count, [x, y, color] in enumerate(
                 zip(trace["x"], trace["y"], trace["marker"]["color"])
             ):
@@ -2090,6 +2093,9 @@ def generate_chart_image(chart_type, data, width, height):
             margin = max(spacing * 0.20, 1)
             max_y = max(trace["y"])
             color = trace["marker"]["color"]
+
+            if max_y == 0:
+                continue
 
             for count, [x, y] in enumerate(zip(trace["x"], trace["y"])):
                 position = count

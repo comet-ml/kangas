@@ -39,18 +39,16 @@ from .queries import (  # custom_output,
     verify_where,
 )
 from .tasks import (
-    asset_metadata_task,
-    download_task,
     generate_chart_image_task,
     list_datagrids_task,
     select_asset_group_metadata_task,
     select_asset_group_task,
     select_asset_group_thumbnail_task,
+    select_asset_metadata_task,
+    select_asset_task,
     select_category_task,
     select_histogram_task,
 )
-
-# from .utils import get_bool_from_env
 
 USE_AUTH = False
 KANGAS_CACHE_FOLDER = os.environ.get("KANGAS_CACHE_FOLDER", "/var/cache/kangas-server/")
@@ -387,7 +385,7 @@ def get_asset_metadata_handler():
     dgid = request.args.get("dgid")
 
     if ensure_datagrid_path(dgid):
-        metadata = asset_metadata_task.apply(args=(dgid, asset_id))
+        metadata = select_asset_metadata_task.apply(args=(dgid, asset_id))
 
         return metadata.get()
     else:
@@ -406,7 +404,7 @@ def get_datagrid_download_handler():
     if not ensure_datagrid_path(dgid):
         return error(404)
 
-    result = download_task.apply(args=(dgid, asset_id, thumbnail)).get()
+    result = select_asset_task.apply(args=(dgid, asset_id, thumbnail)).get()
     if return_url:
         return {"uri": base64.b64encode(result).decode("utf-8")}
     else:
@@ -458,6 +456,7 @@ def get_datagrid_asset_group_handler():
                 column_limit,
                 computed_columns,
                 where_expr,
+                True,
             )
         ).get()
 

@@ -14,7 +14,10 @@
 import json
 import os
 
-from celery import Celery
+try:
+    from celery import Celery
+except ImportError:
+    celery = None
 
 from .queries import (
     generate_chart_image,
@@ -29,6 +32,10 @@ from .queries import (
     select_histogram,
 )
 
+# from .utils import get_bool_from_env
+
+KANGAS_USE_CELERY = int(os.environ.get("KANGAS_USE_CELERY", "0"))
+
 
 def ensure_datagrid_path(dgid):
     if dgid is not None:
@@ -37,12 +44,6 @@ def ensure_datagrid_path(dgid):
             return True
 
     return False
-
-
-app = Celery(
-    "tasks",
-    broker="pyamqp://guest@localhost//",
-)
 
 
 def get_retry_kwargs(e):
@@ -55,6 +56,46 @@ def get_retry_kwargs(e):
         # "retry_backoff_max": 10,
         # "rate_limit": 20,
     }
+
+
+if KANGAS_USE_CELERY and celery is not None:
+    print("Using flask with celery")
+
+    app = Celery(
+        "tasks",
+        broker="pyamqp://guest@localhost//",
+    )
+
+else:
+    print("Using flask")
+
+    class Result:
+        def __init__(self, function, args):
+            self.function = function
+            self.args = args
+
+        def get(self):
+            return self.function(self, *self.args)
+
+        def retry(self, exc, **kwargs):
+            raise exc
+
+    class Task:
+        def __init__(self, function):
+            self.function = function
+
+        def apply(self, args=tuple()):
+            return Result(self.function, args)
+
+    class App:
+        @classmethod
+        def task(cls, bind=True):
+            def wrapper(function):
+                return Task(function)
+
+            return wrapper
+
+    app = App()
 
 
 @app.task(bind=True)
@@ -72,7 +113,7 @@ def generate_chart_image_task(self, chart_type, data, width, height):
 
 
 @app.task(bind=True)
-def asset_metadata_task(self, dgid, asset_id):
+def select_asset_metadata_task(self, dgid, asset_id):
     try:
         result = select_asset_metadata(dgid, asset_id)
         return json.loads(result)
@@ -82,7 +123,7 @@ def asset_metadata_task(self, dgid, asset_id):
 
 
 @app.task(bind=True)
-def download_task(self, dgid, asset_id, thumbnail):
+def select_asset_task(self, dgid, asset_id, thumbnail):
     try:
         result = select_asset(dgid, asset_id, thumbnail)
         return result
