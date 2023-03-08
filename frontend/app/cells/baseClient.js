@@ -5,6 +5,7 @@ import { ViewContext } from "../contexts/ViewContext";
 import classNames from 'classnames/bind';
 import styles from './Cell.module.scss';
 import { Resizable } from 're-resizable';
+import { useInView } from "react-intersection-observer";
 import getDefaultCellSize from "../../lib/getDefaultCellSize";
 
 const cx = classNames.bind(styles);
@@ -18,10 +19,11 @@ the cell widths via onResize will often lead to the widths of different cells fa
 Using the startResizing/stopResizing/initWidth dynamic, we can force all widths to stay in sync.
 */
 
-const CellClient = ({ columnName, type, isHeader, children, grouped }) => {
-    const { columns, updateWidth } = useContext(ViewContext);
+const CellClient = ({ columnName, type, isHeader, children, grouped, cidx }) => {
+    const { columns, updateWidth, view, updateView } = useContext(ViewContext);
     const [isResizing, setIsResizing] = useState(false);
     const [width, setWidth] = useState(getDefaultCellSize(type, grouped));
+    const { ref, inView, entry } = useInView({ threshold: 0 });
 
     const resize = useCallback((d) => {
         updateWidth({
@@ -39,6 +41,36 @@ const CellClient = ({ columnName, type, isHeader, children, grouped }) => {
             setWidth(columns?.[columnName]?.width ?? width);
         }
     }, [isResizing, columns?.[columnName]?.width, width]);
+
+    useEffect(() => {
+        if (inView) {
+            if (cidx > view?.stop) {
+                updateView({ view: {
+                    stop: cidx
+                }})
+            } else if (cidx < view?.start) {
+                updateView({ view: {
+                    start: cidx
+                }})
+            }
+        } else {
+            const closerToEnd = (Math.abs(view?.stop - cidx) < Math.abs(view?.start - cidx))
+            if (closerToEnd) {
+                if (cidx < view?.stop) {
+                    updateView({ view: {
+                        stop: cidx
+                    }})
+                }
+            } else {
+                if (cidx > view?.start) {
+                    updateView({ view: {
+                        start: cidx
+                    }})
+                }
+            }
+        }
+      }, [inView, updateView, cidx, view]);
+    
 
     const headerResizeStyle = {
         'width': '1px',
@@ -67,7 +99,9 @@ const CellClient = ({ columnName, type, isHeader, children, grouped }) => {
             }}
             onResizeStop={stopResizing}
         >
+            <div ref={ref}>
             { children }
+            </div>
         </Resizable>
     )
 }

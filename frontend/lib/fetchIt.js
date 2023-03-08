@@ -38,20 +38,23 @@ const fetchIt = async ({
         request.cache = 'no-store';
     }
 
-    try {
+    try {        
         const res = await fetch(`${url}?${queryArgs}`, request);
 
         if (json) {
             const data = await res.json();
             if (returnUrl) return data.uri;
+            
             return data;
         } else {
             return res;
         }
     } catch (error) {
-        console.log(`fetchIt: server not ready: ${url}?${queryArgs}`);
+        console.log(`fetch error: ${url}?${queryArgs}`);
         console.log(error);
-	return {};
+        return {
+            error: true
+        };
     }
 
 };

@@ -16,12 +16,15 @@ const Main = async ({ query }) => {
     const data = await fetchDataGrid(query);
 
     const { columnTypes, columns } = data || EMPTY;
-    const view =  Object.fromEntries( columns.map( ( col, idx ) => [ col, { width: getDefaultCellSize(columnTypes[idx], query?.groupBy) } ]));
+    const viewStart = query?.begin ?? 0;
+    const viewEnd = query?.boundary ?? 20;
+
+    const view =  Object.fromEntries( columns.slice(viewStart, viewEnd).map( ( col, idx ) => [ col, { width: getDefaultCellSize(columnTypes[idx], query?.groupBy) } ]));
 
     return (
         <ViewProvider value={{ columns: view, query }}>
             <Suspense fallback={<>Loading</>}><SettingsBar query={query} columns={columns} /></Suspense>
-            <Table data={data} query={query} />
+            <Suspense fallback={<>Loading</>}><Table data={data} query={query} start={viewStart} end={viewEnd} /></Suspense>
             <Suspense fallback={<>Loading</>}><PagerBar query={query} /></Suspense>
         </ViewProvider>
     );
@@ -39,7 +42,9 @@ const Page = async ({ searchParams }) => {
         descending,
         page,
         rows,
-        select
+        select,
+        boundary,
+        begin
     } = searchParams;
 
     // Limit and offset are always set; get base or view defaults:
@@ -57,6 +62,8 @@ const Page = async ({ searchParams }) => {
         select: select?.split(','),
         offset,
         limit,
+        boundary,
+        begin
     };
 
     if (!!datagrid) query.timestamp = await fetchTimestamp(datagrid);

@@ -6,8 +6,15 @@ import fetchIt from './fetchIt';
 import formatValue from './formatValue';
 import { getColor } from './generateChartColor';
 
-const fetchHistogram = async (query) => {
-    const data = await fetchIt({url: `${config.apiUrl}histogram`, query});
+const fetchHistogram = async (query, ssr=false) => {
+    const data = ssr ? 
+        await fetchIt({ url: `${config.apiUrl}histogram`, query}) : 
+        await fetchIt({url: `/api/histogram`, query});
+
+
+    if (data?.error) {
+        return data;
+    }
 
     if (data?.type === 'verbatim') {
         return {

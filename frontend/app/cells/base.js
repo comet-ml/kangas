@@ -14,7 +14,7 @@ const HeaderCell = ({ columnName, type }) => {
     );
 }
 
-const Cell = async ({ value, columnName, type, query, isHeader }) => {
+const Cell = async ({ value, columnName, type, query, isHeader, cidx, ssr=false }) => {
     const Component = cellMap?.[type]?.component;
 
     if (isHeader) {
@@ -24,8 +24,8 @@ const Cell = async ({ value, columnName, type, query, isHeader }) => {
     };
 
     return (
-        <CellClient columnName={columnName} type={type} grouped={query?.groupBy}>
-            { !!Component && <Component value={value} query={query} />}
+        <CellClient columnName={columnName} type={type} grouped={query?.groupBy} cidx={cidx} >
+            { !!Component && <Component value={value} query={query} ssr={ssr} />}
             { !Component && <div>{`${value}`}</div> }
         </CellClient>
     );

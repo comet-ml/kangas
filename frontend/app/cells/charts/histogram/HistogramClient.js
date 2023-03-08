@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useContext } from 'react';
 import dynamic from 'next/dynamic';
-import { getColor } from '../../../../lib/generateChartColor';
-import formatValue from '../../../../lib/formatValue';
+import fetchHistogram from "../../../../lib/fetchHistogram"
 import truncateValue from '../../../../lib/truncateValue';
 import { ConfigContext } from '../../../contexts/ConfigContext';
+import { useInView } from "react-intersection-observer";
 
 const Plot = dynamic(() => import("react-plotly.js"), {
     ssr: false
@@ -13,6 +13,7 @@ const Plot = dynamic(() => import("react-plotly.js"), {
 
 import classNames from 'classnames/bind';
 import styles from '../Charts.module.scss';
+import useQueryParams from '../../../../lib/hooks/useQueryParams';
 const cx = classNames.bind(styles);
 
 const HistogramLayout = {
@@ -42,18 +43,12 @@ const HistogramConfig = {
     displayModeBar: false,
 };
 
-const HistogramClient = ({ value, expanded, title, data }) => {
+const HistogramClient = ({ value, expanded, ssrData }) => {
     const { config } = useContext(ConfigContext);
-    const [visible, setVisible] = useState(false);
-    const plot = useRef();
-
-    const onIntersect = useCallback((entries, observer) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                setVisible(true);
-            }
-        });
-    }, []);
+    const [data, setData] = useState();
+    const { ref, inView, entry } = useInView({
+        threshold: 0,
+    });
 
     const makeStatsTable = (statistics) => {
         if (statistics) {
@@ -77,28 +72,16 @@ const HistogramClient = ({ value, expanded, title, data }) => {
     };
 
     const statisticsTable = useMemo(() => {
-        if (typeof(data) !== 'undefined' && Array.isArray(data) && data[0].statistics) {
+        if (!!data?.[0]?.statistics) {
             return makeStatsTable(data[0].statistics);
         }
         return <div />;
     }, [data]);
 
-    useEffect(() => {
-        const options = {
-            root: null,
-            rootMargin: "0px",
-            threshold: 0
-        };
-
-        const observer = new IntersectionObserver(onIntersect, options);
-        observer.observe(plot.current);
-
-    }, [onIntersect]);
-
     const ExpandedLayout = useMemo(() => {
         return {
             autosize: true,
-            title,
+            title: value?.columnName,
             font: {
                 family: 'Roboto',
                 size: 22,
@@ -117,21 +100,70 @@ const HistogramClient = ({ value, expanded, title, data }) => {
                 },
             }
         };
-    }, [title]);
+    }, [value?.columnName]);
+
+    const queryString = useMemo(() => {
+        if (!data) return;
+
+        return new URLSearchParams(
+            Object.fromEntries(
+                Object.entries({
+                    chartType: 'histogram',
+                    data: JSON.stringify(data)
+                }).filter(([k, v]) => typeof(v) !== 'undefined' && v !== null)
+            )
+        ).toString();
+    }, [data]);
+
+
+    useEffect(() => {
+        if (!value || ssrData) return;
+        fetchHistogram(value).then(res => {
+            setData(res);
+        });
+    }, [value])
+
+    useEffect(() => {
+        if (ssrData) setData(ssrData);
+    }, [ssrData]);
+
+    /*
+    useEffect(() => {
+        if (data?.error) {
+            const time = Date.now();
+            setTimeout(() => {
+                updateParams({
+                    last: time
+                })
+            }, 800)
+        }
+    }, [data?.error, updateParams]);*/
+
+    if (!data || data?.error) {
+        return <> Loading </>
+    }
+
+    if (data?.isVerbatim) {
+        return <div> { data?.value } </div>
+    }
+
+    if (!expanded) {
+        return <img src={`/api/charts?${queryString}`} loading="lazy" className={cx(['chart-thumbnail', 'category'])} />
+    }
 
     return (
-      <div style={{ minWidth: '700px', display: 'flex' }}>
-        <div ref={plot} className={cx('plotly-container-with-stats', { expanded })}>
-            { visible &&
-            <Plot
-                className={cx('plotly-chart-with-stats', { expanded })}
-                data={data}
-                layout={expanded ? ExpandedLayout : HistogramLayout}
-                config={HistogramConfig}
-            />
-}
-        </div>
-        {statisticsTable}
+        <div style={{ minWidth: '700px', display: 'flex' }}>
+            <div ref={ref} className={cx('plotly-container-with-stats', { expanded })}>
+                { inView && data &&
+                    <Plot
+                        className={cx('plotly-chart-with-stats', { expanded })}
+                        data={data}
+                        layout={expanded ? ExpandedLayout : HistogramLayout}
+                        config={HistogramConfig}
+                    />
+                }
+            </div>
+            {statisticsTable}
       </div>
     );
 }

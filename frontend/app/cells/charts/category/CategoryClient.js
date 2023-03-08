@@ -1,12 +1,12 @@
 'use client';
 
 import classNames from 'classnames/bind';
-import { ModalContext } from '../../../modals/DialogueModal/DialogueModalClient';
 import styles from '../Charts.module.scss';
-import { useContext, useMemo, useCallback, useState, useRef, useEffect, Suspense } from 'react';
-import { useRouter } from "next/navigation";
+import { useMemo, useCallback, useState, useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { getColor } from '../../../../lib/generateChartColor';
+import useQueryParams from '../../../../lib/hooks/useQueryParams';
+import fetchCategory from '../../../../lib/fetchCategory';
+import { useInView } from "react-intersection-observer";
 
 const Plot = dynamic(() => import("react-plotly.js"), {
     ssr: false,
@@ -44,22 +44,19 @@ const CategoryConfig = {
 };
 
 
-const CategoryClient = ({ expanded, title, query, columnName, data }) => {
+const CategoryClient = ({ expanded, value, ssrData }) => {
+    const { params, updateParams } = useQueryParams();
     const [visible, setVisible] = useState(false);
+    const [data, setData] = useState(false);
     const plot = useRef();
-
-    const onIntersect = useCallback((entries, observer) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                setVisible(true);
-            }
-        });
-    }, []);
+    const { ref, inView, entry } = useInView({
+        threshold: 0,
+    });
 
     const ExpandedLayout = useMemo(() => {
         return {
             autosize: true,
-            title,
+            title: value?.columnName,
             font: {
                 family: 'Roboto',
                 size: 22,
@@ -75,41 +72,46 @@ const CategoryClient = ({ expanded, title, query, columnName, data }) => {
                 type: 'category'
 	        },
         };
-    }, [title]);
+    }, [value?.columnName]);
 
-    const router = useRouter();
-
-    /*
-    const onClick = useCallback((data) => {
-        // FIXME: this doesn't stop the event:
-        data.event.preventDefault();
-        data.event.stopPropagation();
-
-        let filter = `{"${query.groupBy}"} == "${query.columnValue}" and {"${columnName}"} == "${data.points[0].label}"`;
-        //FIXME: may repeat items:
-        if (!!query.filter)
-            filter = `${query.filter} and ${filter}`;
-
-        // FIXME: build query string and encode:
-        router.push(`/?datagrid=${query.dgid}&filter=${filter}`);
-    }, [data, columnName]);
-    */
+    const queryString = useMemo(() => {
+        if (!data) return;
+        return new URLSearchParams(
+            Object.fromEntries(
+                Object.entries({
+                    chartType: 'category',
+                    data: JSON.stringify(data)
+                }).filter(([k, v]) => typeof(v) !== 'undefined' && v !== null)
+            )
+        ).toString();
+    }, [data]);
 
     useEffect(() => {
-        const options = {
-            root: null,
-            rootMargin: "0px",
-            threshold: 0
-        };
+        if (!value || ssrData) return;
+        fetchCategory(value).then(res => {
+            setData(res);
+        });
+    }, [value])
 
-        const observer = new IntersectionObserver(onIntersect, options);
-        observer.observe(plot.current);
+    useEffect(() => {
+        if (ssrData) setData(ssrData);
+    }, [ssrData]);
 
-    }, [onIntersect]);
+    if (!data || data?.error) {
+        return <> Loading </>
+    }
+
+    if (data?.isVerbatim) {
+        return <div> { data?.value } </div>
+    }
+
+    if (!expanded) {
+        return <img src={`/api/charts?${queryString}`} loading="lazy" className={cx(['chart-thumbnail', 'category'])} />
+    }
 
     return (
-        <div ref={plot} className={cx('plotly-container', { expanded })}>
-            { visible &&
+        <div ref={ref} className={cx('plotly-container', { expanded })}>
+            { inView && data &&
             <Plot
                 className={cx('plotly-chart', { expanded })}
                 data={data}
@@ -119,7 +121,6 @@ const CategoryClient = ({ expanded, title, query, columnName, data }) => {
             }
         </div>
     );
-    // onClick={onClick}
 }
 
 export default CategoryClient;
