@@ -26,9 +26,9 @@ const AboutDataGridButton = ({text}) => {
             <div style={{display: "flex"}}>
                 <div dangerouslySetInnerHTML={{__html: text}}
                     style={{width: '500px',
-		            overflow: 'auto',
-			    border: 'solid blue',
-			    borderWidth: 'thin'}}></div>
+                            overflow: 'auto',
+                            marginLeft: 'auto',
+                            borderWidth: 'thin'}}></div>
             </div>
     </DialogueModal>
 );

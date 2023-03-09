@@ -187,7 +187,9 @@ def process_about(url, dgid, text):
         retval = ""
         start = 0
         matches = re.finditer(regex, text, re.MULTILINE | re.DOTALL)
+        found = False
         for match in matches:
+            found = True
             end, newstart = match.span()
             previous = text[start:end]
             retval += previous
@@ -195,6 +197,8 @@ def process_about(url, dgid, text):
             retval += code + "\n\n"
             retval += create_markdown_button(url, dgid, match.groups(0)[0])
             start = newstart
+        if not found:
+            retval = text
         return marko.Markdown().convert(retval)
     else:
         return ""
