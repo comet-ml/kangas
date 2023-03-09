@@ -12,13 +12,63 @@
 ######################################################
 
 import math
+import os
+import platform
 import socket
 import sys
 import uuid
 
+import requests
 import six
 
 RESERVED_NAMES = ["ROW-ID"]
+
+
+def new_kangas_version_available():
+    """
+    Checks to see if a new Kangas version is available.
+    """
+    from ._version import __version__
+    from .server.utils import get_node_version
+
+    if int(os.environ.get("KANGAS_VERSION_CHECK", "1")):
+        if _in_colab_environment():
+            env = "colab"
+        elif _in_ipython_environment():
+            env = "ipython"
+        else:
+            env = "python"
+
+        package = {
+            "user_id": "Anonymous",
+            "event_type": "kangas_version_check",
+            "event_properties": {
+                "license_key": "NA",
+                "kangas_version": __version__,
+                "os_version": "%s %s %s"
+                % (platform.system(), platform.release(), platform.version()),
+                "os_details": "%s (%s)" % (sys.platform, platform.platform()),
+                "env": env,
+                "python_version": platform.python_version(),
+                "node_version": get_node_version(),
+            },
+        }
+
+        headers = {"Content-Type": "application/json"}
+
+        try:
+            response = requests.request(
+                "POST",
+                "https://stats.comet.com/notify/event/",
+                json=package,
+                headers=headers,
+            )
+            return response.status_code != 200
+        except Exception:
+            pass
+
+        return False
+    return False
 
 
 def get_localhost():

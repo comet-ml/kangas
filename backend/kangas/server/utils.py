@@ -13,6 +13,7 @@
 
 import inspect
 import re
+import subprocess
 import urllib
 
 try:
@@ -197,3 +198,19 @@ def process_about(url, dgid, text):
         return marko.Markdown().convert(retval)
     else:
         return ""
+
+
+def get_node_version():
+    try:
+        import nodejs
+    except Exception:
+        nodejs = None
+
+    if nodejs is not None:
+        return nodejs.__version__
+
+    output = subprocess.check_output(["node", "--version"])
+    if output:
+        return output.decode("utf-8").strip()
+
+    return "unknown"

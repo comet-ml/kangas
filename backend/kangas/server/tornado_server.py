@@ -22,7 +22,6 @@ import json
 import logging
 import os
 import platform
-import subprocess
 import sys
 import urllib
 
@@ -54,6 +53,7 @@ from .queries import (
     select_query_page,
     verify_where,
 )
+from .utils import get_node_version
 
 USE_AUTH = False
 LOGGER = logging.getLogger(__name__)
@@ -64,22 +64,6 @@ else:
 
     def auth_wrapper(function):
         return function
-
-
-def get_node_version():
-    try:
-        import nodejs
-    except Exception:
-        nodejs = None
-
-    if nodejs is not None:
-        return nodejs.__version__
-
-    output = subprocess.check_output(["node", "--version"])
-    if output:
-        return output.decode("utf-8").strip()
-
-    return "unknown"
 
 
 def get_column_value(column_value):
