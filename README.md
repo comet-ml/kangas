@@ -59,7 +59,7 @@ Once installed, there are many ways to load or create a DataGrid. Here, we load 
 import kangas as kg
 
 # Load an existing DataGrid
-dg = kg.read_datagrid("https://github.com/caleb-kaiser/kangas_examples/raw/master/coco-500.datagrid")
+dg = kg.read_datagrid("https://github.com/caleb-kaiser/kangas_examples/raw/master/coco-500.datagrid.zip")
 ```
 
 After your DataGrid is initialized, you can render it within the Kangas Viewer directly from Python:
