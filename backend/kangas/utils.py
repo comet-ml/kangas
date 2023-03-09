@@ -12,6 +12,8 @@
 ######################################################
 
 import math
+import os
+import platform
 import socket
 import sys
 import uuid
@@ -19,6 +21,35 @@ import uuid
 import six
 
 RESERVED_NAMES = ["ROW-ID"]
+
+
+def new_kangas_version_available():
+    """
+    Checks to see if a new Kangas version is available.
+    """
+    from ._version import __version__
+    from .server.utils import get_node_version
+
+    if int(os.environ.get("KANGAS_VERSION_CHECK", "1")):
+        if _in_colab_environment():
+            env = "colab"
+        elif _in_ipython_environment():
+            env = "ipython"
+        else:
+            env = "python"
+
+        package = {  # noqa
+            "kangas_version": __version__,
+            "os_version": "%s %s %s"
+            % (platform.system(), platform.release(), platform.version()),
+            "os_details": "%s (%s)" % (sys.platform, platform.platform()),
+            "env": env,
+            "python_version": platform.python_version(),
+            "node_version": get_node_version(),
+        }
+        # call endpoint to check
+        return False
+    return False
 
 
 def get_localhost():

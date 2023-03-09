@@ -17,7 +17,6 @@ import logging
 import os
 import platform
 import re
-import subprocess
 import sys
 
 from flask import Flask, jsonify, make_response, request
@@ -49,6 +48,7 @@ from .tasks import (
     select_category_task,
     select_histogram_task,
 )
+from .utils import get_node_version
 
 USE_AUTH = False
 KANGAS_CACHE_FOLDER = os.environ.get("KANGAS_CACHE_FOLDER", "/var/cache/kangas-server/")
@@ -90,22 +90,6 @@ def error(error_code):
 
 def auth_wrapper(function):
     return function
-
-
-def get_node_version():
-    try:
-        import nodejs
-    except Exception:
-        nodejs = None
-
-    if nodejs is not None:
-        return nodejs.__version__
-
-    output = subprocess.check_output(["node", "--version"])
-    if output:
-        return output.decode("utf-8").strip()
-
-    return "unknown"
 
 
 def get_column_value(column_value):
