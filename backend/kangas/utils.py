@@ -17,7 +17,7 @@ import platform
 import socket
 import sys
 import uuid
-
+import requests
 import six
 
 RESERVED_NAMES = ["ROW-ID"]
@@ -38,16 +38,30 @@ def new_kangas_version_available():
         else:
             env = "python"
 
-        package = {  # noqa
-            "kangas_version": __version__,
-            "os_version": "%s %s %s"
-            % (platform.system(), platform.release(), platform.version()),
-            "os_details": "%s (%s)" % (sys.platform, platform.platform()),
-            "env": env,
-            "python_version": platform.python_version(),
-            "node_version": get_node_version(),
+        package = {
+            "user_id": "Anonymous",
+            "event_type": "kangas_version_check",
+            "event_properties": {
+                "license_key": "NA",
+                "kangas_version": __version__,
+                "os_version": "%s %s %s" % (platform.system(), platform.release(), platform.version()),
+                "os_details": "%s (%s)" % (sys.platform, platform.platform()),
+                "env": env,
+                "python_version": platform.python_version(),
+                "node_version": get_node_version(),
+            }
         }
-        # call endpoint to check
+
+        headers = {
+            "Content-Type": "application/json"
+        }
+
+        try:
+            r = requests.request("POST", 'https://stats.comet.com/notify/event/', json=package, headers=headers)
+
+        except Exception as e:
+            pass
+
         return False
     return False
 
