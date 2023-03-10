@@ -263,9 +263,13 @@ def ListComprehension(x, y, gen, ifs):
         env = safe_env()
         try:
             ## FIXME: a string that is a number is json-like
-            decoded_gen = ast.literal_eval(gen)
+            decoded_gen = json.loads(gen)
         except Exception:
-            decoded_gen = gen
+            # Maybe a list with single-quoted strings
+            try:
+                decoded_gen = ast.literal_eval(gen)
+            except Exception:
+                decoded_gen = gen
 
         ## first, we prepare ifs:
         if ifs:

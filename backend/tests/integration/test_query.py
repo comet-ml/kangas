@@ -35,7 +35,7 @@ def test_query_basic_3():
 
 def test_query_basic_4():
     df = dg.select_dataframe('{"image"}.labels.person > 16')
-    assert len(df) == 2
+    assert len(df) == 1
 
 
 def test_query_basic_5():
@@ -56,7 +56,7 @@ def test_query_in_sql_1():
     df = dg.select_dataframe(
         computed_columns={"x": '{"image"}.labels.dog in [1]'}, where='{"x"}'
     )
-    assert len(df) == 19
+    assert len(df) == 20
 
 
 def test_query_in_sql_2():
@@ -70,7 +70,7 @@ def test_query_in_sql_3():
     df = dg.select_dataframe(
         computed_columns={"x": '{"image"}.labels.dog in [1, 2]'}, where='{"x"}'
     )
-    assert len(df) == 28
+    assert len(df) == 29
 
 
 def test_query_in_sql_4():
@@ -108,7 +108,9 @@ def test_query_in_python_2():
 
 def test_query_in_python_3():
     df = dg.select_dataframe(
-        computed_columns={"x": '[x["label"] == "dog" for x in {"Image"}.overlays]'},
+        computed_columns={
+            "x": '[any([annotation["label"] == "dog" for annotation in layer["data"]]) for layer in {"Image"}.annotations]'
+        },
         where='any({"x"})',
     )
     assert len(df) == 30
@@ -116,7 +118,9 @@ def test_query_in_python_3():
 
 def test_query_in_python_4():
     df = dg.select_dataframe(
-        computed_columns={"x": '[x["label"] == "person" for x in {"Image"}.overlays]'},
+        computed_columns={
+            "x": '[any([annotation["label"] == "person" for annotation in layer["data"]]) for layer in {"Image"}.annotations]'
+        },
         where='any({"x"})',
     )
     assert len(df) == 212
@@ -125,7 +129,7 @@ def test_query_in_python_4():
 def test_query_in_python_5():
     df = dg.select_dataframe(
         computed_columns={
-            "x": '[x["label"] in ["car", "bicycle"] for x in {"Image"}.overlays]'
+            "x": '[any([annotation["label"] in ["car", "bicycle"] for annotation in layer["data"]]) for layer in {"Image"}.annotations]'
         },
         where='any({"x"})',
     )
@@ -135,7 +139,7 @@ def test_query_in_python_5():
 def test_query_in_python_6():
     df = dg.select_dataframe(
         computed_columns={
-            "x": '[x["label"] == "cat" or x["label"] == "dog" for x in {"Image"}.overlays]'
+            "x": '[any([annotation["label"] == "cat" or annotation["label"] == "dog" for annotation in layer["data"]]) for layer in {"Image"}.annotations]'
         },
         where='any({"x"})',
     )
@@ -145,8 +149,8 @@ def test_query_in_python_6():
 def test_query_in_python_7():
     df = dg.select_dataframe(
         computed_columns={
-            "cat": '[x["label"] == "cat" for x in {"Image"}.overlays]',
-            "dog": '[x["label"] == "dog" for x in {"Image"}.overlays]',
+            "cat": '[any([annotation["label"] == "cat" for annotation in layer["data"]]) for layer in {"Image"}.annotations]',
+            "dog": '[any([annotation["label"] == "dog" for annotation in layer["data"]]) for layer in {"Image"}.annotations]',
         },
         where='any({"cat"}) or any({"dog"})',
     )
@@ -155,7 +159,9 @@ def test_query_in_python_7():
 
 def test_query_in_python_8():
     df = dg.select_dataframe(
-        computed_columns={"x": '[x["score"] > 0.999 for x in {"Image"}.overlays]'},
+        computed_columns={
+            "x": '[any([annotation["score"] > 0.999 for annotation in layer["data"]]) for layer in {"Image"}.annotations]'
+        },
         where='any({"x"})',
     )
-    assert len(df) == 5
+    assert len(df) == 2
