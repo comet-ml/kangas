@@ -17,7 +17,7 @@ import os
 try:
     from celery import Celery
 except ImportError:
-    celery = None
+    Celery = None
 
 from .queries import (
     generate_chart_image,
@@ -58,7 +58,7 @@ def get_retry_kwargs(e):
     }
 
 
-if KANGAS_USE_CELERY and celery is not None:
+if KANGAS_USE_CELERY and Celery is not None:
     print("Using flask with celery")
 
     app = Celery(
