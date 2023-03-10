@@ -1564,9 +1564,7 @@ class DataGrid:
         self._asset_id_cache = None
 
         # Update and clear cache:
-        schema = self.get_schema()
-
-        self._compute_stats(columns={name: schema[name] for name in new_column_names})
+        self._compute_stats(columns=new_column_names)
 
     def _append_row_dict_to_db(self, index, row_dict, field_name_map):
         # Only for user-suppplied columns; collects column names
@@ -2176,7 +2174,11 @@ class DataGrid:
         """
         insert_metadata_sql = """UPDATE metadata SET minimum = ?, maximum = ?, average = ?, variance = ?, total = ?, stddev= ? , other = ? WHERE name = ?;"""
 
-        columns = columns if columns is not None else self.get_schema()
+        if columns is not None:
+            schema = self.get_schema()
+            columns = {name: schema[name] for name in columns}
+        else:
+            columns = self.get_schema()
 
         data = []
         print("Computing statistics...")
@@ -2453,6 +2455,7 @@ class DataGrid:
                 self._upgrade_table(
                     "column_0", schema[column_name]["field_name"], "datagrid"
                 )
+                self._compute_stats([column_name])
 
     def _upgrade_table(self, column_id_name, column_metadata_name, table_name):
         """
