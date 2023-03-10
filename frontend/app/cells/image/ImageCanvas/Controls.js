@@ -5,6 +5,8 @@ import classNames from 'classnames/bind';
 import { useCallback, useContext, useEffect, useMemo } from 'react';
 import { CanvasContext } from '../../../contexts/CanvasContext';
 import Label from './Label';
+import { Accordion, AccordionDetails, AccordionSummary } from '@mui/material';
+import { ExpandMoreOutlined } from '@material-ui/icons';
 
 const cx = classNames.bind(styles);
 
@@ -131,6 +133,22 @@ const ImageCanvasControls = ({ initLabels=[] }) => {
                     />
                 </div>
             </div>
+            {
+                !isGroup && (
+                    <Accordion elevation={0}>
+                        <AccordionSummary expandIcon={<ExpandMoreOutlined />}>
+                            Metadata
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            <pre className={cx('metadata-pre')}>
+                                <code>
+                                    {JSON.stringify(metadata, null, 4)}
+                                </code>
+                            </pre>
+                        </AccordionDetails>
+                    </Accordion>
+                )
+            }
             <div className={cx('labels-container')}>
                 { labels?.sort().map(l => <Label toggle={toggleLabel} label={l} />) }
             </div>
