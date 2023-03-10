@@ -57,6 +57,130 @@ import math
 VALID_CHARS = string.ascii_letters + string.digits + "_"
 
 
+def sqlite_query(
+    filename,
+    database,
+    where="1",
+    select=None,
+    computed_columns=None,
+    column_map=None,
+    sort_by=None,
+    sort_desc=True,
+    limit=None,
+):
+    """
+    A generic SQLite query interface, using the Python-to-SQL
+    translator.
+
+    Args:
+        filename: (str) path to SQLite database
+        database: (str) name of table in database
+        where: (str, optional) Python-like string filter
+        select: (list of str, optional) list of column names to select
+        computed_columns: (optional) dict of column names to expressions
+        column_map: (optional) dict of column name to field name
+        sort_by: (str, optional) name of column to sort by
+        sort_desc: (bool, optional) sort descending?
+        limit: (int, optional) number of rows to select
+
+    Examples:
+    ```
+    column_map = {"Score": "column_3"}
+    where = '{"Score"} > 0.5'
+    computed_columns = {
+        "Score + 1": '{"Score"} + 1',
+        "Score + 2": '{"Score + 1"} + 1',
+    }
+
+    for row in sqlite_query("coco-500.datagrid", "datagrid", where,
+                            computed_columns=computed_columns,
+                            column_map=column_map):
+        print(row)
+    ```
+    """
+    if os.path.isfile(filename):
+        conn = sqlite3.connect(filename)
+    else:
+        raise Exception("file not found: %r" % filename)
+
+    columns = [
+        row[0]
+        for row in conn.execute("SELECT name FROM pragma_table_info(?);", (database,))
+    ]
+
+    if column_map is None:
+        metadata = {}
+    else:
+        for column_name, field_name in column_map.items():
+            if field_name in columns:
+                columns.remove(field_name)
+                columns.append(column_name)
+        metadata = {
+            key: {"field_expr": value, "field_name": value}
+            for key, value in column_map.items()
+        }
+
+    metadata.update(
+        {
+            row[0]: {"field_expr": row[0], "field_name": row[0]}
+            for row in conn.execute(
+                "SELECT name FROM pragma_table_info(?);", (database,)
+            )
+        }
+    )
+
+    if computed_columns:
+        computed_columns = {
+            key: {"field_expr": value, "field_name": "cc%d" % i, "type": "STRING"}
+            for i, (key, value) in enumerate(computed_columns.items())
+        }
+
+    select_expr_as = [metadata[column]["field_name"] for column in columns]
+    databases = [database]
+
+    # Side-effects: updates metadata, database, columns, select_expr_as:
+    where = update_state(
+        computed_columns,
+        metadata,
+        databases,
+        columns,
+        select_expr_as,
+        where,
+    )
+
+    select_fields = [metadata[column]["field_name"] for column in columns]
+    if sort_by is None:
+        order_by = ""
+    else:
+        sort_by_field_name = metadata[sort_by]["field_name"]
+        sort_desc = "DESC" if sort_desc else "ASC"
+        order_by = f"ORDER BY {sort_by_field_name} {sort_desc}"
+
+    if limit is None:
+        limit = ""
+    else:
+        limit = f"LIMIT {limit}"
+
+    env = {
+        "limit": limit,
+        "order_by": order_by,
+        "where": where,
+        "select_expr_as": ", ".join(select_expr_as),
+        "select_fields": ", ".join(select_fields),
+        "databases": ", ".join(databases),
+    }
+    select_sql = (
+        "SELECT {select_expr_as} FROM {databases} WHERE {where} {order_by} {limit}"
+    )
+
+    for row in conn.execute(select_sql.format(**env)):
+        data = {name: value for name, value in zip(columns, row)}
+        if select is None:
+            yield data
+        else:
+            yield {key: data[key] for key in select}
+
+
 def parse_comma_separated_values(string):
     retval = []
     for value in string.split(","):

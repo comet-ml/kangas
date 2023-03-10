@@ -22,6 +22,7 @@ import psutil
 from ._version import __version__  # noqa
 from .datatypes import Audio, Curve, DataGrid, Image, Text, Video  # noqa
 from .integrations import export_to_comet, import_from_comet  # noqa
+from .server.queries import sqlite_query  # noqa
 from .utils import (
     _in_colab_environment,
     _in_jupyter_environment,
