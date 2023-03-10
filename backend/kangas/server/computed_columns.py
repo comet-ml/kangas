@@ -563,7 +563,6 @@ def eval_computed_columns(computed_columns, where_expr=None):
 
 
 def update_state(
-    dgid,
     computed_columns,
     metadata,
     databases,

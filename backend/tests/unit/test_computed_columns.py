@@ -83,7 +83,6 @@ def test_none():
     where_expr = "{'A'} == 42"
 
     where_sql = update_state(
-        DGID,
         computed_columns,
         metadata,
         databases,
@@ -120,7 +119,6 @@ def test_simple_1():
     where_expr = "{'X'} == 42"
 
     where_sql = update_state(
-        DGID,
         computed_columns,
         metadata,
         databases,
@@ -214,7 +212,6 @@ def test_simple_2():
     where_expr = "{'X'} == 42"
 
     where_sql = update_state(
-        DGID,
         computed_columns,
         metadata,
         databases,
@@ -259,7 +256,6 @@ def test_aggregate_where1():
     where_expr = "{'X'} < AVG({'X'})"
 
     where_sql = update_state(
-        DGID,
         computed_columns,
         metadata,
         databases,
@@ -306,7 +302,6 @@ def test_aggregate_column():
     where_expr = "{'A'} < {'AVG A'}"
 
     where_sql = update_state(
-        DGID,
         computed_columns,
         metadata,
         databases,
@@ -374,7 +369,6 @@ def test_image_column():
     where_expr = ""
 
     where_sql = update_state(
-        DGID,
         computed_columns,
         metadata,
         databases,
@@ -465,7 +459,6 @@ def test_image_column_metadata():
     where_expr = "{'Image'}.extension == 'jpg'"
 
     where_sql = update_state(
-        DGID,
         computed_columns,
         metadata,
         databases,
@@ -508,7 +501,6 @@ def test_image_computed_column():
     where_expr = "{'Image2'} == 'jpg'"
 
     where_sql = update_state(
-        DGID,
         computed_columns,
         metadata,
         databases,

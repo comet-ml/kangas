@@ -732,7 +732,6 @@ def select_histogram(
 
     if computed_columns or where_expr:
         where_sql = update_state(
-            dgid,
             computed_columns,
             metadata,
             databases,
@@ -813,7 +812,6 @@ def select_description(
 
     if computed_columns or where_expr:
         where_sql = update_state(
-            dgid,
             computed_columns,
             metadata,
             databases,
@@ -886,7 +884,6 @@ def select_category(
 
     if computed_columns or where_expr:
         where_sql = update_state(
-            dgid,
             computed_columns,
             metadata,
             databases,
@@ -1075,7 +1072,6 @@ def select_asset_group(
 
     if computed_columns or where_expr:
         where_sql = update_state(
-            dgid,
             computed_columns,
             metadata,
             databases,
@@ -1181,7 +1177,6 @@ def select_asset_group_metadata(
 
     if computed_columns or where_expr:
         where_sql = update_state(
-            dgid,
             computed_columns,
             metadata,
             databases,
@@ -1320,7 +1315,6 @@ def verify_where(
     if computed_columns or where_expr:
         try:
             where_sql = update_state(
-                dgid,
                 computed_columns,
                 metadata,
                 databases,
@@ -1423,7 +1417,6 @@ def select_query_count(
 
     if computed_columns or where_expr:
         where_sql = update_state(
-            dgid,
             computed_columns,
             metadata,
             databases,
@@ -1515,7 +1508,6 @@ def select_query_page(
     # Expand to include computed columns
     if computed_columns or where_expr:
         where_sql = update_state(
-            dgid,
             computed_columns,
             metadata,
             databases,
@@ -1723,9 +1715,7 @@ def get_fields(dgid, metadata=None, computed_columns=None):
 
     if computed_columns:
         # Only passed in when calling from endpoint
-        update_state(
-            dgid, computed_columns, metadata, databases, columns, select_expr_as
-        )
+        update_state(computed_columns, metadata, databases, columns, select_expr_as)
         # Now metadata has computed columns
 
     fields = {}
