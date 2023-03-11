@@ -57,10 +57,10 @@ import math
 VALID_CHARS = string.ascii_letters + string.digits + "_"
 
 
-def sqlite_query(
+def sqlite_query_explain(
     filename,
     database,
-    where="1",
+    filter="1",
     select=None,
     computed_columns=None,
     column_map=None,
@@ -75,7 +75,7 @@ def sqlite_query(
     Args:
         filename: (str) path to SQLite database
         database: (str) name of table in database
-        where: (str, optional) Python-like string filter
+        filter: (str, optional) Python-like string filter
         select: (list of str, optional) list of column names to select
         computed_columns: (optional) dict of column names to expressions
         column_map: (optional) dict of column name to field name
@@ -86,13 +86,72 @@ def sqlite_query(
     Examples:
     ```
     column_map = {"Score": "column_3"}
-    where = '{"Score"} > 0.5'
+    filter = '{"Score"} > 0.5'
     computed_columns = {
         "Score + 1": '{"Score"} + 1',
         "Score + 2": '{"Score + 1"} + 1',
     }
 
-    for row in sqlite_query("coco-500.datagrid", "datagrid", where,
+    explanation = sqlite_query_explain(
+        "coco-500.datagrid", "datagrid", filter,
+        computed_columns=computed_columns,
+        column_map=column_map)
+    ```
+    """
+    explanation = next(
+        sqlite_query(
+            filename,
+            database,
+            filter,
+            select,
+            computed_columns,
+            column_map,
+            sort_by,
+            sort_desc,
+            limit,
+            explain=True,
+        )
+    )
+    return explanation
+
+
+def sqlite_query(
+    filename,
+    database,
+    filter="1",
+    select=None,
+    computed_columns=None,
+    column_map=None,
+    sort_by=None,
+    sort_desc=True,
+    limit=None,
+    explain=False,
+):
+    """
+    A generic SQLite query interface, using the Python-to-SQL
+    translator.
+
+    Args:
+        filename: (str) path to SQLite database
+        database: (str) name of table in database
+        filter: (str, optional) Python-like string filter
+        select: (list of str, optional) list of column names to select
+        computed_columns: (optional) dict of column names to expressions
+        column_map: (optional) dict of column name to field name
+        sort_by: (str, optional) name of column to sort by
+        sort_desc: (bool, optional) sort descending?
+        limit: (int, optional) number of rows to select
+
+    Examples:
+    ```
+    column_map = {"Score": "column_3"}
+    filter = '{"Score"} > 0.5'
+    computed_columns = {
+        "Score + 1": '{"Score"} + 1',
+        "Score + 2": '{"Score + 1"} + 1',
+    }
+
+    for row in sqlite_query("coco-500.datagrid", "datagrid", filter,
                             computed_columns=computed_columns,
                             column_map=column_map):
         print(row)
@@ -102,6 +161,8 @@ def sqlite_query(
         conn = sqlite3.connect(filename)
     else:
         raise Exception("file not found: %r" % filename)
+
+    add_python_functions(conn)
 
     columns = [
         row[0]
@@ -145,7 +206,7 @@ def sqlite_query(
         databases,
         columns,
         select_expr_as,
-        where,
+        filter,
     )
 
     select_fields = [metadata[column]["field_name"] for column in columns]
@@ -173,7 +234,13 @@ def sqlite_query(
         "SELECT {select_expr_as} FROM {databases} WHERE {where} {order_by} {limit}"
     )
 
-    for row in conn.execute(select_sql.format(**env)):
+    select_command = select_sql.format(**env)
+
+    if explain:
+        yield select_command
+        return
+
+    for row in conn.execute(select_command):
         data = {name: value for name, value in zip(columns, row)}
         if select is None:
             yield data
@@ -437,9 +504,7 @@ def ListComprehension(x, y, gen, ifs):
     return retval
 
 
-def get_database_connection(dgid):
-    db_path = get_dg_path(dgid)
-    conn = sqlite3.connect(db_path)
+def add_python_functions(conn):
     conn.create_aggregate("STDEV", 1, StdevFunc)
     conn.create_function("ANY_IN_GROUP", 1, ANY_IN_GROUP)
     conn.create_function("ALL_IN_GROUP", 1, ALL_IN_GROUP)
@@ -453,6 +518,12 @@ def get_database_connection(dgid):
     conn.create_function("VALUES_OF", 1, VALUES_OF)
     conn.create_function("IN_OBJ", 2, IN_OBJ)
     conn.create_function("ListComprehension", 4, ListComprehension)
+
+
+def get_database_connection(dgid):
+    db_path = get_dg_path(dgid)
+    conn = sqlite3.connect(db_path)
+    add_python_functions(conn)
     return conn
 
 
