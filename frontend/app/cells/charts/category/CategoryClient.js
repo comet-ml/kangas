@@ -43,15 +43,47 @@ const CategoryConfig = {
     displayModeBar: false,
 };
 
-
-const CategoryClient = ({ expanded, value, ssrData }) => {
-    const { params, updateParams } = useQueryParams();
-    const [visible, setVisible] = useState(false);
-    const [data, setData] = useState(false);
-    const plot = useRef();
+const VisibleWrapper = (props) => {
     const { ref, inView, entry } = useInView({
         threshold: 0,
     });
+    const timeout = useRef();
+
+    const [hasRendered, setHasRendered] = useState(false);
+    const visible = useMemo(() => hasRendered || inView, [hasRendered, inView]);
+    const render = useCallback(() => {
+        if (!hasRendered) setHasRendered(true)
+    }, [hasRendered])
+
+    useEffect(() => {
+        /*
+        if (!inView && !timeout.current) {
+            timeout.current = setTimeout(render, 50)
+        }
+        */
+
+        if (inView && !hasRendered) {
+            render();
+        }
+    }, [inView, render, hasRendered])
+
+
+    if (!!props?.ssrData) {
+        return <CategoryClient {...props} />
+    }
+
+    return (
+        <div ref={ref}>
+            { !visible && <>Loading</> }
+            { visible && <CategoryClient {...props} /> }
+        </div>
+    )
+}
+
+
+const CategoryClient = ({ expanded, value, ssrData }) => {
+    const [response, setResponse] = useState(false);
+    const data = useMemo(() => ssrData || response, [ssrData, response]);
 
     const ExpandedLayout = useMemo(() => {
         return {
@@ -89,16 +121,14 @@ const CategoryClient = ({ expanded, value, ssrData }) => {
     useEffect(() => {
         if (!value || ssrData) return;
         fetchCategory(value).then(res => {
-            setData(res);
+            setResponse(res);
         });
     }, [value])
 
-    useEffect(() => {
-        if (ssrData) setData(ssrData);
-    }, [ssrData]);
+
 
     if (!data || data?.error) {
-        return <> Loading </>
+        return <>Loading</>
     }
 
     if (data?.isVerbatim) {
@@ -110,8 +140,8 @@ const CategoryClient = ({ expanded, value, ssrData }) => {
     }
 
     return (
-        <div ref={ref} className={cx('plotly-container', { expanded })}>
-            { inView && data &&
+        <div className={cx('plotly-container', { expanded })}>
+            { data &&
             <Plot
                 className={cx('plotly-chart', { expanded })}
                 data={data}
@@ -123,4 +153,4 @@ const CategoryClient = ({ expanded, value, ssrData }) => {
     );
 }
 
-export default CategoryClient;
+export default VisibleWrapper;

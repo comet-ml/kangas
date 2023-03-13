@@ -11,6 +11,7 @@ import fetchTimestamp from '../lib/fetchTimestamp';
 import EMPTY from '../lib/consts/emptyTable';
 import Prefetch from './prefetch';
 import Skeleton from './Skeleton';
+import Imports from './perf/Imports';
 
 const Main = async ({ query }) => {
     const data = await fetchDataGrid(query);
@@ -70,6 +71,7 @@ const Page = async ({ searchParams }) => {
 
     return (
         <div>
+            <Imports />
             <Suspense fallback={<Skeleton message={"Suspending Page"} />}>
                 <Main query={query} />
             </Suspense>

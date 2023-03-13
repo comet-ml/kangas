@@ -7,12 +7,12 @@ import styles from '../Cell.module.scss'
 
 const cx = classNames.bind(styles);
 
-const GroupedFloatCell = ({ value, expanded = false}) => {
+const GroupedFloatCell = ({ value, expanded = false, ssr=false}) => {
     const primitive = isPrimitive(value);
     return (
         <div className={cx(['cell', 'group', 'cell-content'], { expanded })}>
             { primitive && formatValue(value)}
-            { !primitive && <Suspense fallback={<>Loading</>}><Histogram value={value} expanded={expanded} /></Suspense>}
+            { !primitive && <Suspense fallback={<>Loading</>}><Histogram value={value} expanded={expanded} ssr={ssr} /></Suspense>}
         </div>
     );
 }
