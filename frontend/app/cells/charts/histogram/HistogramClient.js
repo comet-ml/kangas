@@ -13,7 +13,6 @@ const Plot = dynamic(() => import("react-plotly.js"), {
 
 import classNames from 'classnames/bind';
 import styles from '../Charts.module.scss';
-import useQueryParams from '../../../../lib/hooks/useQueryParams';
 const cx = classNames.bind(styles);
 
 const HistogramLayout = {
@@ -43,40 +42,53 @@ const HistogramConfig = {
     displayModeBar: false,
 };
 
-const HistogramClient = ({ value, expanded, ssrData }) => {
-    const { config } = useContext(ConfigContext);
-    const [data, setData] = useState();
+const VisibleWrapper = (props) => {
     const { ref, inView, entry } = useInView({
         threshold: 0,
     });
+    const timeout = useRef();
 
-    const makeStatsTable = (statistics) => {
-        if (statistics) {
-            return (
-                <div style={{ margin: 'auto', marginLeft: 'inherit' }}>
-                    {Object.keys(statistics).map((key, index) => {
-                        return (
-                            <ul style={{ paddingLeft: '0' }}>
-                                <b>{key}</b> :{' '}
-                                {truncateValue(
-                                    statistics[key],
-                                    3
-                                ).toLocaleString(config.locale)}
-                            </ul>
-                        );
-                    })}
-                </div>
-            );
-        }
-        return <div />;
-    };
+    const [hasRendered, setHasRendered] = useState(false);
+    const visible = useMemo(() => hasRendered || inView, [hasRendered, inView]);
+    const render = useCallback(() => {
+        if (!hasRendered) setHasRendered(true)
+    }, [hasRendered])
 
-    const statisticsTable = useMemo(() => {
-        if (!!data?.[0]?.statistics) {
-            return makeStatsTable(data[0].statistics);
+    useEffect(() => {
+        /*
+        if (!inView && !timeout.current) {
+            timeout.current = setTimeout(render, 50)
         }
-        return <div />;
-    }, [data]);
+        */
+
+        if (inView && !hasRendered) {
+            render();
+        }
+    }, [inView, render, hasRendered])
+
+
+
+    if (!!props?.ssrData) {
+        return <HistogramClient {...props} />
+    }
+
+    return (
+        <div ref={ref}>
+            { !visible && <>Loading</> }
+            { visible && <HistogramClient {...props} /> }
+        </div>
+    )
+}
+
+
+const HistogramClient = ({ value, expanded, ssrData }) => {
+    const { config } = useContext(ConfigContext);
+    const [response, setResponse] = useState();
+    const data = useMemo(() => ssrData || response, [ssrData, response]);
+
+    const statistics = useMemo(() => {
+        return data?.[0]?.statistics
+    }, [data?.[0]?.statistics]);
 
     const ExpandedLayout = useMemo(() => {
         return {
@@ -119,28 +131,13 @@ const HistogramClient = ({ value, expanded, ssrData }) => {
     useEffect(() => {
         if (!value || ssrData) return;
         fetchHistogram(value).then(res => {
-            setData(res);
+            setResponse(res);
         });
     }, [value])
 
-    useEffect(() => {
-        if (ssrData) setData(ssrData);
-    }, [ssrData]);
-
-    /*
-    useEffect(() => {
-        if (data?.error) {
-            const time = Date.now();
-            setTimeout(() => {
-                updateParams({
-                    last: time
-                })
-            }, 800)
-        }
-    }, [data?.error, updateParams]);*/
 
     if (!data || data?.error) {
-        return <> Loading </>
+        return <>Loading</>
     }
 
     if (data?.isVerbatim) {
@@ -153,8 +150,8 @@ const HistogramClient = ({ value, expanded, ssrData }) => {
 
     return (
         <div style={{ minWidth: '700px', display: 'flex' }}>
-            <div ref={ref} className={cx('plotly-container-with-stats', { expanded })}>
-                { inView && data &&
+            <div className={cx('plotly-container-with-stats', { expanded })}>
+                { data &&
                     <Plot
                         className={cx('plotly-chart-with-stats', { expanded })}
                         data={data}
@@ -163,9 +160,23 @@ const HistogramClient = ({ value, expanded, ssrData }) => {
                     />
                 }
             </div>
-            {statisticsTable}
+            { !!statistics && (
+                <div style={{ margin: 'auto', marginLeft: 'inherit' }}>
+                    {Object.keys(statistics).map((key, index) => {
+                        return (
+                            <ul style={{ paddingLeft: '0' }}>
+                                <b>{key}</b> :{' '}
+                                {truncateValue(
+                                    statistics[key],
+                                    3
+                                ).toLocaleString(config.locale)}
+                            </ul>
+                        );
+                    })}
+                </div>
+            )}
       </div>
     );
 }
 
-export default HistogramClient;
+export default VisibleWrapper;
