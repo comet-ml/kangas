@@ -21,14 +21,10 @@
         <img src="https://img.shields.io/badge/Kangas-Docs-blue.svg" alt="Kangas Documentation">
     </a>
     <a rel="nofollow" href="https://pepy.tech/project/kangas">
-        <img style="max-width: 100%;" data-canonical-src="https://pepy.tech/badge/kangas" alt="Downloads" 
-             src="https://camo.githubusercontent.com/708e470ec83922035f2189544eb968c8c5bba5c8623b0ebb9cb88c5c370766c4/68747470733a2f2f706570792e746563682f62616467652f6b616e676173">
+        <img style="max-width: 100%;" data-canonical-src="https://pepy.tech/badge/kangas" alt="Downloads"  src="https://camo.githubusercontent.com/708e470ec83922035f2189544eb968c8c5bba5c8623b0ebb9cb88c5c370766c4/68747470733a2f2f706570792e746563682f62616467652f6b616e676173">
     </a>
     <a rel="nofollow" href="https://doi.org/10.5281/zenodo.7410884">
         <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.7410884.svg" alt="DOI">
-    </a>
-    <a href="https://trackgit.com">
-        <img src="https://us-central1-trackgit-analytics.cloudfunctions.net/token/ping/ldn6h026vu25r9kus8ld" alt="trackgit-views" />
     </a>
 </p>
 
