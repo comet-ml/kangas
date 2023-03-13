@@ -22,6 +22,7 @@ import sys
 from flask import Flask, jsonify, make_response, request
 from flask.logging import default_handler
 from flask_caching import Cache
+from waitress import serve
 
 from .._version import __version__
 from ..datatypes.utils import THUMBNAIL_SIZE
@@ -652,10 +653,9 @@ def run(host, port, debug_level, processes):
     # application.logger.addHandler(handler)
     # application.logger.setLevel(debug_level)
 
-    application.run(
+    serve(
+        application,
         host=host,
         port=port,
-        debug=False,
-        threaded=False,
-        processes=processes,
+        threads=processes
     )
