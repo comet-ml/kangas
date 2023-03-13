@@ -621,10 +621,7 @@ def run(host, port, debug_level, processes):
     if debug_level is None:
         debug_level = "CRITICAL"
 
-    # Default flask logger has already been removed above
-
-    # Turn off werkzeug logger:
-    logger = logging.getLogger("werkzeug")
+    logger = logging.getLogger("waitress")
     logger.setLevel(debug_level)
 
     class Colorize:
