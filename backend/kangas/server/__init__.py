@@ -69,7 +69,7 @@ def start_flask_server(host, port, debug_level=None, max_workers=None):
             host=host,
             port=port,
             debug_level=debug_level,
-            processes=max_workers,
+            max_workers=max_workers,
         )
     except KeyboardInterrupt:
         print()

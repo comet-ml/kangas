@@ -16,9 +16,9 @@ import json
 import logging
 import os
 import platform
-import re
 import sys
 
+import waitress
 from flask import Flask, jsonify, make_response, request
 from flask.logging import default_handler
 from flask_caching import Cache
@@ -48,6 +48,7 @@ from .tasks import (
     select_category_task,
     select_histogram_task,
 )
+from .translogger import TransLogger
 from .utils import get_node_version
 
 USE_AUTH = False
@@ -616,46 +617,25 @@ def get_datagrid_about_handler():
         return error(404)
 
 
-def run(host, port, debug_level, processes):
+def run(host, port, debug_level, max_workers):
     if debug_level is None:
         debug_level = "CRITICAL"
 
-    # Default flask logger has already been removed above
+    logging.basicConfig(
+        level=debug_level,
+    )
+    for log_name in ["waitress", "waitress.queue"]:
+        logger = logging.getLogger(log_name)
+        logger.setLevel(debug_level)
+        logger.propagate = False
 
-    # Turn off werkzeug logger:
-    logger = logging.getLogger("werkzeug")
-    logger.setLevel(debug_level)
-
-    class Colorize:
-        P_REQUEST_LOG = re.compile(r'^(.*?) - - \[(.*?)\] "(.*?)" (.*?) (.*?)$')
-
-        def filter(self, record):
-            # record.args: ('GET /datagrid/list HTTP/1.1', '200', '-')
-            match = self.P_REQUEST_LOG.match(record.msg)
-            if match:
-                # ('127.0.0.1', '05/Mar/2023 11:44:48', '%s', '%s', '%s')
-                host, date, f1, f2, f3 = match.groups()
-                print(host, date, record.args)
-                # record.msg = ('%s - - [%s] "%%s" %%s %%s - OK!' % (host, date)) % (1, 2, 3)
-                # record.args = []
-            return record
-
-    # logger.addFilter(Colorize())
-    logger.propagate = False
-
-    # We could also add our own logger for other (INFO) logs:
-
-    # handler = logging.StreamHandler(sys.stdout)
-    # handler.setFormatter(logging.Formatter(
-    #    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-    ## handler.addFilter(Colorize())
-    # application.logger.addHandler(handler)
-    # application.logger.setLevel(debug_level)
-
-    application.run(
+    waitress.serve(
+        TransLogger(
+            application,
+            setup_console_handler=False,
+            set_logger_level=debug_level,
+        ),
         host=host,
         port=port,
-        debug=False,
-        threaded=False,
-        processes=processes,
+        threads=max_workers,
     )
