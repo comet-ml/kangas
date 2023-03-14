@@ -98,8 +98,16 @@ def get_parser_arguments(parser):
         default="tab",
     )
     parser.add_argument(
+        "-fh",
         "--host",
-        help="The name or IP the servers will listen on",
+        help="The name or IP the frontend server will listen on",
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
+        "-bh",
+        "--backend-host",
+        help="The name or IP the backend server will listen on",
         type=str,
         default=None,
     )
@@ -129,8 +137,13 @@ def get_parser_arguments(parser):
     )
     parser.add_argument(
         "--protocol",
-        "-p",
-        help="Use this flag to set a protocol for server requests. Defaults to http",
+        help="Use this flag to set the protocol for frontend server requests. Defaults to `http`",
+        type=str,
+        default="http",
+    )
+    parser.add_argument(
+        "--backend-protocol",
+        help="Use this flag to set the protocol for backend server requests. Defaults to `http`",
         type=str,
         default="http",
     )
@@ -163,8 +176,16 @@ def server(parsed_args, remaining=None):
         debug_level = None
 
     KANGAS_FRONTEND_PORT = parsed_args.frontend_port
-    KANGAS_HOST = parsed_args.host if parsed_args.host is not None else get_localhost()
-    KANGAS_PROTOCOL = parsed_args.protocol
+    KANGAS_FRONTEND_HOST = (
+        parsed_args.host if parsed_args.host is not None else get_localhost()
+    )
+    KANGAS_BACKEND_HOST = (
+        parsed_args.backend_host
+        if parsed_args.backend_host is not None
+        else get_localhost()
+    )
+    KANGAS_FRONTEND_PROTOCOL = parsed_args.protocol
+    KANGAS_BACKEND_PROTOCOL = parsed_args.backend_protocol
     if parsed_args.backend_port is None:
         KANGAS_BACKEND_PORT = parsed_args.frontend_port + 1
     else:
@@ -184,7 +205,7 @@ def server(parsed_args, remaining=None):
         NODE_SERVER_PATH = os.path.join(HERE, "../frontend/standalone/server.js")
         print(
             "Kangas frontend is now running on %s://%s:%s/..."
-            % (KANGAS_PROTOCOL, KANGAS_HOST, KANGAS_FRONTEND_PORT)
+            % (KANGAS_FRONTEND_PROTOCOL, KANGAS_FRONTEND_HOST, KANGAS_FRONTEND_PORT)
         )
         # node uses PORT to listen on; this is a local process
         # so shouldn't effect any other node servers
@@ -195,8 +216,10 @@ def server(parsed_args, remaining=None):
                 "NODE_ENV": "production",
                 "PORT": str(KANGAS_FRONTEND_PORT),
                 "KANGAS_BACKEND_PORT": str(KANGAS_BACKEND_PORT),
-                "KANGAS_HOST": str(KANGAS_HOST),
-                "KANGAS_PROTOCOL": KANGAS_PROTOCOL,
+                "KANGAS_FRONTEND_HOST": str(KANGAS_FRONTEND_HOST),
+                "KANGAS_FRONTEND_PROTOCOL": KANGAS_FRONTEND_PROTOCOL,
+                "KANGAS_BACKEND_HOST": str(KANGAS_BACKEND_HOST),
+                "KANGAS_BACKEND_PROTOCOL": KANGAS_BACKEND_PROTOCOL,
                 "KANGAS_HIDE_SELECTOR": str(KANGAS_HIDE_SELECTOR),
             }
         )
@@ -262,7 +285,11 @@ def server(parsed_args, remaining=None):
 
     if parsed_args.open != "no":
         new = {"tab": 0, "window": 1}[parsed_args.open]
-        host = "%s://%s:%s/" % (KANGAS_PROTOCOL, KANGAS_HOST, KANGAS_FRONTEND_PORT)
+        host = "%s://%s:%s/" % (
+            KANGAS_FRONTEND_PROTOCOL,
+            KANGAS_FRONTEND_HOST,
+            KANGAS_FRONTEND_PORT,
+        )
         query_vars = {}
         if parsed_args.DATAGRID is not None:
             filename = download_filename(parsed_args.DATAGRID)
@@ -309,7 +336,7 @@ def server(parsed_args, remaining=None):
     if parsed_args.backend != "no":
         print(
             "Kangas backend is now running on %s://%s:%s/..."
-            % (KANGAS_PROTOCOL, KANGAS_HOST, KANGAS_BACKEND_PORT)
+            % (KANGAS_BACKEND_PROTOCOL, KANGAS_BACKEND_HOST, KANGAS_BACKEND_PORT)
         )
         if debug_level == "DEBUG":
             # No try
@@ -321,7 +348,7 @@ def server(parsed_args, remaining=None):
                 )
             elif parsed_args.backend == "flask":
                 kangas.server.start_flask_server(
-                    host=KANGAS_HOST,
+                    host=KANGAS_BACKEND_HOST,
                     port=KANGAS_BACKEND_PORT,
                     debug_level=debug_level,
                     max_workers=parsed_args.max_workers,
@@ -338,7 +365,7 @@ def server(parsed_args, remaining=None):
                     )
                 elif parsed_args.backend == "flask":
                     kangas.server.start_flask_server(
-                        host=KANGAS_HOST,
+                        host=KANGAS_BACKEND_HOST,
                         port=KANGAS_BACKEND_PORT,
                         debug_level=debug_level,
                         max_workers=parsed_args.max_workers,

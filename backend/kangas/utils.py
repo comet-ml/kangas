@@ -57,13 +57,13 @@ def new_kangas_version_available():
         headers = {"Content-Type": "application/json"}
 
         try:
-            response = requests.request(
+            response = requests.request(  # noqa
                 "POST",
                 "https://stats.comet.com/notify/event/",
                 json=package,
                 headers=headers,
             )
-            return response.status_code != 200
+            return False  # response.status_code != 200 # FIXME
         except Exception:
             pass
 
