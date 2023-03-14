@@ -137,13 +137,13 @@ def get_parser_arguments(parser):
     )
     parser.add_argument(
         "--protocol",
-        help="Use this flag to set protocols for server requests. Defaults to `http`",
+        help="Use this flag to set the protocol for frontend server requests. Defaults to `http`",
         type=str,
         default="http",
     )
     parser.add_argument(
         "--backend-protocol",
-        help="Use this flag to set a protocol for backend server requests. Defaults to --protocol",
+        help="Use this flag to set the protocol for backend server requests. Defaults to `http`",
         type=str,
         default="http",
     )
