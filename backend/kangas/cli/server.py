@@ -100,7 +100,7 @@ def get_parser_arguments(parser):
     parser.add_argument(
         "-fh",
         "--host",
-        help="The name or IP the server(s) will listen on",
+        help="The name or IP the frontend server will listen on",
         type=str,
         default=None,
     )
