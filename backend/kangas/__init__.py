@@ -31,7 +31,7 @@ from .utils import (
 )
 
 if new_kangas_version_available():
-    print("A new Kangas version is available")
+    print("A new Kangas version is available", file=sys.stderr)
 
 
 def _is_running(name, command):
