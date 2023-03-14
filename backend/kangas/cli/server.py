@@ -143,10 +143,9 @@ def get_parser_arguments(parser):
     )
     parser.add_argument(
         "--backend-protocol",
-        "-bp",
         help="Use this flag to set a protocol for backend server requests. Defaults to --protocol",
         type=str,
-        default=None,
+        default="http",
     )
     parser.add_argument(
         "--hide-selector",
@@ -183,14 +182,10 @@ def server(parsed_args, remaining=None):
     KANGAS_BACKEND_HOST = (
         parsed_args.backend_host
         if parsed_args.backend_host is not None
-        else KANGAS_FRONTEND_HOST
+        else get_localhost()
     )
     KANGAS_FRONTEND_PROTOCOL = parsed_args.protocol
-    KANGAS_BACKEND_PROTOCOL = (
-        parsed_args.backend_protocol
-        if parsed_args.backend_protocol is not None
-        else KANGAS_FRONTEND_PROTOCOL
-    )
+    KANGAS_BACKEND_PROTOCOL = parsed_args.backend_protocol
     if parsed_args.backend_port is None:
         KANGAS_BACKEND_PORT = parsed_args.frontend_port + 1
     else:
