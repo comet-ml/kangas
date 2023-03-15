@@ -83,6 +83,7 @@ const reducer = (state, action) => {
 
 const CanvasProvider = ({ value, children }) => {
     const [state, dispatch] = useReducer(reducer, value);
+
     return (
         <CanvasContext.Provider value={{
             metadata: { ...value.metadata },

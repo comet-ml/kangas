@@ -21,6 +21,7 @@ const ImageCanvasControls = ({ initLabels=[] }) => {
         isGroup,
         updateSettings,
         settings,
+        images
     } = useContext(CanvasContext);
 
     const onChange = useCallback((e) => updateScore(Number(e.target.value)), []);
@@ -70,6 +71,14 @@ const ImageCanvasControls = ({ initLabels=[] }) => {
             max
         }
     }, [metadata])
+    
+    const displayMeta = useMemo(() => {
+        // Metadata comes from different places depending on if image is grouped
+        if (isGroup) return null;
+        if (metadata) return metadata;
+        if (Object.keys(images)?.length === 1) return images?.[0]
+        else return null;
+    }, [metadata, images]);
 
     return (
         <div className={cx('editor-controls')}>
@@ -142,7 +151,7 @@ const ImageCanvasControls = ({ initLabels=[] }) => {
                         <AccordionDetails>
                             <pre className={cx('metadata-pre')}>
                                 <code>
-                                    {JSON.stringify(metadata, null, 4)}
+                                    {JSON.stringify(displayMeta, null, 4)}
                                 </code>
                             </pre>
                         </AccordionDetails>

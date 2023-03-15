@@ -47,7 +47,8 @@ const ExpandedWrapper = async ({ value, query }) => {
     return (
         <CanvasProvider
             value={{
-                labels
+                labels,
+                metadata
             }}
         >
             <ImageCanvasCell assets={[value?.assetId]} query={query} />
