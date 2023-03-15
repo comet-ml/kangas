@@ -5,6 +5,8 @@ import classNames from 'classnames/bind';
 import { useCallback, useContext, useEffect, useMemo } from 'react';
 import { CanvasContext } from '../../../contexts/CanvasContext';
 import Label from './Label';
+import { Accordion, AccordionDetails, AccordionSummary } from '@mui/material';
+import { ExpandMoreOutlined } from '@material-ui/icons';
 
 const cx = classNames.bind(styles);
 
@@ -19,6 +21,7 @@ const ImageCanvasControls = ({ initLabels=[] }) => {
         isGroup,
         updateSettings,
         settings,
+        images
     } = useContext(CanvasContext);
 
     const onChange = useCallback((e) => updateScore(Number(e.target.value)), []);
@@ -68,6 +71,14 @@ const ImageCanvasControls = ({ initLabels=[] }) => {
             max
         }
     }, [metadata])
+    
+    const displayMeta = useMemo(() => {
+        // Metadata comes from different places depending on if image is grouped
+        if (isGroup) return null;
+        if (metadata) return metadata;
+        if (Object.keys(images)?.length === 1) return images?.[0]
+        else return null;
+    }, [metadata, images]);
 
     return (
         <div className={cx('editor-controls')}>
@@ -131,6 +142,22 @@ const ImageCanvasControls = ({ initLabels=[] }) => {
                     />
                 </div>
             </div>
+            {
+                !isGroup && (
+                    <Accordion elevation={0}>
+                        <AccordionSummary expandIcon={<ExpandMoreOutlined />}>
+                            Metadata
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            <pre className={cx('metadata-pre')}>
+                                <code>
+                                    {JSON.stringify(displayMeta, null, 4)}
+                                </code>
+                            </pre>
+                        </AccordionDetails>
+                    </Accordion>
+                )
+            }
             <div className={cx('labels-container')}>
                 { labels?.sort().map(l => <Label toggle={toggleLabel} label={l} />) }
             </div>

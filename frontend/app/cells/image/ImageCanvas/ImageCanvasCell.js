@@ -12,10 +12,6 @@ import fetchAsset from '../../../../lib/fetchAsset';
 
 const cx = classNames.bind(styles);
 
-// CK review:
-// 1. added ImageCanvasCellStandAlone
-// 2. added initLabels
-
 const ImageCanvasCellStandAlone = async ({dgid, timestamp, assetId}) => {
     const query = {
         dgid,
