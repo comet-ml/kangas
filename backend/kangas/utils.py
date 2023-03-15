@@ -16,12 +16,34 @@ import os
 import platform
 import socket
 import sys
+import tempfile
 import uuid
 
 import requests
 import six
 
 RESERVED_NAMES = ["ROW-ID"]
+
+
+def get_session_id():
+    """
+    Get a session uuid.
+    """
+    session_filename = os.path.join(tempfile.gettempdir(), "kangas_session")
+    if os.path.isfile(session_filename):
+        try:
+            kangas_uuid = open(session_filename).read()
+        except Exception:
+            kangas_uuid = "unreadable"
+    else:
+        kangas_uuid = generate_guid()
+        try:
+            with open(session_filename, "w") as fp:
+                fp.write(kangas_uuid)
+        except Exception:
+            kangas_uuid = "unwriteable"
+
+    return kangas_uuid
 
 
 def new_kangas_version_available():
@@ -44,6 +66,7 @@ def new_kangas_version_available():
             "event_type": "kangas_version_check",
             "event_properties": {
                 "license_key": "NA",
+                "kangas_session_uuid": get_session_id(),
                 "kangas_version": __version__,
                 "os_version": "%s %s %s"
                 % (platform.system(), platform.release(), platform.version()),
