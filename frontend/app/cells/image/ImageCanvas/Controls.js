@@ -7,7 +7,7 @@ import { CanvasContext } from '../../../contexts/CanvasContext';
 import Label from './Label';
 import { Accordion, AccordionDetails, AccordionSummary } from '@mui/material';
 import { ExpandMoreOutlined } from '@material-ui/icons';
-import ReactJson from 'react-json-view';
+import { JsonViewer } from '@textea/json-viewer';
 
 const cx = classNames.bind(styles);
 
@@ -70,8 +70,8 @@ const ImageCanvasControls = ({ initLabels=[] }) => {
         return {
             min,
             max
-        }
-    }, [metadata])
+        };
+    }, [metadata]);
 
     const displayMeta = useMemo(() => {
         // Metadata comes from different places depending on if image is grouped
@@ -151,17 +151,16 @@ const ImageCanvasControls = ({ initLabels=[] }) => {
                         </AccordionSummary>
                         <AccordionDetails>
                           <div className={cx("metadata-div")}>
-                            <ReactJson src={displayMeta}
-                                name={null}
-                                theme="bright:inverted"
-                                iconStyle="triangle"
+                            <JsonViewer value={displayMeta}
+                                rootName={false}
+                                theme="light"
                                 indentWidth={4}
-                                collapsed={1}
+                                defaultInspectDepth={1}
                                 collapseStringsAfterLength={20}
                                 enableClipboard={false}
                                 displayObjectSize={false}
                                 displayDataTypes={false}
-                                sortKeys={true}
+                                objectSortKeys={true}
                             />
                           </div>
                         </AccordionDetails>
@@ -173,6 +172,6 @@ const ImageCanvasControls = ({ initLabels=[] }) => {
             </div>
         </div>
     )
-}
+};
 
 export default ImageCanvasControls;

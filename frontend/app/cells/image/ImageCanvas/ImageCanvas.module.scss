@@ -163,7 +163,8 @@
 }
 
 .metadata-div {
-    overflow: scroll;
+    overflow: auto;
     max-height: 300px;
     white-space: nowrap;
+    display: grid;
 }
