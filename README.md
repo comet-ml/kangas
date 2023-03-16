@@ -49,7 +49,17 @@ Kangas is accessible as a Python library via pip
 pip install kangas
 ```
 
-Once installed, there are many ways to load or create a DataGrid. Here, we load a publicly available DataGrid file, but the Kangas API also provides methods for ingesting CSVs, Pandas DataFrames, and for manually constructing a new DataGrid:
+Once installed, there are many ways to load or create a DataGrid. 
+
+Without writing any code, you can even download a DataGrid and begin exploring the data. At the console:
+
+```
+kangas server https://github.com/caleb-kaiser/kangas_examples/raw/master/coco-500.datagrid.zip
+```
+
+That's it!
+
+In the next example, we load a publicly available DataGrid file, but the Kangas API also provides methods for ingesting CSVs, Pandas DataFrames, and for manually constructing a new DataGrid:
 
 ```python
 import kangas as kg
