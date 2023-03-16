@@ -22,11 +22,11 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
         hiddenLabels,
     } = useLabels({ assetId, timestamp, dgid });
 
-    const [dimensions, setDimensions] = useState({ height: 400, width: 400 })
+    const [dimensions, setDimensions] = useState({ height: 400, width: 400 });
     const { settings, isGroup } = useContext(CanvasContext);
     const zoom = useMemo(() => {
         if (isGroup) return 1;
-        else return Math.max(settings?.zoom ?? 1, 1)
+        else return Math.max(settings?.zoom ?? 1, 1);
     }, [settings?.zoom]);
     const smooth = useMemo(() => settings?.smooth ?? true, [settings?.smooth]);
     const gray = useMemo(() => settings?.gray ?? false, [settings?.gray]);
@@ -37,10 +37,10 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
         if (!loaded) return 1;
 
         if (isVertical) {
-            return ( 400 / dimensions?.height ) * ( zoom ?? 1 )
+            return ( 400 / dimensions?.height ) * ( zoom ?? 1 );
         }
         else {
-            return ( 400 / dimensions?.width ) * ( zoom ?? 1 )
+            return ( 400 / dimensions?.width ) * ( zoom ?? 1 );
         }
     }, [settings?.zoom, isVertical, loaded, zoom, isGroup, dimensions]);
 
@@ -49,8 +49,8 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
         return {
             height: ( dimensions.height * imageScale ) || 400,
             width: ( dimensions.width * imageScale ) || 400
-        }
-    }, [dimensions, imageScale])
+        };
+    }, [dimensions, imageScale]);
 
 
     const drawLabels = useCallback(() => {
@@ -84,7 +84,8 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                             ctx.fill();
                         }
                     }
-                } else if (!!labels[reg]?.boxes) {
+                }
+                if (!!labels[reg]?.boxes) {
                     const boxes = labels[reg].boxes;
                     if (!hiddenLabels?.[labels[reg]?.label]) {
                         for (let r = 0; r < boxes.length; r++) {
@@ -102,13 +103,65 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                             ctx.stroke();
                         }
                     }
-                } else if (labels[reg]?.annotations) {
-                    // TODO: text, anchor, points
+                }
+                if (labels[reg]?.lines) {
+                    const lines = labels[reg].lines;
+                    if (!hiddenLabels?.[labels[reg]?.label]) {
+                        for (let r = 0; r < lines.length; r++) {
+                            const [x1, y1, x2, y2] = lines[r];
+                            ctx.strokeStyle = getColor(
+                                labels[reg].label
+                            );
+                            ctx.lineWidth = 3;
+                            ctx.beginPath();
+                            ctx.moveTo(x1 * imageScale, y1 * imageScale);
+                            ctx.lineTo(x2 * imageScale, y2 * imageScale);
+                            ctx.stroke();
+                        }
+                    }
+                }
+                if (labels[reg]?.points) {
+                    const points = labels[reg].points;
+                    if (!hiddenLabels?.[labels[reg]?.label]) {
+                        for (let r = 0; r < points.length; r++) {
+                            const [x, y] = points[r];
+                            ctx.fillStyle = getColor(
+                                labels[reg].label
+                            );
+                            const radius = 3;
+                            ctx.lineWidth = 3;
+                            ctx.beginPath();
+                            ctx.arc(x * imageScale, y * imageScale, radius, 0, Math.PI);
+                            ctx.fill();
+                        }
+                    }
+                }
+                if (labels[reg]?.mask) {
+                    //const image = new Image();
+                    //ctx.globalAlpha = 0.5;
+                    //ctx.drawImage(image, 0, 0, imgDims.width, imgDims.height);
+                    const mask = makeMask(imgDims.width, imgDims.height, 128); // alpha
+                    ctx.putImageData(mask);
                 }
             }
         }
     }, [imageScale, score, hiddenLabels, labels, imgDims]);
 
+    const makeMask = function(width, height, alpha) {
+        const buffer = new Uint8ClampedArray(width * height * 4);
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                if (x > 100 && x < 200 && y > 100 && y < 200) {
+                    let pos = (y * width + x) * 4; // position in buffer based on x and y
+                    buffer[pos  ] = 255;           // some R value [0, 255]
+                    //buffer[pos+1] = ...;           // some G value
+                    //buffer[pos+2] = ...;           // some B value
+                    buffer[pos+3] = alpha;           // set alpha channel
+                }
+            }
+        }
+        return ImageData(buffer, width, height); // settings can be colorSpace name
+    };
 
     const onLoad = useCallback((e) => {
         setDimensions({
@@ -126,23 +179,23 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
             containerRef.current.style.width = `${imgDims.width}px`;
             containerRef.current.style.height = `${imgDims.height}px`;
         }
-    }, [imgDims])
+    }, [imgDims]);
 
     useEffect(() => {
         if (loaded) {
             drawLabels();
         }
-    }, [loaded, drawLabels])
+    }, [loaded, drawLabels]);
 
     return (
         <div className={cx('canvas-container', { vertical: isVertical, horizontal: !isVertical, grouped: isGroup })} ref={containerRef}>
-            <canvas 
+            <canvas
                 className={cx(['output', 'canvas'], { vertical: isVertical, horizontal: !isVertical, single: !isGroup })} ref={labelCanvas}
             />
             <img
                 className={cx(
-                    ['output', 'image'], 
-                    { 
+                    ['output', 'image'],
+                    {
                         vertical: isVertical,
                         horizontal: !isVertical,
                         pixelated: !smooth,
@@ -150,7 +203,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                         single: !isGroup
                     }
                 )}
-                ref={img} 
+                ref={img}
                 src={imageSrc}
                 loading="lazy"
                 height={imgDims?.height}
@@ -165,4 +218,4 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
 export default ImageCanvasOutputClient;
 
 
-// for dev, add this to <canvas> title={`asset: ${assetId} imscale: ${imageScale} cd: ${labelCanvas.current?.height} x ${labelCanvas.current?.width} id: ${img.current?.height} x ${img.current?.width}`} 
+// for dev, add this to <canvas> title={`asset: ${assetId} imscale: ${imageScale} cd: ${labelCanvas.current?.height} x ${labelCanvas.current?.width} id: ${img.current?.height} x ${img.current?.width}`}
