@@ -7,6 +7,7 @@ import { CanvasContext } from '../../../contexts/CanvasContext';
 import Label from './Label';
 import { Accordion, AccordionDetails, AccordionSummary } from '@mui/material';
 import { ExpandMoreOutlined } from '@material-ui/icons';
+import { JsonViewer } from '@textea/json-viewer';
 
 const cx = classNames.bind(styles);
 
@@ -69,9 +70,9 @@ const ImageCanvasControls = ({ initLabels=[] }) => {
         return {
             min,
             max
-        }
-    }, [metadata])
-    
+        };
+    }, [metadata]);
+
     const displayMeta = useMemo(() => {
         // Metadata comes from different places depending on if image is grouped
         if (isGroup) return null;
@@ -149,11 +150,19 @@ const ImageCanvasControls = ({ initLabels=[] }) => {
                             Metadata
                         </AccordionSummary>
                         <AccordionDetails>
-                            <pre className={cx('metadata-pre')}>
-                                <code>
-                                    {JSON.stringify(displayMeta, null, 4)}
-                                </code>
-                            </pre>
+                          <div className={cx("metadata-div")}>
+                            <JsonViewer value={displayMeta}
+                                rootName={false}
+                                theme="light"
+                                indentWidth={4}
+                                defaultInspectDepth={1}
+                                collapseStringsAfterLength={20}
+                                enableClipboard={false}
+                                displayObjectSize={false}
+                                displayDataTypes={false}
+                                objectSortKeys={true}
+                            />
+                          </div>
                         </AccordionDetails>
                     </Accordion>
                 )
@@ -163,6 +172,6 @@ const ImageCanvasControls = ({ initLabels=[] }) => {
             </div>
         </div>
     )
-}
+};
 
 export default ImageCanvasControls;
