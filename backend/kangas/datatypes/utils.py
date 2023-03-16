@@ -705,3 +705,18 @@ def _verify_box(box):
         raise Exception("Invalid bounding box format: %r" % box)
 
     return [x, y, width, height]
+
+
+def _verify_line(line):
+    """
+    Ensure that a line is [x1, y1, x2, y2]
+    """
+    if len(line) == 2:  # [[x1, y1], [x2, y2]]
+        x1, y1 = line[0]
+        x2, y2 = line[1]
+    elif len(line) == 4:  # [x1, y1, x2, y2]
+        x1, y1, x2, y2 = line
+    else:
+        raise Exception("Invalid line format: %r" % line)
+
+    return [x1, y1, x2, y2]

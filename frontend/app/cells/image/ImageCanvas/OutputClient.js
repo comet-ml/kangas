@@ -84,8 +84,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                             ctx.fill();
                         }
                     }
-                }
-                if (!!labels[reg]?.boxes) {
+                } else if (!!labels[reg]?.boxes) {
                     const boxes = labels[reg].boxes;
                     if (!hiddenLabels?.[labels[reg]?.label]) {
                         for (let r = 0; r < boxes.length; r++) {
@@ -103,8 +102,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                             ctx.stroke();
                         }
                     }
-                }
-                if (labels[reg]?.lines) {
+                } else if (labels[reg]?.lines) {
                     const lines = labels[reg].lines;
                     if (!hiddenLabels?.[labels[reg]?.label]) {
                         for (let r = 0; r < lines.length; r++) {
@@ -119,12 +117,11 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                             ctx.stroke();
                         }
                     }
-                }
-                if (labels[reg]?.points) {
-                    const points = labels[reg].points;
+                } else if (labels[reg]?.locations) {
+                    const locations = labels[reg].locations;
                     if (!hiddenLabels?.[labels[reg]?.label]) {
-                        for (let r = 0; r < points.length; r++) {
-                            const [x, y] = points[r];
+                        for (let r = 0; r < locations.length; r++) {
+                            const [x, y] = locations[r];
                             ctx.fillStyle = getColor(
                                 labels[reg].label
                             );
@@ -135,8 +132,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                             ctx.fill();
                         }
                     }
-                }
-                if (labels[reg]?.mask) {
+                } else if (labels[reg]?.mask) {
                     //const image = new Image();
                     //ctx.globalAlpha = 0.5;
                     //ctx.drawImage(image, 0, 0, imgDims.width, imgDims.height);
