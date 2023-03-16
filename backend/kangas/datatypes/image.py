@@ -25,6 +25,7 @@ from .._typing import IO, Any, Optional, Sequence, Union
 from .base import Asset
 from .utils import (
     _verify_box,
+    _verify_line,
     convert_tensor_to_numpy,
     download_filename,
     flatten,
@@ -211,7 +212,7 @@ class Image(Asset):
             #     "data":
             #       {
             #         "label": [],
-            #         "boxes": [] | "points": [] | "mask": mask,
+            #         "boxes": [] | "points": [] | "mask": mask | "locations": [] | "lines": []
             #         "score": score,
             #         "id": "some-id",
             #         "metadata": {},
@@ -243,7 +244,7 @@ class Image(Asset):
 
     def add_regions(
         self,
-        label=None,
+        label,
         *regions,
         score=None,
         layer_name="(uncategorized)",
@@ -265,7 +266,7 @@ class Image(Asset):
         Example:
         ```python
         >>> image = Image()
-        >>> image.add_regions("Predictions", "car", [(x1, y1), ...], [(x2, y2), ...])
+        >>> image.add_regions("car", [(x1, y1), ...], [(x2, y2), ...], layer_name="Predictions")
         ```
         """
         if not isinstance(layer_name, str):
@@ -281,6 +282,255 @@ class Image(Asset):
                 "label": label,
                 "points": list(regions),
                 "boxes": None,
+                "locations": None,
+                "lines": None,
+                "mask": None,
+                "score": score,
+                "id": id,
+                "metadata": metadata,
+            },
+        )
+        return self
+
+    def add_region(
+        self,
+        label,
+        region,
+        score=None,
+        layer_name="(uncategorized)",
+        id=None,
+        **metadata
+    ):
+        """
+        Add a polygon region to an image.
+
+        Args:
+            layer_name: (str) the layer for the label and region
+            label: (str) the label for the region
+            region: list or tuple of at least 3 points
+            score: (optional, number) a score associated
+               with the region.
+            id: (optional, str) an id associated
+               with the region.
+
+        Example:
+        ```python
+        >>> image = Image()
+        >>> image.add_region("car", [(x1, y1), ...], layer_name="Predictions")
+        ```
+        """
+        if not isinstance(layer_name, str):
+            raise Exception("layer_name must be a string")
+
+        if not isinstance(label, str):
+            raise Exception("label must be a string")
+
+        self._init_annotations(layer_name)
+        self._update_annotations(
+            layer_name,
+            {
+                "label": label,
+                "points": [region],
+                "boxes": None,
+                "locations": None,
+                "lines": None,
+                "mask": None,
+                "score": score,
+                "id": id,
+                "metadata": metadata,
+            },
+        )
+        return self
+
+    def add_points(
+        self,
+        label,
+        *points,
+        score=None,
+        layer_name="(uncategorized)",
+        id=None,
+        **metadata
+    ):
+        """
+        Add points to an image.
+
+        Args:
+            layer_name: (str) the layer for the label and bounding boxes
+            label: (str) the label for the regions
+            points: list or tuples of exactly 2 ints (x, y)
+            score: (optional, number) a score associated with the region.
+            id: (optional, str) an id associated
+               with the region.
+
+        Example:
+        ```python
+        >>> image = Image()
+        >>> point1 = (x1, y1)
+        >>> point2 = (x2, y2)
+        >>> image.add_points("Person", point1, point2, score=0.99)
+        ```
+        """
+        if not isinstance(layer_name, str):
+            raise Exception("layer_name must be a string")
+
+        if not isinstance(label, str):
+            raise Exception("label must be a string")
+
+        self._init_annotations(layer_name)
+        self._update_annotations(
+            layer_name,
+            {
+                "label": label,
+                "boxes": None,
+                "points": None,
+                "locations": points,
+                "lines": None,
+                "mask": None,
+                "score": score,
+                "id": id,
+                "metadata": metadata,
+            },
+        )
+        return self
+
+    def add_point(
+        self,
+        label,
+        point,
+        score=None,
+        layer_name="(uncategorized)",
+        id=None,
+        **metadata
+    ):
+        """
+        Add a point to an image.
+
+        Args:
+            layer_name: (str) the layer for the label and bounding boxes
+            label: (str) the label for the regions
+            point: a list or tuple of exactly 2 ints (x, y)
+            score: (optional, number) a score associated with the region.
+            id: (optional, str) an id associated
+               with the region.
+
+        Example:
+        ```python
+        >>> image = Image()
+        >>> point = (x, y)
+        >>> image.add_point("Person", point, score=0.99)
+        ```
+        """
+        if not isinstance(layer_name, str):
+            raise Exception("layer_name must be a string")
+
+        if not isinstance(label, str):
+            raise Exception("label must be a string")
+
+        self._init_annotations(layer_name)
+        self._update_annotations(
+            layer_name,
+            {
+                "label": label,
+                "boxes": None,
+                "points": None,
+                "locations": [point],
+                "lines": None,
+                "mask": None,
+                "score": score,
+                "id": id,
+                "metadata": metadata,
+            },
+        )
+        return self
+
+    def add_lines(
+        self,
+        label,
+        *lines,
+        score=None,
+        layer_name="(uncategorized)",
+        id=None,
+        **metadata
+    ):
+        """
+        Add lines to an image.
+
+        Args:
+            layer_name: (str) the layer for the label and bounding boxes
+            label: (str) the label for the regions
+            lines: list or tuples of exactly 2 points ((x1, y1), (x2, y2))
+            score: (optional, number) a score associated with the region.
+            id: (optional, str) an id associated
+               with the region.
+
+        Example:
+        ```python
+        >>> image = Image()
+        >>> line1 = [(x1, y1), (x2, y2)]
+        >>> line2 = [(x3, y3), (x4, y4)]
+        >>> image.add_lines("Person", line1, line2, score=0.99)
+        ```
+        """
+        if not isinstance(layer_name, str):
+            raise Exception("layer_name must be a string")
+
+        if not isinstance(label, str):
+            raise Exception("label must be a string")
+
+        self._init_annotations(layer_name)
+        self._update_annotations(
+            layer_name,
+            {
+                "label": label,
+                "boxes": None,
+                "points": None,
+                "locations": None,
+                "lines": [_verify_line(line) for line in lines],
+                "mask": None,
+                "score": score,
+                "id": id,
+                "metadata": metadata,
+            },
+        )
+        return self
+
+    def add_line(
+        self, label, line, score=None, layer_name="(uncategorized)", id=None, **metadata
+    ):
+        """
+        Add a line to an image.
+
+        Args:
+            layer_name: (str) the layer for the label and bounding boxes
+            label: (str) the label for the regions
+            line: list or tuple of exactly 2 points ((x1, y1), (x2, y2))
+            score: (optional, number) a score associated with the region.
+            id: (optional, str) an id associated
+               with the region.
+
+        Example:
+        ```python
+        >>> image = Image()
+        >>> line = [(x1, y1), (x2, y2)]
+        >>> image.add_line("Person", line, score=0.99)
+        ```
+        """
+        if not isinstance(layer_name, str):
+            raise Exception("layer_name must be a string")
+
+        if not isinstance(label, str):
+            raise Exception("label must be a string")
+
+        self._init_annotations(layer_name)
+        self._update_annotations(
+            layer_name,
+            {
+                "label": label,
+                "boxes": None,
+                "points": None,
+                "locations": None,
+                "lines": [_verify_line(line)],
+                "mask": None,
                 "score": score,
                 "id": id,
                 "metadata": metadata,
@@ -290,7 +540,7 @@ class Image(Asset):
 
     def add_bounding_boxes(
         self,
-        label=None,
+        label,
         *boxes,
         score=None,
         layer_name="(uncategorized)",
@@ -314,8 +564,8 @@ class Image(Asset):
         >>> image = Image()
         >>> box1 = [(x1, y1), (x2, y2)]
         >>> box2 = [x, y, width, height]
-        >>> image.add_bounding_boxes("Truth", "Person", box1, box2, score=0.99)
-        >>> image.add_bounding_boxes("Prediction", "Person", box1, score=0.4)
+        >>> image.add_bounding_boxes("Person", box1, box2, score=0.99, layer_name="Truth")
+        >>> image.add_bounding_boxes("Person", box1, score=0.4, layer_name="Prediction)
         ```
         """
         if not isinstance(layer_name, str):
@@ -331,6 +581,9 @@ class Image(Asset):
                 "label": label,
                 "boxes": [_verify_box(box) for box in boxes],
                 "points": None,
+                "locations": None,
+                "lines": None,
+                "mask": None,
                 "score": score,
                 "id": id,
                 "metadata": metadata,
@@ -339,13 +592,7 @@ class Image(Asset):
         return self
 
     def add_bounding_box(
-        self,
-        label=None,
-        box=None,
-        score=None,
-        layer_name="(uncategorized)",
-        id=None,
-        **metadata
+        self, label, box, score=None, layer_name="(uncategorized)", id=None, **metadata
     ):
         """
         Add a bounding box to an image.
@@ -363,7 +610,7 @@ class Image(Asset):
         ```python
         >>> image = Image()
         >>> box = [(x1, y1), (x2, y2)]
-        >>> image.add_bounding_box("Truth", "Person", box, 0.56)
+        >>> image.add_bounding_box("Person", box, 0.56, layer_name="Truth")
         ```
         """
         if not isinstance(layer_name, str):
@@ -379,6 +626,9 @@ class Image(Asset):
                 "label": label,
                 "boxes": [_verify_box(box)],
                 "points": None,
+                "locations": None,
+                "lines": None,
+                "mask": None,
                 "score": score,
                 "id": id,
                 "metadata": metadata,
@@ -388,8 +638,8 @@ class Image(Asset):
 
     def add_mask(
         self,
-        label_map=None,
-        image=None,
+        label_map,
+        image,
         score=None,
         layer_name="(uncategorized)",
         id=None,
@@ -411,8 +661,8 @@ class Image(Asset):
         Example:
         ```python
         >>> image = Image()
-        >>> image.add_mask("Predictions", "attention", {0: "person"}, Image(MASK))
-        >>> image.add_mask("Ground Truth", "attention", {0: "person"}, Image(MASK))
+        >>> image.add_mask({23: "person"}, Image(MASK), layer_name="Predictions")
+        >>> image.add_mask({23: "person"}, Image(MASK), layer_name="Ground Truth")
         ```
         """
         if not isinstance(layer_name, str):
@@ -427,50 +677,12 @@ class Image(Asset):
         self._update_annotations(
             layer_name,
             {
-                "label": label_map,
-                "mask": image,
+                "labels": label_map.values(),
+                "mask": [],
                 "boxes": None,
                 "points": None,
-                "score": score,
-                "id": id,
-                "metadata": metadata,
-            },
-        )
-        return self
-
-    def add_annotations(
-        self,
-        text=None,
-        anchor=None,
-        *points,
-        score=None,
-        layer_name="(uncategorized)",
-        id=None,
-        **metadata
-    ):
-        """
-        Add an annotation to an image.
-
-        Under development.
-
-        Example:
-        ```python
-        >>> image = Image()
-        >>> image.add_annotations("General", "Tumors", (50, 50), (100, 100), (200, 200), ...)
-        ```
-        """
-        if not isinstance(layer_name, str):
-            raise Exception("layer_name must be a string")
-
-        if not isinstance(text, str):
-            raise Exception("text must be a string")
-
-        self._init_annotations(layer_name)
-        self._update_annotations(
-            layer_name,
-            {
-                "label": text,
-                "annotation": [list(anchor), list(points)],
+                "locations": None,
+                "lines": None,
                 "score": score,
                 "id": id,
                 "metadata": metadata,
