@@ -162,7 +162,8 @@
     justify-content: center;
 }
 
-.metadata-pre {
+.metadata-div {
     overflow: scroll;
     max-height: 300px;
+    white-space: nowrap;
 }

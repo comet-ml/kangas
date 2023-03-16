@@ -7,6 +7,7 @@ import { CanvasContext } from '../../../contexts/CanvasContext';
 import Label from './Label';
 import { Accordion, AccordionDetails, AccordionSummary } from '@mui/material';
 import { ExpandMoreOutlined } from '@material-ui/icons';
+import ReactJson from 'react-json-view';
 
 const cx = classNames.bind(styles);
 
@@ -71,7 +72,7 @@ const ImageCanvasControls = ({ initLabels=[] }) => {
             max
         }
     }, [metadata])
-    
+
     const displayMeta = useMemo(() => {
         // Metadata comes from different places depending on if image is grouped
         if (isGroup) return null;
@@ -149,11 +150,20 @@ const ImageCanvasControls = ({ initLabels=[] }) => {
                             Metadata
                         </AccordionSummary>
                         <AccordionDetails>
-                            <pre className={cx('metadata-pre')}>
-                                <code>
-                                    {JSON.stringify(displayMeta, null, 4)}
-                                </code>
-                            </pre>
+                          <div className={cx("metadata-div")}>
+                            <ReactJson src={displayMeta}
+                                name={null}
+                                theme="bright:inverted"
+                                iconStyle="triangle"
+                                indentWidth={4}
+                                collapsed={1}
+                                collapseStringsAfterLength={20}
+                                enableClipboard={false}
+                                displayObjectSize={false}
+                                displayDataTypes={false}
+                                sortKeys={true}
+                            />
+                          </div>
                         </AccordionDetails>
                     </Accordion>
                 )
