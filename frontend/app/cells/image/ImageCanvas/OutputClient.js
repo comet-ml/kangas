@@ -9,6 +9,131 @@ import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);
 
 
+const drawMarker = function(ctx, marker) {
+    marker.width = marker.size;
+    marker.height = marker.size * 1.5;
+
+    /*
+    const redGradient = ctx.createLinearGradient(marker.x, marker.y, marker.x + marker.width, marker.y + marker.height);
+    redGradient.addColorStop( 0, '#d00');
+    redGradient.addColorStop( 1, '#600');
+
+    const darkRedGradient = ctx.createLinearGradient(marker.x, marker.y, marker.x + marker.width, marker.y + marker.height);
+    darkRedGradient.addColorStop(0, '#800');
+    darkRedGradient.addColorStop(1, '#500');
+    */
+
+    // Dark background gradient (initial raindrop "border")
+    ctx.lineWidth = 1.2;
+    //rainDrop(ctx, marker.x, marker.y, marker.width, marker.height, redGradient, darkRedGradient);
+    rainDrop(ctx, marker.x, marker.y, marker.width, marker.height, marker.color, false);
+
+    // border
+    const highlightThickness = (marker.width / 99.0) * marker.borderWidth;
+    const highlight = {
+        x: marker.x + 1.5,
+        y: marker.y,
+        width: marker.width - 2.5,
+        height: marker.height - highlightThickness * 2.5
+    };
+    rainDrop(ctx, highlight.x, highlight.y, highlight.width, highlight.height, marker.color, false);
+
+    // Inner gradient
+    const inner = {
+        x: highlight.x,
+        y: highlight.y + 1.5,
+        width: highlight.width,
+        height: highlight.height - highlightThickness
+    };
+    rainDrop(ctx, inner.x, inner.y, inner.width, inner.height, marker.color, false); // redGradient
+
+    // Small white ball
+    ctx.closePath()
+    ctx.beginPath()
+    const whiteBall = {
+        color: '#fff',
+        border: '#800',
+        width: marker.width / 4,
+        height: marker.width / 4,
+        x: marker.x + marker.width / 2,
+        y: marker.y + (marker.height / 3)
+    };
+    ctx.arc(whiteBall.x, whiteBall.y, whiteBall.width / 2, Math.PI * 2, 0, false);
+    ctx.fillStyle = whiteBall.color;
+    ctx.fill();
+}
+
+const rainDrop = function(ctx, x, y, width, height, fill, stroke) {
+    // Center points
+    const center = {
+	x: x + width/2,
+        y: y + height/2
+    };
+    ctx.beginPath();
+    // Shadow is one 6th of the width and one 8th of the height
+    const shadow = {
+        width:  width / 2,
+        height: width / 2
+    };
+    shadow.start = {
+        x: center.x - shadow.width / 2,
+        y: y + height - shadow.height
+    };
+    const shadowGradient = ctx.createRadialGradient(
+        shadow.start.x + shadow.width/2,
+        shadow.start.y + shadow.height/2,
+        0,
+        shadow.start.x + shadow.width/2,
+        shadow.start.y + shadow.height/2,
+        shadow.width / 2
+    );
+    shadowGradient.addColorStop(0, 'rgba(0,0,0,.3)');
+    shadowGradient.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.setTransform(1, 0, 0, 0.5, 0, 0);
+    ctx.translate(0, y + height + shadow.height/2);
+    ctx.fillStyle = shadowGradient;
+    ctx.fillRect(shadow.start.x, shadow.start.y, shadow.width, shadow.height);
+    ctx.fill();
+    ctx.closePath();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+    // Top arc
+    ctx.beginPath();
+    ctx.arc(center.x, y + height/3, width/2, Math.PI, 0, false);
+
+    // Right bend
+    ctx.bezierCurveTo(
+        x + width,
+        y + (height/3) + height/4,
+        center.x + width/3,
+        center.y,
+        center.x,
+        y + height
+    );
+
+    // Left bend
+    ctx.moveTo(x, y + height/3);
+    ctx.bezierCurveTo(
+        x,
+        y + (height/3) + height/4,
+        center.x - width/3,
+        center.y,
+        center.x,
+        y + height
+    );
+
+    if (fill) {
+        ctx.fillStyle = fill;
+        ctx.fill();
+    }
+
+    if (stroke) {
+        ctx.strokeStyle = stroke;
+        ctx.stroke();
+    }
+};
+
+
 const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
     const containerRef = useRef();
     const labelCanvas = useRef();
@@ -122,15 +247,29 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                     if (!hiddenLabels?.[labels[reg]?.label]) {
                         for (let r = 0; r < locations.length; r++) {
                             const [x, y] = locations[r];
-                            ctx.fillStyle = getColor(
-                                labels[reg].label
-                            );
-                            const radius = 3;
-                            ctx.lineWidth = 3;
-                            ctx.beginPath();
-                            ctx.arc(x * imageScale, y * imageScale, radius, 0, Math.PI);
-                            ctx.fill();
-                        }
+			    const markerType = "raindrop";
+			    if (markerType === "circle") {
+				ctx.fillStyle = getColor(
+                                    labels[reg].label
+				);
+				const radius = 3;
+				ctx.lineWidth = 3;
+				ctx.beginPath();
+				ctx.arc(x * imageScale, y * imageScale, radius, 0, Math.PI);
+				ctx.fill();
+                            } else if (markerType === "raindrop") {
+				const marker = {
+				    size: 24, // based on image size?
+				    x: x * imageScale,
+				    y: y * imageScale,
+				    borderWidth: 1.5,
+				    color: getColor(
+					labels[reg].label
+				    ),
+				};
+				drawMarker(ctx, marker);
+			    }
+			}
                     }
                 } else if (labels[reg]?.mask) {
                     //const image = new Image();
@@ -138,7 +277,9 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                     //ctx.drawImage(image, 0, 0, imgDims.width, imgDims.height);
                     const mask = makeMask(imgDims.width, imgDims.height, 128); // alpha
                     ctx.putImageData(mask);
-                }
+                } else {
+		    console.log(`unknown annotation type: ${labels[reg]}`);
+		}
             }
         }
     }, [imageScale, score, hiddenLabels, labels, imgDims]);
