@@ -691,17 +691,26 @@ class Image(Asset):
         if not isinstance(layer_name, str):
             raise Exception("layer_name must be a string")
 
-        # if not isinstance(image, Image):
-        #    raise ValueError(
-        #        "Image.add_mask() requires a layer_name, label_map, and mask image"
-        #    )
+        if isinstance(mask, (list, tuple)):
+            array = mask
+            width = len(mask[0])
+            height = len(mask)
+        # elif isinstance(mask, Image):
+        # elif isinstance(mask, numpy thing):
+        else:
+            raise Exception("unknown mask type: %r" % mask)
 
         self._init_annotations(layer_name)
         self._update_annotations(
             layer_name,
             {
-                "labels": list(label_map.values()),
-                "mask": mask,
+                "labels": sorted(set(label_map.values())),
+                "mask": {
+                    "array": array,
+                    "width": width,
+                    "height": height,
+                    "map": label_map,
+                },
                 "boxes": None,
                 "points": None,
                 "markers": None,
