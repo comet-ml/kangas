@@ -17,6 +17,10 @@ const HeaderCell = ({ columnName, type }) => {
 const Cell = async ({ value, columnName, type, query, isHeader, cidx, ssr=false }) => {
     const Component = cellMap?.[type]?.component;
 
+    const parseQuery = (columnName?.toUpperCase() === query?.groupBy?.toUpperCase()) ?
+                            { ...query, groupBy: null } :
+                            { ...query }
+
     if (isHeader) {
         return (
            <HeaderCell columnName={columnName} type={type} grouped={query?.groupBy}/>
@@ -25,7 +29,7 @@ const Cell = async ({ value, columnName, type, query, isHeader, cidx, ssr=false 
 
     return (
         <CellClient columnName={columnName} type={type} grouped={query?.groupBy} cidx={cidx} >
-            { !!Component && <Component value={value} query={query} ssr={ssr} />}
+            { !!Component && <Component value={value} columnName={columnName} query={parseQuery} ssr={ssr} />}
             { !Component && <div>{`${value}`}</div> }
         </CellClient>
     );

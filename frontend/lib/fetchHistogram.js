@@ -8,8 +8,8 @@ import { getColor } from './generateChartColor';
 
 const fetchHistogram = async (query, ssr=false) => {
     const data = ssr ? 
-        await fetchIt({ url: `${config.apiUrl}histogram`, query}) : 
-        await fetchIt({url: `/api/histogram`, query});
+        await fetchIt({ url: `${config.apiUrl}histogram`, query }) : 
+        await fetchIt({ url: `/api/histogram`, query });
 
 
     if (data?.error) {
