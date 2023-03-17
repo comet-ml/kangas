@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useEffect, useRef, useState, useContext, useLayoutEffect } from 'react';
 import { CanvasContext } from '../../../contexts/CanvasContext';
 import useLabels from '../../../../lib/hooks/useLabels';
-import { getColor, getContrastingColor } from '../../../../lib/generateChartColor';
+import { getColor, getContrastingColor, hexToRgb } from '../../../../lib/generateChartColor';
 import styles from './ImageCanvas.module.scss';
 import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);
@@ -148,6 +148,14 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
         if (labels) {
             const ctx = labelCanvas.current.getContext("2d");
             ctx.clearRect(0, 0, imgDims.width, imgDims.height);
+            // Display any masks first:
+            for (let reg = 0; reg < labels.length; reg++) {
+                if (labels[reg]?.mask) {
+                    // FIXME: look at first labels value {32: "person", ...}
+                    processMask(ctx, labels[reg].mask, imgDims, hiddenLabels);
+                }
+            }
+            // Next, draw all other annotations:
             for (let reg = 0; reg < labels.length; reg++) {
                 if (labels[reg]?.score) {
                     if (annotations[reg]?.score < score) continue;
@@ -221,14 +229,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
 			}
                     }
                 } else if (labels[reg]?.mask) {
-                    //const image = new Image();
-                    //ctx.globalAlpha = 0.5;
-                    //ctx.drawImage(image, 0, 0, imgDims.width, imgDims.height);
-                    // FIXME: look at first labels value {32: "person", ...}
-                    if (!hiddenLabels?.[Object.values(labels[reg]?.labels)[0]]) {
-                        const mask = makeMask(imgDims.width, imgDims.height, 128); // alpha
-                        ctx.putImageData(mask, 0, 0);
-                    }
+                    // skip here; already drawn
                 } else {
 		    console.log(`unknown annotation type: ${labels[reg]}`);
 		}
@@ -236,16 +237,37 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
         }
     }, [imageScale, score, hiddenLabels, labels, imgDims]);
 
-    const makeMask = function(width, height, alpha) {
+
+    const processMask = function(ctx, mask, imageDims, hiddenLabels) {
+        // ctx is context
+        // mask is from user; {"array": array, "width": width, "height": height, "map": label_map},
+        // imageDims is {x: , y:} current size
+        // hiddenLabels is hiddenLabels.person object of hidden items
+
+        //const tcanvas = new OffscreenCanvas(mask.width, mask.height);
+        //const tctx = tcanvas.getContext("2d");
+        //const mask = makeMask(mask.width, mask.height, 128); // alpha
+        //tctx.putImageData(mask, 0, 0);
+        //tctx.scale(imgDims.width/mask.width, imgDims.height/mask.height);
+        //ctx.drawImage(tcanvas, 0, 0);
+
+        const image = makeMaskImage(mask.array, mask.map, hiddenLabels, mask.width, mask.height, 128);
+        ctx.putImageData(image, 0, 0);
+    };
+
+    const makeMaskImage = function(data, map, hiddenLabels, width, height, alpha) {
         const buffer = new Uint8ClampedArray(width * height * 4);
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
-                if (x > 100 && x < 200 && y > 100 && y < 200) {
-                    let pos = (y * width + x) * 4; // position in buffer based on x and y
-                    buffer[pos  ] = 255;           // some R value [0, 255]
-                    //buffer[pos+1] = ...;           // some G value
-                    //buffer[pos+2] = ...;           // some B value
-                    buffer[pos+3] = alpha;           // set alpha channel
+                let pos = (y * width + x) * 4; // position in buffer based on x and y
+                const classCode = data[height][width];
+                const label = map[classCode];
+                if (!hiddenLabels[label]) {
+                    const rgb = hexToRgb(getColor(label));
+                    buffer[pos  ] = rgb[0];
+                    buffer[pos+1] = rgb[1];
+                    buffer[pos+2] = rgb[2];
+                    buffer[pos+3] = alpha;
                 }
             }
         }
