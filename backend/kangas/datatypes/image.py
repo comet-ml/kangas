@@ -26,6 +26,7 @@ from .base import Asset
 from .utils import (
     _verify_box,
     _verify_line,
+    _verify_marker,
     convert_tensor_to_numpy,
     download_filename,
     flatten,
@@ -212,7 +213,7 @@ class Image(Asset):
             #     "data":
             #       {
             #         "label": [],
-            #         "boxes": [] | "points": [] | "mask": mask | "locations": [] | "lines": []
+            #         "boxes": [] | "points": [] | "mask": mask | "markers": [] | "lines": []
             #         "score": score,
             #         "id": "some-id",
             #         "metadata": {},
@@ -236,11 +237,18 @@ class Image(Asset):
         layer = self._get_layer(self.metadata["annotations"], layer_name)
         layer["data"].append(data)
 
-        label = data["label"]
-        if label not in self.metadata["labels"]:
-            self.metadata["labels"][label] = 1
-        else:
-            self.metadata["labels"][label] += 1
+        if "label" in data:
+            label = data["label"]
+            if label not in self.metadata["labels"]:
+                self.metadata["labels"][label] = 1
+            else:
+                self.metadata["labels"][label] += 1
+        if "labels" in data:
+            for label in data["labels"]:
+                if label not in self.metadata["labels"]:
+                    self.metadata["labels"][label] = 1
+                else:
+                    self.metadata["labels"][label] += 1
 
     def add_regions(
         self,
@@ -282,7 +290,7 @@ class Image(Asset):
                 "label": label,
                 "points": list(regions),
                 "boxes": None,
-                "locations": None,
+                "markers": None,
                 "lines": None,
                 "mask": None,
                 "score": score,
@@ -332,7 +340,7 @@ class Image(Asset):
                 "label": label,
                 "points": [region],
                 "boxes": None,
-                "locations": None,
+                "markers": None,
                 "lines": None,
                 "mask": None,
                 "score": score,
@@ -342,32 +350,38 @@ class Image(Asset):
         )
         return self
 
-    def add_points(
+    def add_markers(
         self,
         label,
-        *points,
+        *markers,
         score=None,
         layer_name="(uncategorized)",
         id=None,
+        size=18,
+        shape="raindrop",
+        border_width=1.5,
         **metadata
     ):
         """
-        Add points to an image.
+        Add markers to an image.
 
         Args:
             layer_name: (str) the layer for the label and bounding boxes
             label: (str) the label for the regions
-            points: list or tuples of exactly 2 ints (x, y)
+            markers: list or tuples of exactly 2 ints (x, y)
             score: (optional, number) a score associated with the region.
             id: (optional, str) an id associated
                with the region.
+            size: (int) size of markers, in pixels
+            shape: (str) "raindrop" or "circle"
+            border_width: (float) width of border around shapes
 
         Example:
         ```python
         >>> image = Image()
         >>> point1 = (x1, y1)
         >>> point2 = (x2, y2)
-        >>> image.add_points("Person", point1, point2, score=0.99)
+        >>> image.add_markers("Person", point1, point2, score=0.99)
         ```
         """
         if not isinstance(layer_name, str):
@@ -383,7 +397,10 @@ class Image(Asset):
                 "label": label,
                 "boxes": None,
                 "points": None,
-                "locations": points,
+                "markers": [
+                    _verify_marker(marker, shape, size, border_width)
+                    for marker in markers
+                ],
                 "lines": None,
                 "mask": None,
                 "score": score,
@@ -393,31 +410,37 @@ class Image(Asset):
         )
         return self
 
-    def add_point(
+    def add_marker(
         self,
         label,
-        point,
+        marker,
         score=None,
         layer_name="(uncategorized)",
         id=None,
+        size=18,
+        shape="raindrop",
+        border_width=1.5,
         **metadata
     ):
         """
-        Add a point to an image.
+        Add a marker to an image.
 
         Args:
             layer_name: (str) the layer for the label and bounding boxes
             label: (str) the label for the regions
-            point: a list or tuple of exactly 2 ints (x, y)
+            marker: a list or tuple of exactly 2 ints (x, y)
             score: (optional, number) a score associated with the region.
             id: (optional, str) an id associated
                with the region.
+            size: (int) size of marker, in pixels
+            shape: (str) "raindrop" or "circle"
+            border_width: (float) width of border around shape
 
         Example:
         ```python
         >>> image = Image()
         >>> point = (x, y)
-        >>> image.add_point("Person", point, score=0.99)
+        >>> image.add_marker("Person", point, score=0.99)
         ```
         """
         if not isinstance(layer_name, str):
@@ -433,7 +456,7 @@ class Image(Asset):
                 "label": label,
                 "boxes": None,
                 "points": None,
-                "locations": [point],
+                "markers": [_verify_marker(marker, shape, size, border_width)],
                 "lines": None,
                 "mask": None,
                 "score": score,
@@ -484,7 +507,7 @@ class Image(Asset):
                 "label": label,
                 "boxes": None,
                 "points": None,
-                "locations": None,
+                "markers": None,
                 "lines": [_verify_line(line) for line in lines],
                 "mask": None,
                 "score": score,
@@ -528,7 +551,7 @@ class Image(Asset):
                 "label": label,
                 "boxes": None,
                 "points": None,
-                "locations": None,
+                "markers": None,
                 "lines": [_verify_line(line)],
                 "mask": None,
                 "score": score,
@@ -581,7 +604,7 @@ class Image(Asset):
                 "label": label,
                 "boxes": [_verify_box(box) for box in boxes],
                 "points": None,
-                "locations": None,
+                "markers": None,
                 "lines": None,
                 "mask": None,
                 "score": score,
@@ -626,7 +649,7 @@ class Image(Asset):
                 "label": label,
                 "boxes": [_verify_box(box)],
                 "points": None,
-                "locations": None,
+                "markers": None,
                 "lines": None,
                 "mask": None,
                 "score": score,
@@ -639,7 +662,7 @@ class Image(Asset):
     def add_mask(
         self,
         label_map,
-        image,
+        mask,
         score=None,
         layer_name="(uncategorized)",
         id=None,
@@ -651,7 +674,7 @@ class Image(Asset):
         Args:
             layer_name: (str) the layer for the label
             label_map: (str) the label for the regions
-            image: (Image) a DataGrid Image instance of the mask
+            mask: (Image) a DataGrid Image instance of the mask
             score: (optional, number) a score associated with the region.
             id: (optional, str) an id associated
                with the region.
@@ -668,20 +691,20 @@ class Image(Asset):
         if not isinstance(layer_name, str):
             raise Exception("layer_name must be a string")
 
-        if not isinstance(image, Image):
-            raise ValueError(
-                "Image.add_mask() requires a layer_name, label_map, and mask image"
-            )
+        # if not isinstance(image, Image):
+        #    raise ValueError(
+        #        "Image.add_mask() requires a layer_name, label_map, and mask image"
+        #    )
 
         self._init_annotations(layer_name)
         self._update_annotations(
             layer_name,
             {
-                "labels": label_map.values(),
-                "mask": [],
+                "labels": list(label_map.values()),
+                "mask": mask,
                 "boxes": None,
                 "points": None,
-                "locations": None,
+                "markers": None,
                 "lines": None,
                 "score": score,
                 "id": id,
