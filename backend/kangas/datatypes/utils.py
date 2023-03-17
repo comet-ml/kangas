@@ -720,3 +720,13 @@ def _verify_line(line):
         raise Exception("Invalid line format: %r" % line)
 
     return [x1, y1, x2, y2]
+
+
+def _verify_marker(marker, shape, size, border_width):
+    return {
+        "shape": shape,
+        "borderWidth": border_width,
+        "size": size,
+        "x": marker[0],
+        "y": marker[1],
+    }
