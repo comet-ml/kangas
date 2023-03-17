@@ -3,7 +3,7 @@ import Grouped from './GroupedImageCell';
 import DialogueModal from '../../modals/DialogueModal/DialogueModalClient';
 
 const Image = ({ value, columnName, query, style }) => {
-    if (!query?.groupBy) return (
+    if (!query?.groupBy || columnName?.toUpperCase() === query?.groupBy?.toUpperCase()) return (
         <DialogueModal toggleElement={<Base value={value} query={query} expanded={false} style={style} />}>
             <Base value={value} query={query} expanded={true} />
         </DialogueModal>
