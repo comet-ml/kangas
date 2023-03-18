@@ -1452,27 +1452,28 @@ def select_asset_group_metadata(
                         )
                         if "data" in annotation_layer:
                             for annotation in annotation_layer["data"]:
-                                minimum = summary[layer_name]["labels"][
-                                    annotation["label"]
-                                ]["scoreMin"]
-                                maximum = summary[layer_name]["labels"][
-                                    annotation["label"]
-                                ]["scoreMax"]
-                                if annotation["score"] is not None:
-                                    summary[layer_name]["labels"][annotation["label"]][
-                                        "scoreMin"
-                                    ] = (
-                                        min(annotation["score"], minimum)
-                                        if minimum is not None
-                                        else annotation["score"]
+                                if "label" in annotation and "score" in annotation:
+                                    update_score(
+                                        summary,
+                                        layer_name,
+                                        annotation,
+                                        annotation["label"],
+                                        annotation["score"],
                                     )
-                                    summary[layer_name]["labels"][annotation["label"]][
-                                        "scoreMax"
-                                    ] = (
-                                        max(annotation["score"], maximum)
-                                        if maximum is not None
-                                        else annotation["score"]
+                                if "labels" in annotation and "scores" in annotation:
+                                    scores = (
+                                        annotation["scores"]
+                                        if annotation["scores"]
+                                        else {}
                                     )
+                                    for label in annotation["labels"]:
+                                        update_score(
+                                            summary,
+                                            layer_name,
+                                            annotation,
+                                            label,
+                                            scores.get(label),
+                                        )
 
     for layer_name in summary:
         minimum, maximum = None, None
@@ -1486,6 +1487,18 @@ def select_asset_group_metadata(
         summary[layer_name]["scoreMin"] = minimum
         summary[layer_name]["scoreMax"] = maximum
     return summary
+
+
+def update_score(summary, layer_name, annotation, label, score):
+    minimum = summary[layer_name]["labels"][label]["scoreMin"]
+    maximum = summary[layer_name]["labels"][label]["scoreMax"]
+    if score is not None:
+        summary[layer_name]["labels"][label]["scoreMin"] = (
+            min(score, minimum) if minimum is not None else score
+        )
+        summary[layer_name]["labels"][label]["scoreMax"] = (
+            max(score, maximum) if maximum is not None else score
+        )
 
 
 def verify_where(

@@ -29,12 +29,14 @@ from .utils import (
     _verify_marker,
     convert_tensor_to_numpy,
     download_filename,
+    fast_flatten,
     flatten,
     generate_image,
     get_file_extension,
     image_to_fp,
     is_valid_file_path,
     rescale_array,
+    rle_encode,
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -663,7 +665,7 @@ class Image(Asset):
         self,
         label_map,
         mask,
-        score=None,
+        scores=None,
         layer_name="(uncategorized)",
         id=None,
         **metadata
@@ -675,7 +677,7 @@ class Image(Asset):
             layer_name: (str) the layer for the label
             label_map: (str) the label for the regions
             mask: (Image) a DataGrid Image instance of the mask
-            score: (optional, number) a score associated with the region.
+            scores: (optional, dict) a score associated with each label
             id: (optional, str) an id associated
                with the region.
 
@@ -701,12 +703,23 @@ class Image(Asset):
             raise Exception("unknown mask type: %r" % mask)
 
         self._init_annotations(layer_name)
+
+        array = fast_flatten(array, int).tolist()
+        rle_array = rle_encode(array)
+        if len(rle_array) < len(array):
+            array = rle_array
+            format = "rle"
+        else:
+            format = "raw"
+
         self._update_annotations(
             layer_name,
             {
                 "labels": sorted(set(label_map.values())),
+                "scores": scores,
                 "mask": {
                     "array": array,
+                    "format": format,
                     "width": width,
                     "height": height,
                     "map": label_map,
@@ -715,7 +728,6 @@ class Image(Asset):
                 "points": None,
                 "markers": None,
                 "lines": None,
-                "score": score,
                 "id": id,
                 "metadata": metadata,
             },

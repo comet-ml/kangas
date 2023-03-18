@@ -635,7 +635,7 @@ def flatten(items):
     return list(lazy_flatten(items))
 
 
-def fast_flatten(items):
+def fast_flatten(items, dtype=float):
     """
     Given a nested list or a numpy array,
     return the data flattened.
@@ -650,18 +650,18 @@ def fast_flatten(items):
 
     try:
         # Vector, Matrix conversion:
-        items = np.array(items, dtype=float)
+        items = np.array(items, dtype=dtype)
         # Return numpy array:
         return items.reshape(-1)
     except Exception:
         try:
             # Uneven conversion, 2 deep:
-            items = np.array([np.array(item) for item in items], dtype=float)
+            items = np.array([np.array(item) for item in items], dtype=dtype)
             return items.reshape(-1)
         except Exception:
             # Fall through
             LOGGER.debug("numpy unable to convert items in fast_flatten", exc_info=True)
-            return np.array(flatten(items))
+            return np.array(flatten(items), dtype=dtype)
 
 
 def image_to_fp(image, image_format):
@@ -730,3 +730,96 @@ def _verify_marker(marker, shape, size, border_width):
         "x": marker[0],
         "y": marker[1],
     }
+
+
+def rle_encode(sequence):
+    """
+    Run-length encoding of a given sequence.
+    """
+    encoding = [sequence[0], 1]
+    for value in sequence[1:]:
+        if value == encoding[-2]:
+            encoding[-1] += 1
+        else:
+            encoding.extend((value, 1))
+    return encoding
+
+
+def rle_decode(encoding):
+    """
+    Run-length decoding of a given encoding.
+    """
+    sequence = []
+    for index in range(0, len(encoding), 2):
+        count, value = encoding[index : index + 2]
+        sequence.extend([value] * count)
+    return sequence
+
+
+def compress(series, precision=0):
+    if not isinstance(series, list):
+        raise ValueError("Input to compress should be of type list.")
+
+    if not isinstance(precision, int):
+        raise ValueError("Precision parameter needs to be a number.")
+
+    if precision < 0 or precision > 10:
+        raise ValueError("Precision must be between 0 to 10 decimal places.")
+
+    # Store precision value at the beginning of the compressed text
+    last_num = 0
+    result = io.StringIO(chr(precision + 63))
+
+    for num in series:
+        diff = num - last_num
+        diff = int(round(diff * (10**precision)))
+        diff = ~(diff << 1) if diff < 0 else diff << 1
+
+        while diff >= 0x20:
+            result.write(chr((0x20 | (diff & 0x1F)) + 63))
+            diff >>= 5
+
+        result.write(chr(diff + 63))
+        last_num = num
+
+    return result.getvalue()
+
+
+def decompress(text):
+    if not isinstance(text, str):
+        raise ValueError("Input to decompress should be of type str.")
+
+    # decode precision value
+    precision = ord(text[0]) - 63
+
+    if precision < 0 or precision > 10:
+        raise ValueError(
+            "Invalid string sent to decompress. Please check the string for accuracy."
+        )
+
+    result = []
+    index = 1
+    last_num = 0
+
+    while index < len(text):
+        index, diff = decompress_number(text, index)
+        last_num += diff
+        result.append(last_num)
+
+    return [round(item * (10 ** (-precision)), precision) for item in result]
+
+
+def decompress_number(text, index):
+    result = 1
+    shift = 0
+
+    while True:
+        b = ord(text[index]) - 63 - 1
+        index += 1
+        result += b << shift
+        shift += 5
+
+        if b < 0x1F:
+            break
+
+    return index, (~result >> 1) if (result & 1) != 0 else (result >> 1)

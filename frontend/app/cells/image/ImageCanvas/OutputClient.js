@@ -146,19 +146,19 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
 
     const drawLabels = useCallback(() => {
         if (labels) {
+	    const alpha = 255; // get from slider?
             const ctx = labelCanvas.current.getContext("2d");
             ctx.clearRect(0, 0, imgDims.width, imgDims.height);
             // Display any masks first:
             for (let reg = 0; reg < labels.length; reg++) {
                 if (labels[reg]?.mask) {
-                    // FIXME: look at first labels value {32: "person", ...}
-                    processMask(ctx, labels[reg].mask, imgDims, hiddenLabels);
+                    processMask(ctx, labels[reg].mask, imgDims, hiddenLabels, labels[reg].scores, score, alpha);
                 }
             }
             // Next, draw all other annotations:
             for (let reg = 0; reg < labels.length; reg++) {
                 if (labels[reg]?.score) {
-                    if (annotations[reg]?.score < score) continue;
+                    if (annotations[reg]?.score <= score) continue;
                 }
                 if (!!labels[reg]?.points) {
                     const points = labels[reg].points;
@@ -238,40 +238,57 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
     }, [imageScale, score, hiddenLabels, labels, imgDims]);
 
 
-    const processMask = function(ctx, mask, imageDims, hiddenLabels) {
-        // ctx is context
-        // mask is from user; {"array": array, "width": width, "height": height, "map": label_map},
-        // imageDims is {x: , y:} current size
-        // hiddenLabels is hiddenLabels.person object of hidden items
+    const processMask = function(ctx, mask, imgDims, hiddenLabels, scores, score, alpha) {
+        const image = makeMaskImage(mask, hiddenLabels, scores, score, alpha);
 
-        //const tcanvas = new OffscreenCanvas(mask.width, mask.height);
-        //const tctx = tcanvas.getContext("2d");
-        //const mask = makeMask(mask.width, mask.height, 128); // alpha
-        //tctx.putImageData(mask, 0, 0);
-        //tctx.scale(imgDims.width/mask.width, imgDims.height/mask.height);
-        //ctx.drawImage(tcanvas, 0, 0);
-
-        const image = makeMaskImage(mask.array, mask.map, hiddenLabels, mask.width, mask.height, 128);
-        ctx.putImageData(image, 0, 0);
+	// Scale the mask to fit the size of the scaled image:
+        const canvas = new OffscreenCanvas(mask.width, mask.height);
+        const context = canvas.getContext("2d");
+        context.putImageData(image, 0, 0);
+        ctx.drawImage(canvas, 0, 0, imgDims.width, imgDims.height);
     };
 
-    const makeMaskImage = function(data, map, hiddenLabels, width, height, alpha) {
-        const buffer = new Uint8ClampedArray(width * height * 4);
-        for (let y = 0; y < height; y++) {
-            for (let x = 0; x < width; x++) {
-                let pos = (y * width + x) * 4; // position in buffer based on x and y
-                const classCode = data[height][width];
-                const label = map[classCode];
-                if (!hiddenLabels[label]) {
-                    const rgb = hexToRgb(getColor(label));
-                    buffer[pos  ] = rgb[0];
-                    buffer[pos+1] = rgb[1];
-                    buffer[pos+2] = rgb[2];
-                    buffer[pos+3] = alpha;
-                }
+    const rleDecode = function(encoding, width, height) {
+	const sequence = new Array(width * height);
+	let index = 0;
+	for (let i=0; i < encoding.length; i+=2) {
+	    const value = encoding[i];
+	    const count = encoding[i+1];
+	    for (let c=0; c < count; c++) {
+		sequence[index++] = value;
+	    }
+	}
+	return sequence;
+    }
+
+    const makeMaskImage = function(mask, hiddenLabels, scores, score, alpha) {
+        const buffer = new Uint8ClampedArray(mask.width * mask.height * 4);
+
+	if (mask.format === 'rle') {
+	    mask.array = rleDecode(mask.array, mask.width, mask.height);
+	    mask.format = "raw";
+	}
+
+        for (let y = 0; y < mask.height; y++) {
+            for (let x = 0; x < mask.width; x++) {
+                const classCode = mask.array[y * mask.width + x];
+                const label = mask.map[classCode];
+		// Not hidden by label click:
+                if (label && !hiddenLabels?.[label]) {
+		    // Not hidden due to score slider:
+		    if (scores && scores[label] && scores[label] <= score)
+			continue;
+
+		    let pos = (y * mask.width + x) * 4;
+		    const rgb = hexToRgb(getColor(label));
+		    buffer[pos  ] = rgb[0];
+		    buffer[pos+1] = rgb[1];
+		    buffer[pos+2] = rgb[2];
+		    buffer[pos+3] = alpha;
+		}
             }
         }
-        return new ImageData(buffer, width, height); // settings can be colorSpace name
+        return new ImageData(buffer, mask.width, mask.height); // settings can be colorSpace name
     };
 
     const onLoad = useCallback((e) => {
