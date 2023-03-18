@@ -62,23 +62,8 @@ const useLabels = ({ assetId, dgid, timestamp }) => {
         }
     }, [image?.fetchedMeta]);
 
-    const labels = useMemo(() => {
-        if (!!annotations?.data) {
-            if (typeof score !== 'number') {
-                return annotations?.data
-            }
-            else {
-                const filtered =  annotations?.data?.filter(data => (!data?.score || (data?.score > score) && !hiddenLabels?.[data?.label]));
-                return filtered;
-            }
-        } else {
-            return [];
-        }
-    }, [score, hiddenLabels, annotations]);
-
     return {
         annotations,
-        labels,
         scoreRange: {},
         updateScore,
         updateScoreRange,

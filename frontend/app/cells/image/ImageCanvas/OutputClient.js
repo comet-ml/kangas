@@ -109,7 +109,6 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
     const {
         annotations,
         score,
-        labels,
         hiddenLabels,
     } = useLabels({ assetId, timestamp, dgid });
 
@@ -145,28 +144,28 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
 
 
     const drawLabels = useCallback(() => {
-        if (labels) {
+        if (annotations?.data) {
 	    const alpha = 255; // get from slider?
             const ctx = labelCanvas.current.getContext("2d");
             ctx.clearRect(0, 0, imgDims.width, imgDims.height);
             // Display any masks first:
-            for (let reg = 0; reg < labels.length; reg++) {
-                if (labels[reg]?.mask) {
-                    processMask(ctx, labels[reg].mask, imgDims, hiddenLabels, labels[reg].scores, score, alpha);
+            for (let annotation of annotations.data) {
+                if (annotation.mask) {
+                    processMask(ctx, annotation.mask, imgDims, hiddenLabels, annotation.scores, score, alpha);
                 }
             }
             // Next, draw all other annotations:
-            for (let reg = 0; reg < labels.length; reg++) {
-                if (labels[reg]?.score) {
-                    if (annotations[reg]?.score <= score) continue;
+            for (let annotation of annotations.data) {
+                if (annotation.score) {
+                    if (annotation.score <= score) continue;
                 }
-                if (!!labels[reg]?.points) {
-                    const points = labels[reg].points;
-                    if (!hiddenLabels?.[labels[reg].label]) {
+                if (!!annotation.points) {
+                    const points = annotation.points;
+                    if (!hiddenLabels?.[annotation.label]) {
                         for (let r = 0; r < points.length; r++) {
                             const region = points[r];
                             ctx.fillStyle = getColor(
-                                labels[reg].label
+                                annotation.label
                             );
                             ctx.beginPath();
                             ctx.moveTo(
@@ -183,13 +182,13 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                             ctx.fill();
                         }
                     }
-                } else if (!!labels[reg]?.boxes) {
-                    const boxes = labels[reg].boxes;
-                    if (!hiddenLabels?.[labels[reg]?.label]) {
+                } else if (!!annotation.boxes) {
+                    const boxes = annotation.boxes;
+                    if (!hiddenLabels?.[annotation.label]) {
                         for (let r = 0; r < boxes.length; r++) {
                             const [x1, y1, x2, y2] = boxes[r];
                             ctx.strokeStyle = getColor(
-                                labels[reg].label
+                                annotation.label
                             );
                             ctx.lineWidth = 3;
                             ctx.beginPath();
@@ -201,13 +200,13 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                             ctx.stroke();
                         }
                     }
-                } else if (labels[reg]?.lines) {
-                    const lines = labels[reg].lines;
-                    if (!hiddenLabels?.[labels[reg]?.label]) {
+                } else if (annotation.lines) {
+                    const lines = annotation.lines;
+                    if (!hiddenLabels?.[annotation.label]) {
                         for (let r = 0; r < lines.length; r++) {
                             const [x1, y1, x2, y2] = lines[r];
                             ctx.strokeStyle = getColor(
-                                labels[reg].label
+                                annotation.label
                             );
                             ctx.lineWidth = 3;
                             ctx.beginPath();
@@ -216,26 +215,26 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                             ctx.stroke();
                         }
                     }
-                } else if (labels[reg]?.markers) {
-                    const markers = labels[reg].markers;
+                } else if (annotation.markers) {
+                    const markers = annotation.markers;
 		    let marker = null;
-                    if (!hiddenLabels?.[labels[reg]?.label]) {
+                    if (!hiddenLabels?.[annotation.label]) {
                         for (let r = 0; r < markers.length; r++) {
                             const marker = markers[r];
 			    marker.color = getColor(
-				labels[reg].label
+				annotation.label
 			    );
 			    drawMarker(ctx, marker, marker.x * imageScale, marker.y * imageScale);
 			}
                     }
-                } else if (labels[reg]?.mask) {
+                } else if (annotation.mask) {
                     // skip here; already drawn
                 } else {
-		    console.log(`unknown annotation type: ${labels[reg]}`);
+		    console.log(`unknown annotation type: ${annotation}`);
 		}
             }
         }
-    }, [imageScale, score, hiddenLabels, labels, imgDims]);
+    }, [imageScale, score, hiddenLabels, annotations, imgDims]);
 
 
     const processMask = function(ctx, mask, imgDims, hiddenLabels, scores, score, alpha) {
