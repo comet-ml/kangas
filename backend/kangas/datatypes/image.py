@@ -668,6 +668,7 @@ class Image(Asset):
         scores=None,
         layer_name="(uncategorized)",
         id=None,
+        column_first=False,
         **metadata
     ):
         """
@@ -676,35 +677,71 @@ class Image(Asset):
         Args:
             layer_name: (str) the layer for the label
             label_map: (str) the label for the regions
-            mask: (Image) a DataGrid Image instance of the mask
+            mask: (2D array or np.array, or kangas.Image) an array in
+                row-first order (mask[row][col]) or Image. If
+                column-first order use column_first=True
             scores: (optional, dict) a score associated with each label
             id: (optional, str) an id associated
                with the region.
-
-        Under development.
+            column_first: (optional, bool) normally, mask data is given
+               in row-first order (mask[row][col]). Use this flag to indicate
+               that you are passing in a mask in column-first order.
 
         Example:
         ```python
-        >>> image = Image()
-        >>> image.add_mask({23: "person"}, Image(MASK), layer_name="Predictions")
-        >>> image.add_mask({23: "person"}, Image(MASK), layer_name="Ground Truth")
+        >>> import kangas as kg
+        >>> import PIL.Image
+        >>> image = kg.Image("source.png")
+        >>> mask1 = PIL.Image.open("pred.png")
+        >>> mask2 = PIL.Image.open("truth.png")
+        >>> image.add_mask({23: "person"}, mask1, layer_name="Prediction")
+        >>> image.add_mask({23: "person"}, mask2, layer_name="Ground Truth")
+        >>> dg = kg.DataGrid(name="model23")
+        >>> dg.append([image])
+        >>> dg.save()
         ```
         """
         if not isinstance(layer_name, str):
             raise Exception("layer_name must be a string")
 
+        image = None
+
         if isinstance(mask, (list, tuple)):
-            array = mask
-            width = len(mask[0])
-            height = len(mask)
-        # elif isinstance(mask, Image):
-        # elif isinstance(mask, numpy thing):
+            if column_first:
+                width = len(mask)
+                height = len(mask[0])
+                array = np.array(mask)
+                array = array.transpose()
+            else:
+                array = mask
+                height = len(mask)
+                width = len(mask[0])
+        elif isinstance(mask, str):
+            image = PIL.Image.open(mask)
+        elif isinstance(mask, PIL.Image.Image):  # PIL.Image
+            image = mask
+        elif hasattr(mask, "tolist"):  # numpy arrays
+            if column_first:
+                array = mask.transpose()
+                height, width = array.shape
+            else:
+                array = mask
+                width, height = array.shape
         else:
             raise Exception("unknown mask type: %r" % mask)
 
+        if image is not None:
+            if image.mode != "P":
+                image = image.convert("P")
+            image = image.quantize()
+            width, height = image.size
+            array = np.array(image)
+            array = array.flatten().tolist()
+        else:
+            array = fast_flatten(array, int).tolist()
+
         self._init_annotations(layer_name)
 
-        array = fast_flatten(array, int).tolist()
         rle_array = rle_encode(array)
         if len(rle_array) < len(array):
             array = rle_array
