@@ -269,9 +269,8 @@ class Image(Asset):
             label: (str) the label for the regions
             regions: list or tuples of at least 3 points
             score: (optional, number) a score associated
-               with the region.
-            id: (optional, str) an id associated
-               with the region.
+               with the regions
+            id: (optional, str) an id associated with the regions
 
         Example:
         ```python
@@ -319,9 +318,8 @@ class Image(Asset):
             label: (str) the label for the region
             region: list or tuple of at least 3 points
             score: (optional, number) a score associated
-               with the region.
-            id: (optional, str) an id associated
-               with the region.
+               with the region
+            id: (optional, str) an id associated with the region
 
         Example:
         ```python
@@ -329,28 +327,9 @@ class Image(Asset):
         >>> image.add_region("car", [(x1, y1), ...], layer_name="Predictions")
         ```
         """
-        if not isinstance(layer_name, str):
-            raise Exception("layer_name must be a string")
-
-        if not isinstance(label, str):
-            raise Exception("label must be a string")
-
-        self._init_annotations(layer_name)
-        self._update_annotations(
-            layer_name,
-            {
-                "label": label,
-                "points": [region],
-                "boxes": None,
-                "markers": None,
-                "lines": None,
-                "mask": None,
-                "score": score,
-                "id": id,
-                "metadata": metadata,
-            },
+        return self.add_regions(
+            label, region, score=score, layer_name=layer_name, id=id, **metadata
         )
-        return self
 
     def add_markers(
         self,
@@ -368,12 +347,11 @@ class Image(Asset):
         Add markers to an image.
 
         Args:
-            layer_name: (str) the layer for the label and bounding boxes
-            label: (str) the label for the regions
+            layer_name: (str) the layer for the label and markers
+            label: (str) the label for the markers
             markers: list or tuples of exactly 2 ints (x, y)
-            score: (optional, number) a score associated with the region.
-            id: (optional, str) an id associated
-               with the region.
+            score: (optional, number) a score associated with the markers
+            id: (optional, str) an id associated with the markers
             size: (int) size of markers, in pixels
             shape: (str) "raindrop" or "circle"
             border_width: (float) width of border around shapes
@@ -428,12 +406,11 @@ class Image(Asset):
         Add a marker to an image.
 
         Args:
-            layer_name: (str) the layer for the label and bounding boxes
-            label: (str) the label for the regions
+            layer_name: (str) the layer for the label and marker
+            label: (str) the label for the marker
             marker: a list or tuple of exactly 2 ints (x, y)
-            score: (optional, number) a score associated with the region.
-            id: (optional, str) an id associated
-               with the region.
+            score: (optional, number) a score associated with the marker
+            id: (optional, str) an id associated with the marker
             size: (int) size of marker, in pixels
             shape: (str) "raindrop" or "circle"
             border_width: (float) width of border around shape
@@ -445,28 +422,17 @@ class Image(Asset):
         >>> image.add_marker("Person", point, score=0.99)
         ```
         """
-        if not isinstance(layer_name, str):
-            raise Exception("layer_name must be a string")
-
-        if not isinstance(label, str):
-            raise Exception("label must be a string")
-
-        self._init_annotations(layer_name)
-        self._update_annotations(
-            layer_name,
-            {
-                "label": label,
-                "boxes": None,
-                "points": None,
-                "markers": [_verify_marker(marker, shape, size, border_width)],
-                "lines": None,
-                "mask": None,
-                "score": score,
-                "id": id,
-                "metadata": metadata,
-            },
+        return self.add_markers(
+            label,
+            marker,
+            score=score,
+            layer_name=layer_name,
+            id=id,
+            size=size,
+            shape=shape,
+            border_width=border_width,
+            **metadata
         )
-        return self
 
     def add_lines(
         self,
@@ -481,12 +447,11 @@ class Image(Asset):
         Add lines to an image.
 
         Args:
-            layer_name: (str) the layer for the label and bounding boxes
-            label: (str) the label for the regions
+            layer_name: (str) the layer for the label and lines
+            label: (str) the label for the lines
             lines: list or tuples of exactly 2 points ((x1, y1), (x2, y2))
-            score: (optional, number) a score associated with the region.
-            id: (optional, str) an id associated
-               with the region.
+            score: (optional, number) a score associated with the lines
+            id: (optional, str) an id associated with the lines
 
         Example:
         ```python
@@ -526,12 +491,11 @@ class Image(Asset):
         Add a line to an image.
 
         Args:
-            layer_name: (str) the layer for the label and bounding boxes
-            label: (str) the label for the regions
+            layer_name: (str) the layer for the label and line
+            label: (str) the label for the line
             line: list or tuple of exactly 2 points ((x1, y1), (x2, y2))
-            score: (optional, number) a score associated with the region.
-            id: (optional, str) an id associated
-               with the region.
+            score: (optional, number) a score associated with the line
+            id: (optional, str) an id associated with the line
 
         Example:
         ```python
@@ -540,28 +504,9 @@ class Image(Asset):
         >>> image.add_line("Person", line, score=0.99)
         ```
         """
-        if not isinstance(layer_name, str):
-            raise Exception("layer_name must be a string")
-
-        if not isinstance(label, str):
-            raise Exception("label must be a string")
-
-        self._init_annotations(layer_name)
-        self._update_annotations(
-            layer_name,
-            {
-                "label": label,
-                "boxes": None,
-                "points": None,
-                "markers": None,
-                "lines": [_verify_line(line)],
-                "mask": None,
-                "score": score,
-                "id": id,
-                "metadata": metadata,
-            },
+        return self.add_lines(
+            label, line, score=score, layer_name=layer_name, id=id, **metadata
         )
-        return self
 
     def add_bounding_boxes(
         self,
@@ -577,12 +522,11 @@ class Image(Asset):
 
         Args:
             layer_name: (str) the layer for the label and bounding boxes
-            label: (str) the label for the regions
+            label: (str) the label for the boxes
             boxes: list or tuples of exactly 2 points (top-left, bottom-right),
                 or 4 ints (x, y, width, height)
-            score: (optional, number) a score associated with the region.
-            id: (optional, str) an id associated
-               with the region.
+            score: (optional, number) a score associated with the boxes
+            id: (optional, str) an id associated with the boxes
 
         Example:
         ```python
@@ -623,43 +567,25 @@ class Image(Asset):
         Add a bounding box to an image.
 
         Args:
-            layer_name: (str) the layer for the label and bounding boxes
-            label: (str) the label for the regions
+            layer_name: (str) the layer for the label and bounding box
+            label: (str) the label for the box
             box: exactly 2 points (top-left, bottom-right),
                 or 4 ints (x, y, width, height)
-            score: (optional, number) a score associated with the region.
-            id: (optional, str) an id associated
-               with the region.
+            score: (optional, number) a score associated with the box
+            id: (optional, str) an id associated with the box
 
         Example:
         ```python
         >>> image = Image()
         >>> box = [(x1, y1), (x2, y2)]
         >>> image.add_bounding_box("Person", box, 0.56, layer_name="Truth")
+        >>> box = [x, y, w, h]
+        >>> image.add_bounding_box("Person", box, 0.04, layer_name="Prediction")
         ```
         """
-        if not isinstance(layer_name, str):
-            raise Exception("layer_name must be a string")
-
-        if not isinstance(label, str):
-            raise Exception("label must be a string")
-
-        self._init_annotations(layer_name)
-        self._update_annotations(
-            layer_name,
-            {
-                "label": label,
-                "boxes": [_verify_box(box)],
-                "points": None,
-                "markers": None,
-                "lines": None,
-                "mask": None,
-                "score": score,
-                "id": id,
-                "metadata": metadata,
-            },
+        return self.add_bounding_boxes(
+            label, box, score=score, layer_name=layer_name, id=id, **metadata
         )
-        return self
 
     def add_mask(
         self,
@@ -675,17 +601,16 @@ class Image(Asset):
         Add a mask to an image.
 
         Args:
-            layer_name: (str) the layer for the label
-            label_map: (str) the label for the regions
+            layer_name: (str) the layer for the labels and mask
+            label_map: (str) the label for the mask
             mask: (2D array or np.array, or kangas.Image) an array in
                 row-first order (mask[row][col]) or Image. If
                 column-first order use column_first=True
             scores: (optional, dict) a score associated with each label
-            id: (optional, str) an id associated
-               with the region.
+            id: (optional, str) an id associated with the mask
             column_first: (optional, bool) normally, mask data is given
                in row-first order (mask[row][col]). Use this flag to indicate
-               that you are passing in a mask in column-first order.
+               that you are passing in a mask in column-first order
 
         Example:
         ```python
