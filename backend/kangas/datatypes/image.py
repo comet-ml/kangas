@@ -603,9 +603,9 @@ class Image(Asset):
         Args:
             layer_name: (str) the layer for the labels and mask
             label_map: (str) the label for the mask
-            mask: (2D array or np.array, or kangas.Image) an array in
-                row-first order (mask[row][col]) or Image. If
-                column-first order use column_first=True
+            mask: (2D array or np.array, image filename, PIL.Image, or
+                kangas.Image) an array in row-first order (mask[row][col])
+                or Image. If column-first order use column_first=True
             scores: (optional, dict) a score associated with each label
             id: (optional, str) an id associated with the mask
             column_first: (optional, bool) normally, mask data is given
@@ -641,6 +641,8 @@ class Image(Asset):
                 array = mask
                 height = len(mask)
                 width = len(mask[0])
+        elif isinstance(mask, Image):
+            image = mask.to_pil()
         elif isinstance(mask, str):
             image = PIL.Image.open(mask)
         elif isinstance(mask, PIL.Image.Image):  # PIL.Image
