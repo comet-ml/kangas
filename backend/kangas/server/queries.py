@@ -1730,11 +1730,13 @@ def select_query_page(
     limit = ("LIMIT %s OFFSET %s" % (limit, offset)) if limit is not None else ""
 
     # Metadata now has computed_columns:
-    if select_columns:
-        select_fields = [get_field_name(column, metadata) for column in select_columns]
-    else:
-        select_fields = [get_field_name(column, metadata) for column in columns]
-        select_columns = columns
+    if select_columns is None:
+        select_columns = [
+            column_name
+            for column_name in columns
+            if not column_name.endswith("--metadata")
+        ]
+    select_fields = [get_field_name(column, metadata) for column in select_columns]
 
     sort_by_field_name = get_field_name(sort_by, metadata) if sort_by else "rowid"
     remove_columns = []

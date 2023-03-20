@@ -16,11 +16,11 @@ import Imports from './perf/Imports';
 const Main = async ({ query }) => {
     const data = await fetchDataGrid(query);
 
-    const { columnTypes, columns } = data || EMPTY;
+    const { columnTypes, columns, displayColumns } = data || EMPTY;
     const viewStart = query?.begin ?? 0;
     const viewEnd = query?.boundary ?? 20;
 
-    const view =  Object.fromEntries( columns.map( ( col, idx ) => [ col, { width: getDefaultCellSize(columnTypes[idx], query?.groupBy) } ]));
+    const view =  Object.fromEntries( columns.map( ( col, idx ) => [ col, { width: getDefaultCellSize(columnTypes[idx], query?.groupBy) } ]).filter(col => displayColumns.includes(col[0])));
 
     return (
         <ViewProvider value={{ columns: view, query }}>
