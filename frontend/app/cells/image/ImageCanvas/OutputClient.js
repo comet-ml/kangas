@@ -4,6 +4,7 @@ import { useCallback, useMemo, useEffect, useRef, useState, useContext, useLayou
 import { CanvasContext } from '../../../contexts/CanvasContext';
 import useLabels from '../../../../lib/hooks/useLabels';
 import { getColor } from '../../../../lib/generateChartColor';
+import { processMask, drawMarker } from '../../../../lib/canvas';
 import styles from './ImageCanvas.module.scss';
 import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);
