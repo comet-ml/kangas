@@ -146,7 +146,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
 
     const drawLabels = useCallback(() => {
         if (annotations?.data) {
-	    const alpha = 255; // get from slider?
+	    const alpha = 200; // get from slider?
             const ctx = labelCanvas.current.getContext("2d");
             ctx.clearRect(0, 0, imgDims.width, imgDims.height);
             // Display any masks first:
