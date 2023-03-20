@@ -40,9 +40,7 @@ class Asset:
 
     @property
     def asset_id(self):
-        if self._unserialize:
-            self._unserialize(self)
-            self._unserialize = None
+        self.deserialize()
         return self._asset_id
 
     @asset_id.setter
@@ -51,14 +49,20 @@ class Asset:
 
     @property
     def asset_data(self):
-        if self._unserialize:
-            self._unserialize(self)
-            self._unserialize = None
+        self.deserialize()
         return self._asset_data
 
     @asset_data.setter
     def asset_data(self, asset_data):
         self._asset_data = asset_data
+
+    def deserialize(self):
+        """
+        Deserialize if needed.
+        """
+        if self._unserialize:
+            self._unserialize(self)
+            self._unserialize = None
 
     def log_and_serialize(self, datagrid):
         """
@@ -84,11 +88,11 @@ class Asset:
                 asset_data, asset_metadata, asset_source = row
                 if asset_source:
                     obj.asset_data = obj._get_asset_data_from_source(asset_source)
-                    obj.metadata = asset_metadata
+                    obj.metadata = json.loads(asset_metadata)
                     obj.source = asset_source
                 else:
                     obj.asset_data = asset_data
-                    obj.metadata = asset_metadata
+                    obj.metadata = json.loads(asset_metadata)
 
         obj = cls(unserialize=_unserialize)
         obj.asset_id = asset_id

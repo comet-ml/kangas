@@ -18,15 +18,14 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
     const {
         annotations,
         score,
-        labels,
         hiddenLabels,
     } = useLabels({ assetId, timestamp, dgid });
 
-    const [dimensions, setDimensions] = useState({ height: 400, width: 400 })
+    const [dimensions, setDimensions] = useState({ height: 400, width: 400 });
     const { settings, isGroup } = useContext(CanvasContext);
     const zoom = useMemo(() => {
         if (isGroup) return 1;
-        else return Math.max(settings?.zoom ?? 1, 1)
+        else return Math.max(settings?.zoom ?? 1, 1);
     }, [settings?.zoom]);
     const smooth = useMemo(() => settings?.smooth ?? true, [settings?.smooth]);
     const gray = useMemo(() => settings?.gray ?? false, [settings?.gray]);
@@ -37,37 +36,43 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
         if (!loaded) return 1;
 
         if (isVertical) {
-            return ( 400 / dimensions?.height ) * ( zoom ?? 1 )
+            return ( 400 / dimensions?.height ) * ( zoom ?? 1 );
         }
         else {
-            return ( 400 / dimensions?.width ) * ( zoom ?? 1 )
+            return ( 400 / dimensions?.width ) * ( zoom ?? 1 );
         }
     }, [settings?.zoom, isVertical, loaded, zoom, isGroup, dimensions]);
 
 
     const imgDims = useMemo(() => {
         return {
-            height: ( dimensions.height * imageScale ) || 400,
-            width: ( dimensions.width * imageScale ) || 400
-        }
-    }, [dimensions, imageScale])
+            height: Math.round( dimensions.height * imageScale ) || 400,
+            width: Math.round( dimensions.width * imageScale ) || 400
+        };
+    }, [dimensions, imageScale]);
 
 
     const drawLabels = useCallback(() => {
-        if (labels) {
+        if (annotations?.data) {
+            const alpha = 200; // get from slider?
             const ctx = labelCanvas.current.getContext("2d");
             ctx.clearRect(0, 0, imgDims.width, imgDims.height);
-            for (let reg = 0; reg < labels.length; reg++) {
-                if (labels[reg]?.score) {
-                    if (annotations[reg]?.score < score) continue;
+            // Display any masks first:
+            for (let annotation of annotations.data) {
+                if (annotation.mask) {
+                    processMask(ctx, annotation, imgDims, hiddenLabels, score, alpha);
                 }
-                if (!!labels[reg]?.points) {
-                    const points = labels[reg].points;
-                    if (!hiddenLabels?.[labels[reg].label]) {
+            }
+            // Next, draw all other annotations:
+            for (let annotation of annotations.data) {
+                if (annotation.score && annotation.score <= score) continue;
+                if (!!annotation.points) {
+                    const points = annotation.points;
+                    if (!hiddenLabels?.[annotation.label]) {
                         for (let r = 0; r < points.length; r++) {
                             const region = points[r];
                             ctx.fillStyle = getColor(
-                                labels[reg].label
+                                annotation.label
                             );
                             ctx.beginPath();
                             ctx.moveTo(
@@ -84,13 +89,13 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                             ctx.fill();
                         }
                     }
-                } else if (!!labels[reg]?.boxes) {
-                    const boxes = labels[reg].boxes;
-                    if (!hiddenLabels?.[labels[reg]?.label]) {
+                } else if (!!annotation.boxes) {
+                    const boxes = annotation.boxes;
+                    if (!hiddenLabels?.[annotation.label]) {
                         for (let r = 0; r < boxes.length; r++) {
                             const [x1, y1, x2, y2] = boxes[r];
                             ctx.strokeStyle = getColor(
-                                labels[reg].label
+                                annotation.label
                             );
                             ctx.lineWidth = 3;
                             ctx.beginPath();
@@ -102,12 +107,41 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                             ctx.stroke();
                         }
                     }
-                } else if (labels[reg]?.annotations) {
-                    // TODO: text, anchor, points
+                } else if (annotation.lines) {
+                    const lines = annotation.lines;
+                    if (!hiddenLabels?.[annotation.label]) {
+                        for (let r = 0; r < lines.length; r++) {
+                            const [x1, y1, x2, y2] = lines[r];
+                            ctx.strokeStyle = getColor(
+                                annotation.label
+                            );
+                            ctx.lineWidth = 3;
+                            ctx.beginPath();
+                            ctx.moveTo(x1 * imageScale, y1 * imageScale);
+                            ctx.lineTo(x2 * imageScale, y2 * imageScale);
+                            ctx.stroke();
+                        }
+                    }
+                } else if (annotation.markers) {
+                    const markers = annotation.markers;
+                    let marker = null;
+                    if (!hiddenLabels?.[annotation.label]) {
+                        for (let r = 0; r < markers.length; r++) {
+                            const marker = markers[r];
+                            marker.color = getColor(
+                                annotation.label
+                            );
+                            drawMarker(ctx, marker, marker.x * imageScale, marker.y * imageScale);
+                        }
+                    }
+                } else if (annotation.mask) {
+                    // skip here; already drawn
+                } else {
+                    console.log(`unknown annotation type: ${annotation}`);
                 }
             }
         }
-    }, [imageScale, score, hiddenLabels, labels, imgDims]);
+    }, [imageScale, score, hiddenLabels, annotations, imgDims]);
 
 
     const onLoad = useCallback((e) => {
@@ -126,23 +160,23 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
             containerRef.current.style.width = `${imgDims.width}px`;
             containerRef.current.style.height = `${imgDims.height}px`;
         }
-    }, [imgDims])
+    }, [imgDims]);
 
     useEffect(() => {
         if (loaded) {
             drawLabels();
         }
-    }, [loaded, drawLabels])
+    }, [loaded, drawLabels]);
 
     return (
         <div className={cx('canvas-container', { vertical: isVertical, horizontal: !isVertical, grouped: isGroup })} ref={containerRef}>
-            <canvas 
+            <canvas
                 className={cx(['output', 'canvas'], { vertical: isVertical, horizontal: !isVertical, single: !isGroup })} ref={labelCanvas}
             />
             <img
                 className={cx(
-                    ['output', 'image'], 
-                    { 
+                    ['output', 'image'],
+                    {
                         vertical: isVertical,
                         horizontal: !isVertical,
                         pixelated: !smooth,
@@ -150,7 +184,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                         single: !isGroup
                     }
                 )}
-                ref={img} 
+                ref={img}
                 src={imageSrc}
                 loading="lazy"
                 height={imgDims?.height}
@@ -165,4 +199,4 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
 export default ImageCanvasOutputClient;
 
 
-// for dev, add this to <canvas> title={`asset: ${assetId} imscale: ${imageScale} cd: ${labelCanvas.current?.height} x ${labelCanvas.current?.width} id: ${img.current?.height} x ${img.current?.width}`} 
+// for dev, add this to <canvas> title={`asset: ${assetId} imscale: ${imageScale} cd: ${labelCanvas.current?.height} x ${labelCanvas.current?.width} id: ${img.current?.height} x ${img.current?.width}`}
