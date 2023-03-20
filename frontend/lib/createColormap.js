@@ -1,9 +1,14 @@
 // Colormap functions
+// based on: https://github.com/bpostlethwaite/colormap
+// MIT license
+
+// lerp from: https://github.com/mattdesl/lerp
+// MIT license
 
 export function lerp(v0, v1, t) {
+    //  linear interpolation
     return v0 * (1 - t) + v1 * t;
 };
-
 
 export const colorScale = {
     "jet":[{"index":0,"rgb":[0,0,131]},{"index":0.125,"rgb":[0,60,170]},{"index":0.375,"rgb":[5,255,255]},{"index":0.625,"rgb":[255,255,0]},{"index":0.875,"rgb":[250,0,0]},{"index":1,"rgb":[128,0,0]}],
@@ -184,4 +189,3 @@ export function rgb2hex (rgba) {
 export function rgbaStr (rgba) {
     return 'rgba(' + rgba.join(',') + ')';
 };
-
