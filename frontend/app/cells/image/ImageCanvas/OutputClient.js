@@ -4,6 +4,7 @@ import { useCallback, useMemo, useEffect, useRef, useState, useContext, useLayou
 import { CanvasContext } from '../../../contexts/CanvasContext';
 import useLabels from '../../../../lib/hooks/useLabels';
 import { getColor, getContrastingColor, hexToRgb } from '../../../../lib/generateChartColor';
+import { createColormap } from '../../../../lib/createColormap';
 import styles from './ImageCanvas.module.scss';
 import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);
@@ -151,14 +152,13 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
             // Display any masks first:
             for (let annotation of annotations.data) {
                 if (annotation.mask) {
-                    processMask(ctx, annotation.mask, imgDims, hiddenLabels, annotation.scores, score, alpha);
+                    processMask(ctx, annotation, imgDims, hiddenLabels, score, alpha);
                 }
             }
             // Next, draw all other annotations:
             for (let annotation of annotations.data) {
-                if (annotation.score) {
-                    if (annotation.score <= score) continue;
-                }
+                if (annotation.score && annotation.score <= score)
+		    continue;
                 if (!!annotation.points) {
                     const points = annotation.points;
                     if (!hiddenLabels?.[annotation.label]) {
@@ -237,8 +237,23 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
     }, [imageScale, score, hiddenLabels, annotations, imgDims]);
 
 
-    const processMask = function(ctx, mask, imgDims, hiddenLabels, scores, score, alpha) {
-        const image = makeMaskImage(mask, hiddenLabels, scores, score, alpha);
+    const processMask = function(ctx, annotation, imgDims, hiddenLabels, score, alpha) {
+	const mask = annotation.mask;
+	if (mask.type === "segmentation") {
+	    processSegmentationMask(ctx, mask, imgDims, hiddenLabels, annotation.scores, score, alpha);
+	} else if (mask.type === "metric") {
+	    if (annotation.label && hiddenLabels?.[annotation.label]) {
+		// pass, hidden label
+	    } else if (annotation.score && annotation.score <= score) {
+		// skip it, score not high enough
+	    } else {
+		processMetricMask(ctx, mask, imgDims, alpha);
+	    }
+	}
+    };
+
+    const processSegmentationMask = function(ctx, mask, imgDims, hiddenLabels, scores, score, alpha) {
+        const image = makeSegmentationMaskImage(mask, hiddenLabels, scores, score, alpha);
 
 	// Scale the mask to fit the size of the scaled image:
         const canvas = new OffscreenCanvas(mask.width, mask.height);
@@ -247,20 +262,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
         ctx.drawImage(canvas, 0, 0, imgDims.width, imgDims.height);
     };
 
-    const rleDecode = function(encoding, width, height) {
-	const sequence = new Array(width * height);
-	let index = 0;
-	for (let i=0; i < encoding.length; i+=2) {
-	    const value = encoding[i];
-	    const count = encoding[i+1];
-	    for (let c=0; c < count; c++) {
-		sequence[index++] = value;
-	    }
-	}
-	return sequence;
-    }
-
-    const makeMaskImage = function(mask, hiddenLabels, scores, score, alpha) {
+    const makeSegmentationMaskImage = function(mask, hiddenLabels, scores, score, alpha) {
         const buffer = new Uint8ClampedArray(mask.width * mask.height * 4);
 
 	if (mask.format === 'rle') {
@@ -289,6 +291,68 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
         }
         return new ImageData(buffer, mask.width, mask.height); // settings can be colorSpace name
     };
+
+    const processMetricMask = function(ctx, mask, imgDims, alpha) {
+        const image = makeMetricMaskImage(mask, alpha);
+
+	// Scale the mask to fit the size of the scaled image:
+        const canvas = new OffscreenCanvas(mask.width, mask.height);
+        const context = canvas.getContext("2d");
+        context.putImageData(image, 0, 0);
+        ctx.drawImage(canvas, 0, 0, imgDims.width, imgDims.height);
+    }
+
+    const makeMetricMaskImage = function(mask, alpha) {
+        const buffer = new Uint8ClampedArray(mask.width * mask.height * 4);
+
+	if (mask.format === 'rle') {
+	    mask.array = rleDecode(mask.array, mask.width, mask.height);
+	    mask.format = "raw";
+	}
+
+	const colorMap = createColormap({
+	    colormap: mask.colormap,
+	    nshades: 256,
+	    format: 'rgba',
+	    alpha: 0.5
+	});
+
+        for (let y = 0; y < mask.height; y++) {
+            for (let x = 0; x < mask.width; x++) {
+		const pos = (y * mask.width + x) * 4;
+		// Convert back to float:
+                const value = mask.array[y * mask.width + x];
+		if (value > 0) {
+		    // Show metric with some transparency
+		    const rgba = colorMap[value]
+		    buffer[pos  ] = rgba[0];
+		    buffer[pos+1] = rgba[1];
+		    buffer[pos+2] = rgba[2];
+		    buffer[pos+3] = 200; // FIXME: get alpha from a control
+		} else {
+		    // Black out where there is no metric:
+		    buffer[pos  ] = 0;
+		    buffer[pos+1] = 0;
+		    buffer[pos+2] = 0;
+		    buffer[pos+3] = 255; // FIXME: get alpha from a control
+		}
+            }
+        }
+        return new ImageData(buffer, mask.width, mask.height); // settings can be colorSpace name
+    };
+
+    const rleDecode = function(encoding, width, height) {
+	const sequence = new Array(width * height);
+	let index = 0;
+	for (let i=0; i < encoding.length; i+=2) {
+	    const value = encoding[i];
+	    const count = encoding[i+1];
+	    for (let c=0; c < count; c++) {
+		sequence[index++] = value;
+	    }
+	}
+	return sequence;
+    }
 
     const onLoad = useCallback((e) => {
         setDimensions({

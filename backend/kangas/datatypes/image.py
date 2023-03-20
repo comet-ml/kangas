@@ -602,10 +602,11 @@ class Image(Asset):
 
         Args:
             layer_name: (str) the layer for the labels and mask
-            label_map: (str) the label for the mask
-            mask: (2D array or np.array, image filename, PIL.Image, or
-                kangas.Image) an array in row-first order (mask[row][col])
-                or Image. If column-first order use column_first=True
+            label_map: (dict) dictionary ofindex (int) to label (string)
+            mask: (2D array or np.array with int values, image filename,
+                PIL.Image, or kangas.Image) an array in row-first order
+                (mask[row][col]) or Image. If column-first order use
+                column_first=True
             scores: (optional, dict) a score associated with each label
             id: (optional, str) an id associated with the mask
             column_first: (optional, bool) normally, mask data is given
@@ -687,6 +688,123 @@ class Image(Asset):
                     "width": width,
                     "height": height,
                     "map": label_map,
+                    "type": "segmentation",
+                },
+                "boxes": None,
+                "points": None,
+                "markers": None,
+                "lines": None,
+                "id": id,
+                "metadata": metadata,
+            },
+        )
+        return self
+
+    def add_mask_metric(
+        self,
+        label,
+        mask,
+        score=None,
+        colormap="plasma",
+        layer_name="(uncategorized)",
+        id=None,
+        column_first=False,
+        **metadata
+    ):
+        """
+        Add a metric mask to an image.
+
+        Args:
+            layer_name: (str) the layer for the label and mask
+            label: (str) the label for the mask
+            mask: (2D array or np.array with values 0-1, image filename,
+                PIL.Image, or kangas.Image) an array in row-first order
+                (mask[row][col]) or Image. If column-first order use
+                column_first=True
+            score: (optional, number) a score associated with the mask
+            colormap: (optional, str) the name of the colormap to use
+            id: (optional, str) an id associated with the mask
+            column_first: (optional, bool) normally, mask data is given
+               in row-first order (mask[row][col]). Use this flag to indicate
+               that you are passing in a mask in column-first order
+
+        Example:
+        ```python
+        >>> import kangas as kg
+        >>> import PIL.Image
+        >>> image = kg.Image("source.png")
+        >>> mask = PIL.Image.open("attention.png")
+        >>> image.add_mask_metric("attention", mask)
+        >>> dg = kg.DataGrid(name="model23")
+        >>> dg.append([image])
+        >>> dg.save()
+        ```
+        """
+        if not isinstance(layer_name, str):
+            raise Exception("layer_name must be a string")
+
+        image = None
+
+        if isinstance(mask, (list, tuple)):
+            if column_first:
+                width = len(mask)
+                height = len(mask[0])
+                array = np.array(mask)
+                array = array.transpose()
+            else:
+                height = len(mask)
+                width = len(mask[0])
+                array = np.array(mask)
+        elif isinstance(mask, Image):
+            image = mask.to_pil()
+        elif isinstance(mask, str):
+            image = PIL.Image.open(mask)
+        elif isinstance(mask, PIL.Image.Image):  # PIL.Image
+            image = mask
+        elif hasattr(mask, "tolist"):  # numpy arrays
+            if column_first:
+                array = mask.transpose()
+                height, width = array.shape
+            else:
+                array = mask
+                width, height = array.shape
+        else:
+            raise Exception("unknown mask type: %r" % mask)
+
+        if image is not None:
+            if image.mode != "P":
+                image = image.convert("P")
+            image = image.quantize()
+            width, height = image.size
+            array = np.array(image)
+            array = array.flatten()
+        else:
+            array = fast_flatten(array, float)
+
+        # convert 0.0-1.0 floats to 0-255 ints
+        array = (array * 255).astype(np.ubyte).tolist()
+
+        self._init_annotations(layer_name)
+
+        rle_array = rle_encode(array)
+        if len(rle_array) < len(array):
+            array = rle_array
+            format = "rle"
+        else:
+            format = "raw"
+
+        self._update_annotations(
+            layer_name,
+            {
+                "label": label,
+                "score": score,
+                "mask": {
+                    "array": array,
+                    "format": format,
+                    "width": width,
+                    "height": height,
+                    "type": "metric",
+                    "colormap": colormap,
                 },
                 "boxes": None,
                 "points": None,

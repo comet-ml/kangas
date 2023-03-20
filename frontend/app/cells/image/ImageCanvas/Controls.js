@@ -1,6 +1,7 @@
 'use client';
 
 import styles from './ImageCanvas.module.scss';
+import "./Mui.css";
 import classNames from 'classnames/bind';
 import { useCallback, useContext, useEffect, useMemo } from 'react';
 import { CanvasContext } from '../../../contexts/CanvasContext';

@@ -751,7 +751,7 @@ def rle_decode(encoding):
     """
     sequence = []
     for index in range(0, len(encoding), 2):
-        count, value = encoding[index : index + 2]
+        value, count = encoding[index : index + 2]
         sequence.extend([value] * count)
     return sequence
 
