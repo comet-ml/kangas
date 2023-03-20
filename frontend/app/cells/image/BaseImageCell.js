@@ -22,12 +22,13 @@ const PlainImageCell = async ({ value, query, expanded=false, style }) => {
         endpoint
     }).toString();
 
+    console.log("PlainImageCell", value);
+
+    const ImageOrNone = value?.assetId ? (<img src={`/api/image?${queryString}`} alt="DataGrid Image" />) : (<>None</>);
+
     return (
             <div className={cx("cell-content")} style={style}>
-                <img
-                    src={`/api/image?${queryString}`}
-                    alt="DataGrid Image"
-                />
+            {ImageOrNone}
             </div>
     );
 };
@@ -57,7 +58,7 @@ const ExpandedWrapper = async ({ value, query }) => {
 }
 
 const ImageCell = ({ value, query, expanded, style }) => {
-    const Component = expanded ? ExpandedWrapper : PlainImageCell;
+    const Component = (expanded && value?.assetId) ? ExpandedWrapper : PlainImageCell;
 
     return (
         <Suspense fallback={<>Loading</>}>
