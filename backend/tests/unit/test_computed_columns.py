@@ -99,9 +99,9 @@ def test_none():
 
     results = select_by_query(where_expr, computed_columns)
     expected_results = {
-        "columnTypes": ["ROW_ID", "INTEGER", "FLOAT", "TEXT", "IMAGE-ASSET", "JSON"],
-        "columns": ["row-id", "A", "X", "Text", "Image", "Image--metadata"],
-        "ncols": 6,
+        "columnTypes": ["ROW_ID", "INTEGER", "FLOAT", "TEXT", "IMAGE-ASSET"],
+        "columns": ["row-id", "A", "X", "Text", "Image"],
+        "ncols": 5,
         "nrows": 0,
         "rows": [],
     }
@@ -141,11 +141,10 @@ def test_simple_1():
             "TEXT",
             "TEXT",
             "IMAGE-ASSET",
-            "JSON",
             "TEXT",
         ],
-        "columns": ["row-id", "A", "X", "Text", "Image", "Image--metadata", "X"],
-        "ncols": 7,
+        "columns": ["row-id", "A", "X", "Text", "Image", "X"],
+        "ncols": 6,
         "nrows": 3,
         "rows": [
             {
@@ -154,11 +153,6 @@ def test_simple_1():
                     "assetId": AlwaysEquals(),
                     "assetType": "image",
                     "type": "asset",
-                },
-                "Image--metadata": {
-                    "assetId": AlwaysEquals(),
-                    "image": {"width": 3, "height": 1},
-                    "tag": "dog",
                 },
                 "Text": "hello",
                 "X": 42,
@@ -171,11 +165,6 @@ def test_simple_1():
                     "assetType": "image",
                     "type": "asset",
                 },
-                "Image--metadata": {
-                    "assetId": AlwaysEquals(),
-                    "image": {"width": 3, "height": 1},
-                    "tag": "cat",
-                },
                 "Text": "world",
                 "X": 42,
                 "row-id": 2,
@@ -186,11 +175,6 @@ def test_simple_1():
                     "assetId": AlwaysEquals(),
                     "assetType": "image",
                     "type": "asset",
-                },
-                "Image--metadata": {
-                    "assetId": AlwaysEquals(),
-                    "image": {"width": 3, "height": 1},
-                    "tag": "dog",
                 },
                 "Text": "test",
                 "X": 42,
@@ -234,11 +218,10 @@ def test_simple_2():
             "TEXT",
             "TEXT",
             "IMAGE-ASSET",
-            "JSON",
             "TEXT",
         ],
-        "columns": ["row-id", "A", "X", "Text", "Image", "Image--metadata", "X"],
-        "ncols": 7,
+        "columns": ["row-id", "A", "X", "Text", "Image", "X"],
+        "ncols": 6,
         "nrows": 0,
         "rows": [],
     }
@@ -280,11 +263,10 @@ def test_aggregate_where1():
             "TEXT",
             "TEXT",
             "IMAGE-ASSET",
-            "JSON",
             "TEXT",
         ],
-        "columns": ["row-id", "A", "X", "Text", "Image", "Image--metadata", "X"],
-        "ncols": 7,
+        "columns": ["row-id", "A", "X", "Text", "Image", "X"],
+        "ncols": 6,
         "nrows": 0,
         "rows": [],
     }
@@ -329,11 +311,10 @@ def test_aggregate_column():
             "FLOAT",
             "TEXT",
             "IMAGE-ASSET",
-            "JSON",
             "TEXT",
         ],
-        "columns": ["row-id", "A", "X", "Text", "Image", "Image--metadata", "AVG A"],
-        "ncols": 7,
+        "columns": ["row-id", "A", "X", "Text", "Image", "AVG A"],
+        "ncols": 6,
         "nrows": 1,
         "rows": [
             {
@@ -343,11 +324,6 @@ def test_aggregate_column():
                     "assetId": AlwaysEquals(),
                     "assetType": "image",
                     "type": "asset",
-                },
-                "Image--metadata": {
-                    "assetId": AlwaysEquals(),
-                    "image": {"height": 1, "width": 3},
-                    "tag": "dog",
                 },
                 "Text": "hello",
                 "X": 2.0,
@@ -387,9 +363,9 @@ def test_image_column():
 
     results = select_by_query(where_expr, computed_columns)
     expected_results = {
-        "columnTypes": ["ROW_ID", "INTEGER", "FLOAT", "TEXT", "IMAGE-ASSET", "JSON"],
-        "columns": ["row-id", "A", "X", "Text", "Image", "Image--metadata"],
-        "ncols": 6,
+        "columnTypes": ["ROW_ID", "INTEGER", "FLOAT", "TEXT", "IMAGE-ASSET"],
+        "columns": ["row-id", "A", "X", "Text", "Image"],
+        "ncols": 5,
         "nrows": 3,
         "rows": [
             {
@@ -398,11 +374,6 @@ def test_image_column():
                     "assetId": AlwaysEquals(),
                     "assetType": "image",
                     "type": "asset",
-                },
-                "Image--metadata": {
-                    "assetId": AlwaysEquals(),
-                    "image": {"height": 1, "width": 3},
-                    "tag": "dog",
                 },
                 "Text": "hello",
                 "X": 2.0,
@@ -415,11 +386,6 @@ def test_image_column():
                     "assetType": "image",
                     "type": "asset",
                 },
-                "Image--metadata": {
-                    "assetId": AlwaysEquals(),
-                    "image": {"height": 1, "width": 3},
-                    "tag": "cat",
-                },
                 "Text": "world",
                 "X": 3.0,
                 "row-id": 2,
@@ -430,11 +396,6 @@ def test_image_column():
                     "assetId": AlwaysEquals(),
                     "assetType": "image",
                     "type": "asset",
-                },
-                "Image--metadata": {
-                    "assetId": AlwaysEquals(),
-                    "image": {"height": 1, "width": 3},
-                    "tag": "dog",
                 },
                 "Text": "test",
                 "X": 4.0,
@@ -478,9 +439,9 @@ def test_image_column_metadata():
 
     results = select_by_query(where_expr, computed_columns)
     expected_results = {
-        "columnTypes": ["ROW_ID", "INTEGER", "FLOAT", "TEXT", "IMAGE-ASSET", "JSON"],
-        "columns": ["row-id", "A", "X", "Text", "Image", "Image--metadata"],
-        "ncols": 6,
+        "columnTypes": ["ROW_ID", "INTEGER", "FLOAT", "TEXT", "IMAGE-ASSET"],
+        "columns": ["row-id", "A", "X", "Text", "Image"],
+        "ncols": 5,
         "nrows": 0,
         "rows": [],
     }
@@ -527,11 +488,10 @@ def test_image_computed_column():
             "FLOAT",
             "TEXT",
             "IMAGE-ASSET",
-            "JSON",
             "TEXT",
         ],
-        "columns": ["row-id", "A", "X", "Text", "Image", "Image--metadata", "Image2"],
-        "ncols": 7,
+        "columns": ["row-id", "A", "X", "Text", "Image", "Image2"],
+        "ncols": 6,
         "nrows": 0,
         "rows": [],
     }
