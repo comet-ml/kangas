@@ -823,3 +823,44 @@ def decompress_number(text, index):
             break
 
     return index, (~result >> 1) if (result & 1) != 0 else (result >> 1)
+
+
+def get_annotations_from_layers(layers, name):
+    for layer in layers:
+        if layer["name"] == name:
+            return layer["data"]
+    return None
+
+
+def get_annotation_layer_names(layers):
+    return [layer["name"] for layer in layers]
+
+
+def get_labels_from_annotations(annotations):
+    labels = []
+    for annotation in annotations:
+        if "mask" in annotation and annotation["mask"]:
+            if annotation["mask"]["type"] == "segmentation":
+                if "labels" in annotation:
+                    labels.extend(annotation["labels"])
+    return labels
+
+
+def get_mask_from_annotations(annotations, label):
+    for annotation in annotations:
+        if "mask" in annotation and annotation["mask"]:
+            if annotation["mask"]["type"] == "segmentation":
+                if "labels" in annotation and label in annotation["labels"]:
+                    return annotation["mask"]
+    return None
+
+
+def expand_mask(mask, label):
+    if mask["format"] == "rle":
+        array = rle_decode(mask["array"])
+    else:
+        array = mask["array"]
+    # mask["map"] {1: "person", 14: "person"}
+    # only interested in label
+    indices = [int(index) for index in mask["map"] if mask["map"][index] == label]
+    return np.array([value in indices for value in array])

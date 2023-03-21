@@ -63,6 +63,7 @@ class Asset:
         if self._unserialize:
             self._unserialize(self)
             self._unserialize = None
+        return self
 
     def log_and_serialize(self, datagrid):
         """

@@ -40,11 +40,14 @@ from .utils import (
     convert_to_value,
     create_columns,
     download_filename,
+    expand_mask,
     generate_thumbnail,
+    get_annotations_from_layers,
+    get_labels_from_annotations,
+    get_mask_from_annotations,
     is_null,
     make_dict_factory,
     pytype_to_dgtype,
-    rle_decode,
     sanitize_name,
 )
 
@@ -1182,10 +1185,34 @@ class DataGrid:
         else:
             return value
 
+    def append_iou_columns(self, image_column_name, layer1, layer2):
+        """
+        Add Intersection Over Union columns between two layers
+        on an image column.
+        """
+        # First, let's find the labels on the image masks:
+        labels = []
+        for row in self.to_dicts([image_column_name]):
+            image_kg = row[image_column_name]
+            if image_kg:
+                layers = image_kg.deserialize().metadata["annotations"]
+                if layers:
+                    annotations1 = get_annotations_from_layers(layers, layer1)
+                    annotations2 = get_annotations_from_layers(layers, layer2)
+                    labels = get_labels_from_annotations(annotations1)
+                    labels += get_labels_from_annotations(annotations2)
+                    break
+        # Now, we'll add a pair of columns for each label (viz and value):
+        for label in set(labels):
+            self.append_iou_column(image_column_name, layer1, layer2, label)
+
     def append_iou_column(
         self, image_column_name, layer1, layer2, label, new_column=None
     ):
-        """ """
+        """
+        Add Intersection Over Union columns between two layers
+        on an image column.
+        """
         from .image import Image
 
         if new_column is None:
@@ -1194,34 +1221,8 @@ class DataGrid:
         else:
             new_column_iou = "%s Value" % new_column
 
-        def get_annotations_from_layers(layers, name):
-            for layer in layers:
-                if layer["name"] == name:
-                    return layer["data"]
-            return None
-
-        def get_mask_from_annotations(annotations, label):
-            for annotation in annotations:
-                if "mask" in annotation and annotation["mask"]:
-                    if annotation["mask"]["type"] == "segmentation":
-                        if "labels" in annotation and label in annotation["labels"]:
-                            return annotation["mask"]
-            return None
-
-        def expand_mask(mask, label):
-            if mask["format"] == "rle":
-                array = rle_decode(mask["array"])
-            else:
-                array = mask["array"]
-            # mask["map"] {1: "person", 14: "person"}
-            # only interested in label
-            indices = [
-                int(index) for index in mask["map"] if mask["map"][index] == label
-            ]
-            return np.array([value in indices for value in array])
-
         new_data = [[], []]
-        for row in self.to_dicts([image_column_name]):
+        for row in ProgressBar(self.to_dicts([image_column_name])):
             image_kg = row[image_column_name]
             if image_kg:
                 image = image_kg.to_pil()
