@@ -22,8 +22,6 @@ const PlainImageCell = async ({ value, query, expanded=false, style }) => {
         endpoint
     }).toString();
 
-    console.log("PlainImageCell", value);
-
     const ImageOrNone = value?.assetId ? (<img src={`/api/image?${queryString}`} alt="DataGrid Image" />) : (<>None</>);
 
     return (
