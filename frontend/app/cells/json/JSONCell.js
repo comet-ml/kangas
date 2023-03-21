@@ -1,4 +1,7 @@
+'use client';
+
 import DialogueModal from '../../modals/DialogueModal/DialogueModalClient';
+import { JsonViewer } from '@textea/json-viewer';
 
 import classNames from 'classnames/bind';
 import styles from '../Cell.module.scss';
@@ -17,9 +20,17 @@ const JSONCell = ({ value, query, style, expanded=false }) => {
 
     const cellExpanded = (
             <div className={cx("cell-json-expanded")} style={style}>
-                <pre>
-                    {JSON.stringify(value, null, 4)}
-                </pre>
+                            <JsonViewer value={value}
+                                rootName={false}
+                                theme="light"
+                                indentWidth={4}
+                                defaultInspectDepth={1}
+                                collapseStringsAfterLength={20}
+                                enableClipboard={false}
+                                displayObjectSize={true}
+                                displayDataTypes={false}
+                                objectSortKeys={true}
+                            />
             </div>
     );
 

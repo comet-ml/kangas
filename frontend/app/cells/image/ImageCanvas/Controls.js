@@ -159,7 +159,7 @@ const ImageCanvasControls = ({ initLabels=[] }) => {
                                 defaultInspectDepth={1}
                                 collapseStringsAfterLength={20}
                                 enableClipboard={false}
-                                displayObjectSize={false}
+                                displayObjectSize={true}
                                 displayDataTypes={false}
                                 objectSortKeys={true}
                             />
