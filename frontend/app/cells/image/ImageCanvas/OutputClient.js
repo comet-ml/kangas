@@ -3,7 +3,8 @@
 import { useCallback, useMemo, useEffect, useRef, useState, useContext, useLayoutEffect } from 'react';
 import { CanvasContext } from '../../../contexts/CanvasContext';
 import useLabels from '../../../../lib/hooks/useLabels';
-import { getColor } from '../../../../lib/generateChartColor';
+import { getColor, getContrastingColor } from '../../../../lib/generateChartColor';
+import truncateValue from '../../../../lib/truncateValue';
 import { processMask, drawMarker } from '../../../../lib/canvas';
 import styles from './ImageCanvas.module.scss';
 import classNames from 'classnames/bind';
@@ -57,6 +58,8 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
         if (layers) {
             const alpha = 200; // get from slider?
             const ctx = labelCanvas.current.getContext("2d");
+            ctx.font = "18px serif";
+            ctx.textBaseline = "bottom";
             ctx.clearRect(0, 0, imgDims.width, imgDims.height);
             // Display any masks first:
 	    for (let layer of layers) {
@@ -102,6 +105,37 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                             ctx.strokeStyle = getColor(
                                 annotation.label
                             );
+                            if (r === 0) {
+                                let text = null;
+
+                                if (typeof annotation.score !== null)
+                                    text = `${annotation.label}: ${truncateValue(annotation.score)}`;
+                                else
+                                    text = `${annotation.label}`;
+
+                                const fontMetrics = ctx.measureText(text);
+                                const startX = x1 * imageScale - 1;
+                                const startY = y1 * imageScale;
+                                const border = 5;
+                                const width = fontMetrics.width + border * 2;
+                                const height = fontMetrics.fontBoundingBoxAscent + fontMetrics.fontBoundingBoxDescent + border * 2;
+
+                                // Draw text background box
+                                ctx.fillStyle = ctx.strokeStyle;
+                                ctx.lineWidth = 1;
+                                ctx.beginPath();
+                                ctx.moveTo(startX, startY);
+                                ctx.lineTo( startX, startY - height);
+                                ctx.lineTo( startX + width, startY - height);
+                                ctx.lineTo( startX + width, startY);
+                                ctx.closePath();
+                                ctx.fill();
+
+                                // Draw the label:
+                                ctx.fillStyle = getContrastingColor(ctx.strokeStyle);
+                                ctx.fillText(text, startX + border, startY - border);
+                            }
+                            // Draw the bounding box
                             ctx.lineWidth = 3;
                             ctx.beginPath();
                             ctx.moveTo(x1 * imageScale, y1 * imageScale);
