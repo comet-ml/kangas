@@ -52,6 +52,7 @@ const useLabels = ({ assetId, dgid, timestamp }) => {
     // TODO Support annotations from multiple groups, not just [0] == '(uncategorized)'
     const image = useMemo(() => images?.[assetId], [assetId, images?.[assetId]]);
     const annotations = useMemo(() => images?.[assetId]?.annotations?.[0], [images?.[assetId]?.annotations?.[0]]);
+    const layers = useMemo(() => images?.[assetId]?.annotations, [images?.[assetId]?.annotations]);
     const dimensions = useMemo(() => ({ ...images?.[assetId]?.image }), [images?.[assetId]?.image])
 
     useEffect(() => {
@@ -62,23 +63,9 @@ const useLabels = ({ assetId, dgid, timestamp }) => {
         }
     }, [image?.fetchedMeta]);
 
-    const labels = useMemo(() => {
-        if (!!annotations?.data) {
-            if (typeof score !== 'number') {
-                return annotations?.data
-            }
-            else {
-                const filtered =  annotations?.data?.filter(data => (!data?.score || (data?.score > score) && !hiddenLabels?.[data?.label]));
-                return filtered;
-            }
-        } else {
-            return [];
-        }
-    }, [score, hiddenLabels, annotations]);
-
     return {
         annotations,
-        labels,
+	layers,
         scoreRange: {},
         updateScore,
         updateScoreRange,

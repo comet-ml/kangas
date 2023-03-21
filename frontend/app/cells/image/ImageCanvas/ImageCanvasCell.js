@@ -25,7 +25,13 @@ const ImageCanvasCellStandAlone = async ({dgid, timestamp, assetId}) => {
         if (typeof(metadata.annotations) !== 'undefined') {
             for (const annotation of metadata.annotations) {
                 for (const data of annotation.data) {
-                    labels.add(data.label);
+		    if (data.label)
+			labels.add(data.label);
+		    if (data.labels) {
+			for (const label of data.labels) {
+			    labels.add(label);
+			}
+		    }
                 }
             }
         }

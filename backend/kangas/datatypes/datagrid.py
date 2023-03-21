@@ -40,7 +40,11 @@ from .utils import (
     convert_to_value,
     create_columns,
     download_filename,
+    expand_mask,
     generate_thumbnail,
+    get_annotations_from_layers,
+    get_labels_from_annotations,
+    get_mask_from_annotations,
     is_null,
     make_dict_factory,
     pytype_to_dgtype,
@@ -1181,6 +1185,81 @@ class DataGrid:
         else:
             return value
 
+    def append_iou_columns(self, image_column_name, layer1, layer2):
+        """
+        Add Intersection Over Union columns between two layers
+        on an image column.
+        """
+        # First, let's find the labels on the image masks:
+        labels = []
+        for row in self.to_dicts([image_column_name]):
+            image_kg = row[image_column_name]
+            if image_kg:
+                layers = image_kg.deserialize().metadata["annotations"]
+                if layers:
+                    annotations1 = get_annotations_from_layers(layers, layer1)
+                    annotations2 = get_annotations_from_layers(layers, layer2)
+                    labels = get_labels_from_annotations(annotations1)
+                    labels += get_labels_from_annotations(annotations2)
+                    break
+        # Now, we'll add a pair of columns for each label (viz and value):
+        for label in set(labels):
+            self.append_iou_column(image_column_name, layer1, layer2, label)
+
+    def append_iou_column(
+        self, image_column_name, layer1, layer2, label, new_column=None
+    ):
+        """
+        Add Intersection Over Union columns between two layers
+        on an image column.
+        """
+        from .image import Image
+
+        if new_column is None:
+            new_column = "%s vs %s: %s Image" % (layer1, layer2, label)
+            new_column_iou = "%s vs %s: %s Value" % (layer1, layer2, label)
+        else:
+            new_column_iou = "%s Value" % new_column
+
+        new_data = [[], []]
+        for row in ProgressBar(self.to_dicts([image_column_name])):
+            image_kg = row[image_column_name]
+            if image_kg:
+                image = image_kg.to_pil()
+                layers = image_kg.metadata["annotations"]
+                annotations1 = get_annotations_from_layers(layers, layer1)
+                annotations2 = get_annotations_from_layers(layers, layer2)
+                mask1 = mask2 = None
+                if annotations1:
+                    mask1 = get_mask_from_annotations(annotations1, label)
+                if annotations2:
+                    mask2 = get_mask_from_annotations(annotations2, label)
+                if mask1 and mask2:
+                    new_image = Image(image)
+                    bitmap1 = expand_mask(mask1, label)
+                    bitmap2 = expand_mask(mask2, label)
+                    intersection = sum(bitmap1 & bitmap2)
+                    union = sum(bitmap1 | bitmap2)
+                    layer1_mask = (bitmap1 & np.logical_not(bitmap2)) * 1
+                    layer2_mask = (bitmap2 & np.logical_not(bitmap1)) * 2
+                    both_mask = (bitmap1 & bitmap2) * 3
+                    new_mask = layer1_mask + layer2_mask + both_mask
+                    new_mask = new_mask.reshape((mask2["height"], mask1["width"]))
+                    new_image.add_mask(
+                        {1: layer1, 2: layer2, 3: "intersection"},
+                        new_mask,
+                        scores={layer1: 0.0, layer2: 0.5, "intersection": 1.0},
+                    )
+                    new_data[0].append(new_image)
+                    new_data[1].append((intersection / union) if union > 0 else None)
+                else:
+                    new_data[0].append(None)
+                    new_data[1].append(None)
+            else:
+                new_data[0].append(None)
+                new_data[1].append(None)
+        self.append_columns([new_column, new_column_iou], new_data)
+
     def append_pca_column(self, *columns, new_column=None, scale=True, **kwargs):
         """
         Append a PCA column given the name of a VECTOR column.
@@ -1253,6 +1332,64 @@ class DataGrid:
             transforms.append(pca.transform([vector])[0])
         # 3, save transform
         self.append_column(new_column, transforms)
+
+    def remove_columns(self, *column_names):
+        """
+        Delete columns from the saved DataGrid.
+
+        Args:
+            column_names: list of column names to delete
+
+        Example:
+        ```python
+        >>> dg = kg.DataGrid(columns=["a", "b"])
+        >>> dg.save()
+        >>> dg.remove_columns("a")
+        ```
+        """
+        if self._on_disk:
+            schema = self.get_schema()
+            columns = [column_name for column_name in column_names]
+            columns += [column_name + "--metadata" for column_name in column_names]
+            cursor = self.conn.cursor()
+            for column_name in columns:
+                if column_name in schema:
+                    # 1. Get column field name:
+                    column_field = schema[column_name]["field_name"]
+
+                    # If the column we are deleting is an asset type
+                    # then we need to delete the asset:
+                    if schema[column_name]["type"].endswith("--ASSET"):
+                        # Get all of the asset_ids to delete from assets
+                        asset_ids = [
+                            x[0]
+                            for x in cursor.execute(
+                                "SELECT {column_field} from datagrid;"
+                            ).fetchall()
+                        ]
+                        cursor.execute(
+                            "DELETE from assets where asset_id in ({asset_ids})".format(
+                                asset_ids=",".join(["'%s'" % x for x in asset_ids])
+                            )
+                        )
+                        self.conn.commit()
+
+                    # 2. Remove column
+                    del self._columns[column_name]
+
+                    # 4. Update and clear cache:
+                    delete_column_sql = (
+                        """ALTER TABLE datagrid DROP COLUMN {column_field};""".format(
+                            column_field=column_field,
+                        )
+                    )
+                    cursor.execute(delete_column_sql)
+                    self.conn.commit()
+            # 3. re-create the schema, drops all metadata/stats
+            self._create_schema(self._columns)
+            self._compute_stats()
+        else:
+            raise Exception("unable to delete column from in-memory data")
 
     def append_column(self, column_name, rows, verify=True):
         """
@@ -1525,7 +1662,7 @@ class DataGrid:
             for column_name, ctype in self._columns.items()
         }
 
-        # 4. re-create the schema
+        # 4. re-create the schema; clears all metadata/stats
         self._create_schema(self._columns)
 
         # 5. create a temp in-memory table with data
@@ -1554,7 +1691,7 @@ class DataGrid:
         # 6. copy the data into datagrid
         for index, row in enumerate(data, start=1):
             for column_name, field_name in zip(new_columns, field_names):
-                field_value = row[column_name]
+                field_value = row.get(column_name)
                 sql_update = "UPDATE datagrid SET %s = ? where column_0 = ?" % (
                     field_name,
                 )
@@ -1564,7 +1701,7 @@ class DataGrid:
         self._asset_id_cache = None
 
         # Update and clear cache:
-        self._compute_stats(columns=new_column_names)
+        self._compute_stats()
 
     def _append_row_dict_to_db(self, index, row_dict, field_name_map):
         # Only for user-suppplied columns; collects column names

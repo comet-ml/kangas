@@ -23,7 +23,7 @@ const getUniqueColor = (hash) => {
 // Constrained to a given color pallete:
 const getUniqueColor = (hash) => {
     // 144 color palette
-    /* 
+    /*
     const colors = [
 	'#1a293f', '#22334d', '#2a3c5a', '#324669', '#3a5077', '#435a86', '#4d6595', '#5670a4', '#607ab4', '#6b85c4', '#7690d4', '#819be4',
 	'#2a253e', '#342e4a', '#3e3757', '#483f64', '#534972', '#5e5280', '#695b8e', '#75659c', '#806fab', '#8d79ba', '#9983c9', '#a68dd8',
@@ -61,6 +61,8 @@ const getUniqueColor = (hash) => {
 };
 
 export const getColor = (text = '0') => {
+    if (!text)
+	return '#000000'; // black, error
     // Must return lowercase hex
     // so that getContrastingColor will work
     if (['1', 'true', 't', 'yes'].includes(text.toLowerCase()))
@@ -88,5 +90,5 @@ export const getContrastingColor = (hex) => {
     const g = colors[1];
     const b = colors[2];
     const o = Math.round((r * 299 + g * 587 + b * 114) / 1000);
-    return o > 125 ? 'black' : 'white';
+    return o > 125 ? '#000000' : '#ffffff';
 };
