@@ -602,7 +602,7 @@ class Image(Asset):
 
         Args:
             layer_name: (str) the layer for the labels and mask
-            label_map: (dict) dictionary ofindex (int) to label (string)
+            label_map: (dict) dictionary of index (int) to label (string)
             mask: (2D array or np.array with int values, image filename,
                 PIL.Image, or kangas.Image) an array in row-first order
                 (mask[row][col]) or Image. If column-first order use
