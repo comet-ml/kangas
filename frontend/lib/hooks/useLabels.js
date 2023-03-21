@@ -52,6 +52,7 @@ const useLabels = ({ assetId, dgid, timestamp }) => {
     // TODO Support annotations from multiple groups, not just [0] == '(uncategorized)'
     const image = useMemo(() => images?.[assetId], [assetId, images?.[assetId]]);
     const annotations = useMemo(() => images?.[assetId]?.annotations?.[0], [images?.[assetId]?.annotations?.[0]]);
+    const layers = useMemo(() => images?.[assetId]?.annotations, [images?.[assetId]?.annotations]);
     const dimensions = useMemo(() => ({ ...images?.[assetId]?.image }), [images?.[assetId]?.image])
 
     useEffect(() => {
@@ -64,6 +65,7 @@ const useLabels = ({ assetId, dgid, timestamp }) => {
 
     return {
         annotations,
+	layers,
         scoreRange: {},
         updateScore,
         updateScoreRange,

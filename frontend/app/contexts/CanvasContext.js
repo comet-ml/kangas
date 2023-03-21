@@ -84,12 +84,25 @@ const reducer = (state, action) => {
 const CanvasProvider = ({ value, children }) => {
     const [state, dispatch] = useReducer(reducer, value);
 
+    // Object.keys(value?.metadata?.['(uncategorized)']?.labels ?? {})
+    const getLabels = (metadata) => {
+	const labels = [];
+	if (metadata) {
+	    for (let layer of Object.keys(metadata)) {
+		if (metadata[layer]?.labels) {
+		    labels.push(...Object.keys(metadata[layer].labels));
+		}
+	    }
+	}
+	return Array.from(new Set(labels));
+    };
+
     return (
         <CanvasContext.Provider value={{
             metadata: { ...value.metadata },
             images: { ...state.images },
             isGroup: !!value?.isGroup,
-            labels:  value?.isGroup ? Object.keys(value?.metadata?.['(uncategorized)']?.labels ?? {}) : value?.labels,
+            labels:  value?.isGroup ? getLabels(value?.metadata) : value?.labels,
             updateScore: (payload) => dispatch({ type: 'UPDATE_SCORE', payload }),
             updateScoreRange: (payload) => dispatch({ type: 'UPDATE_SCORE_RANGE', payload }),
             hideLabel: (payload) => dispatch({ type: 'HIDE_LABEL', payload }),

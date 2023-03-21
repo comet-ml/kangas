@@ -17,7 +17,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
     const [loaded, setLoaded] = useState(false);
 
     const {
-        annotations,
+	layers,
         score,
         hiddenLabels,
     } = useLabels({ assetId, timestamp, dgid });
@@ -54,18 +54,22 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
 
 
     const drawLabels = useCallback(() => {
-        if (annotations?.data) {
+        if (layers) {
             const alpha = 200; // get from slider?
             const ctx = labelCanvas.current.getContext("2d");
             ctx.clearRect(0, 0, imgDims.width, imgDims.height);
             // Display any masks first:
-            for (let annotation of annotations.data) {
-                if (annotation.mask) {
-                    processMask(ctx, annotation, imgDims, hiddenLabels, score, alpha);
-                }
-            }
+	    for (let layer of layers) {
+		for (let annotation of layer?.data) {
+                    if (annotation.mask) {
+			console.log("drawing mask!");
+			processMask(ctx, annotation, imgDims, hiddenLabels, score, alpha);
+                    }
+		}
+	    }
             // Next, draw all other annotations:
-            for (let annotation of annotations.data) {
+	    for (let layer of layers) {
+	     for (let annotation of layer?.data) {
                 if (annotation.score && annotation.score <= score) continue;
                 if (!!annotation.points) {
                     const points = annotation.points;
@@ -140,9 +144,10 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                 } else {
                     console.log(`unknown annotation type: ${annotation}`);
                 }
-            }
+             }
+	    }
         }
-    }, [imageScale, score, hiddenLabels, annotations, imgDims]);
+    }, [imageScale, score, hiddenLabels, layers, imgDims]);
 
 
     const onLoad = useCallback((e) => {
