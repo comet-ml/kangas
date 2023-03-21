@@ -44,12 +44,10 @@
 
         &.canvas {
             z-index: 999;
-
         }
 
         &.image {
             z-index: 998;
-
 
             &.pixelated {
                 image-rendering: pixelated;

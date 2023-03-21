@@ -123,10 +123,13 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
         if (loaded) {
             labelCanvas.current.width = imgDims.width;
             labelCanvas.current.height = imgDims.height;
-            containerRef.current.style.width = `${imgDims.width}px`;
-            containerRef.current.style.height = `${imgDims.height}px`;
+            
+            if (isGroup) {
+                containerRef.current.style.width = `${imgDims.width}px`;
+                containerRef.current.style.height = `${imgDims.height}px`;
+            }
         }
-    }, [imgDims])
+    }, [imgDims, isGroup])
 
     useEffect(() => {
         if (loaded) {
