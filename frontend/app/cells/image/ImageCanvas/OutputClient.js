@@ -6,6 +6,7 @@ import useLabels from '../../../../lib/hooks/useLabels';
 import { getColor, getContrastingColor } from '../../../../lib/generateChartColor';
 import truncateValue from '../../../../lib/truncateValue';
 import { processMask, drawMarker } from '../../../../lib/canvas';
+import { isTagHidden, makeTag } from '../../../../lib/tags';
 import styles from './ImageCanvas.module.scss';
 import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);
@@ -67,7 +68,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
             for (let annotation of layer?.data) {
                 if (annotation.mask) {
                     console.log("drawing mask!");
-                    processMask(ctx, annotation, imgDims, hiddenLabels, score, alpha);
+                    processMask(ctx, annotation, imgDims, hiddenLabels, layer.name, score, alpha);
                 }
             }
 	    }
@@ -77,7 +78,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                 if (annotation.score && annotation.score <= score) continue;
                 if (!!annotation.points) {
                     const points = annotation.points;
-                    if (!hiddenLabels?.[annotation.label]) {
+                    if (!isTagHidden(hiddenLabels, makeTag(hiddenLabels, layer.name, annotation.label))) {
                         for (let r = 0; r < points.length; r++) {
                             const region = points[r];
                             ctx.fillStyle = getColor(
@@ -100,7 +101,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                     }
                 } else if (!!annotation.boxes) {
                     const boxes = annotation.boxes;
-                    if (!hiddenLabels?.[annotation.label]) {
+                    if (!isTagHidden(hiddenLabels, makeTag(layer.name, annotation.label))) {
                         for (let r = 0; r < boxes.length; r++) {
                             const [x1, y1, x2, y2] = boxes[r];
                             ctx.strokeStyle = getColor(
@@ -150,7 +151,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                     }
                 } else if (annotation.lines) {
                     const lines = annotation.lines;
-                    if (!hiddenLabels?.[annotation.label]) {
+                    if (!isTagHidden(hiddenLabels, makeTag(layer.name, annotation.label))) {
                         for (let r = 0; r < lines.length; r++) {
                             const [x1, y1, x2, y2] = lines[r];
                             ctx.strokeStyle = getColor(
@@ -166,7 +167,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                 } else if (annotation.markers) {
                     const markers = annotation.markers;
                     let marker = null;
-                    if (!hiddenLabels?.[annotation.label]) {
+                    if (!isTagHidden(hiddenLabels, makeTag(layer.name, annotation.label))) {
                         for (let r = 0; r < markers.length; r++) {
                             const marker = markers[r];
                             marker.color = getColor(
@@ -200,7 +201,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
         if (isLoaded) {
             labelCanvas.current.width = imgDims.width;
             labelCanvas.current.height = imgDims.height;
-            
+
             containerRef.current.style.width = `${imgDims.width}px`;
             containerRef.current.style.height = `${imgDims.height}px`;
         }
@@ -214,27 +215,27 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
 
 
     return (
-        <div 
+        <div
             className={cx(
-                'canvas-container', 
-                { 
-                    vertical: isVertical, 
-                    horizontal: !isVertical, 
-                    grouped: isGroup 
+                'canvas-container',
+                {
+                    vertical: isVertical,
+                    horizontal: !isVertical,
+                    grouped: isGroup
                 })
-            } 
+            }
             ref={containerRef}
         >
             <canvas
                 className={
                     cx(
-                        ['output', 'canvas'], 
-                        { 
-                            vertical: isVertical, 
-                            horizontal: !isVertical, 
-                            single: !isGroup 
+                        ['output', 'canvas'],
+                        {
+                            vertical: isVertical,
+                            horizontal: !isVertical,
+                            single: !isGroup
                         })
-                } 
+                }
                 ref={labelCanvas}
             />
             <img

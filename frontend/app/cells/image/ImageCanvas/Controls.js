@@ -9,6 +9,7 @@ import Label from './Label';
 import { Accordion, AccordionDetails, AccordionSummary } from '@mui/material';
 import { ExpandMoreOutlined } from '@material-ui/icons';
 import { JsonViewer } from '@textea/json-viewer';
+import { isTagHidden } from '../../../../lib/tags';
 
 const cx = classNames.bind(styles);
 
@@ -28,11 +29,11 @@ const ImageCanvasControls = ({ initLabels=[] }) => {
 
     const onChange = useCallback((e) => updateScore(Number(e.target.value)), []);
 
-    const toggleLabel = useCallback((label) => {
-        if (!!hiddenLabels?.[label]) {
-            showLabel(label);
+    const toggleLabel = useCallback((tag) => {
+        if (isTagHidden(hiddenLabels, tag)) {
+            showLabel(tag);
         } else {
-            hideLabel(label)
+            hideLabel(tag);
         }
     }, [hiddenLabels, showLabel, hideLabel]);
 

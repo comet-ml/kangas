@@ -2,6 +2,8 @@
 
 import { createContext, useEffect, useMemo, useReducer } from 'react';
 
+import { makeTag } from '../../lib/tags';
+
 export const CanvasContext = createContext({
     images: {},
     labels: [],
@@ -85,16 +87,41 @@ const CanvasProvider = ({ value, children }) => {
     const [state, dispatch] = useReducer(reducer, value);
 
     // Object.keys(value?.metadata?.['(uncategorized)']?.labels ?? {})
-    const getLabels = (metadata) => {
-	const labels = [];
+    const getGroupTags = (metadata) => {
+	const tags = [];
 	if (metadata) {
 	    for (let layer of Object.keys(metadata)) {
 		if (metadata[layer]?.labels) {
-		    labels.push(...Object.keys(metadata[layer].labels));
+		    tags.push(...Object.keys(metadata[layer].labels).map(label => makeTag(layer, label)));
 		}
 	    }
 	}
-	return Array.from(new Set(labels));
+	return Array.from(new Set(tags));
+    };
+
+    const getTags = (assetMetadata) => {
+        const tags = [];
+        if (assetMetadata) {
+            if (assetMetadata.metadata) {
+                if (assetMetadata.metadata.annotations) {
+                    for (let annotation of assetMetadata.metadata.annotations) {
+                        if (annotation.data) {
+                            for (let data of annotation.data) {
+                                if (data.label) {
+                                    tags.push(makeTag(annotation.name, data.label));
+                                }
+                                if (data.labels) {
+                                    for (let label of data.labels) {
+                                        tags.push(makeTag(annotation.name, label));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return Array.from(new Set(tags));
     };
 
     return (
@@ -102,7 +129,7 @@ const CanvasProvider = ({ value, children }) => {
             metadata: { ...value.metadata },
             images: { ...state.images },
             isGroup: !!value?.isGroup,
-            labels:  value?.isGroup ? getLabels(value?.metadata) : value?.labels,
+            labels:  value?.isGroup ? getGroupTags(value?.metadata) : getTags(value),
             updateScore: (payload) => dispatch({ type: 'UPDATE_SCORE', payload }),
             updateScoreRange: (payload) => dispatch({ type: 'UPDATE_SCORE_RANGE', payload }),
             hideLabel: (payload) => dispatch({ type: 'HIDE_LABEL', payload }),
