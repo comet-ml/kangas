@@ -1245,11 +1245,10 @@ class DataGrid:
                     both_mask = (bitmap1 & bitmap2) * 3
                     new_mask = layer1_mask + layer2_mask + both_mask
                     new_mask = new_mask.reshape((mask2["height"], mask1["width"]))
-                    new_image.add_mask(
-                        {1: layer1, 2: layer2, 3: "intersection"},
-                        new_mask,
-                        scores={layer1: 0.0, layer2: 0.5, "intersection": 1.0},
-                    )
+                    map = {1: layer1, 2: layer2}
+                    if both_mask.sum() > 0:
+                        map[3] = "intersection"
+                    new_image.add_mask(map, new_mask)
                     new_data[0].append(new_image)
                     new_data[1].append((intersection / union) if union > 0 else None)
                 else:

@@ -1,5 +1,6 @@
 import { getContrastingColor, hexToRgb, getColor } from "./generateChartColor";
 import { createColormap } from './createColormap';
+import { isTagHidden, makeTag } from './tags';
 
 const drawMarker = (ctx, marker, x, y) => {
     if (marker.shape === "circle") {
@@ -92,12 +93,12 @@ const rainDrop = (ctx, x, y, width, height, fill, stroke)  => {
 };
 
 
-const processMask = (ctx, annotation, imgDims, hiddenLabels, score, alpha) => {
+const processMask = (ctx, annotation, imgDims, hiddenLabels, layerName, score, alpha) => {
     const mask = annotation.mask;
     if (mask.type === "segmentation") {
-        processSegmentationMask(ctx, mask, imgDims, hiddenLabels, annotation.scores, score, alpha);
+        processSegmentationMask(ctx, mask, imgDims, hiddenLabels, layerName, annotation.scores, score, alpha);
     } else if (mask.type === "metric") {
-        if (annotation.label && hiddenLabels?.[annotation.label]) {
+        if (isTagHidden(hiddenLabels, layerName, annotation.label)) {
             // pass, hidden label
         } else if (annotation.score && annotation.score <= score) {
             // skip it, score not high enough
@@ -108,7 +109,7 @@ const processMask = (ctx, annotation, imgDims, hiddenLabels, score, alpha) => {
 };
 
 
-const makeSegmentationMaskImage = (mask, hiddenLabels, scores, score, alpha) => {
+const makeSegmentationMaskImage = (mask, hiddenLabels, layerName, scores, score, alpha) => {
     const buffer = new Uint8ClampedArray(mask.width * mask.height * 4);
 
     if (mask.format === 'rle') {
@@ -120,19 +121,20 @@ const makeSegmentationMaskImage = (mask, hiddenLabels, scores, score, alpha) => 
         for (let x = 0; x < mask.width; x++) {
             const classCode = mask.array[y * mask.width + x];
             const label = mask.map[classCode];
-    // Not hidden by label click:
-            if (label && !hiddenLabels?.[label]) {
-        // Not hidden due to score slider:
-        if (scores && scores[label] && scores[label] <= score)
-        continue;
+            const tag = makeTag(layerName, label);
+            // Not hidden by label click:
+            if (label && !isTagHidden(hiddenLabels, tag)) {
+                // Not hidden due to score slider:
+                if (scores && scores[label] && scores[label] <= score)
+                    continue;
 
-        let pos = (y * mask.width + x) * 4;
-        const rgb = hexToRgb(getColor(label));
-        buffer[pos  ] = rgb[0];
-        buffer[pos+1] = rgb[1];
-        buffer[pos+2] = rgb[2];
-        buffer[pos+3] = alpha;
-    }
+                let pos = (y * mask.width + x) * 4;
+                const rgb = hexToRgb(getColor(layerName === '(uncategorized)' ? label : tag));
+                buffer[pos  ] = rgb[0];
+                buffer[pos+1] = rgb[1];
+                buffer[pos+2] = rgb[2];
+                buffer[pos+3] = alpha;
+            }
         }
     }
     return new ImageData(buffer, mask.width, mask.height); // settings can be colorSpace name
@@ -198,27 +200,27 @@ const rleDecode = (encoding, width, height) => {
         }
     }
     return sequence;
-}
-
-const processSegmentationMask = (ctx, mask, imgDims, hiddenLabels, scores, score, alpha) => {
-    const image = makeSegmentationMaskImage(mask, hiddenLabels, scores, score, alpha);
-
-    // Scale the mask to fit the size of the scaled image:
-    const canvas = new OffscreenCanvas(mask.width, mask.height);
-    const context = canvas.getContext("2d");
-    context.putImageData(image, 0, 0);
-    ctx.drawImage(canvas, 0, 0, imgDims.width, imgDims.height);
 };
 
+    const processSegmentationMask = (ctx, mask, imgDims, hiddenLabels, layerName, scores, score, alpha) => {
+        const image = makeSegmentationMaskImage(mask, hiddenLabels, layerName, scores, score, alpha);
 
-export { 
-    processSegmentationMask, 
-    drawMarker, 
-    drawCircle, 
-    drawRaindrop, 
-    rainDrop, 
-    rleDecode, 
-    processMask, 
+        // Scale the mask to fit the size of the scaled image:
+        const canvas = new OffscreenCanvas(mask.width, mask.height);
+        const context = canvas.getContext("2d");
+        context.putImageData(image, 0, 0);
+        ctx.drawImage(canvas, 0, 0, imgDims.width, imgDims.height);
+    };
+
+
+export {
+    processSegmentationMask,
+    drawMarker,
+    drawCircle,
+    drawRaindrop,
+    rainDrop,
+    rleDecode,
+    processMask,
     processMetricMask,
     makeMetricMaskImage
 }
