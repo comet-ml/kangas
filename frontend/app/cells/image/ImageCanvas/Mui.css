@@ -1,3 +1,9 @@
 .MuiSvgIcon-root {
     vertical-align: middle;
 }
+
+.MuiAccordion-root {
+    border-bottom-style: solid;
+    border-bottom-color: lightgray;
+    border-bottom-width: thin;
+}

@@ -98,7 +98,7 @@ const processMask = (ctx, annotation, imgDims, hiddenLabels, layerName, score, a
     if (mask.type === "segmentation") {
         processSegmentationMask(ctx, mask, imgDims, hiddenLabels, layerName, annotation.scores, score, alpha);
     } else if (mask.type === "metric") {
-        if (isTagHidden(hiddenLabels, layerName, annotation.label)) {
+        if (isTagHidden(hiddenLabels, makeTag(layerName, annotation.label))) {
             // pass, hidden label
         } else if (annotation.score && annotation.score <= score) {
             // skip it, score not high enough
