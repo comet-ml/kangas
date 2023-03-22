@@ -121,14 +121,15 @@ const makeSegmentationMaskImage = (mask, hiddenLabels, layerName, scores, score,
         for (let x = 0; x < mask.width; x++) {
             const classCode = mask.array[y * mask.width + x];
             const label = mask.map[classCode];
-    // Not hidden by label click:
-            if (!isTagHidden(hiddenLabels, makeTag(layerName, label))) {
+            const tag = makeTag(layerName, label);
+            // Not hidden by label click:
+            if (label && !isTagHidden(hiddenLabels, tag)) {
                 // Not hidden due to score slider:
                 if (scores && scores[label] && scores[label] <= score)
                     continue;
 
                 let pos = (y * mask.width + x) * 4;
-                const rgb = hexToRgb(getColor(label));
+                const rgb = hexToRgb(getColor(layerName === '(uncategorized)' ? label : tag));
                 buffer[pos  ] = rgb[0];
                 buffer[pos+1] = rgb[1];
                 buffer[pos+2] = rgb[2];
