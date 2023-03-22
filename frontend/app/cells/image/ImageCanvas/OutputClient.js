@@ -15,27 +15,28 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
     const containerRef = useRef();
     const labelCanvas = useRef();
     const img = useRef();
-    const [loaded, setLoaded] = useState(false);
+    const [isLoaded, setIsLoaded] = useState(false);
 
     const {
-	layers,
+	    layers,
         score,
         hiddenLabels,
     } = useLabels({ assetId, timestamp, dgid });
 
     const [dimensions, setDimensions] = useState({ height: 400, width: 400 });
     const { settings, isGroup } = useContext(CanvasContext);
+
     const zoom = useMemo(() => {
         if (isGroup) return 1;
         else return Math.max(settings?.zoom ?? 1, 1);
     }, [settings?.zoom]);
+
     const smooth = useMemo(() => settings?.smooth ?? true, [settings?.smooth]);
     const gray = useMemo(() => settings?.gray ?? false, [settings?.gray]);
 
-
     const isVertical = useMemo(() => dimensions?.height > dimensions?.width, [dimensions]);
     const imageScale = useMemo(() => {
-        if (!loaded) return 1;
+        if (!isLoaded) return 1;
 
         if (isVertical) {
             return ( 400 / dimensions?.height ) * ( zoom ?? 1 );
@@ -43,7 +44,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
         else {
             return ( 400 / dimensions?.width ) * ( zoom ?? 1 );
         }
-    }, [settings?.zoom, isVertical, loaded, zoom, isGroup, dimensions]);
+    }, [settings?.zoom, isVertical, isLoaded, zoom, isGroup, dimensions]);
 
 
     const imgDims = useMemo(() => {
@@ -58,21 +59,21 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
         if (layers) {
             const alpha = 200; // get from slider?
             const ctx = labelCanvas.current.getContext("2d");
-            ctx.font = "18px serif";
+            ctx.font = "1em serif";
             ctx.textBaseline = "bottom";
             ctx.clearRect(0, 0, imgDims.width, imgDims.height);
             // Display any masks first:
 	    for (let layer of layers) {
-		for (let annotation of layer?.data) {
-                    if (annotation.mask) {
-			console.log("drawing mask!");
-			processMask(ctx, annotation, imgDims, hiddenLabels, score, alpha);
-                    }
-		}
+            for (let annotation of layer?.data) {
+                if (annotation.mask) {
+                    console.log("drawing mask!");
+                    processMask(ctx, annotation, imgDims, hiddenLabels, score, alpha);
+                }
+            }
 	    }
-            // Next, draw all other annotations:
+        // Next, draw all other annotations:
 	    for (let layer of layers) {
-	     for (let annotation of layer?.data) {
+	        for (let annotation of layer?.data) {
                 if (annotation.score && annotation.score <= score) continue;
                 if (!!annotation.points) {
                     const points = annotation.points;
@@ -108,10 +109,11 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                             if (r === 0) {
                                 let text = null;
 
-                                if (typeof annotation.score !== null)
+                                if (typeof annotation.score !== null) {
                                     text = `${annotation.label}: ${truncateValue(annotation.score)}`;
-                                else
+                                } else {
                                     text = `${annotation.label}`;
+                                }
 
                                 const fontMetrics = ctx.measureText(text);
                                 const startX = x1 * imageScale - 1;
@@ -189,29 +191,51 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
             width: e.target.naturalWidth,
             height: e.target.naturalHeight
         });
-        setLoaded(true);
+
+        setIsLoaded(true);
     }, []);
 
 
     useEffect(() => {
-        if (loaded) {
+        if (isLoaded) {
             labelCanvas.current.width = imgDims.width;
             labelCanvas.current.height = imgDims.height;
+            
             containerRef.current.style.width = `${imgDims.width}px`;
             containerRef.current.style.height = `${imgDims.height}px`;
         }
-    }, [imgDims]);
+    }, [imgDims, isGroup, isVertical])
 
     useEffect(() => {
-        if (loaded) {
+        if (isLoaded) {
             drawLabels();
         }
-    }, [loaded, drawLabels]);
+    }, [isLoaded, drawLabels]);
+
 
     return (
-        <div className={cx('canvas-container', { vertical: isVertical, horizontal: !isVertical, grouped: isGroup })} ref={containerRef}>
+        <div 
+            className={cx(
+                'canvas-container', 
+                { 
+                    vertical: isVertical, 
+                    horizontal: !isVertical, 
+                    grouped: isGroup 
+                })
+            } 
+            ref={containerRef}
+        >
             <canvas
-                className={cx(['output', 'canvas'], { vertical: isVertical, horizontal: !isVertical, single: !isGroup })} ref={labelCanvas}
+                className={
+                    cx(
+                        ['output', 'canvas'], 
+                        { 
+                            vertical: isVertical, 
+                            horizontal: !isVertical, 
+                            single: !isGroup 
+                        })
+                } 
+                ref={labelCanvas}
             />
             <img
                 className={cx(

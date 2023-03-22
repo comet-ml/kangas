@@ -28,6 +28,7 @@
 
 .canvas-container {
     position: relative;
+    max-width: 672px;
 
     &.grouped {
         max-width: 400px;
@@ -44,12 +45,10 @@
 
         &.canvas {
             z-index: 999;
-
         }
 
         &.image {
             z-index: 998;
-
 
             &.pixelated {
                 image-rendering: pixelated;
@@ -77,7 +76,7 @@
     width: 400px;
 
     &.single {
-        min-height: 400px;
+        min-width: 400px;
         width: unset;
     }
 
