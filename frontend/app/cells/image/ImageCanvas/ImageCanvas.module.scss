@@ -28,6 +28,7 @@
 
 .canvas-container {
     position: relative;
+    max-width: 672px;
 
     &.grouped {
         max-width: 400px;
@@ -75,7 +76,7 @@
     width: 400px;
 
     &.single {
-        min-height: 400px;
+        min-width: 400px;
         width: unset;
     }
 
