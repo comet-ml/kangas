@@ -59,7 +59,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
         if (layers) {
             const alpha = 200; // get from slider?
             const ctx = labelCanvas.current.getContext("2d");
-            ctx.font = "18px serif";
+            ctx.font = "1em serif";
             ctx.textBaseline = "bottom";
             ctx.clearRect(0, 0, imgDims.width, imgDims.height);
             // Display any masks first:
