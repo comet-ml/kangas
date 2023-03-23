@@ -19,7 +19,7 @@ const Pager = ({ dgid, aboutText, firstRow, totalRows, currentPage, totalPages, 
     const pageInput = useRef();
     const aboutButton = aboutText !== '' ? (<AboutDataGridButton text={aboutText} />) : (<></>);
     const downloadName = dgid && dgid.includes("/") ? dgid.substring(dgid.lastIndexOf("/") + 1) : dgid;
-    const downloadLink = totalPages > 0 ? (<a href={`/api/download?dgid=${dgid}`} download={downloadName}><DownloadIcon/></a>) : (<></>);
+    const downloadLink = totalPages > 0 && !config.hideSelector ? (<a href={`/api/download?dgid=${dgid}`} download={downloadName}><DownloadIcon/></a>) : (<></>);
 
     const canGoto = (page) => {
 	return page > 0 && page <= totalPages && page !== currentPage;
