@@ -182,7 +182,7 @@ const makeMetricMaskImage = (mask, alpha) => {
                 buffer[pos  ] = 0;
                 buffer[pos+1] = 0;
                 buffer[pos+2] = 0;
-                buffer[pos+3] = 255; // FIXME: get alpha from a control
+                buffer[pos+3] = 128; // FIXME: get alpha from a control
             }
         }
     }
