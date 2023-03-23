@@ -19,7 +19,7 @@ import platform
 import sys
 
 import waitress
-from flask import Flask, jsonify, make_response, request
+from flask import Flask, jsonify, make_response, request, send_file
 from flask.logging import default_handler
 from flask_caching import Cache
 
@@ -389,14 +389,20 @@ def get_datagrid_download_handler():
     if not ensure_datagrid_path(dgid):
         return error(404)
 
-    result = select_asset_task.apply(args=(dgid, asset_id, thumbnail)).get()
-    if return_url:
-        return {"uri": base64.b64encode(result).decode("utf-8")}
+    if asset_id:
+        result = select_asset_task.apply(args=(dgid, asset_id, thumbnail)).get()
+        if return_url:
+            return {"uri": base64.b64encode(result).decode("utf-8")}
+        else:
+            response = make_response(result)
+            response.headers.add("Cache-Control", "max-age=604800")
+            response.headers.add("Content-type", "image")
+            return response
     else:
-        response = make_response(result)
-        response.headers.add("Cache-Control", "max-age=604800")
-        response.headers.add("Content-type", "image")
-        return response
+        db_path = get_dg_path(dgid)
+        download_name = os.path.basename(db_path)
+        fp = open(db_path, "rb")
+        return send_file(fp, download_name=download_name, as_attachment=True)
 
 
 @application.route("/datagrid/metadata", methods=["GET"])
