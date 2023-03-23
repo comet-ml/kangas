@@ -110,7 +110,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                             if (r === 0) {
                                 let text = null;
 
-                                if (typeof annotation.score !== null) {
+                                if (typeof annotation.score === "number") {
                                     text = `${annotation.label}: ${truncateValue(annotation.score)}`;
                                 } else {
                                     text = `${annotation.label}`;
