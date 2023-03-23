@@ -117,19 +117,32 @@ const makeSegmentationMaskImage = (mask, hiddenLabels, layerName, scores, score,
         mask.format = "raw";
     }
 
+    // Get colors and hidden status for labels first:
+    const rgbMap = Object.values(mask.map).reduce(
+	(accum, label) => (
+	    {
+		...accum, [label]: hexToRgb(
+		    getColor(layerName === '(uncategorized)' ? label : makeTag(layerName, label)))
+	    }
+	), {});
+    const hiddenMap = Object.values(mask.map).reduce(
+	(accum, label) => (
+	    {
+		...accum, [label]: isTagHidden(hiddenLabels, makeTag(layerName, label))
+	    }
+	), {});
+
     for (let y = 0; y < mask.height; y++) {
         for (let x = 0; x < mask.width; x++) {
             const classCode = mask.array[y * mask.width + x];
             const label = mask.map[classCode];
-            const tag = makeTag(layerName, label);
             // Not hidden by label click:
-            if (label && !isTagHidden(hiddenLabels, tag)) {
+            if (label && !hiddenMap[label]) {
                 // Not hidden due to score slider:
                 if (scores && scores[label] && scores[label] <= score)
                     continue;
-
                 let pos = (y * mask.width + x) * 4;
-                const rgb = hexToRgb(getColor(layerName === '(uncategorized)' ? label : tag));
+		const rgb = rgbMap[label];
                 buffer[pos  ] = rgb[0];
                 buffer[pos+1] = rgb[1];
                 buffer[pos+2] = rgb[2];
