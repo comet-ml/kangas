@@ -289,7 +289,7 @@ class Image(Asset):
             layer_name,
             {
                 "label": label,
-                "points": list(regions),
+                "points": [np.array(region).flatten().tolist() for region in regions],
                 "boxes": None,
                 "markers": None,
                 "lines": None,
