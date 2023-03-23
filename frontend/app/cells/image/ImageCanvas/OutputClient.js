@@ -78,7 +78,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                 if (annotation.score && annotation.score <= score) continue;
                 if (!!annotation.points) {
                     const points = annotation.points;
-                    if (!isTagHidden(hiddenLabels, makeTag(hiddenLabels, layer.name, annotation.label))) {
+                    if (!isTagHidden(hiddenLabels, makeTag(layer.name, annotation.label))) {
                         for (let r = 0; r < points.length; r++) {
                             const region = points[r];
                             ctx.fillStyle = getColor(
