@@ -2,7 +2,7 @@
   "name": "kangas-render-engine",
   "bin": "server.js",
   "scripts": {
-    "dev": "PORT=4000 NODE_ENV=development KANGAS_HOST=localhost KANGAS_BACKEND_PORT=4001 npx next dev",
+    "dev": "PORT=4000 NODE_ENV=development KANGAS_BACKEND_HOST=192.168.1.156 KANGAS_BACKEND_PORT=4001 KANGAS_FRONTEND_HOST=localhost KANGAS_FRONTEND_PORT=4000 KANGAS_FRONTEND_PROTOCOL=http KANGAS_BACKEND_PROTOCOL=http npx next dev",
     "buildPlain": "npx next build",
     "build": "npx next build; mv ./.next/static ./.next/standalone/.next; cp -r ./public ./.next/standalone/",
     "startPlain": "npx next start",
