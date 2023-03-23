@@ -1,6 +1,8 @@
 /* eslint-disable react/jsx-key */
 'use client';
 
+import DownloadIcon from '@mui/icons-material/Download';
+
 import config from '../../config';
 
 import { useCallback, useMemo, useEffect, useRef } from 'react';
@@ -12,10 +14,12 @@ import styles from './Pager.module.scss';
 import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);
 
-const Pager = ({ aboutText, firstRow, totalRows, currentPage, totalPages, maxRow, pageSize }) => {
+const Pager = ({ dgid, aboutText, firstRow, totalRows, currentPage, totalPages, maxRow, pageSize }) => {
     const { params, updateParams } = useQueryParams();
     const pageInput = useRef();
     const aboutButton = aboutText !== '' ? (<AboutDataGridButton text={aboutText} />) : (<></>);
+    const downloadName = dgid && dgid.includes("/") ? dgid.substring(dgid.lastIndexOf("/") + 1) : dgid;
+    const downloadLink = totalPages > 0 ? (<a href={`/api/download?dgid=${dgid}`} download={downloadName}><DownloadIcon/></a>) : (<></>);
 
     const canGoto = (page) => {
 	return page > 0 && page <= totalPages && page !== currentPage;
@@ -67,6 +71,7 @@ const Pager = ({ aboutText, firstRow, totalRows, currentPage, totalPages, maxRow
         <div className={cx('pagination')}>
           <div className={cx("left-bar")}>
             {aboutButton}
+            {downloadLink}
           </div>
           <div className={cx("right-bar")}>
 	    <span>

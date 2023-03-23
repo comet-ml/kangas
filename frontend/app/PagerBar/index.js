@@ -19,6 +19,7 @@ const PagerBar = async ({query}) => {
 
     return (
 	    <Pager
+              dgid={query.dgid}
               aboutText={aboutText}
 	      firstRow={firstRow}
 	      totalRows={totalRows}
