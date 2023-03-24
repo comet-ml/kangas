@@ -34,17 +34,18 @@ const fetchIt = async ({
         request.next = {
             revalidate: 1440
         }; // 60 * 24 = 1440, 1 day
+        request.cache = 'force-cache';
     } else {
         request.cache = 'no-store';
     }
 
-    try {        
+    try {
         const res = await fetch(`${url}?${queryArgs}`, request);
 
         if (json) {
             const data = await res.json();
             if (returnUrl) return data.uri;
-            
+
             return data;
         } else {
             return res;

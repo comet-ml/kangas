@@ -22,10 +22,10 @@ const ExpandedCanvasClientSide = ({ dgid, timestamp, assetId }) => {
     }, [dgid, timestamp, assetId]);
 
     const querystring = useMemo(() => {
-        const url = new URLSearchParams({ 
-            assetId, 
-            dgid, 
-            timestamp, 
+        const url = new URLSearchParams({
+            assetId,
+            dgid,
+            timestamp,
             endpoint: 'download'
         }).toString();
         return url;
@@ -57,8 +57,8 @@ const ExpandedCanvasClientSide = ({ dgid, timestamp, assetId }) => {
             <div className={cx('canvas-column')}>
                 <div className={cx('output-container')}>
                     <Deferred>
-                        <ImageCanvasOutputClient 
-                            assetId={assetId} 
+                        <ImageCanvasOutputClient
+                            assetId={assetId}
                             timestamp={timestamp}
                             dgid={dgid}
                             imageSrc={`/api/image?${querystring}`}

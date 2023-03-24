@@ -12,8 +12,8 @@ const fetchAssetMetadata = async ({ assetId, dgid, timestamp, ssr=true}) => {
         timestamp,
     };
     const data = ssr ?
-         await fetchIt({url: `${config.apiUrl}asset-metadata`, query}) :
-         await fetch(`${config.apiUrl}asset-metadata?assetId=${assetId}&dgid=${dgid}&timestamp=${timestamp}`)
+          await fetchIt({url: `${config.apiUrl}asset-metadata`, query}) :
+          await fetchIt({url: '/api/assetMetadata', query});
 
     return data;
 };
