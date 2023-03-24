@@ -21,7 +21,6 @@ import os
 import sqlite3
 import tempfile
 import urllib
-import webbrowser
 from collections import defaultdict
 
 import numpy as np
@@ -322,6 +321,8 @@ class DataGrid:
         >>> dg.show("{'Column Name'} == 'category three'", group="Another Column Name")
         ```
         """
+        import webbrowser
+
         from IPython.display import IFrame, clear_output, display
 
         from kangas import launch

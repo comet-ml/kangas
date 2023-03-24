@@ -19,7 +19,6 @@ import urllib
 
 import numpy as np
 import PIL.Image
-from matplotlib import cm
 
 from .._typing import IO, Any, Optional, Sequence, Union
 from .base import Asset
@@ -926,6 +925,8 @@ def _array_to_image(
     """
     Convert a numpy array to an in-memory image.
     """
+    from matplotlib import cm
+
     array = np.array(array)
 
     ## Handle image transformations here

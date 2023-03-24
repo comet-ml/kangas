@@ -11,13 +11,9 @@
 #    All rights reserved                             #
 ######################################################
 
-import subprocess
 import sys
 import time
 import urllib
-import webbrowser
-
-import psutil
 
 from ._version import __version__  # noqa
 from .datatypes import Audio, Curve, DataGrid, Image, Text, Video  # noqa
@@ -35,6 +31,8 @@ if new_kangas_version_available():
 
 
 def _is_running(name, command):
+    import psutil
+
     for pid in psutil.pids():
         try:
             process = psutil.Process(pid)
@@ -53,6 +51,8 @@ def _is_running(name, command):
 
 
 def _process_method(name, command, method):
+    import psutil
+
     for pid in psutil.pids():
         try:
             process = psutil.Process(pid)
@@ -110,6 +110,8 @@ def launch(host=None, port=4000, debug=None, protocol="http", hide_selector=None
     >>> kangas.launch()
     ```
     """
+    import subprocess
+
     host = host if host is not None else get_localhost()
     hide_selector = (
         hide_selector if hide_selector is not None else _in_jupyter_environment()
@@ -191,6 +193,8 @@ def show(
     >>> kangas.show("./example.datagrid", "{'Column Name'} < 0.5", group="Another Column Name")
     ```
     """
+    import webbrowser
+
     from IPython.display import IFrame, clear_output, display
 
     url = launch(host, port, debug, protocol, hide_selector)
