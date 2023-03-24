@@ -50,7 +50,7 @@ setup_args = dict(
         "Pillow",
         "astor",
         "click",
-        "flask",
+        "flask>=2.2",
         "flask-caching",
         "marko",
         "matplotlib",
