@@ -5,24 +5,16 @@ import config from '../config';
 import fetchData from './fetchData';
 import fetchIt from './fetchIt';
 
-const fetchAssetMetadata = async ({ assetId, dgid, timestamp }) => {
+const fetchAssetMetadata = async ({ assetId, dgid, timestamp, ssr=true}) => {
     const query = {
         assetId,
         dgid,
         timestamp,
     };
-    const data = await fetchIt({url: `${config.apiUrl}asset-metadata`, query});
-    /*
-    const data = await fetchData({
-        url: `${config.apiUrl}asset-metadata`,
-        query: {
-            assetId,
-            dgid,
-        },
-        method: 'POST',
-        returnType: 'json',
-    });
-    */
+    const data = ssr ?
+         await fetchIt({url: `${config.apiUrl}asset-metadata`, query}) :
+         await fetch(`${config.apiUrl}asset-metadata?assetId=${assetId}&dgid=${dgid}&timestamp=${timestamp}`)
+
     return data;
 };
 

@@ -43,9 +43,12 @@ const ExpandedGroupedCell = async ({ value }) => {
         }
     }
 
+
     return (
         <CanvasProvider value={{ images: imageStore, metadata, isGroup: true }}>
-            <ImageCanvasCell assets={images.values} query={value} />
+            <Suspense fallback={<>Loading</>}>
+                <ImageCanvasCell assets={images?.values} query={value} />
+            </Suspense>
         </CanvasProvider>
     )
 }
