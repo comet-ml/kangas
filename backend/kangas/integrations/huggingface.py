@@ -21,13 +21,6 @@ import kangas
 
 from ..utils import ProgressBar
 
-try:
-    import datasets
-    from datasets import load_dataset as huggingface_load_dataset
-except Exception:
-    datasets = None
-    huggingface_load_dataset = None
-
 
 class JSONEncoder(json.JSONEncoder):
     """
@@ -42,19 +35,21 @@ class JSONEncoder(json.JSONEncoder):
 
 
 def import_from_huggingface(path, name, options):
-    if huggingface_load_dataset is None:
+    try:
+        import datasets
+    except Exception:
         raise Exception("requires `pip install datasets`")
 
     if options.get("split") is not None:
-        dataset = huggingface_load_dataset(
+        dataset = datasets.load_dataset(
             path,
             split=options.get("split"),
             streaming=bool(options.get("streaming", "False") == "True"),
         )
     else:
-        dataset_splits = huggingface_load_dataset(path)
+        dataset_splits = datasets.load_dataset(path)
         split = list(dataset_splits.keys())[0]
-        dataset = huggingface_load_dataset(
+        dataset = datasets.load_dataset(
             path,
             split=split,
             streaming=bool(options.get("streaming", "False") == "True"),
@@ -134,50 +129,52 @@ def import_from_huggingface(path, name, options):
 
 
 def export_to_huggingface(path, name, options):
-    if datasets is not None:
-        dg = kangas.read_datagrid(name)
+    try:
+        import datasets
+    except Exception:
+        raise Exception("requires `pip install datasets`")
 
-        basename, extension = os.path.splitext(name)
+    dg = kangas.read_datagrid(name)
 
-        def convert_image(value):
-            image = value.to_pil()
-            filename = "%s/%s.png" % (basename, value.asset_id)
-            image.save(filename)
-            return {
-                "asset_type": "Image",
-                "filename": filename,
-            }
+    basename, extension = os.path.splitext(name)
 
-        # dg_type to function:
-        format_map = {
-            "IMAGE-ASSET": convert_image,
+    def convert_image(value):
+        image = value.to_pil()
+        filename = "%s/%s.png" % (basename, value.asset_id)
+        image.save(filename)
+        return {
+            "asset_type": "Image",
+            "filename": filename,
         }
 
-        # mkdir name
-        os.makedirs(basename, exist_ok=True)
-        filename = "%s/%s.jsonl" % (basename, basename)
-        column_names = dg.get_schema().keys()
-        limit = int(options.get("limit", "0"))
-        count = 0
-        with open(filename, "w") as fp:
-            for row in ProgressBar(
-                dg.to_dicts(column_names=column_names, format_map=format_map)
-            ):
-                fp.write(json.dumps(row, cls=JSONEncoder) + "\n")
-                count += 1
-                if limit != 0 and count >= limit:
-                    break
+    # dg_type to function:
+    format_map = {
+        "IMAGE-ASSET": convert_image,
+    }
 
-        template = create_loader_from_datagrid(dg, basename)
-        with open("%s/%s.py" % (basename, basename), "w") as fp:
-            fp.write(template)
+    # mkdir name
+    os.makedirs(basename, exist_ok=True)
+    filename = "%s/%s.jsonl" % (basename, basename)
+    column_names = dg.get_schema().keys()
+    limit = int(options.get("limit", "0"))
+    count = 0
+    with open(filename, "w") as fp:
+        for row in ProgressBar(
+            dg.to_dicts(column_names=column_names, format_map=format_map)
+        ):
+            fp.write(json.dumps(row, cls=JSONEncoder) + "\n")
+            count += 1
+            if limit != 0 and count >= limit:
+                break
 
-        ds = datasets.load_dataset(basename)
-        private = bool(options.get("private", "True") == "True")
-        if bool(options.get("push", "True") == "True"):
-            ds.push_to_hub(path, private=private)
-    else:
-        raise Exception("datasets is not available; pip install datasets")
+    template = create_loader_from_datagrid(dg, basename)
+    with open("%s/%s.py" % (basename, basename), "w") as fp:
+        fp.write(template)
+
+    ds = datasets.load_dataset(basename)
+    private = bool(options.get("private", "True") == "True")
+    if bool(options.get("push", "True") == "True"):
+        ds.push_to_hub(path, private=private)
 
 
 def dg_type_to_ds_type(column_name, schema):
