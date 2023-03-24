@@ -1,6 +1,7 @@
 'use client';
 
 import { useContext, useCallback, useState, useEffect, useMemo, useRef } from "react";
+import useDebounce from "../../lib/hooks/useDebounce";
 import { ViewContext } from "../contexts/ViewContext";
 import classNames from 'classnames/bind';
 import styles from './Cell.module.scss';
@@ -24,6 +25,7 @@ const CellClient = ({ columnName, type, isHeader, children, grouped, cidx }) => 
     const [isResizing, setIsResizing] = useState(false);
     const [width, setWidth] = useState(getDefaultCellSize(type, grouped));
     const { ref, inView, entry } = useInView({ threshold: 0 });
+    const debounceUpdateView = useDebounce(updateView, 1000);
 
     const resize = useCallback((d) => {
         updateWidth({
@@ -45,30 +47,34 @@ const CellClient = ({ columnName, type, isHeader, children, grouped, cidx }) => 
     useEffect(() => {
         if (inView) {
             if (cidx > view?.stop) {
-                updateView({ view: {
-                    stop: cidx
+                debounceUpdateView({ view: {
+                    stop: cidx,
+                    start: Math.max(cidx - 12, 0)
                 }})
-            } else if (cidx < view?.start) {
-                updateView({ view: {
-                    start: cidx
+            } else if (cidx < view?.stop - 12) {
+                debounceUpdateView({ view: {
+                    start: cidx,
+                    stop: cidx + 12
                 }})
             }
         } else {
+            /*
             const closerToEnd = (Math.abs(view?.stop - cidx) < Math.abs(view?.start - cidx))
             if (closerToEnd) {
                 if (cidx < view?.stop) {
-                    updateView({ view: {
+                    debounceUpdateView({ view: {
                         stop: cidx
                     }})
                 }
             } else {
                 if (cidx > view?.start) {
-                    updateView({ view: {
+                    debounceUpdateView({ view: {
                         start: cidx
                     }})
                 }
             }
-        }
+        } */
+    }
       }, [inView, updateView, cidx, view]);
     
 

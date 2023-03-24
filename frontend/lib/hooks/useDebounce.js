@@ -7,6 +7,7 @@ const useDebounce = (callback, delay) => {
             clearTimeout(timer)
         }
 
+
         setTimer(setTimeout(() => callback(args), delay || 15))
     }, [callback, delay]);
 
