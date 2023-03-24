@@ -46,14 +46,15 @@ class Mask:
             self._labels[label] = self._next_label_id()
         return self._labels[label]
 
-    def add_bounding_box(self, label, box, score=None):
+    def add_bounding_box(self, label, box, score=None, overwrite=True):
         x, y, w, h = _verify_box(box)
         p1 = [x, y]
         p2 = [x + w, y + h]
         value = self.get_label_id(label)
         for row in range(p1[1], p2[1]):
             for col in range(p1[0], p2[0]):
-                self._mask[row][col] = value
+                if overwrite or self._mask[row][col] == 0:
+                    self._mask[row][col] = value
 
     def add_circle(self, center, radius, label, score=None):
         value = self.get_label_id(label)
@@ -62,6 +63,12 @@ class Mask:
                 d = distance([col, row], center)
                 if d < radius:
                     self._mask[row][col] = value
+
+    def threshold(self, threshold, new_value):
+        for row in range(self.height):
+            for col in range(self.width):
+                if self._mask[row][col] < threshold:
+                    self._mask[row][col] = new_value
 
     def add_gaussian(self, center, label, mu=None, sigma=None, score=None):
         import statistics
@@ -77,7 +84,10 @@ class Mask:
                 self._mask[row][col] = distribution.pdf(1 - d / max_dist)
 
     def gitter(self, radius=2):
-        # For better effect, do from inside out
+        new_mask = [
+            [self._mask[row][col] for col in range(self.width)]
+            for row in range(self.height)
+        ]
         for row in range(self.height):
             for col in range(self.width):
                 x = max(
@@ -86,10 +96,11 @@ class Mask:
                 y = max(
                     min(row + random.randint(-radius, radius + 1), self.height - 1), 0
                 )
-                self._mask[row][col], self._mask[y][x] = (
+                new_mask[row][col], new_mask[y][x] = (
                     self._mask[y][x],
                     self._mask[row][col],
                 )
+        self._mask = new_mask
 
     def _value_to_char(self, value, max_value):
         colors = list(
