@@ -75,8 +75,8 @@ const CellClient = ({ columnName, type, isHeader, children, grouped, cidx }) => 
             }
         } */
     }
-      }, [inView, updateView, cidx, view]);
-    
+      }, [inView]);
+
 
     const headerResizeStyle = {
         'width': '1px',
