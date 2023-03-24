@@ -1,6 +1,7 @@
 'use client';
 
-import { createContext, useEffect, useReducer } from 'react';
+import { createContext, useCallback, useEffect, useReducer } from 'react';
+import useDebounce from '../../lib/hooks/useDebounce';
 
 export const ViewContext = createContext();
 
@@ -66,7 +67,6 @@ const reducer = (state=initialState, action) => {
 
 const ViewProvider = ({ value, children }) => {
     const [state, dispatch] = useReducer(reducer, { ...initialState, ...value });
-
 
     // TODO Find a more performant solution than this quick-and-dirty patch
     useEffect(() => {

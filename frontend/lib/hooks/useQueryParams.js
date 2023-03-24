@@ -38,7 +38,7 @@ const useQueryParams = () => {
         const current = new URLSearchParams(urlParams.toString());
         for (const key in updatedParams) {
             if (!!current.get(key)) {
-                    current.delete(key);
+                current.delete(key);
             }
 
             if (typeof(updatedParams[key]) !== 'undefined') {

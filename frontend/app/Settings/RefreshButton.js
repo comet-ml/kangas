@@ -1,15 +1,18 @@
 'use client';
 
 import CachedIcon from '@mui/icons-material/Cached';
-import { useCallback } from 'react';
+import { useCallback, useContext } from 'react';
 import useQueryParams from '../../lib/hooks/useQueryParams';
 
 import styles from './RefreshButton.module.scss';
 import classNames from 'classnames/bind';
+import { ViewContext } from '../contexts/ViewContext';
 const cx = classNames.bind(styles);
 
 const RefreshButton = ({ query }) => {
     const { params, updateParams } = useQueryParams();
+    const { columns, view } = useContext(ViewContext);
+
 
     const clearCache = useCallback(() => {
 	// Reset params:
@@ -20,9 +23,10 @@ const RefreshButton = ({ query }) => {
             rows: undefined,
             filter: undefined,
             descending: undefined,
-            select: undefined
+            select: undefined,
+            begin: Math.max(view?.start, 0),
+            boundary: view?.stop
         });
-	// FIXME: do something here to force cache delete or update
     });
 
     return (
