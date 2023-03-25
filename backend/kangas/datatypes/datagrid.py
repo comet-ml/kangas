@@ -1217,13 +1217,13 @@ class DataGrid:
         from .image import Image
 
         if new_column is None:
-            new_column = "%s, %s vs %s - %s Image" % (
+            new_column = "%s (%s vs %s) %s Image" % (
                 image_column_name,
                 layer1,
                 layer2,
                 label,
             )
-            new_column_iou = "%s, %s vs %s - %s Value" % (
+            new_column_iou = "%s (%s vs %s) %s Value" % (
                 image_column_name,
                 layer1,
                 layer2,
@@ -1231,6 +1231,9 @@ class DataGrid:
             )
         else:
             new_column_iou = "%s Value" % new_column
+
+        new_column = self._verify_column(new_column)
+        new_column_iou = self._verify_column(new_column_iou)
 
         new_data = [[], []]
         for row in ProgressBar(self.to_dicts([image_column_name])):
@@ -1856,14 +1859,16 @@ class DataGrid:
             )
         return type_name
 
-    def _verify_column(self, name, index):
+    def _verify_column(self, name, index=0):
         """
         Verify that the given name is a valid datagrid name.
         """
         name = str(name).strip()
 
         # Remove quotes, tabs, and newlines
-        name.replace('"', "").replace("'", "").replace("\t", "").replace("\n", "")
+        name.replace('"', "").replace("'", "").replace("\t", "").replace(
+            "\n", ""
+        ).replace(":", "").replace(",", "")
 
         if name.upper() in RESERVED_NAMES:
             raise Exception("DataGrid column name %r cannot be a reserved name" % name)

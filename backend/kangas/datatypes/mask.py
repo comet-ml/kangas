@@ -84,7 +84,7 @@ class Mask:
     def add_region(self, label, points, score=None, overwrite=True):
         import matplotlib.path
 
-        polygon = matplotlib.path.Path(self._verify_list(points), closed=True)
+        polygon = matplotlib.path.Path(points, closed=True)
         value = self.get_label_id(label)
         for row in range(self.height):
             for col in range(self.width):
@@ -100,10 +100,53 @@ class Mask:
                 if d < radius:
                     self._mask[row][col] = value
 
-    def threshold(self, threshold, new_value):
+    def live(self, threshold=3, radius=1):
+        # game of life
+        new_mask = [
+            [self._mask[row][col] for col in range(self.width)]
+            for row in range(self.height)
+        ]
         for row in range(self.height):
             for col in range(self.width):
-                if self._mask[row][col] < threshold:
+                near = self.neighbors([col, row], radius)
+                if len(near) >= threshold:
+                    new_mask[row][col] = near[0]
+        self._mask = new_mask
+
+    def die(self, threshold=3, radius=1):
+        # game of life
+        new_mask = [
+            [self._mask[row][col] for col in range(self.width)]
+            for row in range(self.height)
+        ]
+        for row in range(self.height):
+            for col in range(self.width):
+                near = self.neighbors([col, row], radius)
+                if len(near) <= threshold:
+                    new_mask[row][col] = 0
+        self._mask = new_mask
+
+    def neighbors(self, col_row, radius):
+        col, row = col_row
+        # neighbors that are alive (not zero)
+        retval = []
+        for x in range(-radius, radius + 1):
+            for y in range(-radius, radius + 1):
+                if (
+                    ((x + col >= 0) and (x + col < self.width))
+                    and ((y + row >= 0) and (y + row < self.height))
+                    and (not ((x == 0) and (y == 0)))
+                    and self._mask[row][col] > 0
+                ):
+                    retval.append(self._mask[row][col])
+        return retval
+
+    def threshold(self, lower=None, upper=None, new_value=None):
+        for row in range(self.height):
+            for col in range(self.width):
+                if lower is not None and self._mask[row][col] < lower:
+                    self._mask[row][col] = new_value
+                elif upper is not None and self._mask[row][col] > upper:
                     self._mask[row][col] = new_value
 
     def add_gaussian(self, center, label, mu=None, sigma=None, score=None):
