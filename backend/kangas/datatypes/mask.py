@@ -41,20 +41,56 @@ class Mask:
         else:
             return 1
 
+    def get_array(self):
+        return self._mask
+
+    def get_label_map(self):
+        return {self._labels[label]: label for label in self._labels}
+
     def get_label_id(self, label):
         if label not in self._labels:
             self._labels[label] = self._next_label_id()
         return self._labels[label]
 
+    def _verify_list(self, xys, flat=False):
+        points = [self._verify([xys[i], xys[i + 1]]) for i in range(0, len(xys), 2)]
+        if flat:
+            return flatten(points)
+        else:
+            return points
+
+    def _verify(self, xy):
+        x, y = xy
+        return [min(max(x, 0), self.width - 1), min(max(y, 0), self.height - 1)]
+
+    def add_bounding_boxes(self, label, *boxes, score=None, overwrite=True):
+        for box in boxes:
+            self.add_bounding_box(label, box, score=score, overwrite=overwrite)
+
     def add_bounding_box(self, label, box, score=None, overwrite=True):
         x, y, w, h = _verify_box(box)
-        p1 = [x, y]
-        p2 = [x + w, y + h]
+        p1 = self._verify([int(x), int(y)])
+        p2 = self._verify([int(x + w), int(y + h)])
         value = self.get_label_id(label)
         for row in range(p1[1], p2[1]):
             for col in range(p1[0], p2[0]):
                 if overwrite or self._mask[row][col] == 0:
                     self._mask[row][col] = value
+
+    def add_regions(self, label, *points_list, score=None, overwrite=True):
+        for points in points_list:
+            self.add_region(label, points, score=score, overwrite=overwrite)
+
+    def add_region(self, label, points, score=None, overwrite=True):
+        import matplotlib.path
+
+        polygon = matplotlib.path.Path(self._verify_list(points), closed=True)
+        value = self.get_label_id(label)
+        for row in range(self.height):
+            for col in range(self.width):
+                if overwrite or self._mask[row][col] == 0:
+                    if polygon.contains_point([col, row]):
+                        self._mask[row][col] = value
 
     def add_circle(self, center, radius, label, score=None):
         value = self.get_label_id(label)
@@ -73,7 +109,6 @@ class Mask:
     def add_gaussian(self, center, label, mu=None, sigma=None, score=None):
         import statistics
 
-        # value = self.get_label_id(label)
         mu = mu if mu else 1.0
         sigma = sigma if sigma else 0.5
         distribution = statistics.NormalDist(mu=mu, sigma=sigma)
@@ -90,11 +125,11 @@ class Mask:
         ]
         for row in range(self.height):
             for col in range(self.width):
-                x = max(
-                    min(col + random.randint(-radius, radius + 1), self.width - 1), 0
-                )
-                y = max(
-                    min(row + random.randint(-radius, radius + 1), self.height - 1), 0
+                x, y = self._verify(
+                    [
+                        col + random.randint(-radius, radius + 1),
+                        row + random.randint(-radius, radius + 1),
+                    ]
                 )
                 new_mask[row][col], new_mask[y][x] = (
                     self._mask[y][x],

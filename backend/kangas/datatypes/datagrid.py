@@ -1217,8 +1217,18 @@ class DataGrid:
         from .image import Image
 
         if new_column is None:
-            new_column = "%s vs %s: %s Image" % (layer1, layer2, label)
-            new_column_iou = "%s vs %s: %s Value" % (layer1, layer2, label)
+            new_column = "%s, %s vs %s - %s Image" % (
+                image_column_name,
+                layer1,
+                layer2,
+                label,
+            )
+            new_column_iou = "%s, %s vs %s - %s Value" % (
+                image_column_name,
+                layer1,
+                layer2,
+                label,
+            )
         else:
             new_column_iou = "%s Value" % new_column
 
@@ -1245,7 +1255,7 @@ class DataGrid:
                     layer2_mask = (bitmap2 & np.logical_not(bitmap1)) * 2
                     both_mask = (bitmap1 & bitmap2) * 3
                     new_mask = layer1_mask + layer2_mask + both_mask
-                    new_mask = new_mask.reshape((mask2["height"], mask1["width"]))
+                    new_mask = new_mask.reshape((mask2["width"], mask1["height"]))
                     map = {1: layer1, 2: layer2}
                     if both_mask.sum() > 0:
                         map[3] = "intersection"

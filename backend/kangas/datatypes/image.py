@@ -610,6 +610,8 @@ class Image(Asset):
         >>> dg.save()
         ```
         """
+        from .mask import Mask
+
         if not isinstance(layer_name, str):
             raise Exception("layer_name must be a string")
 
@@ -638,6 +640,9 @@ class Image(Asset):
             else:
                 array = mask
                 width, height = array.shape
+        elif isinstance(mask, Mask):
+            array = mask.get_array()
+            width, height = mask.width, mask.height
         else:
             raise Exception("unknown mask type: %r" % mask)
 
