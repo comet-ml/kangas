@@ -1832,6 +1832,8 @@ def select_query_page(
                         cell["type"] = "boolean-group"
                     elif column_type == "JSON":
                         cell["type"] = "json-group"
+                    elif column_type == "VECTOR":
+                        cell["type"] = "json-group"
                     else:  # Asset types
                         asset_type = column_type.split("-", 1)[0].lower()
                         cell["type"] = "asset-group"
@@ -1857,7 +1859,7 @@ def select_query_page(
                         "assetType": asset_type,
                         "assetId": column_value,
                     }
-                elif column_type == "JSON":
+                elif column_type in ["JSON", "VECTOR"]:
                     try:
                         row[select_column] = json.loads(row[select_column])
                     except Exception:
