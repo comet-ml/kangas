@@ -23,6 +23,10 @@ def distance(p1, p2):
     return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
 
 
+def avg(list_of_numbers):
+    return sum(list_of_numbers) / len(list_of_numbers)
+
+
 def flatten(mask):
     import itertools
 
@@ -110,7 +114,7 @@ class Mask:
             for col in range(self.width):
                 near = self.neighbors([col, row], radius)
                 if len(near) >= threshold:
-                    new_mask[row][col] = near[0]
+                    new_mask[row][col] = int(avg(near))
         self._mask = new_mask
 
     def die(self, threshold=3, radius=1):
@@ -149,17 +153,26 @@ class Mask:
                 elif upper is not None and self._mask[row][col] > upper:
                     self._mask[row][col] = new_value
 
-    def add_gaussian(self, center, label, mu=None, sigma=None, score=None):
+    def add_gaussian(self, center, radius=None, mu=None, sigma=None, score=None):
         import statistics
 
+        center = [int(v) for v in center]
+        radius = int(radius if radius else max(self.width / 2, self.height / 2))
         mu = mu if mu else 1.0
         sigma = sigma if sigma else 0.5
         distribution = statistics.NormalDist(mu=mu, sigma=sigma)
-        max_dist = distance([0, 0], [self.width / 2, self.height / 2])
+        max_dist = int(distance([0, 0], [radius, radius]))
         for row in range(self.height):
             for col in range(self.width):
-                d = distance([row, col], center)
-                self._mask[row][col] = distribution.pdf(1 - d / max_dist)
+                d = distance([col, row], center)
+                if d < radius:
+                    if self._mask[row][col]:
+                        self._mask[row][col] = (
+                            self._mask[row][col] + distribution.pdf(1 - d / max_dist)
+                        ) / 2
+                    else:
+                        self._mask[row][col] = distribution.pdf(1 - d / max_dist)
+                    self._mask[row][col] = min(self._mask[row][col], 1.0)
 
     def gitter(self, radius=2):
         new_mask = [

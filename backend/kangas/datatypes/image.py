@@ -693,6 +693,7 @@ class Image(Asset):
         layer_name="(uncategorized)",
         id=None,
         column_first=False,
+        colorlevels=64,
         **metadata
     ):
         """
@@ -707,6 +708,8 @@ class Image(Asset):
                 column_first=True
             score: (optional, number) a score associated with the mask
             colormap: (optional, str) the name of the colormap to use
+            colorlevels: maximum number of colors; default of 64
+                means that there wil be 64 gradations of the colormap
             id: (optional, str) an id associated with the mask
             column_first: (optional, bool) normally, mask data is given
                in row-first order (mask[row][col]). Use this flag to indicate
@@ -762,11 +765,15 @@ class Image(Asset):
             width, height = image.size
             array = np.array(image)
             array = array.flatten()
+            # convert 0-255 floats to 0-colorlevels ints
+            array = (array / 255 * (colorlevels - 1)).astype(int).tolist()
         else:
+            # converts to numpy array too:
             array = fast_flatten(array, float)
-
-        # convert 0.0-1.0 floats to 0-255 ints
-        array = (array * 255).astype(np.ubyte).tolist()
+            # Set any negative numbers to zero:
+            array[array < 0] = 0
+            # convert 0.0-1.0 floats to 0-colorlevels ints
+            array = (array * (colorlevels - 1)).astype(int).tolist()
 
         self._init_annotations(layer_name)
 
@@ -789,6 +796,7 @@ class Image(Asset):
                     "height": height,
                     "type": "metric",
                     "colormap": colormap,
+                    "colorlevels": colorlevels,
                 },
                 "id": id,
                 "metadata": metadata,

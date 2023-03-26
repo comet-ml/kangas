@@ -171,9 +171,10 @@ const makeMetricMaskImage = (mask, alpha) => {
         mask.format = "raw";
     }
 
+    // if colorlevels is missing, using old default of 255
     const colorMap = createColormap({
         colormap: mask.colormap,
-        nshades: 256,
+        nshades: mask?.colorlevels || 255,
         format: 'rgba',
         alpha: 0.5
     });
@@ -191,11 +192,11 @@ const makeMetricMaskImage = (mask, alpha) => {
                 buffer[pos+2] = rgba[2];
                 buffer[pos+3] = 200; // FIXME: get alpha from a control
             } else {
-                // Black out where there is no metric:
+                // transparent
                 buffer[pos  ] = 0;
                 buffer[pos+1] = 0;
                 buffer[pos+2] = 0;
-                buffer[pos+3] = 128; // FIXME: get alpha from a control
+                buffer[pos+3] = 0; // FIXME: get alpha from a control
             }
         }
     }
