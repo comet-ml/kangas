@@ -84,6 +84,8 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                             ctx.fillStyle = getColor(
                                 annotation.label
                             );
+                            ctx.strokeStyle = getContrastingColor(ctx.fillStyle);
+                            ctx.lineWidth = 3;
                             ctx.beginPath();
                             ctx.moveTo(
                                 region[0] * imageScale,
@@ -97,6 +99,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                             }
                             ctx.closePath();
                             ctx.fill();
+                            ctx.stroke();
                         }
                     }
                 } else if (!!annotation.boxes) {
