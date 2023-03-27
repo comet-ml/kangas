@@ -85,7 +85,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                                 annotation.label
                             );
                             ctx.strokeStyle = getContrastingColor(ctx.fillStyle);
-                            ctx.lineWidth = 3;
+                            ctx.lineWidth = 1;
                             ctx.beginPath();
                             ctx.moveTo(
                                 region[0] * imageScale,
@@ -142,7 +142,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                                 ctx.fillText(text, startX + border, startY - border);
                             }
                             // Draw the bounding box
-                            ctx.lineWidth = 3;
+                            ctx.lineWidth = 1;
                             ctx.beginPath();
                             ctx.moveTo(x1 * imageScale, y1 * imageScale);
                             ctx.lineTo((x1 + x2) * imageScale, y1 * imageScale);
@@ -160,7 +160,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                             ctx.strokeStyle = getColor(
                                 annotation.label
                             );
-                            ctx.lineWidth = 3;
+                            ctx.lineWidth = 1;
                             ctx.beginPath();
                             ctx.moveTo(x1 * imageScale, y1 * imageScale);
                             ctx.lineTo(x2 * imageScale, y2 * imageScale);
