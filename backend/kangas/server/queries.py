@@ -30,6 +30,7 @@ import PIL.Image
 import PIL.ImageDraw
 
 from ..datatypes.utils import (
+    draw_annotations_on_image,
     generate_image,
     generate_thumbnail,
     image_to_fp,
@@ -2054,7 +2055,7 @@ def get_fields(dgid, metadata=None, computed_columns=None):
 def select_asset(dgid, asset_id, thumbnail=False):
     conn = get_database_connection(dgid)
     cur = conn.cursor()
-    selection = 'SELECT asset_data, asset_type, asset_thumbnail, json_extract(asset_metadata, "$.source") as asset_source from assets where asset_id = "{asset_id}";'
+    selection = 'SELECT asset_data, asset_type, asset_thumbnail, json_extract(asset_metadata, "$.source") as asset_source, asset_metadata from assets where asset_id = "{asset_id}";'
     env = {"asset_id": asset_id}
     selection_sql = selection.format(**env)
     LOGGER.debug("SQL %s", selection_sql)
@@ -2063,7 +2064,7 @@ def select_asset(dgid, asset_id, thumbnail=False):
     LOGGER.debug("SQL %s seconds", time.time() - start_time)
 
     if row:
-        asset_data, asset_type, asset_thumbnail, asset_source = row
+        asset_data, asset_type, asset_thumbnail, asset_source, metadata = row
         if asset_source:
             # FIXME: move to Image class
             url_data = urllib.request.urlopen(asset_source)
@@ -2072,13 +2073,16 @@ def select_asset(dgid, asset_id, thumbnail=False):
                 image = PIL.Image.open(fp)
                 if image.mode == "CMYK":
                     image = image.convert("RGB")
+                if metadata:
+                    # FIXME: check do we have image: width and height?
+                    draw_annotations_on_image(image, metadata)
                 asset_data = image_to_fp(image, "png").read()
 
         if thumbnail and asset_type in ["Image"]:
             if asset_thumbnail:
                 return asset_thumbnail
             else:
-                return generate_thumbnail(asset_data)
+                return generate_thumbnail(asset_data, metadata=metadata)
         else:
             return asset_data
 
