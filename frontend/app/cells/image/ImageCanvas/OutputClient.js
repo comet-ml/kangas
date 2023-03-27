@@ -67,7 +67,6 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
 	    for (let layer of layers) {
             for (let annotation of layer?.data) {
                 if (annotation.mask) {
-                    console.log("drawing mask!");
                     processMask(ctx, annotation, imgDims, hiddenLabels, layer.name, score, alpha);
                 }
             }
@@ -128,7 +127,6 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
 
                                 // Draw text background box
                                 ctx.fillStyle = ctx.strokeStyle;
-                                ctx.lineWidth = 1;
                                 ctx.beginPath();
                                 ctx.moveTo(startX, startY);
                                 ctx.lineTo( startX, startY - height);
@@ -142,7 +140,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                                 ctx.fillText(text, startX + border, startY - border);
                             }
                             // Draw the bounding box
-                            ctx.lineWidth = 1;
+                            ctx.lineWidth = 3;
                             ctx.beginPath();
                             ctx.moveTo(x1 * imageScale, y1 * imageScale);
                             ctx.lineTo((x1 + x2) * imageScale, y1 * imageScale);
@@ -160,7 +158,7 @@ const ImageCanvasOutputClient = ({ assetId, dgid, timestamp, imageSrc }) => {
                             ctx.strokeStyle = getColor(
                                 annotation.label
                             );
-                            ctx.lineWidth = 1;
+                            ctx.lineWidth = 3;
                             ctx.beginPath();
                             ctx.moveTo(x1 * imageScale, y1 * imageScale);
                             ctx.lineTo(x2 * imageScale, y2 * imageScale);
