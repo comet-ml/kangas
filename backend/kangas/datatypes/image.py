@@ -64,7 +64,7 @@ class Image(Asset):
         color_order="rgb",
     ):
         """
-        Logs the image.
+        Create an Image asset, ready to be added to a DataGrid.
 
         Args:
             data: Required if source not given. data is one of the following:
@@ -708,12 +708,26 @@ class Image(Asset):
                 column_first=True
             score: (optional, number) a score associated with the mask
             colormap: (optional, str) the name of the colormap to use
+                (see below list)
             colorlevels: maximum number of colors; default of 64
                 means that there wil be 64 gradations of the colormap
             id: (optional, str) an id associated with the mask
             column_first: (optional, bool) normally, mask data is given
                in row-first order (mask[row][col]). Use this flag to indicate
                that you are passing in a mask in column-first order
+
+        Notes:
+
+        The possible colormap names are:
+
+        "alpha", "autumn", "bathymetry", "blackbody", "bluered", "bone",
+        "cdom", "chlorophyll", "cool", "copper", "cubehelix", "density",
+        "earth", "electric", "freesurface-blue", "freesurface-red", "greens",
+        "greys", "hot", "hsv", "inferno", "jet", "magma", "oxygen", "par",
+        "phase", "picnic", "plasma", "portland", "rainbow", "rainbow-soft",
+        "rdbu", "salinity", "spring", "summer", "temperature", "turbidity",
+        "velocity-blue", "velocity-green", "viridis", "warm", "winter",
+        "yignbu", "yiorrd"
 
         Example:
         ```python
