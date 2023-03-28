@@ -143,10 +143,12 @@ const makeSegmentationMaskImage = (mask, hiddenLabels, layerName, scores, score,
                     continue;
                 let pos = (y * mask.width + x) * 4;
 		const rgb = rgbMap[label];
-                buffer[pos  ] = rgb[0];
-                buffer[pos+1] = rgb[1];
-                buffer[pos+2] = rgb[2];
-                buffer[pos+3] = alpha;
+		if (rgb) {
+                    buffer[pos  ] = rgb[0];
+                    buffer[pos+1] = rgb[1];
+                    buffer[pos+2] = rgb[2];
+                    buffer[pos+3] = alpha;
+		}
             }
         }
     }
@@ -187,10 +189,12 @@ const makeMetricMaskImage = (mask, alpha) => {
             if (value > 0) {
                 // Show metric with some transparency
                 const rgba = colorMap[value]
-                buffer[pos  ] = rgba[0];
-                buffer[pos+1] = rgba[1];
-                buffer[pos+2] = rgba[2];
-                buffer[pos+3] = 200; // FIXME: get alpha from a control
+		if (rgba) {
+                    buffer[pos  ] = rgba[0];
+                    buffer[pos+1] = rgba[1];
+                    buffer[pos+2] = rgba[2];
+                    buffer[pos+3] = 200; // FIXME: get alpha from a control
+		}
             } else {
                 // transparent
                 buffer[pos  ] = 0;

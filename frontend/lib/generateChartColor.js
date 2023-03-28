@@ -60,6 +60,10 @@ const getUniqueColor = (hash) => {
     return colors[hash % colors.length];
 };
 
+function shift(number, shift) {
+    return number * Math.pow(2, shift);
+}
+
 export const getColor = (text = '0') => {
     if (!text)
 	return '#000000'; // black, error
@@ -70,7 +74,7 @@ export const getColor = (text = '0') => {
     if (['0', 'false', 'f', 'no'].includes(text.toLowerCase()))
         return '#cf0057'; // red from palette
     const hash = [...text].reduce((acc, char) => {
-        return char.charCodeAt(0) + ((acc << 5) - acc);
+        return (char.charCodeAt(0) + (shift(acc, 5) - acc)) & 0x7FFFFFFF;
     }, 0);
     return getUniqueColor(Math.abs(hash));
 };

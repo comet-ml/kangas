@@ -13,8 +13,10 @@
 
 import ast
 import datetime
+import functools
 import gzip
 import io
+import json
 import logging
 import math
 import numbers
@@ -472,7 +474,7 @@ def generate_image(asset_data):
     return image
 
 
-def generate_thumbnail(asset_data, size=None, force=False):
+def generate_thumbnail(asset_data, size=None, force=False, metadata=None):
     """
     Given the asset data, generate a thumbnail-sized image
     in the png format.
@@ -507,8 +509,176 @@ def generate_thumbnail(asset_data, size=None, force=False):
         else:
             new_image = contain(image, size)
 
+    if metadata:
+        draw_annotations_on_image(new_image, metadata)
+
     fp = image_to_fp(new_image, "png")
     return fp.read()
+
+
+def get_color(text):
+    if not text:
+        return "#000000"  # black, error
+    # Must return lowercase hex
+    # so that getContrastingColor will work
+    if text.lower() in ["1", "true", "t", "yes"]:
+        return "#12a592"  # green from palette
+    if text.lower() in ["0", "false", "f", "no"]:
+        return "#cf0057"  # red from palette
+    hash = functools.reduce(
+        lambda acc, c: ((ord(c) + ((acc << 5) - acc)) & 0x7FFFFFFF), text, 0
+    )
+    return get_unique_color(abs(hash))
+
+
+def get_rgb_from_hex(color):
+    result = re.match("^#([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})$", color).groups()
+    return (
+        int(result[0], 16),
+        int(result[1], 16),
+        int(result[2], 16),
+    )
+
+
+def get_unique_color(hash):
+    colors = [
+        "#ffd51d",
+        "#ffbd00",
+        "#ff8900",
+        "#fb7628",
+        "#ff4747",
+        "#e51772",
+        "#cf0057",
+        "#6e1d89",
+        "#860dab",
+        "#49a5bd",
+        "#0096c7",
+        "#00b4d8",
+        "#12a592",
+        "#16cab2",
+        "#41ead4",
+    ]
+    return colors[hash % len(colors)]
+
+
+def make_tag(layer_name, label):
+    if layer_name == "(uncategorized)":
+        return label
+    else:
+        return "%s: %s" % (layer_name, label)
+
+
+def draw_annotations_on_image(image, metadata):
+    # annotations: "mask", "boxes", "points", "markers", or "lines"
+    from PIL import ImageDraw
+
+    from .colormaps import create_colormap
+
+    canvas = None
+    pixels = None
+    metadata = json.loads(metadata)
+    if "annotations" in metadata:
+        width, height = metadata["image"]["width"], metadata["image"]["height"]  # noqa
+        # assumes images keep aspect ratio
+        scale = image.size[0] / width  # scale of thumbnail
+        # Draw masks first:
+        for annotation_layer in metadata["annotations"]:
+            for annotation in annotation_layer["data"]:
+                if "mask" in annotation and annotation["mask"]:
+                    if pixels is None:
+                        pixels = image.load()
+
+                    mask = annotation["mask"]
+                    if mask["format"] == "rle":
+                        array = rle_decode(mask["array"])
+                    else:
+                        array = mask["array"]
+                    scale_x = mask["width"] / image.size[0]  # scale of mask
+                    scale_y = (
+                        mask["height"] / image.size[1]
+                    )  # don't assume it keeps aspect ratio
+                    if mask["type"] == "segmentation":
+                        palette = {
+                            int(index): get_rgb_from_hex(
+                                get_color(make_tag(annotation_layer["name"], label))
+                            )
+                            for index, label in mask["map"].items()
+                        }
+                        # Fill in x,y of thumbnail:
+                        for x in range(image.size[0]):
+                            for y in range(image.size[1]):
+                                # get position from mask:
+                                class_value = array[
+                                    int(y * scale_y) * mask["width"] + int(x * scale_x)
+                                ]
+                                if class_value in palette:
+                                    # blend the colors for transparency:
+                                    pixels[(x, y)] = tuple(
+                                        [
+                                            int((v1 + v2) / 2)
+                                            for v1, v2 in zip(
+                                                pixels[(x, y)], palette[class_value]
+                                            )
+                                        ]
+                                    )
+
+                    if mask["type"] == "metric":
+                        colorlevels = (
+                            mask["colorlevels"] if "colorlevels" in mask else 255
+                        )
+                        colormap = create_colormap(
+                            {"colormap": mask["colormap"], "nshades": colorlevels}
+                        )
+                        for x in range(image.size[0]):
+                            for y in range(image.size[1]):
+                                # get value from mask:
+                                index = array[
+                                    int(y * scale_y) * mask["width"] + int(x * scale_x)
+                                ]
+                                if index > 0:
+                                    rgb = colormap[index]
+                                    # blend the colors for transparency:
+                                    pixels[(x, y)] = tuple(
+                                        [
+                                            int((v1 + v2) / 2)
+                                            for v1, v2 in zip(pixels[(x, y)], rgb)
+                                        ]
+                                    )
+
+        for annotation_layer in metadata["annotations"]:
+            for annotation in annotation_layer["data"]:
+                if "boxes" in annotation and annotation["boxes"]:
+                    if canvas is None:
+                        canvas = ImageDraw.Draw(image)
+                    color = get_color(annotation["label"])
+                    for box in annotation["boxes"]:
+                        x, y, w, h = box
+                        canvas.rectangle(
+                            [
+                                (x * scale, y * scale),
+                                ((x + w) * scale, (y + h) * scale),
+                            ],
+                            outline=color,
+                        )
+                if "points" in annotation and annotation["points"]:
+                    if canvas is None:
+                        canvas = ImageDraw.Draw(image)
+                    color = get_color(annotation["label"])
+                    for region in annotation["points"]:
+                        canvas.polygon([value * scale for value in region], fill=color)
+                if "markers" in annotation and annotation["markers"]:
+                    pass  # too small to see
+                if "lines" in annotation and annotation["lines"]:
+                    if canvas is None:
+                        canvas = ImageDraw.Draw(image)
+                    color = get_color(annotation["label"])
+                    for line in annotation["lines"]:
+                        x1, y1, x2, y2 = line
+                        canvas.line(
+                            [(x1 * scale, y1 * scale), (x2 * scale, y2 * scale)],
+                            fill=color,
+                        )
+    return image
 
 
 def is_valid_file_path(file_path):
