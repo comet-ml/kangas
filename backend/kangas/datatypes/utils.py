@@ -572,6 +572,8 @@ def draw_annotations_on_image(image, metadata):
     # annotations: "mask", "boxes", "points", "markers", or "lines"
     from PIL import ImageDraw
 
+    from .colormaps import create_colormap
+
     canvas = ImageDraw.Draw(image)
     pixels = None
     metadata = json.loads(metadata)
@@ -623,7 +625,28 @@ def draw_annotations_on_image(image, metadata):
                                     )
 
                     if mask["type"] == "metric":
-                        pass
+                        colorlevels = (
+                            mask["colorlevels"] if "colorlevels" in mask else 255
+                        )
+                        colormap = create_colormap(
+                            {"colormap": mask["colormap"], "nshades": colorlevels}
+                        )
+                        for x in range(image.size[0]):
+                            for y in range(image.size[1]):
+                                # get value from mask:
+                                index = array[
+                                    int(y * scale_y) * mask["width"] + int(x * scale_x)
+                                ]
+                                if index > 0:
+                                    rgb = colormap[index]
+                                    # blend the colors for transparency:
+                                    pixels[(x, y)] = tuple(
+                                        [
+                                            int((v1 + v2) / 2)
+                                            for v1, v2 in zip(pixels[(x, y)], rgb)
+                                        ]
+                                    )
+
         for annotation_layer in metadata["annotations"]:
             for annotation in annotation_layer["data"]:
                 if "boxes" in annotation and annotation["boxes"]:
