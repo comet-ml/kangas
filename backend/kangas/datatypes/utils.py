@@ -598,8 +598,6 @@ def draw_annotations_on_image(image, metadata):
                         mask["height"] / image.size[1]
                     )  # don't assume it keeps aspect ratio
                     if mask["type"] == "segmentation":
-                        # FIXME: some colors are wrong; why?
-                        # class_id -> label
                         palette = {
                             int(index): get_rgb_from_hex(
                                 get_color(make_tag(annotation_layer["name"], label))
