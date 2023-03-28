@@ -574,7 +574,7 @@ def draw_annotations_on_image(image, metadata):
 
     from .colormaps import create_colormap
 
-    canvas = ImageDraw.Draw(image)
+    canvas = None
     pixels = None
     metadata = json.loads(metadata)
     if "annotations" in metadata:
@@ -650,6 +650,8 @@ def draw_annotations_on_image(image, metadata):
         for annotation_layer in metadata["annotations"]:
             for annotation in annotation_layer["data"]:
                 if "boxes" in annotation and annotation["boxes"]:
+                    if canvas is None:
+                        canvas = ImageDraw.Draw(image)
                     color = get_color(annotation["label"])
                     for box in annotation["boxes"]:
                         x, y, w, h = box
@@ -661,12 +663,16 @@ def draw_annotations_on_image(image, metadata):
                             outline=color,
                         )
                 if "points" in annotation and annotation["points"]:
+                    if canvas is None:
+                        canvas = ImageDraw.Draw(image)
                     color = get_color(annotation["label"])
                     for region in annotation["points"]:
                         canvas.polygon([value * scale for value in region], fill=color)
                 if "markers" in annotation and annotation["markers"]:
-                    pass
+                    pass  # too small to see
                 if "lines" in annotation and annotation["lines"]:
+                    if canvas is None:
+                        canvas = ImageDraw.Draw(image)
                     color = get_color(annotation["label"])
                     for line in annotation["lines"]:
                         x1, y1, x2, y2 = line
