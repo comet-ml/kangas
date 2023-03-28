@@ -526,7 +526,7 @@ def get_color(text):
     if text.lower() in ["0", "false", "f", "no"]:
         return "#cf0057"  # red from palette
     hash = functools.reduce(
-        lambda acc, c: (ord(c) + ((acc << 5) - acc)) & 0xFFFFFFFF, text, 0
+        lambda acc, c: ((ord(c) + ((acc << 5) - acc)) & 0x7FFFFFFF), text, 0
     )
     return get_unique_color(abs(hash))
 

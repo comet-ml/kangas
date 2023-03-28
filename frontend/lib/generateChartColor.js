@@ -74,7 +74,7 @@ export const getColor = (text = '0') => {
     if (['0', 'false', 'f', 'no'].includes(text.toLowerCase()))
         return '#cf0057'; // red from palette
     const hash = [...text].reduce((acc, char) => {
-        return (char.charCodeAt(0) + (shift(acc, 5) - acc)) & 0xFFFFFFFF;
+        return (char.charCodeAt(0) + (shift(acc, 5) - acc)) & 0x7FFFFFFF;
     }, 0);
     return getUniqueColor(Math.abs(hash));
 };
