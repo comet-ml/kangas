@@ -529,6 +529,15 @@ def get_color(text):
     return get_unique_color(abs(hash))
 
 
+def get_rgb_from_hex(color):
+    result = re.match("^#([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})$", color).groups()
+    return (
+        int(result[0], 16),
+        int(result[1], 16),
+        int(result[2], 16),
+    )
+
+
 def get_unique_color(hash):
     colors = [
         "#ffd51d",
@@ -550,16 +559,69 @@ def get_unique_color(hash):
     return colors[hash % len(colors)]
 
 
+def make_tag(layer_name, label):
+    if layer_name == "(uncategorized)":
+        return label
+    else:
+        return "%s: %s" % (layer_name, label)
+
+
 def draw_annotations_on_image(image, metadata):
     # annotations: "mask", "boxes", "points", "markers", or "lines"
     from PIL import ImageDraw
 
     canvas = ImageDraw.Draw(image)
+    pixels = None
     metadata = json.loads(metadata)
     if "annotations" in metadata:
         width, height = metadata["image"]["width"], metadata["image"]["height"]  # noqa
         # assumes images keep aspect ratio
-        scale = image.size[0] / width
+        scale = image.size[0] / width  # scale of thumbnail
+        # Draw masks first:
+        for annotation_layer in metadata["annotations"]:
+            for annotation in annotation_layer["data"]:
+                if "mask" in annotation and annotation["mask"]:
+                    if pixels is None:
+                        pixels = image.load()
+
+                    mask = annotation["mask"]
+                    if mask["format"] == "rle":
+                        array = rle_decode(mask["array"])
+                    else:
+                        array = mask["array"]
+                    scale_x = mask["width"] / image.size[0]  # scale of mask
+                    scale_y = (
+                        mask["height"] / image.size[1]
+                    )  # don't assume it keeps aspect ratio
+                    if mask["type"] == "segmentation":
+                        # FIXME: some colors are wrong; why?
+                        # class_id -> label
+                        palette = {
+                            int(index): get_rgb_from_hex(
+                                get_color(make_tag(annotation_layer["name"], label))
+                            )
+                            for index, label in mask["map"].items()
+                        }
+                        # Fill in x,y of thumbnail:
+                        for x in range(image.size[0]):
+                            for y in range(image.size[1]):
+                                # get position from mask:
+                                class_value = array[
+                                    int(y * scale_y) * mask["width"] + int(x * scale_x)
+                                ]
+                                if class_value in palette:
+                                    # blend the colors for transparency:
+                                    pixels[(x, y)] = tuple(
+                                        [
+                                            int((v1 + v2) / 2)
+                                            for v1, v2 in zip(
+                                                pixels[(x, y)], palette[class_value]
+                                            )
+                                        ]
+                                    )
+
+                    if mask["type"] == "metric":
+                        pass
         for annotation_layer in metadata["annotations"]:
             for annotation in annotation_layer["data"]:
                 if "boxes" in annotation and annotation["boxes"]:
@@ -573,8 +635,6 @@ def draw_annotations_on_image(image, metadata):
                             ],
                             outline=color,
                         )
-                if "mask" in annotation and annotation["mask"]:
-                    pass
                 if "points" in annotation and annotation["points"]:
                     color = get_color(annotation["label"])
                     for region in annotation["points"]:
