@@ -294,6 +294,7 @@ class DataGrid:
         width="100%",
         protocol="http",
         hide_selector=None,
+        cli_kwargs=None,
         **kwargs
     ):
         """
@@ -308,7 +309,10 @@ class DataGrid:
                from the server (may not be visible in a notebook)
             height: (optional, str) the height of iframe in px or percentage
             width: (optional, str) the width of iframe in px or percentage
-            kwargs: additional URL parameters to pass to server
+            cli_kwargs: (dict) a dictionary with keys the names
+                of the kangas server flags, and values the setting value
+                (such as: `{"backend-port": 8000}`)
+                kwargs: additional URL parameters to pass to server
 
         Example:
 
@@ -318,16 +322,20 @@ class DataGrid:
         >>> # append data to DataGrid
         >>> dg.show()
         >>> dg.show("{'Column Name'} == 'category three'")
-        >>> dg.show("{'Column Name'} == 'category three'", group="Another Column Name")
+        >>> dg.show("{'Column Name'} == 'category three'",
+        ...     group="Another Column Name")
         ```
         """
-        import webbrowser
-
-        from IPython.display import IFrame, clear_output, display
-
         from kangas import launch
 
-        url = launch(host, port, debug, protocol, hide_selector)
+        url = launch(
+            host,
+            port,
+            debug,
+            protocol,
+            hide_selector,
+            **(cli_kwargs if cli_kwargs else {})
+        )
 
         if not self._on_disk:
             self.save()
@@ -341,15 +349,22 @@ class DataGrid:
         url = "%s%s" % (url, qvs)
 
         if _in_colab_environment():
+            from IPython.display import clear_output
+
             from ..colab_env import init_colab
 
+            clear_output(wait=True)
             init_colab(port, width, height, qvs)
 
         elif _in_jupyter_environment():
+            from IPython.display import IFrame, clear_output, display
+
             clear_output(wait=True)
             display(IFrame(src=url, width=width, height=height))
 
         else:
+            import webbrowser
+
             webbrowser.open(url, autoraise=True)
 
     def set_columns(self, columns):
