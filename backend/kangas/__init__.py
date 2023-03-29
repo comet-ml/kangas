@@ -88,7 +88,9 @@ def terminate():
     _process_method("python", "kangas", "terminate")
 
 
-def launch(host=None, port=4000, debug=None, protocol="http", hide_selector=None):
+def launch(
+    host=None, port=4000, debug=None, protocol="http", hide_selector=None, **cli_kwargs
+):
     """
     Launch the Kangas servers.
 
@@ -120,26 +122,34 @@ def launch(host=None, port=4000, debug=None, protocol="http", hide_selector=None
     if not _is_running("node", "kangas"):
         print("Terminating any stray Kangas servers...")
         terminate()
-        subprocess.Popen(
-            (
-                [
-                    sys.executable,
-                    "-m",
-                    "kangas.cli.server",
-                    "--frontend-port",
-                    str(port),
-                    "--backend-port",
-                    str(port + 1),
-                    "--open",
-                    "no",
-                    "--protocol",
-                    protocol,
-                ]
-                + (["--host", host] if host is not None else [])
-                + (["--hide-selector"] if hide_selector else [])
-                + (["--debug-level", debug] if debug is not None else [])
-            )
-        )
+        command_line = [
+            sys.executable,
+            "-m",
+            "kangas.cli.server",
+            "--frontend-port",
+            str(port),
+            "--backend-port",
+            str(port + 1),
+            "--open",
+            "no",
+            "--protocol",
+            protocol,
+        ]
+        if host is not None:
+            command_line.extend(["--host", host])
+
+        if hide_selector:
+            command_line.extend(["--hide-selector"])
+
+        if debug is not None:
+            command_line.extend(["--debug-level", debug])
+
+        if cli_kwargs:
+            for flag in cli_kwargs:
+                command_line.extend(["--%s" % flag, str(cli_kwargs[flag])])
+
+        subprocess.Popen(command_line)
+
         # FIXME: can we poll until it is ready?
         time.sleep(0.5)
         print("Starting Kangas server in 3...")
@@ -162,6 +172,7 @@ def show(
     width="100%",
     protocol="http",
     hide_selector=False,
+    cli_kwargs=None,
     **kwargs
 ):
     """
@@ -182,6 +193,9 @@ def show(
             iframe shown in the Jupyter notebook.
         width: (str) the width (in "px" pixels or "%" percentages) of the
             iframe shown in the Jupyter notebook.
+        cli_kwargs: (dict) a dictionary with keys the names
+            of the kangas server flags, and values the setting value
+            (such as: `{"backend-port": 8000}`)
         kwargs: additional URL parameters to pass to server
 
     Example:
@@ -190,14 +204,13 @@ def show(
     >>> import kangas
     >>> kangas.show("./example.datagrid")
     >>> kangas.show("./example.datagrid", "{'Column Name'} < 0.5")
-    >>> kangas.show("./example.datagrid", "{'Column Name'} < 0.5", group="Another Column Name")
+    >>> kangas.show("./example.datagrid", "{'Column Name'} < 0.5",
+    ...     group="Another Column Name")
     ```
     """
-    import webbrowser
-
-    from IPython.display import IFrame, clear_output, display
-
-    url = launch(host, port, debug, protocol, hide_selector)
+    url = launch(
+        host, port, debug, protocol, hide_selector, **(cli_kwargs if cli_kwargs else {})
+    )
 
     if datagrid:
         query_vars = {"datagrid": datagrid}
@@ -210,15 +223,22 @@ def show(
         qvs = ""
 
     if _in_colab_environment():
+        from IPython.display import clear_output
+
         from .colab_env import init_colab
 
+        clear_output(wait=True)
         init_colab(port, width, height, qvs)
 
     elif _in_jupyter_environment():
+        from IPython.display import IFrame, clear_output, display
+
         clear_output(wait=True)
         display(IFrame(src=url, width=width, height=height))
 
     else:
+        import webbrowser
+
         webbrowser.open(url, autoraise=True)
 
 
