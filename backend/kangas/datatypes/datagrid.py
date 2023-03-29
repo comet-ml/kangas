@@ -195,7 +195,7 @@ class DataGrid:
             self.filename = download_filename(data)
             data = None
             if os.path.isfile(self.filename):
-                self.conn = sqlite3.connect(self.filename)
+                self.conn = sqlite3.connect(str(self.filename))
             else:
                 raise Exception("file not found: %r" % self.filename)
 
@@ -419,7 +419,7 @@ class DataGrid:
             }
             # Make our own connection to use row_factory:
             if os.path.isfile(self.filename):
-                conn = sqlite3.connect(self.filename)
+                conn = sqlite3.connect(str(self.filename))
             else:
                 raise Exception("file not found: %r" % self.filename)
 
@@ -533,7 +533,7 @@ class DataGrid:
             }
             # Make our own connection to use row_factory:
             if os.path.isfile(self.filename):
-                conn = sqlite3.connect(self.filename)
+                conn = sqlite3.connect(str(self.filename))
             else:
                 raise Exception("file not found: %r" % self.filename)
 
@@ -2209,7 +2209,7 @@ class DataGrid:
         )
 
         print("Saving datagrid to %r..." % filename)
-        self.conn = sqlite3.connect(filename)
+        self.conn = sqlite3.connect(str(filename))
 
         self.conn.execute(drop_sql)
         self.conn.execute(create_sql)
