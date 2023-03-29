@@ -25,7 +25,7 @@ const JSONCell = ({ value, query, style, expanded=false }) => {
                                 theme="light"
                                 indentWidth={4}
                                 defaultInspectDepth={1}
-                                collapseStringsAfterLength={20}
+                                collapseStringsAfterLength={15}
                                 enableClipboard={true}
                                 displayObjectSize={true}
                                 displayDataTypes={false}
