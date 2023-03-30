@@ -6,7 +6,7 @@ import styles from './ImageCanvas.module.scss';
 import classNames from 'classnames/bind';
 import Deferred from "../../../DeferredComponent";
 import CanvasProvider from "../../../contexts/CanvasContext";
-import ConfigContext from "../../../contexts/ConfigContext";
+import { ConfigContext } from "../../../contexts/ConfigContext";
 import ImageCanvasControls from "./Controls";
 import ImageCanvasOutputClient from "./OutputClient";
 
