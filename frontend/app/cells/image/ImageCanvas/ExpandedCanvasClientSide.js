@@ -1,17 +1,19 @@
 'use client';
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useContext } from "react";
 import fetchAssetMetadata from "../../../../lib/fetchAssetMetadata";
 import styles from './ImageCanvas.module.scss';
 import classNames from 'classnames/bind';
 import Deferred from "../../../DeferredComponent";
 import CanvasProvider from "../../../contexts/CanvasContext";
+import ConfigContext from "../../../contexts/ConfigContext";
 import ImageCanvasControls from "./Controls";
 import ImageCanvasOutputClient from "./OutputClient";
 
 const cx = classNames.bind(styles);
 
 const ExpandedCanvasClientSide = ({ dgid, timestamp, assetId }) => {
+    const { config } = useContext(ConfigContext);
     const [metadata, setMetadata] = useState({});
 
     useEffect(() => {
@@ -61,7 +63,7 @@ const ExpandedCanvasClientSide = ({ dgid, timestamp, assetId }) => {
                             assetId={assetId}
                             timestamp={timestamp}
                             dgid={dgid}
-                            imageSrc={`/api/image?${querystring}`}
+                            imageSrc={`${config.rootPath}api/image?${querystring}`}
                         />
                     </Deferred>
                 </div>

@@ -1,14 +1,16 @@
 'use client';
 
 import Autocomplete from './ReactAutoComplete';
-import { useCallback, useEffect, useRef, useMemo, useState } from 'react';
+import { useCallback, useEffect, useRef, useMemo, useState, useContext } from 'react';
 import useQueryParams from '../../lib/hooks/useQueryParams';
 import styles from './Filter.module.scss';
 import classNames from 'classnames/bind';
+import ConfigContext from "../contexts/ConfigContext";
 
 const cx = classNames.bind(styles);
 
 const FilterExpr = ({ query, completions }) => {
+    const { config } = useContext(ConfigContext);
     const { params, updateParams } = useQueryParams();
     const filterRef = useRef();
     const timeout = useRef();
@@ -17,7 +19,7 @@ const FilterExpr = ({ query, completions }) => {
     const fetchValidity = useCallback((filter) => {
         setStatus('LOADING');
 
-        fetch(`/api/filter?dgid=${params?.datagrid}&timestamp=${query?.timestamp}&where=${filter}`, { next: { revalidate: 10000 }})
+        fetch(`${config.rootPath}api/filter?dgid=${params?.datagrid}&timestamp=${query?.timestamp}&where=${filter}`, { next: { revalidate: 10000 }})
         .then(res => res.json())
         .then(data => {
             if (data?.valid) {

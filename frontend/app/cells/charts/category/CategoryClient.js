@@ -2,10 +2,11 @@
 
 import classNames from 'classnames/bind';
 import styles from '../Charts.module.scss';
-import { useMemo, useCallback, useState, useRef, useEffect } from 'react';
+import { useMemo, useCallback, useState, useRef, useEffect, useContext } from 'react';
 import dynamic from 'next/dynamic';
 import useQueryParams from '../../../../lib/hooks/useQueryParams';
 import fetchCategory from '../../../../lib/fetchCategory';
+import { ConfigContext } from '../../../contexts/ConfigContext';
 import { useInView } from "react-intersection-observer";
 
 const Plot = dynamic(() => import("react-plotly.js"), {
@@ -82,6 +83,7 @@ const VisibleWrapper = (props) => {
 
 
 const CategoryClient = ({ expanded, value, ssrData }) => {
+    const { config } = useContext(ConfigContext);
     const [response, setResponse] = useState(false);
     const data = useMemo(() => ssrData || response, [ssrData, response]);
 
@@ -136,7 +138,7 @@ const CategoryClient = ({ expanded, value, ssrData }) => {
     }
 
     if (!expanded) {
-        return <img src={`/api/charts?${queryString}`} loading="lazy" className={cx(['chart-thumbnail', 'category'])} />
+        return <img src={`${config.rootPath}api/charts?${queryString}`} loading="lazy" className={cx(['chart-thumbnail', 'category'])} />
     }
 
     return (

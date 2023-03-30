@@ -1,9 +1,11 @@
 /* eslint-disable react/jsx-key */
 'use client';
 
-import DownloadIcon from '@mui/icons-material/Download';
-
+// FIXME: can we use config from this in the client?
+// I don't think so, but can'r useContext(ConfigContext) here either
 import config from '../../config';
+
+import DownloadIcon from '@mui/icons-material/Download';
 
 import { useCallback, useMemo, useEffect, useRef } from 'react';
 import useQueryParams from '../../lib/hooks/useQueryParams';
@@ -19,7 +21,7 @@ const Pager = ({ dgid, aboutText, firstRow, totalRows, currentPage, totalPages, 
     const pageInput = useRef();
     const aboutButton = aboutText !== '' ? (<AboutDataGridButton text={aboutText} />) : (<></>);
     const downloadName = dgid && dgid.includes("/") ? dgid.substring(dgid.lastIndexOf("/") + 1) : dgid;
-    const downloadLink = totalPages > 0 && !config.hideSelector ? (<a href={`/api/download?dgid=${dgid}`} download={downloadName}><DownloadIcon/></a>) : (<></>);
+    const downloadLink = totalPages > 0 && !config.hideSelector ? (<a href={`${config.rootPath}api/download?dgid=${dgid}`} download={downloadName}><DownloadIcon/></a>) : (<></>);
 
     const canGoto = (page) => {
 	return page > 0 && page <= totalPages && page !== currentPage;
