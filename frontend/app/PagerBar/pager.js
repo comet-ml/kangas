@@ -1,22 +1,20 @@
 /* eslint-disable react/jsx-key */
 'use client';
 
-// FIXME: can we use config from this in the client?
-// I don't think so, but can'r useContext(ConfigContext) here either
-import config from '../../config';
-
 import DownloadIcon from '@mui/icons-material/Download';
 
-import { useCallback, useMemo, useEffect, useRef } from 'react';
+import { useCallback, useMemo, useEffect, useRef, useContext } from 'react';
 import useQueryParams from '../../lib/hooks/useQueryParams';
 import RowsButton from '../Settings/Buttons/RowsButton';
 import AboutDataGridButton from '../Settings/Buttons/AboutDataGridButton';
+import { ConfigContext } from '../contexts/ConfigContext';
 
 import styles from './Pager.module.scss';
 import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);
 
 const Pager = ({ dgid, aboutText, firstRow, totalRows, currentPage, totalPages, maxRow, pageSize }) => {
+    const { config } = useContext(ConfigContext);
     const { params, updateParams } = useQueryParams();
     const pageInput = useRef();
     const aboutButton = aboutText !== '' ? (<AboutDataGridButton text={aboutText} />) : (<></>);

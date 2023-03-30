@@ -1,9 +1,11 @@
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useContext } from "react";
+import { ConfigContext } from '../../app/contexts/ConfigContext';
 
 import config from '../../config';
 
 const useQueryParams = () => {
+    const { config } = useContext(ConfigContext);
     const router = useRouter();
     const urlParams = useSearchParams();
 
@@ -31,7 +33,7 @@ const useQueryParams = () => {
                 current.append(key, updatedParams[key]);
             }
         }
-        router.push(`/?${current.toString()}`);
+        router.push(`${config.rootPath}?${current.toString()}`);
     }, [urlParams, router]);
 
     const prefetch = useCallback((updatedParams) => {
@@ -46,7 +48,7 @@ const useQueryParams = () => {
             }
         }
         if (config.prefetch)
-            router.prefetch(`/?${current.toString()}`);
+            router.prefetch(`${config.rootPath}?${current.toString()}`);
     }, [urlParams, router]);
 
     return {
