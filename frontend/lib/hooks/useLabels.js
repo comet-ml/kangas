@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useContext, useEffect } from 'react';
 import { CanvasContext } from '../../app/contexts/CanvasContext';
 import fetchIt from '../fetchIt';
+import config from '../../config';
 
 /*
 
@@ -58,7 +59,7 @@ const useLabels = ({ assetId, dgid, timestamp }) => {
 
     useEffect(() => {
         if (!image?.fetchedMeta) {
-            fetchIt({url: '/api/assetMetadata', query: { assetId, dgid, timestamp }})
+            fetchIt({url: `${config.rootPath}api/assetMetadata`, query: { assetId, dgid, timestamp }})
             .then(metadata => addImageMetadata({ assetId, metadata }))
         }
     }, [image?.fetchedMeta]);

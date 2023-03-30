@@ -7,9 +7,9 @@ import formatValue from './formatValue';
 import { getColor } from './generateChartColor';
 
 const fetchHistogram = async (query, ssr=false) => {
-    const data = ssr ? 
-        await fetchIt({ url: `${config.apiUrl}histogram`, query }) : 
-        await fetchIt({ url: `/api/histogram`, query });
+    const data = ssr ?
+        await fetchIt({ url: `${config.apiUrl}histogram`, query }) :
+        await fetchIt({ url: `${config.rootPath}api/histogram`, query });
 
 
     if (data?.error) {

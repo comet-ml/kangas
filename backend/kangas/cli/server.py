@@ -91,6 +91,13 @@ def get_parser_arguments(parser):
         default=4000,
     )
     parser.add_argument(
+        "-fr",
+        "--frontend-root",
+        help="Use this setting to change the ROOT path for the frontend (eg, PROTOCOL://HOST:PORT/ROOT)",
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
         "-o",
         "--open",
         help="How to open page in a webbrowser; 'tab', 'window', or 'no'",
@@ -161,6 +168,20 @@ def get_parser_arguments(parser):
     )
 
 
+def clean_root_path(root_path):
+    # frontend root (if given) must start with a / and not end with a slash
+    if root_path:
+        if root_path == "/":
+            return ""
+        if root_path[0] != "/":
+            root_path = "/" + root_path
+        if root_path[-1] == "/":
+            root_path = root_path[:-1]
+        return root_path
+    else:
+        return ""
+
+
 def server(parsed_args, remaining=None):
     # Called via `kangas server ...`
     try:
@@ -175,21 +196,25 @@ def server(parsed_args, remaining=None):
     else:
         debug_level = None
 
+    # Frontend:
+    KANGAS_FRONTEND_PROTOCOL = parsed_args.protocol
     KANGAS_FRONTEND_PORT = parsed_args.frontend_port
     KANGAS_FRONTEND_HOST = (
         parsed_args.host if parsed_args.host is not None else get_localhost()
     )
-    KANGAS_BACKEND_HOST = (
-        parsed_args.backend_host
-        if parsed_args.backend_host is not None
-        else get_localhost()
-    )
-    KANGAS_FRONTEND_PROTOCOL = parsed_args.protocol
+    KANGAS_FRONTEND_ROOT = clean_root_path(parsed_args.frontend_root)
+
+    # Backend:
     KANGAS_BACKEND_PROTOCOL = parsed_args.backend_protocol
     if parsed_args.backend_port is None:
         KANGAS_BACKEND_PORT = parsed_args.frontend_port + 1
     else:
         KANGAS_BACKEND_PORT = parsed_args.backend_port
+    KANGAS_BACKEND_HOST = (
+        parsed_args.backend_host
+        if parsed_args.backend_host is not None
+        else get_localhost()
+    )
     KANGAS_HIDE_SELECTOR = 1 if parsed_args.hide_selector else 0
 
     if parsed_args.terminate:
@@ -204,8 +229,13 @@ def server(parsed_args, remaining=None):
     if parsed_args.frontend != "no":
         NODE_SERVER_PATH = os.path.join(HERE, "../frontend/standalone/server.js")
         print(
-            "Kangas frontend is now running on %s://%s:%s/..."
-            % (KANGAS_FRONTEND_PROTOCOL, KANGAS_FRONTEND_HOST, KANGAS_FRONTEND_PORT)
+            "Kangas frontend is now running on %s://%s:%s%s/..."
+            % (
+                KANGAS_FRONTEND_PROTOCOL,
+                KANGAS_FRONTEND_HOST,
+                KANGAS_FRONTEND_PORT,
+                KANGAS_FRONTEND_ROOT,
+            )
         )
         # node uses PORT to listen on; this is a local process
         # so shouldn't effect any other node servers
@@ -223,7 +253,10 @@ def server(parsed_args, remaining=None):
                 "KANGAS_HIDE_SELECTOR": str(KANGAS_HIDE_SELECTOR),
             }
         )
-        # first, check to see if nodejs is good:
+        # Only add these if they are set:
+        if KANGAS_FRONTEND_ROOT:
+            env["KANGAS_FRONTEND_ROOT"] = KANGAS_FRONTEND_ROOT
+
         if nodejs is not None:
             if hasattr(nodejs, "node"):  # version 18
                 result = nodejs.node.call(
@@ -285,10 +318,11 @@ def server(parsed_args, remaining=None):
 
     if parsed_args.open != "no":
         new = {"tab": 0, "window": 1}[parsed_args.open]
-        host = "%s://%s:%s/" % (
+        host = "%s://%s:%s%s/" % (
             KANGAS_FRONTEND_PROTOCOL,
             KANGAS_FRONTEND_HOST,
             KANGAS_FRONTEND_PORT,
+            KANGAS_FRONTEND_ROOT,
         )
         query_vars = {}
         if parsed_args.DATAGRID is not None:

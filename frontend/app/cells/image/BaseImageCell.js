@@ -22,7 +22,7 @@ const PlainImageCell = async ({ value, query, expanded=false, style }) => {
         endpoint
     }).toString();
 
-    const ImageOrNone = value?.assetId ? (<img src={`/api/image?${queryString}`} alt="DataGrid Image" />) : (<>None</>);
+    const ImageOrNone = value?.assetId ? (<img src={`${config.rootPath}api/image?${queryString}`} alt="DataGrid Image" />) : (<>None</>);
 
     return (
             <div className={cx("cell-content")} style={style}>

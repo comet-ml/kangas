@@ -145,7 +145,7 @@ const HistogramClient = ({ value, expanded, ssrData }) => {
     }
 
     if (!expanded) {
-        return <img src={`/api/charts?${queryString}`} loading="lazy" className={cx(['chart-thumbnail', 'category'])} />
+        return <img src={`${config.rootPath}api/charts?${queryString}`} loading="lazy" className={cx(['chart-thumbnail', 'category'])} />
     }
 
     return (
