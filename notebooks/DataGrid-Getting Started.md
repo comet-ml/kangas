@@ -1,3 +1,7 @@
+> This is a Jupyter Notebook example using Kangas. You can open and run it in <a href="https://colab.research.google.com/github/comet-ml/kangas/blob/main/notebooks/DataGrid-Getting%20Started.ipynb">Google's Colab</a>. If you appreciate this project, give us a star!
+
+---
+
 # Kangas DataGrid - Getting Started
 
 Before using Kangas DataGrid, you'll need to install it. We can do that in a notebook
@@ -71,19 +75,6 @@ To start the UX, simply:
 ```python
 dg.show()
 ```
-
-
-
-<iframe
-    width="100%"
-    height="750px"
-    src="http://127.0.1.1:4000/?datagrid=mnist-60000-after-5-epochs.datagrid"
-    frameborder="0"
-    allowfullscreen
-
-></iframe>
-
-
 
 What are you seeing? And what can you do?
 
@@ -453,3 +444,7 @@ Try grouping the above DataGrid on category.
 
 1. Is this a balanced dataset?
 2. What is the average fitness for dogs? For ducks? Which is doing better?
+
+---
+
+> This is a Jupyter Notebook example using Kangas. You can open and run it in <a href="https://colab.research.google.com/github/comet-ml/kangas/blob/main/notebooks/DataGrid-Getting%20Started.ipynb">Google's Colab</a>. If you appreciate this project, give us a star!
