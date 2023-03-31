@@ -427,19 +427,6 @@ dg.save()
 dg.show()
 ```
 
-
-
-<iframe
-    width="100%"
-    height="750px"
-    src="http://127.0.1.1:4000/?datagrid=example-1.datagrid"
-    frameborder="0"
-    allowfullscreen
-
-></iframe>
-
-
-
 Try grouping the above DataGrid on category.
 
 1. Is this a balanced dataset?
