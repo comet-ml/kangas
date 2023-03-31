@@ -60,11 +60,11 @@ dg = kg.read_dataframe(df)
 
 ```python
 flags = [
-  'https://www.countries-ofthe-world.com/flags-normal/flag-of-United-States-of-America.png',
-  'https://www.countries-ofthe-world.com/flags-normal/flag-of-Brazil.png',
-  'https://www.countries-ofthe-world.com/flags-normal/flag-of-Russia.png',
-  'https://www.countries-ofthe-world.com/flags-normal/flag-of-India.png',
-  'https://www.countries-ofthe-world.com/flags-normal/flag-of-Peru.png'
+    "https://www.fotw.info/images/u/us.gif",
+    "https://www.fotw.info/images/b/br1.gif",
+    "https://www.fotw.info/images/r/ru.gif",
+    "https://www.fotw.info/images/i/in.gif",
+    "https://www.fotw.info/images/p/pe.gif",
 ]
 ```
 
