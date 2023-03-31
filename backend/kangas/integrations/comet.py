@@ -67,8 +67,15 @@ def import_from_comet(path, name, options):
     if name.endswith(".datagrid"):
         name = name[:-9]
 
-    if os.path.isfile(name + ".datagrid"):
-        os.remove(name + ".datagrid")
+    if "/" in name:
+        save_path, name = name.rsplit("/", 1)
+    else:
+        save_path, name = "./", name
+
+    full_path = os.path.join(save_path, name + ".datagrid")
+
+    if os.path.isfile(full_path):
+        os.remove(full_path)
 
     dg = DataGrid(
         name=name,
@@ -104,7 +111,7 @@ def import_from_comet(path, name, options):
                     ]
                 )
             # FIXME: append audio, video, curve, JSON, etc.
-    dg.save()
+    dg.save(full_path)
 
 
 def export_to_comet(path, name, options):

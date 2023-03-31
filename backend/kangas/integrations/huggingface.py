@@ -66,8 +66,15 @@ def import_from_huggingface(path, name, options):
     if name.endswith(".datagrid"):
         name = name[:-9]
 
-    if os.path.isfile(name + ".datagrid"):
-        os.remove(name + ".datagrid")
+    if "/" in name:
+        save_path, name = name.rsplit("/", 1)
+    else:
+        save_path, name = "./", name
+
+    full_path = os.path.join(save_path, name + ".datagrid")
+
+    if os.path.isfile(full_path):
+        os.remove(full_path)
 
     # Preprocess rows (remove "row-id", assemble Images, assets):
     bbox = options.get("bbox")
@@ -125,7 +132,7 @@ def import_from_huggingface(path, name, options):
         data.append(row)
 
     dg = kangas.DataGrid(name=name, data=data)
-    dg.save()
+    dg.save(full_path)
 
 
 def export_to_huggingface(path, name, options):
