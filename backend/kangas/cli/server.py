@@ -173,7 +173,7 @@ def clean_root_path(root_path):
     if root_path:
         if root_path == "/":
             return ""
-        if root_path[0] != "/":
+        if "/" not in root_path[0]:
             root_path = "/" + root_path
         if root_path[-1] == "/":
             root_path = root_path[:-1]
