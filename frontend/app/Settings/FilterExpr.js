@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useMemo, useState, useContext } from 'r
 import useQueryParams from '../../lib/hooks/useQueryParams';
 import styles from './Filter.module.scss';
 import classNames from 'classnames/bind';
-import ConfigContext from "../contexts/ConfigContext";
+import { ConfigContext } from "../contexts/ConfigContext";
 
 const cx = classNames.bind(styles);
 

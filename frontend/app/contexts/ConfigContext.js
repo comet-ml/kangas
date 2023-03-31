@@ -7,6 +7,7 @@ export const ConfigContext = createContext({
         apiUrl: null,
         otherUrl: null,
         hideSelector: false,
+        rootPath: null
     },
 });
 

@@ -93,7 +93,7 @@ def get_parser_arguments(parser):
     parser.add_argument(
         "-fr",
         "--frontend-root",
-        help="Use this setting to change the ROOT path for the frontend (eg, PROTOCOL://HOST:PORT/ROOT)",
+        help="Use this setting to change the ROOT path for the frontend (eg, PROTOCOL://HOST:PORT/ROOT); requires a router",
         type=str,
         default=None,
     )
@@ -255,6 +255,7 @@ def server(parsed_args, remaining=None):
         )
         # Only add these if they are set:
         if KANGAS_FRONTEND_ROOT:
+            print("WARNING: requires a router")
             env["KANGAS_FRONTEND_ROOT"] = KANGAS_FRONTEND_ROOT
 
         if nodejs is not None:

@@ -7,10 +7,7 @@ const RootLayout = ({ children }) => {
     return (
         <html>
             <ConfigProvider value={{
-                config: {
-                    apiUrl: config.apiUrl,
-                    hideSelector: config.hideSelector
-                }
+                config
             }}>
                 <body>
                     { children }
