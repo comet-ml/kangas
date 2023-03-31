@@ -12,10 +12,6 @@ with the `%pip install kangas` command:
 %pip install kangas --quiet
 ```
 
-    [K     |████████████████████████████████| 11.9 MB 4.6 MB/s
-    [K     |████████████████████████████████| 34.5 MB 225 kB/s
-    [?25h
-
 Once installed, we can import it. We'll just import the top-level `kangas` module as `kg` and use that throughout this demo.
 
 
@@ -62,12 +58,6 @@ dg = kg.read_dataframe(df)
 
     Reading DataFrame...
 
-
-    5it [00:00, 3719.67it/s]
-    100%|██████████| 5/5 [00:00<00:00, 7077.80it/s]
-
-
-
 ```python
 flags = [
   'https://www.countries-ofthe-world.com/flags-normal/flag-of-United-States-of-America.png',
@@ -112,28 +102,6 @@ dg
 ```python
 dg.show()
 ```
-
-    Saving data...
-
-
-    100%|██████████| 5/5 [00:00<00:00, 13374.69it/s]
-
-
-    Saving datagrid to '/tmp/tmpokt9wedz/untitled.datagrid'...
-    Extending data...
-
-
-    100%|██████████| 5/5 [00:00<00:00, 2139.30it/s]
-
-
-    Computing statistics...
-
-
-    100%|██████████| 8/8 [00:00<00:00, 3939.24it/s]
-
-
-
-    <IPython.core.display.Javascript object>
 
 
 # CSV Files
@@ -207,33 +175,6 @@ for row in dg.to_dicts():
 dogs.show()
 ```
 
-    Saving data...
-
-
-    100%|██████████| 10222/10222 [00:00<00:00, 101740.54it/s]
-
-    Saving datagrid to 'dog-breeds.datagrid'...
-
-
-
-
-
-    Extending data...
-
-
-    100%|██████████| 10222/10222 [00:02<00:00, 3462.81it/s]
-
-
-    Computing statistics...
-
-
-    100%|██████████| 4/4 [00:30<00:00,  7.61s/it]
-
-
-
-    <IPython.core.display.Javascript object>
-
-
 # HuggingFace
 
 
@@ -241,16 +182,6 @@ dogs.show()
 ```python
 %pip install datasets --quiet
 ```
-
-    [K     |████████████████████████████████| 441 kB 5.1 MB/s
-    [K     |████████████████████████████████| 163 kB 67.9 MB/s
-    [K     |████████████████████████████████| 95 kB 4.4 MB/s
-    [K     |████████████████████████████████| 115 kB 73.7 MB/s
-    [K     |████████████████████████████████| 212 kB 51.7 MB/s
-    [K     |████████████████████████████████| 127 kB 46.8 MB/s
-    [K     |████████████████████████████████| 115 kB 36.0 MB/s
-    [?25h
-
 
 ```python
 from datasets import load_dataset
@@ -290,10 +221,6 @@ dg = kg.read_datagrid("https://github.com/dsblank/examples/raw/main/mnist-60000-
 ```python
 dg.show()
 ```
-
-
-    <IPython.core.display.Javascript object>
-
 
 ---
 
