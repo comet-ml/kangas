@@ -183,6 +183,9 @@ except ImportError:
         def set_description(self, description):
             self.description = "%s " % description
 
+        def __len__(self):
+            return len(self.sequence)
+
         def __iter__(self):
             if self.description:
                 print(self.description, end="")
