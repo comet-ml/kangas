@@ -572,7 +572,7 @@ def draw_annotations_on_image(image, metadata):
     # annotations: "mask", "boxes", "points", "markers", or "lines"
     from PIL import ImageDraw
 
-    from .colormaps import create_colormap
+    from .colormaps import get_colormap
 
     canvas = None
     pixels = None
@@ -626,9 +626,10 @@ def draw_annotations_on_image(image, metadata):
                         colorlevels = (
                             mask["colorlevels"] if "colorlevels" in mask else 255
                         )
-                        colormap = create_colormap(
-                            {"colormap": mask["colormap"], "nshades": colorlevels}
+                        colormap = get_colormap(
+                            name=mask["colormap"], resolution=colorlevels
                         )
+
                         for x in range(image.size[0]):
                             for y in range(image.size[1]):
                                 # get value from mask:

@@ -12,6 +12,17 @@
 ######################################################
 
 
+_CACHE = {}
+
+
+def get_colormap(name, resolution):
+    if (name, resolution) not in _CACHE:
+        _CACHE[(name, resolution)] = create_colormap(
+            {"colormap": name, "nshades": resolution}
+        )
+    return _CACHE[(name, resolution)]
+
+
 def lerp(v0, v1, t):
     #  linear interpolation
     return v0 * (1 - t) + v1 * t
