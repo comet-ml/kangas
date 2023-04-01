@@ -29,13 +29,7 @@ import numpy as np
 import PIL.Image
 import PIL.ImageDraw
 
-from ..datatypes.utils import (
-    generate_image,
-    generate_thumbnail,
-    image_to_fp,
-    is_nan,
-    pytype_to_dgtype,
-)
+from ..datatypes.utils import generate_thumbnail, image_to_fp, is_nan, pytype_to_dgtype
 from .computed_columns import update_state
 from .utils import process_about, safe_compile, safe_env
 
@@ -1218,12 +1212,10 @@ def select_asset_group_thumbnail(
     )
     images = []
     for asset_id in results_json["values"]:
-        image_data = select_asset(dgid, asset_id, thumbnail=True)
-        # FIXME: need to generate image again to get original size
-        image = generate_image(image_data)
+        image = select_asset(dgid, asset_id, thumbnail=True, return_image=True)
         background = PIL.Image.new(mode="RGBA", size=image_size, color=background_color)
-        left = (background.size[0] - image.width) // 2
-        top = (background.size[1] - image.height) // 2
+        left = (background.size[0] - image_size[0]) // 2
+        top = (background.size[1] - image_size[1]) // 2
         background.paste(image, (left, top))
         images.append(background)
 
@@ -2052,7 +2044,7 @@ def get_fields(dgid, metadata=None, computed_columns=None):
     return fields
 
 
-def select_asset(dgid, asset_id, thumbnail=False):
+def select_asset(dgid, asset_id, thumbnail=False, return_image=False):
     conn = get_database_connection(dgid)
     cur = conn.cursor()
     selection = (
@@ -2084,7 +2076,13 @@ def select_asset(dgid, asset_id, thumbnail=False):
         if thumbnail and asset_type in ["Image"]:
             if asset_annotations:
                 asset_annotations = json.loads(asset_annotations)
-            return generate_thumbnail(asset_data, annotations=asset_annotations)
+            thumbnail_data, thumbnail_image = generate_thumbnail(
+                asset_data, annotations=asset_annotations, return_image=True
+            )
+            if return_image:
+                return thumbnail_image
+            else:
+                return thumbnail_data
         else:
             return asset_data
 

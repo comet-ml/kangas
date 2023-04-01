@@ -473,7 +473,9 @@ def generate_image(asset_data):
     return image
 
 
-def generate_thumbnail(asset_data, size=None, force=False, annotations=None):
+def generate_thumbnail(
+    asset_data, size=None, force=False, annotations=None, return_image=False
+):
     """
     Given the asset data, generate a thumbnail-sized image
     in the png format.
@@ -512,7 +514,11 @@ def generate_thumbnail(asset_data, size=None, force=False, annotations=None):
         draw_annotations_on_image(new_image, annotations, image.width, image.height)
 
     fp = image_to_fp(new_image, "png")
-    return fp.read()
+    image_data = fp.read()
+    if return_image:
+        return image_data, new_image
+    else:
+        return image_data
 
 
 def get_color(text):
