@@ -2599,7 +2599,13 @@ class DataGrid:
             # If we should make a thumbnail, do it
             if self.create_thumbnails and asset_type in ["Image"]:
                 ## FIXME: check metadata "source" to retrieve from file or URL
-                asset_thumbnail = generate_thumbnail(asset_data)
+                if "annotations" in metadata and metadata["annotations"]:
+                    annotations = json.loads(metadata["annotations"])
+                else:
+                    annotations = None
+                asset_thumbnail = generate_thumbnail(
+                    asset_data, annotations=annotations
+                )
             else:
                 asset_thumbnail = None  # means one hasn't been created yet
             self.cursor.execute(
