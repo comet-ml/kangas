@@ -858,7 +858,7 @@ def combine_arrays(arrays):
         if isinstance(item, str):
             retval.extend(ast.literal_eval(item))
         else:
-            retval.append(item)
+            retval.extend(item)
     return np.array(retval)
 
 
