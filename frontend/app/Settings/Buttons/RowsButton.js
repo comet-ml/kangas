@@ -10,7 +10,7 @@ const RowsButton = () => (
     <DialogueModal
         toggleElement={
             <div className={cx("button-outline")}>
-                <img src="/columns_placeholder.png" /> <span>Rows</span>
+                <img src="/kangas_images/columns_placeholder.png" /> <span>Rows</span>
             </div>
         }
         sx={{

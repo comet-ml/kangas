@@ -11,7 +11,7 @@ const SelectButton = ({ columns }) => (
     <DialogueModal
         toggleElement={
             <div className={cx("button-outline")}>
-                <img src="/columns_placeholder.png" /> <span>Columns</span>
+                <img src="/kangas_images/columns_placeholder.png" /> <span>Columns</span>
             </div>
         }
         sx={{

@@ -5,7 +5,7 @@ const cx = classNames.bind(styles);
 
 const KangasButton = () => (
     <div className={cx("button-outline")} style={{border: 'unset'}}>
-        <img src="/favicon.png" />
+        <img src="/kangas_images/favicon.png" />
         <span>Kangas</span>
     </div>
 );

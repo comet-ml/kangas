@@ -12,7 +12,7 @@ const GroupByButton = () => {
     return (
         <>
             <div className={cx('button-outline')} onClick={toggleOpen} ref={anchor}>
-                <img src="/group_placeholder.png" /> <span>Group by</span>
+                <img src="/kangas_images/group_placeholder.png" /> <span>Group by</span>
             </div>
             <Popover
                 anchorOrigin={{
