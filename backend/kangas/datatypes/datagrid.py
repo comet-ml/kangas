@@ -11,7 +11,6 @@
 #    All rights reserved                             #
 ######################################################
 
-import ast
 import csv
 import io
 import json
@@ -32,7 +31,6 @@ from .utils import (
     RESERVED_NAMES,
     _verify_box,
     apply_converters,
-    combine_arrays,
     convert_row_dict,
     convert_string_to_value,
     convert_to_type,
@@ -40,6 +38,7 @@ from .utils import (
     create_columns,
     download_filename,
     expand_mask,
+    flatten,
     generate_thumbnail,
     get_annotations_from_layers,
     get_labels_from_annotations,
@@ -1288,79 +1287,6 @@ class DataGrid:
                 new_data[1].append(None)
         self.append_columns([new_column, new_column_iou], new_data)
 
-    def append_pca_column(self, *columns, new_column=None, scale=True, **kwargs):
-        """
-        Append a PCA column given the name of a VECTOR column.
-
-        Args:
-            columns: (str) the name(s) of FLOAT or VECTOR column(s)
-            new_column: (str, optional) the new column name
-
-        Note:
-            You must save the DataGrid before adding a PCA column.
-
-        ```python
-        >>> dg = kg.DataGrid(
-        ...     columns=["vector column"],
-        ...     data=[[...], [...], ...]
-        >>> dg.save()
-        >>> dg.append_pca_column("vector column")
-        ```
-        """
-        from sklearn.decomposition import IncrementalPCA
-
-        if not self._on_disk:
-            raise Exception("Adding a PCA column requires a saved DataGrid")
-
-        indices = [
-            list(self._columns.keys()).index(column_name) - 1 for column_name in columns
-        ]
-        column_map = {
-            list(self._columns.keys()).index(column_name) - 1: column_name
-            for column_name in columns
-        }
-        metadata = self.get_metadata()
-
-        if new_column is None:
-            if len(columns) == 1:
-                new_column = "%s PCA" % columns[0]
-            else:
-                new_column = "PCA"
-
-        # 1, go through vectors and build pca
-        pca = IncrementalPCA(**kwargs)
-        batch = []
-        for row in self.select():
-            if scale:
-                vectors = [
-                    self._scale_value(row[index], column_map[index], metadata)
-                    for index in indices
-                ]
-            else:
-                vectors = [row[index] for index in indices]
-            vector = combine_arrays(vectors)
-            batch.append(vector)
-            if len(batch) == 10:
-                pca.partial_fit(batch)
-                batch = []
-        if len(batch) > 0:
-            pca.partial_fit(batch)
-
-        # 2, compute transform for each vector
-        transforms = []
-        for row in self.select():
-            if scale:
-                vectors = [
-                    self._scale_value(row[index], column_map[index], metadata)
-                    for index in indices
-                ]
-            else:
-                vectors = [row[index] for index in indices]
-            vector = combine_arrays(vectors)
-            transforms.append(pca.transform([vector])[0])
-        # 3, save transform
-        self.append_column(new_column, transforms)
-
     def remove_columns(self, *column_names):
         """
         Delete columns from the saved DataGrid.
@@ -2388,46 +2314,39 @@ class DataGrid:
                     )
 
             elif col_type == "VECTOR":
+                from sklearn.decomposition import IncrementalPCA
+
+                kwargs = {}
+
                 rows = self.conn.execute(
                     "SELECT {field_name} from datagrid;".format(field_name=field_name)
                 )
-                ragged = False
-                minimum = float("inf")
-                maximum = float("-inf")
+                pca = IncrementalPCA(**kwargs)
+                batch = []
+                for row in self.conn.execute(
+                    """SELECT {field_name} from datagrid;""".format(
+                        field_name=field_name
+                    )
+                ):
+                    vectors = json.loads(row[0])
+                    vector = flatten(vectors)
+                    # FIXME: could scale them here; leave to user for now
+                    batch.append(vector)
+                    if len(batch) == 10:
+                        pca.partial_fit(batch)
+                        batch = []
+                if len(batch) > 0:
+                    pca.partial_fit(batch)
+
                 other = {
-                    "shape": None,
+                    "pca_eigen_vectors": pca.components_.tolist(),
+                    "pca_mean": pca.mean_.tolist(),
                 }
-                for row in rows:
-                    array = None
-                    values = ast.literal_eval(row[0])
-                    try:
-                        array = np.array(values)
-                    except Exception:
-                        ragged = True
 
-                    if array is not None and array.dtype == object:
-                        ragged = True
-
-                    if ragged:
-                        other["shape"] = "ragged"
-                        break
-
-                    minimum = min(minimum, array.min())
-                    maximum = max(maximum, array.max())
-
-                    if other["shape"] is None:
-                        other["shape"] = array.shape
-                    elif other["shape"] == "various":
-                        pass
-                    elif other["shape"] != array.shape:
-                        other["shape"] = "various"
-
-                # min, max, avg, variance, total, stddev, other, name
-                ## NOTE: ragged arrays do not compute min/max
                 data.append(
                     [
-                        minimum,
-                        maximum,
+                        None,
+                        None,
                         None,
                         None,
                         None,
