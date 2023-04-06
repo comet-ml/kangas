@@ -1,10 +1,11 @@
 import TextCell from "../../app/cells/text";
 import FloatCell from "../../app/cells/float";
-import JSONCell from "../../app/cells/json/JSONCell";
+import JSONCell from "../../app/cells/json";
 import ImageCell from "../../app/cells/image";
 import DateCell from "../../app/cells/date";
 import BooleanCell from "../../app/cells/boolean";
 import LoadingCell from "../../app/cells/loading";
+import VectorCell from "../../app/cells/vector";
 
 const cellMap = {
     TEXT: {
@@ -41,7 +42,7 @@ const cellMap = {
     VECTOR: {
         width: 400,
         groupedWidth: 220,
-        component: JSONCell
+        component: VectorCell
 
     },
     'IMAGE-ASSET': {

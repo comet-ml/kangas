@@ -1,5 +1,7 @@
 'use client';
 
+// Need to run in client because of JsonViewer uses useEffect
+
 import DialogueModal from '../../modals/DialogueModal/DialogueModalClient';
 import { JsonViewer } from '@textea/json-viewer';
 
