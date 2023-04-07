@@ -708,7 +708,7 @@ def _get_metadata(conn):
             "variance": row[6],
             "total": row[7],
             "stddev": row[8],
-            "other": row[9],
+            "other": json.loads(row[9]) if row[9] else None,
         }
         for row in metadata
     }
@@ -2319,6 +2319,8 @@ def generate_chart_image(chart_type, data, width, height):
                     ],
                     fill=color,
                 )
+        elif chart_type == "pca":
+            pass
         else:
             raise Exception("unknown chart_type: %r" % chart_type)
 
