@@ -5,7 +5,6 @@ import ImageCell from "../../app/cells/image";
 import DateCell from "../../app/cells/date";
 import BooleanCell from "../../app/cells/boolean";
 import LoadingCell from "../../app/cells/loading";
-import VectorCell from "../../app/cells/vector";
 
 const cellMap = {
     TEXT: {
@@ -42,7 +41,7 @@ const cellMap = {
     VECTOR: {
         width: 400,
         groupedWidth: 220,
-        component: VectorCell
+        component: JSONCell
 
     },
     'IMAGE-ASSET': {

@@ -12,8 +12,11 @@
 ######################################################
 
 import json
+import logging
 
 from .base import Asset
+
+LOGGER = logging.getLogger(__name__)
 
 
 class Curve(Asset):
@@ -64,3 +67,33 @@ class Curve(Asset):
         self.metadata["max(y)"] = max(self.y)
         if metadata:
             self.metadata.update(metadata)
+
+    @classmethod
+    def get_statistics(cls, datagrid, row, col_name):
+        # min, max, avg, variance, total, stddev, other, name
+        x_min = y_min = float("inf")
+        x_max = y_max = float("-inf")
+        other = None
+        try:
+            # go through all rows, compute x min/max, y min/max
+            for row in datagrid.to_dicts():
+                curve_instance = row[col_name]
+                x_min = min(min(curve_instance.x), x_min)
+                x_max = max(max(curve_instance.x), x_max)
+                y_min = min(min(curve_instance.y), y_min)
+                y_max = max(max(curve_instance.y), y_max)
+
+            other = json.dumps(
+                {
+                    "x_min": x_min,
+                    "x_max": x_max,
+                    "y_min": y_min,
+                    "y_max": y_max,
+                }
+            )
+
+        except Exception:
+            LOGGER.info("can't compute curve stats on column %s", col_name)
+
+        # min, max, avg, variance, total, stddev, other, name
+        return [None, None, None, None, None, None, other, col_name]

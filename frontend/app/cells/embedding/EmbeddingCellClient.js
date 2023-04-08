@@ -80,10 +80,20 @@ const VisibleWrapper = (props) => {
     )
 }
 
-const VectorClient = ({ value, expanded, ssrData }) => {
+const VectorClient = ({ value, expanded, ssrData, query }) => {
     const { config } = useContext(ConfigContext);
     const [response, setResponse] = useState();
     const data = useMemo(() => ssrData || response, [ssrData, response]);
+
+    // when single: value is vector
+    // when grouped, value is {columnName:"Vector", columnValue: "apple", dgid: "vectors.datagrid",
+    //      groupBy: "Category", type: "json-group", whereExpr: null}
+    // data is: {Vector: {other: {pca_eigen_vectors: Array(10), pca_mean: Array(100)}}}
+
+    console.log("expanded:", !!expanded);
+    console.log("grouped:", !!query?.groupBy);
+    console.log("query:", query);
+    console.log("data:", data);
 
     const ExpandedLayout = useMemo(() => {
         return {
@@ -125,7 +135,8 @@ const VectorClient = ({ value, expanded, ssrData }) => {
 
     useEffect(() => {
         if (!value || ssrData) return;
-        fetchMetadata(value).then(res => {
+	// construct proper query, if grouped, expanded
+        fetchMetadata(query).then(res => {
             setResponse(res);
         });
     }, [value])
@@ -135,11 +146,8 @@ const VectorClient = ({ value, expanded, ssrData }) => {
         return <>Loading</>
     }
 
-    if (data?.isVerbatim) {
-        return <div> { data?.value } </div>
-    }
-
     if (!expanded) {
+	// grouped or non-grouped
         return <img src={`${config.rootPath}api/charts?${queryString}`} loading="lazy" className={cx(['chart-thumbnail', 'category'])} />
     }
 

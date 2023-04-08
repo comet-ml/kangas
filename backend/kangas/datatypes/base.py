@@ -75,6 +75,10 @@ class Asset:
         return self.asset_id
 
     @classmethod
+    def get_statistics(cls, datagrid, row, column_name):
+        pass
+
+    @classmethod
     def unserialize(cls, datagrid, row, column_name):
         asset_id = row[column_name]
 

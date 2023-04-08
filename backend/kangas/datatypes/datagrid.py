@@ -38,7 +38,6 @@ from .utils import (
     create_columns,
     download_filename,
     expand_mask,
-    flatten,
     generate_thumbnail,
     get_annotations_from_layers,
     get_labels_from_annotations,
@@ -2314,35 +2313,7 @@ class DataGrid:
                     )
 
             elif col_type == "VECTOR":
-                from sklearn.decomposition import IncrementalPCA
-
-                kwargs = {}
-
-                rows = self.conn.execute(
-                    "SELECT {field_name} from datagrid;".format(field_name=field_name)
-                )
-                pca = IncrementalPCA(**kwargs)
-                batch = []
-                for row in self.conn.execute(
-                    """SELECT {field_name} from datagrid;""".format(
-                        field_name=field_name
-                    )
-                ):
-                    vectors = json.loads(row[0])
-                    vector = flatten(vectors)
-                    # FIXME: could scale them here; leave to user for now
-                    batch.append(vector)
-                    if len(batch) == 10:
-                        pca.partial_fit(batch)
-                        batch = []
-                if len(batch) > 0:
-                    pca.partial_fit(batch)
-
-                other = {
-                    "pca_eigen_vectors": pca.components_.tolist(),
-                    "pca_mean": pca.mean_.tolist(),
-                }
-
+                # min, max, avg, variance, total, stddev, other, name
                 data.append(
                     [
                         None,
@@ -2351,7 +2322,7 @@ class DataGrid:
                         None,
                         None,
                         None,
-                        json.dumps(other),
+                        None,
                         col_name,
                     ]
                 )
@@ -2408,46 +2379,17 @@ class DataGrid:
                         col_name,
                     ]
                 )
-            elif col_type == "CURVE-ASSET":
-                x_min = y_min = float("inf")
-                x_max = y_max = float("-inf")
-                other = None
-                try:
-                    # go through all rows, compute x min/max, y min/max
-                    for row in self.to_dicts():
-                        curve_instance = row[col_name]
-                        x_min = min(min(curve_instance.x), x_min)
-                        x_max = max(max(curve_instance.x), x_max)
-                        y_min = min(min(curve_instance.y), y_min)
-                        y_max = max(max(curve_instance.y), y_max)
-                    other = {
-                        "x_min": x_min,
-                        "x_max": x_max,
-                        "y_min": y_min,
-                        "y_max": y_max,
-                    }
-                except Exception:
-                    LOGGER.info("can't compute curve stats on row %s", col_name)
-
+            elif col_type.endswith("-ASSET"):
                 # min, max, avg, variance, total, stddev, other, name
-                data.append(
-                    [
-                        None,
-                        None,
-                        None,
-                        None,
-                        None,
-                        None,
-                        json.dumps(other) if other else None,
-                        col_name,
-                    ]
-                )
+                data = ASSET_TYPE_MAP[col_type].get_statistics(self, row, col_name)
+                if data:
+                    data.append(data)
             else:
-                # min, max, avg, variance, total, stddev, other, name
                 if col_type == "TEXT":
                     completions_serialized = json.dumps({"completions": {"": ["str"]}})
                 else:
                     completions_serialized = None
+                # min, max, avg, variance, total, stddev, other, name
                 data.append(
                     [
                         None,
