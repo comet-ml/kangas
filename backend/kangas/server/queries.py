@@ -2458,6 +2458,13 @@ def generate_chart_image(chart_type, data, width, height):
             span_x = max_x - min_x
             span_y = max_y - min_y
 
+            drawing.line(
+                [width / 2, margin, width / 2, height - margin], fill="black", width=1
+            )
+            drawing.line(
+                [margin, height / 2, width - margin, height / 2], fill="black", width=1
+            )
+
             for count, [x, y] in enumerate(zip(trace["x"], trace["y"])):
                 drawing.ellipse(
                     [
@@ -2471,7 +2478,7 @@ def generate_chart_image(chart_type, data, width, height):
                         + radius,
                     ],
                     width=1,
-                    fill="blue",
+                    fill="#1f77b4",
                 )
         else:
             raise Exception("unknown chart_type: %r" % chart_type)
