@@ -3,6 +3,7 @@ import FloatCell from "../../app/cells/float";
 import JSONCell from "../../app/cells/json";
 import ImageCell from "../../app/cells/image";
 import DateCell from "../../app/cells/date";
+import EmbeddingCell from "../../app/cells/embedding";
 import BooleanCell from "../../app/cells/boolean";
 import LoadingCell from "../../app/cells/loading";
 
@@ -48,6 +49,11 @@ const cellMap = {
         width: 150,
         groupedWidth: 300,
         component: ImageCell
+    },
+    'EMBEDDING-ASSET': {
+        width: 150,
+        groupedWidth: 300,
+        component: EmbeddingCell
     },
     ROW_ID: {
         width: 50,

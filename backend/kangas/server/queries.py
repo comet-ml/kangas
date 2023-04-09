@@ -2044,6 +2044,128 @@ def get_fields(dgid, metadata=None, computed_columns=None):
     return fields
 
 
+def select_pca_data(dgid, asset_id, column_name, column_value, group_by, where_expr):
+    from sklearn.decomposition import PCA
+
+    conn = get_database_connection(dgid)
+    cur = conn.cursor()
+    metadata = get_metadata(conn)
+
+    pca_eigen_vectors = metadata[column_name]["other"]["pca_eigen_vectors"]
+    pca_mean = metadata[column_name]["other"]["pca_mean"]
+
+    pca = PCA()
+    pca.components_ = np.array(pca_eigen_vectors)
+    pca.mean_ = np.array(pca_mean)
+
+    traces = []
+    if asset_id:
+        asset_data = select_asset(dgid, asset_id)
+        vector = pca.transform([json.loads(asset_data)])
+
+        traces.append(
+            {
+                "x": [round(vector[0][0], 3)],
+                "y": [round(vector[0][1], 3)],
+                "type": "scatter",
+                "mode": "markers",
+                "marker": {"size": 12},
+            }
+        )
+    else:
+        computed_columns = None
+        distinct = False
+        column_limit = None
+        column_offset = None
+        where = None
+
+        columns = list(metadata.keys())
+        select_expr_as = [get_field_name(column, metadata) for column in columns]
+        databases = ["datagrid"]
+
+        if computed_columns or where_expr:
+            where_sql = update_state(
+                computed_columns,
+                metadata,
+                databases,
+                columns,
+                select_expr_as,
+                where_expr,
+            )
+            if where_sql:
+                where = where_sql
+
+        where = where if where else "1"
+
+        group_by_field_name = get_field_name(group_by, metadata)
+        group_by_field_expr = get_field_expr(group_by, metadata)
+        field_name = get_field_name(column_name, metadata)
+        field_expr = get_field_expr(column_name, metadata)
+
+        try:
+            rows = get_group_by_rows(
+                cur,
+                group_by_field_name,
+                group_by_field_expr,
+                field_name,
+                field_expr,
+                column_value,
+                where,
+                databases,
+                select_expr_as,
+                distinct,
+            )
+        except sqlite3.OperationalError as exc:
+            LOGGER.error("SQL: %s", exc)
+            raise Exception(str(exc))
+
+        if rows:
+            row = rows[0]
+            if row and row[0]:
+                # asset_ids:
+                values = row[0].split(",")
+                if column_limit is not None:
+                    values = str(
+                        tuple(values[column_offset : column_offset + column_limit])
+                    )
+                else:
+                    values = str(tuple(values))
+
+                if values.endswith(",)"):
+                    values = values[:-2] + ")"
+
+                if values == "()":
+                    return traces
+
+                sql = """SELECT asset_data FROM assets WHERE asset_id IN {values}""".format(
+                    values=values,
+                )
+                cur.execute(sql)
+                all_asset_data = cur.fetchall()
+
+                xs = []
+                ys = []
+                for asset_data_row in all_asset_data:
+                    asset_data = asset_data_row[0]
+                    # FIXME: can transform all at once
+                    vector = pca.transform([json.loads(asset_data)])
+
+                    xs.append(round(vector[0][0], 3))
+                    ys.append(round(vector[0][1], 3))
+
+                traces.append(
+                    {
+                        "x": xs,
+                        "y": ys,
+                        "type": "scatter",
+                        "mode": "markers",
+                        "marker": {"size": 3},
+                    }
+                )
+
+    return traces
+
+
 def select_asset(dgid, asset_id, thumbnail=False, return_image=False):
     conn = get_database_connection(dgid)
     cur = conn.cursor()
@@ -2062,7 +2184,7 @@ def select_asset(dgid, asset_id, thumbnail=False, return_image=False):
 
     if row:
         asset_data, asset_type, asset_thumbnail, asset_source, asset_annotations = row
-        if asset_source:
+        if asset_source:  # FIXME: asset_type == ["Image"]
             # FIXME: move to Image class
             # FIXME: use a cache?
             url_data = urllib.request.urlopen(asset_source)
@@ -2319,8 +2441,38 @@ def generate_chart_image(chart_type, data, width, height):
                     ],
                     fill=color,
                 )
-        elif chart_type == "pca":
-            pass
+        elif chart_type == "scatter":
+            if "y" not in trace or len(trace["y"]) == 0:
+                continue
+
+            min_x, max_x = -3, 3
+            min_y, max_y = -3, 3
+            span_x = max_x - min_x
+            span_y = max_y - min_y
+
+            radius = trace["marker"]["size"] / 2
+            margin = 5
+
+            total_width = width - margin * 2
+            total_height = height - margin * 2
+            span_x = max_x - min_x
+            span_y = max_y - min_y
+
+            for count, [x, y] in enumerate(zip(trace["x"], trace["y"])):
+                drawing.ellipse(
+                    [
+                        margin + (total_width * (x - min_x) / span_x) - radius,
+                        margin
+                        + (total_height - total_height * (y - min_y) / span_y)
+                        - radius,
+                        margin + (total_width * (x - min_x) / span_x) + radius,
+                        margin
+                        + (total_height - total_height * (y - min_y) / span_y)
+                        + radius,
+                    ],
+                    width=1,
+                    fill="blue",
+                )
         else:
             raise Exception("unknown chart_type: %r" % chart_type)
 

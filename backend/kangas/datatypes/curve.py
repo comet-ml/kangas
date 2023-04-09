@@ -69,7 +69,7 @@ class Curve(Asset):
             self.metadata.update(metadata)
 
     @classmethod
-    def get_statistics(cls, datagrid, row, col_name):
+    def get_statistics(cls, datagrid, col_name, field_name):
         # min, max, avg, variance, total, stddev, other, name
         x_min = y_min = float("inf")
         x_max = y_max = float("-inf")

@@ -2381,9 +2381,11 @@ class DataGrid:
                 )
             elif col_type.endswith("-ASSET"):
                 # min, max, avg, variance, total, stddev, other, name
-                data = ASSET_TYPE_MAP[col_type].get_statistics(self, row, col_name)
-                if data:
-                    data.append(data)
+                stats = DATAGRID_TYPES[col_type]["get_statistics"](
+                    self, col_name, field_name
+                )
+                if stats:
+                    data.append(stats)
             else:
                 if col_type == "TEXT":
                     completions_serialized = json.dumps({"completions": {"": ["str"]}})

@@ -2,10 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useContext } from 'react';
 import dynamic from 'next/dynamic';
-import fetchMetadata from '../../../lib/fetchMetadata';
-import truncateValue from '../../../lib/truncateValue';
 import { ConfigContext } from '../../contexts/ConfigContext';
 import { useInView } from "react-intersection-observer";
+import fetchEmbeddingsAsPCA from '../../../lib/fetchEmbeddingsAsPCA';
 
 const Plot = dynamic(() => import("react-plotly.js"), {
     ssr: false
@@ -14,29 +13,6 @@ const Plot = dynamic(() => import("react-plotly.js"), {
 import classNames from 'classnames/bind';
 import styles from '../charts/Charts.module.scss';
 const cx = classNames.bind(styles);
-
-const Layout = {
-    paper_bgcolor: 'rgba(0,0,0,0)',
-    plot_bgcolor: 'rgba(0,0,0,0)',
-    autosize: true,
-    bargap: 0.1,
-    margin: {
-        l: 0,
-        r: 0,
-        b: 0,
-        t: 0,
-        pad: 0,
-    },
-    showlegend: false,
-    xaxis: {
-        visible: true,
-        showticklabels: true,
-    },
-    yaxis: {
-        visible: true,
-        showticklabels: true,
-    },
-};
 
 const Config = {
     displayModeBar: false,
@@ -69,36 +45,26 @@ const VisibleWrapper = (props) => {
 
 
     if (!!props?.ssrData) {
-        return <VectorClient {...props} />
+        return <EmbeddingClient {...props} />
     }
 
     return (
         <div ref={ref}>
             { !visible && <>Loading</> }
-            { visible && <VectorClient {...props} /> }
+            { visible && <EmbeddingClient {...props} /> }
         </div>
     )
 }
 
-const VectorClient = ({ value, expanded, ssrData, query }) => {
-    const { config } = useContext(ConfigContext);
+const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
     const [response, setResponse] = useState();
     const data = useMemo(() => ssrData || response, [ssrData, response]);
+    const { config } = useContext(ConfigContext);
 
-    // when single: value is vector
-    // when grouped, value is {columnName:"Vector", columnValue: "apple", dgid: "vectors.datagrid",
-    //      groupBy: "Category", type: "json-group", whereExpr: null}
-    // data is: {Vector: {other: {pca_eigen_vectors: Array(10), pca_mean: Array(100)}}}
-
-    console.log("expanded:", !!expanded);
-    console.log("grouped:", !!query?.groupBy);
-    console.log("query:", query);
-    console.log("data:", data);
-
-    const ExpandedLayout = useMemo(() => {
+    const Layout = useMemo(() => {
         return {
-            autosize: true,
-            title: value?.columnName,
+            title: columnName,
+	    dragmode: 'lasso',
             font: {
                 family: 'Roboto',
                 size: 22,
@@ -109,15 +75,34 @@ const VectorClient = ({ value, expanded, ssrData, query }) => {
                     size: 13,
                     color: '#3D4355',
                 },
+		range: [ -3, 3 ]
             },
             yaxis: {
                 font: {
                     size: 13,
                     color: '#3D4355',
                 },
+		range: [ -3, 3 ]
             }
         };
-    }, [value?.columnName]);
+    }, [columnName]);
+
+
+    useEffect(() => {
+        if (!value || ssrData || !query) return;
+
+	if (!query?.groupBy) {
+	    fetchEmbeddingsAsPCA({dgid: query?.dgid, timestamp: query?.timestamp, columnName, assetId: value?.assetId}).then(res => {
+		setResponse(res);
+	    });
+	} else {
+            fetchEmbeddingsAsPCA({dgid: query?.dgid, timestamp: query?.timestamp, columnName, columnValue: value?.columnValue,
+				  groupBy: value?.groupBy, whereExpr: value?.whereExpr}).then(res => {
+				      setResponse(res);
+				  });
+	}
+    }, [value, query, ssrData]);
+
 
     const queryString = useMemo(() => {
         if (!data) return;
@@ -125,21 +110,12 @@ const VectorClient = ({ value, expanded, ssrData, query }) => {
         return new URLSearchParams(
             Object.fromEntries(
                 Object.entries({
-                    chartType: 'pca',
-                    data: JSON.stringify([])
+                    chartType: 'scatter',
+                    data: JSON.stringify(data)
                 }).filter(([k, v]) => typeof(v) !== 'undefined' && v !== null)
             )
         ).toString();
     }, [data]);
-
-
-    useEffect(() => {
-        if (!value || ssrData) return;
-	// construct proper query, if grouped, expanded
-        fetchMetadata(query).then(res => {
-            setResponse(res);
-        });
-    }, [value])
 
 
     if (!data || data?.error) {
@@ -147,8 +123,7 @@ const VectorClient = ({ value, expanded, ssrData, query }) => {
     }
 
     if (!expanded) {
-	// grouped or non-grouped
-        return <img src={`${config.rootPath}api/charts?${queryString}`} loading="lazy" className={cx(['chart-thumbnail', 'category'])} />
+        return <img src={`${config.rootPath}api/charts?${queryString}`} loading="lazy" className={cx(['chart-thumbnail', 'embedding'])} />
     }
 
     return (
@@ -158,7 +133,7 @@ const VectorClient = ({ value, expanded, ssrData, query }) => {
                     <Plot
                         className={cx('plotly-chart', { expanded })}
                         data={data}
-                        layout={expanded ? ExpandedLayout : Layout}
+                        layout={Layout}
                         config={Config}
                     />
                 }
