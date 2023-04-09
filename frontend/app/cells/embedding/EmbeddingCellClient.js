@@ -125,8 +125,9 @@ const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
     if (!expanded) {
 	if (!query?.groupBy) {
             return (<img src={`${config.rootPath}api/charts?${queryString}`} loading="lazy" className={cx(['chart-thumbnail', 'embedding'])} />);
-	else
+	} else {
             return (<img src={`${config.rootPath}api/charts?${queryString}`} loading="lazy" className={cx(['chart-thumbnail', 'embedding-grouped'])} />);
+	}
     }
 
     return (
