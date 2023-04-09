@@ -29,7 +29,13 @@ import numpy as np
 import PIL.Image
 import PIL.ImageDraw
 
-from ..datatypes.utils import generate_thumbnail, image_to_fp, is_nan, pytype_to_dgtype
+from ..datatypes.utils import (
+    generate_thumbnail,
+    get_color,
+    image_to_fp,
+    is_nan,
+    pytype_to_dgtype,
+)
 from .computed_columns import update_state
 from .utils import process_about, safe_compile, safe_env
 
@@ -2053,6 +2059,7 @@ def select_pca_data(dgid, asset_id, column_name, column_value, group_by, where_e
 
     pca_eigen_vectors = metadata[column_name]["other"]["pca_eigen_vectors"]
     pca_mean = metadata[column_name]["other"]["pca_mean"]
+    color = get_color(column_name)
 
     pca = PCA()
     pca.components_ = np.array(pca_eigen_vectors)
@@ -2069,7 +2076,7 @@ def select_pca_data(dgid, asset_id, column_name, column_value, group_by, where_e
                 "y": [round(vector[0][1], 3)],
                 "type": "scatter",
                 "mode": "markers",
-                "marker": {"size": 12},
+                "marker": {"size": 12, "color": color},
             }
         )
     else:
@@ -2159,7 +2166,7 @@ def select_pca_data(dgid, asset_id, column_name, column_value, group_by, where_e
                         "y": ys,
                         "type": "scatter",
                         "mode": "markers",
-                        "marker": {"size": 3},
+                        "marker": {"size": 3, "color": color},
                     }
                 )
 
@@ -2451,6 +2458,7 @@ def generate_chart_image(chart_type, data, width, height):
             span_y = max_y - min_y
 
             radius = trace["marker"]["size"] / 2
+            color = trace["marker"]["color"]
             margin = 5
 
             total_width = width - margin * 2
@@ -2478,7 +2486,7 @@ def generate_chart_image(chart_type, data, width, height):
                         + radius,
                     ],
                     width=1,
-                    fill="#1f77b4",
+                    fill=color,
                 )
         else:
             raise Exception("unknown chart_type: %r" % chart_type)
