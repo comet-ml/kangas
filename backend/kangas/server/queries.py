@@ -2417,11 +2417,12 @@ def generate_chart_image(chart_type, data, width, height):
                 zip(trace["x"], trace["y"], trace["marker"]["color"])
             ):
                 position = len(trace["x"]) - count - 1
+                x0, y0 = (0, position * spacing)
+                x1, y1 = (width * x / max_x), ((position + 1) * spacing - margin)
+                x0, x1 = min(x0, x1), max(x0, x1)
+                y0, y1 = min(y0, y1), max(y0, y1)
                 drawing.rectangle(
-                    [
-                        (0, position * spacing),
-                        (width * x / max_x, (position + 1) * spacing - margin),
-                    ],
+                    [(x0, y0), (x1, y1)],
                     fill=color,
                 )
 
@@ -2438,14 +2439,15 @@ def generate_chart_image(chart_type, data, width, height):
 
             for count, [x, y] in enumerate(zip(trace["x"], trace["y"])):
                 position = count
+                x0, y0 = (position * spacing, height)
+                x1, y1 = (
+                    (position + 1) * spacing - margin,
+                    height - height * y / max_y,
+                )
+                x0, x1 = min(x0, x1), max(x0, x1)
+                y0, y1 = min(y0, y1), max(y0, y1)
                 drawing.rectangle(
-                    [
-                        (position * spacing, height),
-                        (
-                            (position + 1) * spacing - margin,
-                            height - height * y / max_y,
-                        ),
-                    ],
+                    [(x0, y0), (x1, y1)],
                     fill=color,
                 )
         elif chart_type == "scatter":
