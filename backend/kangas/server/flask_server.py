@@ -636,12 +636,25 @@ def get_embeddings_as_pca():
     column_value = request.args.get("columnValue")
     group_by = request.args.get("groupBy")
     where_expr = request.args.get("whereExpr")
+    # if thumbnail, need these:
+    thumbnail = request.args.get("thumbnail", "false") == "true"
+    height = int(request.args.get("height", "116"))
+    width = int(request.args.get("width", "0"))
 
     if ensure_datagrid_path(dgid):
         pca_data = select_pca_data_task.apply(
             args=(dgid, asset_id, column_name, column_value, group_by, where_expr)
         ).get()
-        return pca_data
+        if thumbnail:
+            image = generate_chart_image_task.apply(
+                args=("scatter", pca_data, width, height)
+            ).get()
+            response = make_response(image)
+            response.headers.add("Cache-Control", "max-age=604800")
+            response.headers.add("Content-type", "image/png")
+            return response
+        else:
+            return pca_data
     else:
         return error(404)
 

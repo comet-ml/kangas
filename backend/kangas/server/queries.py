@@ -2178,10 +2178,9 @@ def select_pca_data(dgid, asset_id, column_name, column_value, group_by, where_e
                     {
                         "x": xs,
                         "y": ys,
-                        "color": colors,
                         "type": "scatter",
                         "mode": "markers",
-                        "marker": {"size": 3, "color": color},
+                        "marker": {"size": 3, "color": colors},
                     }
                 )
 
@@ -2475,7 +2474,7 @@ def generate_chart_image(chart_type, data, width, height):
             span_y = max_y - min_y
 
             radius = trace["marker"]["size"] / 2
-            default_color = trace["marker"]["color"]
+            colors = trace["marker"]["color"]
             margin = 5
 
             total_width = width - margin * 2
@@ -2491,10 +2490,10 @@ def generate_chart_image(chart_type, data, width, height):
             )
 
             for count, [x, y] in enumerate(zip(trace["x"], trace["y"])):
-                if "color" in trace and trace["color"] and trace["color"][count]:
-                    color = trace["color"][count]
+                if isinstance(colors, list):
+                    color = colors[count]
                 else:
-                    color = default_color
+                    color = colors
                 drawing.ellipse(
                     [
                         margin + (total_width * (x - min_x) / span_x) - radius,
