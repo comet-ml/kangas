@@ -30,6 +30,7 @@ from .queries import (
     select_asset_metadata,
     select_category,
     select_histogram,
+    select_pca_data,
 )
 
 # from .utils import get_bool_from_env
@@ -117,6 +118,20 @@ def select_asset_metadata_task(self, dgid, asset_id):
     try:
         result = select_asset_metadata(dgid, asset_id)
         return json.loads(result)
+    except Exception as e:
+        kwargs = get_retry_kwargs(e)
+        raise self.retry(exc=e, **kwargs)
+
+
+@app.task(bind=True)
+def select_pca_data_task(
+    self, dgid, asset_id, column_name, column_value, group_by, where_expr
+):
+    try:
+        result = select_pca_data(
+            dgid, asset_id, column_name, column_value, group_by, where_expr
+        )
+        return result
     except Exception as e:
         kwargs = get_retry_kwargs(e)
         raise self.retry(exc=e, **kwargs)

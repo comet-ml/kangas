@@ -15,6 +15,7 @@ from .audio import Audio
 from .base import Asset
 from .curve import Curve
 from .datagrid import DataGrid  # noqa
+from .embedding import Embedding
 from .image import Image
 from .serialize import register_asset_type
 from .text import Text
@@ -27,5 +28,6 @@ for name, cls, asset_type in [
     ("IMAGE-ASSET", Image, "image"),
     ("TEXT-ASSET", Text, "text"),
     ("VIDEO-ASSET", Video, "video"),
+    ("EMBEDDING-ASSET", Embedding, "embedding"),
 ]:
     register_asset_type(name, cls, asset_type)

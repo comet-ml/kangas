@@ -19,7 +19,7 @@ import platform
 import sys
 
 import waitress
-from flask import Flask, jsonify, make_response, request, send_file
+from flask import Flask, make_response, request, send_file
 from flask.logging import default_handler
 from flask_caching import Cache
 
@@ -47,6 +47,7 @@ from .tasks import (
     select_asset_task,
     select_category_task,
     select_histogram_task,
+    select_pca_data_task,
 )
 from .translogger import TransLogger
 from .utils import get_node_version
@@ -343,7 +344,7 @@ def get_datagrid_timestamp_handler():
 @auth_wrapper
 def get_datagrid_list_handler():
     result = list_datagrids_task.apply().get()
-    return jsonify(result)
+    return result
 
 
 @application.route("/datagrid/status", methods=["GET"])
@@ -399,6 +400,7 @@ def get_datagrid_download_handler():
             response.headers.add("Content-type", "image")
             return response
     else:
+        # Download the entire datagrid:
         db_path = get_dg_path(dgid)
         download_name = os.path.basename(db_path)
         fp = open(db_path, "rb")
@@ -619,6 +621,27 @@ def get_datagrid_about_handler():
     if ensure_datagrid_path(dgid):
         result = get_about(url, dgid)
         return {"about": result}
+    else:
+        return error(404)
+
+
+@application.route("/datagrid/embeddings-as-pca", methods=["GET"])
+@auth_wrapper
+def get_embeddings_as_pca():
+    dgid = request.args.get("dgid")
+    # if one asset:
+    column_name = request.args.get("columnName")
+    asset_id = request.args.get("assetId")
+    # group by:
+    column_value = request.args.get("columnValue")
+    group_by = request.args.get("groupBy")
+    where_expr = request.args.get("whereExpr")
+
+    if ensure_datagrid_path(dgid):
+        pca_data = select_pca_data_task.apply(
+            args=(dgid, asset_id, column_name, column_value, group_by, where_expr)
+        ).get()
+        return pca_data
     else:
         return error(404)
 

@@ -16,7 +16,7 @@ import time
 import urllib
 
 from ._version import __version__  # noqa
-from .datatypes import Audio, Curve, DataGrid, Image, Text, Video  # noqa
+from .datatypes import Audio, Curve, DataGrid, Embedding, Image, Text, Video  # noqa
 from .integrations import export_to_comet, import_from_comet  # noqa
 from .server.queries import sqlite_query, sqlite_query_explain  # noqa
 from .utils import (
