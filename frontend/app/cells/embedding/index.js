@@ -8,10 +8,10 @@ const EmbeddingCell = async ({ value, query, style, ssr, columnName }) => {
     let ssrData = null;
 
     if (!query?.groupBy) {
-	ssrData = ssr ? await fetchEmbeddingsAsPCA({dgid: query?.dgid, timestamp: query?.timestamp, columnName, assetId: value?.assetId}, ssr) : false;
+        ssrData = ssr ? await fetchEmbeddingsAsPCA({dgid: query?.dgid, timestamp: query?.timestamp, columnName, assetId: value?.assetId}, ssr) : false;
     } else {
         ssrData = ssr ? await fetchEmbeddingsAsPCA({dgid: query?.dgid, timestamp: query?.timestamp, columnName, columnValue: value?.columnValue,
-						    groupBy: value?.groupBy, whereExpr: value?.whereExpr}, ssr) : false;
+                                                    groupBy: value?.groupBy, whereExpr: value?.whereExpr}, ssr) : false;
     }
 
     return (
@@ -21,7 +21,7 @@ const EmbeddingCell = async ({ value, query, style, ssr, columnName }) => {
             </Suspense>
 
           </DialogueModal>
-	);
+        );
 };
 
 export default EmbeddingCell;
