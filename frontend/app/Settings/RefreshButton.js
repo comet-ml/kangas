@@ -17,30 +17,30 @@ const RefreshButton = ({ query }) => {
     const { config } = useContext(ConfigContext);
 
     const checkForUpdates = useCallback(async () => {
-	if (!!query?.timestamp) {
-	    try {
-		fetch(`${config.rootUrl}api/timestamp?dgid=${query?.dgid}`).then(async res => {
-		    const currentTimestamp = (await res.json()).timestamp;
-		    if (!!currentTimestamp) {
-			if (query.timestamp !== currentTimestamp)
-			    updateParams({...params});
-		    }
-		});
-	    } catch (error) {
-		console.log(error);
-	    }
-	}
+        if (!!query?.timestamp) {
+            try {
+                fetch(`${config.rootUrl}api/timestamp?dgid=${query?.dgid}`).then(async res => {
+                    const currentTimestamp = (await res.json()).timestamp;
+                    if (!!currentTimestamp) {
+                        if (query.timestamp !== currentTimestamp)
+                            updateParams({...params});
+                    }
+                });
+            } catch (error) {
+                console.log(error);
+            }
+        }
     }, [query?.timestamp, query?.dgid, params, updateParams]);
 
     useEffect(async () => {
-	const interval = setInterval(async () => {
-	    await checkForUpdates();
-	}, 5000);
-	return () => clearInterval(interval);
+        const interval = setInterval(async () => {
+            await checkForUpdates();
+        }, 5000);
+        return () => clearInterval(interval);
     }, []);
 
     const clearCache = useCallback(() => {
-	// Reset params:
+        // Reset params:
         updateParams({
             sort: undefined,
             group: undefined,
