@@ -9,8 +9,11 @@ const handler = async (req, res) => {
         )
     );
 
-    const result = await fetch(`${config.apiUrl}embeddings-as-pca?${query.toString()}`,
-			       { next: { revalidate: 10000 } });
+    const result = await fetch(
+        `${config.apiUrl}embeddings-as-pca?${query.toString()}`, 
+        { next: { revalidate: 10000 } }
+    );
+    
     const json = await result.json();
     res.send(json);
 }
