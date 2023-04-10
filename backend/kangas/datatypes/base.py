@@ -75,7 +75,7 @@ class Asset:
         return self.asset_id
 
     @classmethod
-    def get_statistics(cls, datagrid, row, column_name):
+    def get_statistics(cls, datagrid, column_name, field_name):
         pass
 
     @classmethod

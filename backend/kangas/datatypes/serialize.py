@@ -174,5 +174,6 @@ def register_asset_type(name, cls, asset_type):
             "types": [cls],
             "serialize": log_and_serialize_function,
             "unserialize": cls.unserialize,
+            "get_statistics": cls.get_statistics,
         }
     ASSET_TYPE_MAP[asset_type] = cls
