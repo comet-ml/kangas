@@ -33,10 +33,10 @@ const RefreshButton = ({ query }) => {
     }, [query?.timestamp, query?.dgid, params, updateParams]);
 
     useEffect(async () => {
-	const interval = setInterval(async () => {
-	    await checkForUpdates();
-	}, 5000);
-	return () => clearInterval(interval);
+        const interval = setInterval(async () => {
+            await checkForUpdates();
+        }, 5000);
+        return () => clearInterval(interval);
     }, []);
 
     const clearCache = useCallback(() => {
