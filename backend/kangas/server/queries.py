@@ -2059,7 +2059,7 @@ def select_pca_data(dgid, asset_id, column_name, column_value, group_by, where_e
 
     pca_eigen_vectors = metadata[column_name]["other"]["pca_eigen_vectors"]
     pca_mean = metadata[column_name]["other"]["pca_mean"]
-    color = get_color(column_name)
+    default_color = get_color(column_name)
 
     pca = PCA()
     pca.components_ = np.array(pca_eigen_vectors)
@@ -2067,13 +2067,19 @@ def select_pca_data(dgid, asset_id, column_name, column_value, group_by, where_e
 
     traces = []
     if asset_id:
-        asset_data = select_asset(dgid, asset_id)
-        vector = pca.transform([json.loads(asset_data)])
+        asset_data_raw = select_asset(dgid, asset_id)
+        asset_data = json.loads(asset_data_raw)
+        vector = pca.transform([asset_data["vector"]])
+        if asset_data["color"]:
+            color = asset_data["color"]
+        else:
+            color = default_color
 
         traces.append(
             {
                 "x": [round(vector[0][0], 3)],
                 "y": [round(vector[0][1], 3)],
+                "color": [color],
                 "type": "scatter",
                 "mode": "markers",
                 "marker": {"size": 12, "color": color},
@@ -2152,18 +2158,27 @@ def select_pca_data(dgid, asset_id, column_name, column_value, group_by, where_e
 
                 xs = []
                 ys = []
+                colors = []
                 for asset_data_row in all_asset_data:
-                    asset_data = asset_data_row[0]
-                    # FIXME: can transform all at once
-                    vector = pca.transform([json.loads(asset_data)])
+                    asset_data_raw = asset_data_row[0]
+                    asset_data = json.loads(asset_data_raw)
+                    vector = asset_data["vector"]
+                    if asset_data["color"]:
+                        color = asset_data["color"]
+                    else:
+                        color = default_color
 
-                    xs.append(round(vector[0][0], 3))
-                    ys.append(round(vector[0][1], 3))
+                    # FIXME: can transform all at once
+                    eigen_vector = pca.transform([vector])
+                    xs.append(round(eigen_vector[0][0], 3))
+                    ys.append(round(eigen_vector[0][1], 3))
+                    colors.append(color)
 
                 traces.append(
                     {
                         "x": xs,
                         "y": ys,
+                        "color": colors,
                         "type": "scatter",
                         "mode": "markers",
                         "marker": {"size": 3, "color": color},
@@ -2460,7 +2475,7 @@ def generate_chart_image(chart_type, data, width, height):
             span_y = max_y - min_y
 
             radius = trace["marker"]["size"] / 2
-            color = trace["marker"]["color"]
+            default_color = trace["marker"]["color"]
             margin = 5
 
             total_width = width - margin * 2
@@ -2476,6 +2491,10 @@ def generate_chart_image(chart_type, data, width, height):
             )
 
             for count, [x, y] in enumerate(zip(trace["x"], trace["y"])):
+                if "color" in trace and trace["color"] and trace["color"][count]:
+                    color = trace["color"][count]
+                else:
+                    color = default_color
                 drawing.ellipse(
                     [
                         margin + (total_width * (x - min_x) / span_x) - radius,

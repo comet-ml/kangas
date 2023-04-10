@@ -14,7 +14,7 @@
 import json
 
 from .base import Asset
-from .utils import flatten, get_file_extension, is_valid_file_path
+from .utils import flatten, get_color, get_file_extension, is_valid_file_path
 
 
 class Embedding(Asset):
@@ -27,6 +27,7 @@ class Embedding(Asset):
     def __init__(
         self,
         embedding=None,
+        label=None,
         file_name=None,
         metadata=None,
         source=None,
@@ -36,6 +37,7 @@ class Embedding(Asset):
         if unserialize:
             return
         if self.source is not None:
+            # FIXME: this is for images, not others
             self._log_metadata(
                 filename=self.source,
                 extension=get_file_extension(self.source),
@@ -44,16 +46,28 @@ class Embedding(Asset):
                 self._log_metadata(**metadata)
             return
 
+        if label:
+            color = get_color(label)
+        else:
+            color = None
+
+        self.metadata["label"] = label
+        self.metadata["color"] = color
+
         if file_name:
             if is_valid_file_path(file_name):
-                with open(file_name, "rb") as io_object:
-                    self.asset_data = io_object.read()
+                with open(file_name, "r") as io_object:
+                    self.asset_data = json.dumps(
+                        {"vector": io_object.read(), "label": label, "color": color}
+                    )
                 self.metadata["extension"] = get_file_extension(file_name)
                 self.metadata["filename"] = file_name
             else:
                 raise ValueError("file not found: %r" % file_name)
         else:
-            self.asset_data = json.dumps(embedding)
+            self.asset_data = json.dumps(
+                {"vector": embedding, "label": label, "color": color}
+            )
         if metadata:
             self.metadata.update(metadata)
 
@@ -61,6 +75,7 @@ class Embedding(Asset):
     def get_statistics(cls, datagrid, col_name, field_name):
         from sklearn.decomposition import IncrementalPCA
 
+        # FIXME: compute min and max of eigenspace
         minimum = None
         maximum = None
         avg = None
@@ -79,7 +94,8 @@ class Embedding(Asset):
                 field_name=field_name
             )
         ):
-            vectors = json.loads(row[1])
+            embedding = json.loads(row[1])
+            vectors = embedding["vector"]
             vector = flatten(vectors)
             # FIXME: could scale them here; leave to user for now
             batch.append(vector)
