@@ -88,34 +88,47 @@ const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
     }, [columnName]);
 
 
-    useEffect(() => {
-        if (!value || ssrData || !query) return;
-
+    const queryParams = useMemo(() => {
         if (!query?.groupBy) {
-            fetchEmbeddingsAsPCA({dgid: query?.dgid, timestamp: query?.timestamp, columnName, assetId: value?.assetId}).then(res => {
-                setResponse(res);
-            });
+            return {
+                dgid: query?.dgid,
+                timestamp: query?.timestamp,
+                columnName,
+                assetId: value?.assetId
+            };
         } else {
-            fetchEmbeddingsAsPCA({dgid: query?.dgid, timestamp: query?.timestamp, columnName, columnValue: value?.columnValue,
-                                  groupBy: value?.groupBy, whereExpr: value?.whereExpr}).then(res => {
-                                      setResponse(res);
-                                  });
+            return {
+                dgid: query?.dgid, 
+                timestamp: query?.timestamp, 
+                columnName, 
+                columnValue: value?.columnValue,
+                groupBy: value?.groupBy, 
+                whereExpr: value?.whereExpr
+            };
         }
-    }, [value, query, ssrData]);
+    }, [query, value, columnName]);
+
+    useEffect(() => {
+        if (ssrData || !queryParams) return;
+
+        fetchEmbeddingsAsPCA(queryParams).then(res => {
+            setResponse(res);
+        });
+    }, [ssrData, queryParams]);
 
 
     const queryString = useMemo(() => {
-        if (!data) return;
+        if (!query?.dgid) return;
 
         return new URLSearchParams(
             Object.fromEntries(
                 Object.entries({
-                    chartType: 'scatter',
-                    data: JSON.stringify(data)
+                    ...queryParams, 
+                    thumbnail: true
                 }).filter(([k, v]) => typeof(v) !== 'undefined' && v !== null)
             )
         ).toString();
-    }, [data]);
+    }, [queryParams]);
 
 
     if (!data || data?.error) {
@@ -124,9 +137,21 @@ const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
 
     if (!expanded) {
         if (!query?.groupBy) {
-            return (<img src={`${config.rootPath}api/charts?${queryString}`} loading="lazy" className={cx(['chart-thumbnail', 'embedding'])} />);
+            return (
+                <img 
+                    src={`${config.rootPath}api/embeddings-as-pca?${queryString}`} 
+                    loading="lazy"
+                    className={cx(['chart-thumbnail', 'embedding'])} 
+                />
+            );
         } else {
-            return (<img src={`${config.rootPath}api/charts?${queryString}`} loading="lazy" className={cx(['chart-thumbnail', 'embedding-grouped'])} />);
+            return (
+                <img 
+                    src={`${config.rootPath}api/embeddings-as-pca?${queryString}`} 
+                    loading="lazy" 
+                    className={cx(['chart-thumbnail', 'embedding-grouped'])} 
+                />
+            );
         }
     }
 
