@@ -64,7 +64,7 @@ const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
     const Layout = useMemo(() => {
         return {
             title: columnName,
-	    dragmode: 'lasso',
+            dragmode: 'lasso',
             font: {
                 family: 'Roboto',
                 size: 22,
@@ -75,14 +75,14 @@ const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
                     size: 13,
                     color: '#3D4355',
                 },
-		range: [ -3, 3 ]
+                range: [ -3, 3 ]
             },
             yaxis: {
                 font: {
                     size: 13,
                     color: '#3D4355',
                 },
-		range: [ -3, 3 ]
+                range: [ -3, 3 ]
             }
         };
     }, [columnName]);
@@ -91,16 +91,16 @@ const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
     useEffect(() => {
         if (!value || ssrData || !query) return;
 
-	if (!query?.groupBy) {
-	    fetchEmbeddingsAsPCA({dgid: query?.dgid, timestamp: query?.timestamp, columnName, assetId: value?.assetId}).then(res => {
-		setResponse(res);
-	    });
-	} else {
+        if (!query?.groupBy) {
+            fetchEmbeddingsAsPCA({dgid: query?.dgid, timestamp: query?.timestamp, columnName, assetId: value?.assetId}).then(res => {
+                setResponse(res);
+            });
+        } else {
             fetchEmbeddingsAsPCA({dgid: query?.dgid, timestamp: query?.timestamp, columnName, columnValue: value?.columnValue,
-				  groupBy: value?.groupBy, whereExpr: value?.whereExpr}).then(res => {
-				      setResponse(res);
-				  });
-	}
+                                  groupBy: value?.groupBy, whereExpr: value?.whereExpr}).then(res => {
+                                      setResponse(res);
+                                  });
+        }
     }, [value, query, ssrData]);
 
 
@@ -123,11 +123,11 @@ const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
     }
 
     if (!expanded) {
-	if (!query?.groupBy) {
+        if (!query?.groupBy) {
             return (<img src={`${config.rootPath}api/charts?${queryString}`} loading="lazy" className={cx(['chart-thumbnail', 'embedding'])} />);
-	} else {
+        } else {
             return (<img src={`${config.rootPath}api/charts?${queryString}`} loading="lazy" className={cx(['chart-thumbnail', 'embedding-grouped'])} />);
-	}
+        }
     }
 
     return (
