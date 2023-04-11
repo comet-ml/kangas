@@ -56,6 +56,20 @@ import math
 
 VALID_CHARS = string.ascii_letters + string.digits + "_"
 
+PCA_SAMPLES_CACHE = {}
+PCA_MAX_SIZE = 1024
+
+
+def update_pca_cache(key, value):
+    if key not in PCA_SAMPLES_CACHE:
+        # Check size:
+        if len(PCA_SAMPLES_CACHE) >= PCA_MAX_SIZE:
+            # too many
+            first_in_key = list(PCA_SAMPLES_CACHE.keys())[0]
+            # pop the first in
+            PCA_SAMPLES_CACHE.pop(first_in_key)
+    PCA_SAMPLES_CACHE[key] = value
+
 
 def sqlite_query_explain(
     filename,
@@ -870,6 +884,56 @@ def get_type_column_name(column_name, columns, column_types):
         return name.lower()
     else:
         raise Exception("Invalid use of get_type_column_name")
+
+
+def select_group_by_rows(
+    column_name, column_value, group_by, where_expr, metadata, cur
+):
+    computed_columns = None
+    distinct = False
+    where = None
+
+    columns = list(metadata.keys())
+    select_expr_as = [get_field_name(column, metadata) for column in columns]
+    databases = ["datagrid"]
+
+    if computed_columns or where_expr:
+        where_sql = update_state(
+            computed_columns,
+            metadata,
+            databases,
+            columns,
+            select_expr_as,
+            where_expr,
+        )
+        if where_sql:
+            where = where_sql
+
+    where = where if where else "1"
+
+    group_by_field_name = get_field_name(group_by, metadata)
+    group_by_field_expr = get_field_expr(group_by, metadata)
+    field_name = get_field_name(column_name, metadata)
+    field_expr = get_field_expr(column_name, metadata)
+
+    try:
+        rows = get_group_by_rows(
+            cur,
+            group_by_field_name,
+            group_by_field_expr,
+            field_name,
+            field_expr,
+            column_value,
+            where,
+            databases,
+            select_expr_as,
+            distinct,
+        )
+    except sqlite3.OperationalError as exc:
+        LOGGER.error("SQL: %s", exc)
+        raise Exception(str(exc))
+
+    return rows
 
 
 def get_group_by_rows(
@@ -1884,6 +1948,84 @@ def select_query_page(
     }
 
 
+def select_query_raw(
+    cur,
+    metadata,
+    columns,
+    offset,
+    sort_by,
+    sort_desc,
+    where,
+    limit,
+    computed_columns,
+    where_expr=None,
+    debug=False,
+):
+    sort_desc = "DESC" if sort_desc else "ASC"
+    if not columns:
+        columns = list(metadata.keys())
+    select_expr_as = [get_field_name(column, metadata) for column in columns]
+    databases = ["datagrid"]
+
+    # NOTE: use Image.attr to get metadata
+
+    # Expand to include computed columns
+    if computed_columns or where_expr:
+        where_sql = update_state(
+            computed_columns,
+            metadata,
+            databases,
+            columns,
+            select_expr_as,
+            where_expr,
+        )
+        if where_sql:
+            where = where_sql
+
+    where = where if where else "1"
+    limit = ("LIMIT %s OFFSET %s" % (limit, offset)) if limit is not None else ""
+
+    # Metadata now has computed_columns:
+    select_columns = [
+        column_name for column_name in columns if not column_name.endswith("--metadata")
+    ]
+    select_fields = [get_field_name(column, metadata) for column in select_columns]
+
+    if sort_by:
+        if sort_by in metadata:
+            sort_by_field_name = get_field_name(sort_by, metadata)
+        else:
+            # Expression
+            sort_by_field_name = sort_by
+    else:
+        sort_by_field_name = "rowid"
+
+    env = {
+        "limit": limit,
+        "sort_by_field_name": sort_by_field_name,
+        "where": where,
+        "sort_desc": sort_desc,
+        "select_expr_as": ", ".join(select_expr_as),
+        "select_fields": ", ".join(select_fields),
+        "databases": ", ".join(databases),
+    }
+    select_sql = "SELECT {select_expr_as} FROM {databases} WHERE {where} ORDER BY {sort_by_field_name} {sort_desc} {limit}"
+
+    selection_sql = select_sql.format(**env)
+    if debug:
+        print(selection_sql)
+    LOGGER.debug("SQL %s", selection_sql)
+    start_time = time.time()
+    try:
+        cur.execute(selection_sql)
+    except sqlite3.OperationalError as exc:
+        LOGGER.error("SQL: %s; %s", selection_sql, exc)
+        raise Exception(str(exc))
+
+    LOGGER.debug("SQL %s seconds", time.time() - start_time)
+    return cur
+
+
 ## Query Builder Interface
 
 
@@ -2050,12 +2192,63 @@ def get_fields(dgid, metadata=None, computed_columns=None):
     return fields
 
 
-def select_pca_data(dgid, asset_id, column_name, column_value, group_by, where_expr):
+def process_pca_asset_ids(
+    name, cur, asset_ids, pca, traces, size, default_color, color_override=None
+):
+    # asset_ids is a list of str
+    # side-effect: adds to traces
+
+    # Turn to string:
+    values = "(" + (",".join(["'%s'" % asset_id for asset_id in asset_ids])) + ")"
+    if values == "()":
+        return
+
+    sql = """SELECT asset_data FROM assets WHERE asset_id IN {values}""".format(
+        values=values,
+    )
+
+    xs = []
+    ys = []
+    colors = []
+    for asset_data_row in cur.execute(sql):
+        asset_data_raw = asset_data_row[0]
+        asset_data = json.loads(asset_data_raw)
+        vector = asset_data["vector"]
+        if color_override:
+            color = color_override
+        elif asset_data["color"]:
+            color = asset_data["color"]
+        else:
+            color = default_color
+
+        # FIXME: can transform all at once
+        eigen_vector = pca.transform([vector])
+        xs.append(round(eigen_vector[0][0], 3))
+        ys.append(round(eigen_vector[0][1], 3))
+        colors.append(color)
+
+    traces.append(
+        {
+            "x": xs,
+            "y": ys,
+            "type": "scatter",
+            "mode": "markers",
+            "name": name,
+            "marker": {"size": 3, "color": colors},
+        }
+    )
+
+
+def select_pca_data(
+    dgid, timestamp, asset_id, column_name, column_value, group_by, where_expr
+):
     from sklearn.decomposition import PCA
 
     conn = get_database_connection(dgid)
     cur = conn.cursor()
     metadata = get_metadata(conn)
+    column_limit = None
+    column_offset = 0
 
     pca_eigen_vectors = metadata[column_name]["other"]["pca_eigen_vectors"]
     pca_mean = metadata[column_name]["other"]["pca_mean"]
@@ -2067,6 +2260,41 @@ def select_pca_data(dgid, asset_id, column_name, column_value, group_by, where_e
 
     traces = []
     if asset_id:
+        # First, add some points to provide context:
+        key = (dgid, timestamp, column_name, where_expr)
+        if key not in PCA_SAMPLES_CACHE:
+            # FIXME: make an LRU so as not to fill up memory
+            update_pca_cache(
+                key,
+                list(
+                    select_query_raw(
+                        cur,
+                        metadata,
+                        [column_name],
+                        offset="0",
+                        sort_by="RANDOM()",
+                        sort_desc=None,
+                        where=None,
+                        limit=200,
+                        computed_columns=None,
+                        where_expr=where_expr,
+                        debug=False,
+                    )
+                ),
+            )
+        rows = PCA_SAMPLES_CACHE[key]
+        process_pca_asset_ids(
+            "Sampled Data",
+            cur,
+            [row[0] for row in rows],
+            pca,
+            traces,
+            3,
+            default_color,
+            "gray",
+        )
+
+        # Next, add the selected asset:
         asset_data_raw = select_asset(dgid, asset_id)
         asset_data = json.loads(asset_data_raw)
         vector = pca.transform([asset_data["vector"]])
@@ -2074,11 +2302,11 @@ def select_pca_data(dgid, asset_id, column_name, column_value, group_by, where_e
             color = asset_data["color"]
         else:
             color = default_color
-
         traces.append(
             {
                 "x": [round(vector[0][0], 3)],
                 "y": [round(vector[0][1], 3)],
+                "name": column_name,
                 "color": [color],
                 "type": "scatter",
                 "mode": "markers",
@@ -2086,104 +2314,18 @@ def select_pca_data(dgid, asset_id, column_name, column_value, group_by, where_e
             }
         )
     else:
-        computed_columns = None
-        distinct = False
-        column_limit = None
-        column_offset = None
-        where = None
-
-        columns = list(metadata.keys())
-        select_expr_as = [get_field_name(column, metadata) for column in columns]
-        databases = ["datagrid"]
-
-        if computed_columns or where_expr:
-            where_sql = update_state(
-                computed_columns,
-                metadata,
-                databases,
-                columns,
-                select_expr_as,
-                where_expr,
-            )
-            if where_sql:
-                where = where_sql
-
-        where = where if where else "1"
-
-        group_by_field_name = get_field_name(group_by, metadata)
-        group_by_field_expr = get_field_expr(group_by, metadata)
-        field_name = get_field_name(column_name, metadata)
-        field_expr = get_field_expr(column_name, metadata)
-
-        try:
-            rows = get_group_by_rows(
-                cur,
-                group_by_field_name,
-                group_by_field_expr,
-                field_name,
-                field_expr,
-                column_value,
-                where,
-                databases,
-                select_expr_as,
-                distinct,
-            )
-        except sqlite3.OperationalError as exc:
-            LOGGER.error("SQL: %s", exc)
-            raise Exception(str(exc))
-
+        rows = select_group_by_rows(
+            column_name, column_value, group_by, where_expr, metadata, cur
+        )
         if rows:
             row = rows[0]
             if row and row[0]:
-                # asset_ids:
                 values = row[0].split(",")
                 if column_limit is not None:
-                    values = str(
-                        tuple(values[column_offset : column_offset + column_limit])
-                    )
-                else:
-                    values = str(tuple(values))
-
-                if values.endswith(",)"):
-                    values = values[:-2] + ")"
-
-                if values == "()":
-                    return traces
-
-                sql = """SELECT asset_data FROM assets WHERE asset_id IN {values}""".format(
-                    values=values,
+                    values = values[column_offset : column_offset + column_limit]
+                process_pca_asset_ids(
+                    column_name, cur, values, pca, traces, 3, default_color
                 )
-                cur.execute(sql)
-                all_asset_data = cur.fetchall()
-
-                xs = []
-                ys = []
-                colors = []
-                for asset_data_row in all_asset_data:
-                    asset_data_raw = asset_data_row[0]
-                    asset_data = json.loads(asset_data_raw)
-                    vector = asset_data["vector"]
-                    if asset_data["color"]:
-                        color = asset_data["color"]
-                    else:
-                        color = default_color
-
-                    # FIXME: can transform all at once
-                    eigen_vector = pca.transform([vector])
-                    xs.append(round(eigen_vector[0][0], 3))
-                    ys.append(round(eigen_vector[0][1], 3))
-                    colors.append(color)
-
-                traces.append(
-                    {
-                        "x": xs,
-                        "y": ys,
-                        "type": "scatter",
-                        "mode": "markers",
-                        "marker": {"size": 3, "color": colors},
-                    }
-                )
-
     return traces
 
 

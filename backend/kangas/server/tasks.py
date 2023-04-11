@@ -125,11 +125,11 @@ def select_asset_metadata_task(self, dgid, asset_id):
 
 @app.task(bind=True)
 def select_pca_data_task(
-    self, dgid, asset_id, column_name, column_value, group_by, where_expr
+    self, dgid, timestamp, asset_id, column_name, column_value, group_by, where_expr
 ):
     try:
         result = select_pca_data(
-            dgid, asset_id, column_name, column_value, group_by, where_expr
+            dgid, timestamp, asset_id, column_name, column_value, group_by, where_expr
         )
         return result
     except Exception as e:

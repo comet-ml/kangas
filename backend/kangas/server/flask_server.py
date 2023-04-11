@@ -629,6 +629,7 @@ def get_datagrid_about_handler():
 @auth_wrapper
 def get_embeddings_as_pca():
     dgid = request.args.get("dgid")
+    timestamp = request.args.get("timestamp")
     # if one asset:
     column_name = request.args.get("columnName")
     asset_id = request.args.get("assetId")
@@ -643,7 +644,15 @@ def get_embeddings_as_pca():
 
     if ensure_datagrid_path(dgid):
         pca_data = select_pca_data_task.apply(
-            args=(dgid, asset_id, column_name, column_value, group_by, where_expr)
+            args=(
+                dgid,
+                timestamp,
+                asset_id,
+                column_name,
+                column_value,
+                group_by,
+                where_expr,
+            )
         ).get()
         if thumbnail:
             image = generate_chart_image_task.apply(

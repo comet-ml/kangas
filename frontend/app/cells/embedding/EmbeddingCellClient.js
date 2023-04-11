@@ -94,15 +94,16 @@ const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
                 dgid: query?.dgid,
                 timestamp: query?.timestamp,
                 columnName,
-                assetId: value?.assetId
+                assetId: value?.assetId,
+                whereExpr: value?.whereExpr
             };
         } else {
             return {
-                dgid: query?.dgid, 
-                timestamp: query?.timestamp, 
-                columnName, 
+                dgid: query?.dgid,
+                timestamp: query?.timestamp,
+                columnName,
                 columnValue: value?.columnValue,
-                groupBy: value?.groupBy, 
+                groupBy: value?.groupBy,
                 whereExpr: value?.whereExpr
             };
         }
@@ -123,7 +124,7 @@ const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
         return new URLSearchParams(
             Object.fromEntries(
                 Object.entries({
-                    ...queryParams, 
+                    ...queryParams,
                     thumbnail: true
                 }).filter(([k, v]) => typeof(v) !== 'undefined' && v !== null)
             )
@@ -138,18 +139,18 @@ const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
     if (!expanded) {
         if (!query?.groupBy) {
             return (
-                <img 
-                    src={`${config.rootPath}api/embeddings-as-pca?${queryString}`} 
+                <img
+                    src={`${config.rootPath}api/embeddings-as-pca?${queryString}`}
                     loading="lazy"
-                    className={cx(['chart-thumbnail', 'embedding'])} 
+                    className={cx(['chart-thumbnail', 'embedding'])}
                 />
             );
         } else {
             return (
-                <img 
-                    src={`${config.rootPath}api/embeddings-as-pca?${queryString}`} 
-                    loading="lazy" 
-                    className={cx(['chart-thumbnail', 'embedding-grouped'])} 
+                <img
+                    src={`${config.rootPath}api/embeddings-as-pca?${queryString}`}
+                    loading="lazy"
+                    className={cx(['chart-thumbnail', 'embedding-grouped'])}
                 />
             );
         }

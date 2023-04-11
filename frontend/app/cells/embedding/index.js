@@ -9,19 +9,20 @@ const EmbeddingCell = async ({ value, query, style, ssr, columnName }) => {
 
     if (!query?.groupBy) {
         ssrData = ssr ? await fetchEmbeddingsAsPCA({
-          dgid: query?.dgid, 
-          timestamp: query?.timestamp, 
-          columnName, 
-          assetId: value?.assetId
+	    dgid: query?.dgid,
+	    timestamp: query?.timestamp,
+	    columnName,
+	    assetId: value?.assetId,
+	    whereExpr: value?.whereExpr
         }, ssr) : false;
     } else {
         ssrData = ssr ? await fetchEmbeddingsAsPCA({
-          dgid: query?.dgid, 
-          timestamp: query?.timestamp, 
-          columnName, 
-          columnValue: value?.columnValue,
-          groupBy: value?.groupBy, 
-          whereExpr: value?.whereExpr
+	    dgid: query?.dgid,
+	    timestamp: query?.timestamp,
+	    columnName,
+	    columnValue: value?.columnValue,
+	    groupBy: value?.groupBy,
+	    whereExpr: value?.whereExpr
         }, ssr) : false;
     }
 
@@ -32,13 +33,13 @@ const EmbeddingCell = async ({ value, query, style, ssr, columnName }) => {
             </Suspense>
           }>
             <Suspense fallback={<>Loading</>}>
-                <EmbeddingCellClient 
-                  value={value} 
-                  query={query} 
-                  expanded={true} 
-                  ssr={ssr} 
-                  columnName={columnName} 
-                  ssrData={ssrData} 
+                <EmbeddingCellClient
+                  value={value}
+                  query={query}
+                  expanded={true}
+                  ssr={ssr}
+                  columnName={columnName}
+                  ssrData={ssrData}
                 />
             </Suspense>
 
