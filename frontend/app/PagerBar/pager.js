@@ -21,6 +21,13 @@ const Pager = ({ dgid, aboutText, firstRow, totalRows, currentPage, totalPages, 
     const downloadName = dgid && dgid.includes("/") ? dgid.substring(dgid.lastIndexOf("/") + 1) : dgid;
     const downloadLink = (totalPages > 0 && !config.hideSelector) ? (<a href={`${config.rootPath}api/download?dgid=${dgid}`} download={downloadName}><DownloadIcon/></a>) : (<></>);
 
+    const getLocaleString = (text) => {
+        if (text) {
+            return text.toLocaleString(config.locale);
+        }
+        return null;
+    };
+
     const canGoto = (page) => {
 	return page > 0 && page <= totalPages && page !== currentPage;
     };
@@ -75,7 +82,7 @@ const Pager = ({ dgid, aboutText, firstRow, totalRows, currentPage, totalPages, 
           </div>
           <div className={cx("right-bar")}>
 	    <span>
-	    Showing {`${firstRow.toLocaleString(config.locale)} - ${maxRow.toLocaleString(config.locale)} of ${totalRows.toLocaleString(config.locale)} rows`}
+	    Showing {`${getLocaleString(firstRow)} - ${getLocaleString(maxRow)} of ${getLocaleString(totalRows)} rows`}
             </span>
             <button
                className={cx('rounded')}
@@ -112,7 +119,7 @@ const Pager = ({ dgid, aboutText, firstRow, totalRows, currentPage, totalPages, 
                 }}
             />
 	    <span>
-	    of {`${totalPages.toLocaleString(config.locale)}`}
+	    of {`${getLocaleString(totalPages)}`}
             </span>
             <button
                className={cx('rounded')}
