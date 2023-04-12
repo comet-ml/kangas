@@ -138,34 +138,6 @@ network.display(x_train[0])
 ```
 
 
-<svg id='keras-network' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' image-rendering="pixelated" width="380px" height="400px" style="background-color: #B0C4DE">
- <g >
-  <svg viewBox="0 0 400 420" width="380px" height="400px">
-    <defs>
-        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-          <path d="M0,0 L0,6 L9,3 z" fill="black" />
-        </marker>
-    </defs><rect x="99.0" y="24" width="202" height="52" style="fill:none;stroke:black;stroke-width:2"/><image id="keras-network_output" class="keras-network" x="100.0" y="25" height="50" width="200" preserveAspectRatio="none" image-rendering="optimizeSpeed" xlink:href="data:image/gif;base64,R0lGODdhCgABAIMAAAgICA0NDRERERUVFRYWFh4eHiAgICsrKy4uLgAAAAAAAAAAAAAAAAAAAAAAAAAAACwAAAAACgABAAAIDgAPCBBQgICBAQEAIAgIADs="><title>Layer: output 'Dense'
-Act function: softmax
-Act output range: (0.0, 1.0)
-Actual minmax: (0.0, 1.0)
-Shape = (None, 10)</title></image><text x="305.0" y="52.0" font-family="monospace" font-size="12" text-anchor="start" fill="blue" alignment-baseline="central" >output</text><path d="M 200.0 104 L 200.0 77 " stroke="black" stroke-width="2" marker-end="url(#arrow)" fill="none" /><rect x="99.0" y="104" width="202" height="52" style="fill:none;stroke:black;stroke-width:2"/><image id="keras-network_hidden3" class="keras-network" x="100.0" y="105" height="50" width="200" preserveAspectRatio="none" image-rendering="optimizeSpeed" xlink:href="data:image/gif;base64,R0lGODdhGQABAIQAAENDQ1FRUVNTU1VVVWFhYWRkZGhoaGxsbG1tbXNzc3R0dHx8fH9/f4ODg4WFhYiIiIqKipSUlJWVlZaWlp2dnaCgoKGhoaioqAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACwAAAAAGQABAAAIHwAdCEDgQMKDCQksUBgA4IIBAgwaRFhQQAGEAxUCBAQAOw=="><title>Layer: hidden3 'Dense'
-Act function: sigmoid
-Act output range: (0.0, 1.0)
-Actual minmax: (0.0, 1.0)
-Shape = (None, 25)</title></image><text x="305.0" y="132.0" font-family="monospace" font-size="12" text-anchor="start" fill="blue" alignment-baseline="central" >hidden3</text><path d="M 200.0 184 L 200.0 157 " stroke="black" stroke-width="2" marker-end="url(#arrow)" fill="none" /><rect x="99.0" y="184" width="202" height="52" style="fill:none;stroke:black;stroke-width:2"/><image id="keras-network_hidden2" class="keras-network" x="100.0" y="185" height="50" width="200" preserveAspectRatio="none" image-rendering="optimizeSpeed" xlink:href="data:image/gif;base64,R0lGODdhGQABAIQAACgoKDExMTQ0NExMTGRkZGVlZWZmZmlpaWtra2xsbHFxcXZ2dnh4eHp6eoCAgIyMjI6OjpOTk6Ojo6ioqKmpqbOzs7W1tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACwAAAAAGQABAAAIHwANPKigAIKAAwwcSGgwgIKFCQ4iJFgQgAAABAUOBAQAOw=="><title>Layer: hidden2 'Dense'
-Act function: sigmoid
-Act output range: (0.0, 1.0)
-Actual minmax: (0.0, 1.0)
-Shape = (None, 25)</title></image><text x="305.0" y="212.0" font-family="monospace" font-size="12" text-anchor="start" fill="blue" alignment-baseline="central" >hidden2</text><path d="M 200.0 264 L 200.0 237 " stroke="black" stroke-width="2" marker-end="url(#arrow)" fill="none" /><rect x="99.0" y="264" width="202" height="52" style="fill:none;stroke:black;stroke-width:2"/><image id="keras-network_hidden1" class="keras-network" x="100.0" y="265" height="50" width="200" preserveAspectRatio="none" image-rendering="optimizeSpeed" xlink:href="data:image/gif;base64,R0lGODdhMgABAIUAAD8/P0FBQVFRUVJSUlVVVVlZWVtbW15eXl9fX2VlZWZmZmdnZ25ubnBwcHFxcXZ2dnl5eXt7e319fYGBgYKCgoWFhYqKioyMjI+Pj5aWlpeXl5iYmJubm5+fn6Wlpaenp6mpqaysrMLCwgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACwAAAAAMgABAAAIOgAHXMigAQIABx5AQJjQIEIIARsgWPiggUGHDRUUiHBQgIIBAhgyeAApIcACBxwIJDjAIcMDBRAQBAQAOw=="><title>Layer: hidden1 'Dense'
-Act function: sigmoid
-Act output range: (0.0, 1.0)
-Actual minmax: (0.0, 1.0)
-Shape = (None, 50)</title></image><text x="305.0" y="292.0" font-family="monospace" font-size="12" text-anchor="start" fill="blue" alignment-baseline="central" >hidden1</text><path d="M 200.0 344 L 200.0 317 " stroke="black" stroke-width="2" marker-end="url(#arrow)" fill="none" /><rect x="99.00000000000001" y="344" width="201.99999999999997" height="52" style="fill:none;stroke:black;stroke-width:2"/><image id="keras-network_hidden1_input" class="keras-network" x="100.00000000000001" y="345" height="50" width="199.99999999999997" preserveAspectRatio="none" image-rendering="optimizeSpeed" xlink:href="data:image/gif;base64,R0lGODdhEAMBAIYAAAAAAAEBAQICAgMDAwkJCQsLCw4ODhAQEBISEhcXFxgYGBkZGRoaGhsbGx4eHiMjIyQkJCcnJysrKy0tLS4uLjExMTc3Nzg4OEBAQEJCQkZGRk5OTlBQUFFRUVJSUlpaWl1dXV5eXmtra2xsbHJycnd3d35+fn9/f4KCgoSEhIWFhYeHh4iIiIuLi5SUlJaWlpqampycnKCgoKampqqqqqurq6ysrK+vr7a2tre3t7q6uru7u76+vsPDw8bGxsnJyc3Nzc/Pz9TU1NXV1dvb293d3eHh4eLi4uXl5e7u7vDw8PHx8fLy8vT09Pf39/n5+fr6+vv7+/z8/P39/f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACwAAAAAEAMBAAAIzwABCBxIsKDBgwgTKlzIsKHDhxAhDkBA0QSLGwxmUHFygqEDCCFg0JhCkqQRG1OY9MCwsEKSkjCnRAHhwcOFCAwREInpA4eTJREBcIghgiSQAgAkwAgKwEAAGFM+MDXYYgoPAVMJFuAxRUNWgg+WGJExIsBXAB2UkCyx4OwEHSRfNDh7AISUKTvOCnwy5QnLqRRQ5CAZBGvQCC6QlISCI6gCEkVg/tgQMUGGITB9dDDsEEGNnSV7cCAA0YKNIzCbqEAakUVJIStSHNBLuzbtgAA7"><title>Layer: hidden1_input 'InputLayer'
-Actual minmax: (0.0, 1.0)
-Shape = [(None, 784)]</title></image><text x="305.0" y="372.0" font-family="monospace" font-size="12" text-anchor="start" fill="blue" alignment-baseline="central" >hidden1_input</text><text x="200.0" y="12.5" font-family="monospace" font-size="15" text-anchor="middle" fill="black" alignment-baseline="central" >Activations for sequential</text></svg></g></svg>
-
-
 This is an accurate representation of the network. However, it makes the input vector a bit hard for humans to understand.
 
 What shape does an input representation have?
@@ -210,33 +182,6 @@ And try displaying again:
 network.display(x_train[1])
 ```
 
-
-<svg id='keras-network' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' image-rendering="pixelated" width="280px" height="400px" style="background-color: #B0C4DE">
- <g >
-  <svg viewBox="0 0 400 570" width="280px" height="400px">
-    <defs>
-        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-          <path d="M0,0 L0,6 L9,3 z" fill="black" />
-        </marker>
-    </defs><rect x="99.0" y="24" width="202" height="52" style="fill:none;stroke:black;stroke-width:2"/><image id="keras-network_output" class="keras-network" x="100.0" y="25" height="50" width="200" preserveAspectRatio="none" image-rendering="optimizeSpeed" xlink:href="data:image/gif;base64,R0lGODdhCgABAIIAAAgICA0NDRERERUVFRYWFh8fHywsLC4uLiwAAAAACgABAAAIDgANCBBQgECBAQEAHAgIADs="><title>Layer: output 'Dense'
-Act function: softmax
-Act output range: (0.0, 1.0)
-Actual minmax: (0.0, 1.0)
-Shape = (None, 10)</title></image><text x="305.0" y="52.0" font-family="monospace" font-size="12" text-anchor="start" fill="blue" alignment-baseline="central" >output</text><path d="M 200.0 104 L 200.0 77 " stroke="black" stroke-width="2" marker-end="url(#arrow)" fill="none" /><rect x="99.0" y="104" width="202" height="52" style="fill:none;stroke:black;stroke-width:2"/><image id="keras-network_hidden3" class="keras-network" x="100.0" y="105" height="50" width="200" preserveAspectRatio="none" image-rendering="optimizeSpeed" xlink:href="data:image/gif;base64,R0lGODdhGQABAIQAAEVFRVBQUFJSUlRUVGFhYWVlZWlpaW1tbXJycnR0dHp6en9/f4GBgYODg4eHh4iIiImJiZSUlJaWlp6enqGhoaqqqgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACwAAAAAGQABAAAIHwAdCDjQQMIDCQgoTBgAoIIBAgsYRFBQIAGEAxQCBAQAOw=="><title>Layer: hidden3 'Dense'
-Act function: sigmoid
-Act output range: (0.0, 1.0)
-Actual minmax: (0.0, 1.0)
-Shape = (None, 25)</title></image><text x="305.0" y="132.0" font-family="monospace" font-size="12" text-anchor="start" fill="blue" alignment-baseline="central" >hidden3</text><path d="M 200.0 184 L 200.0 157 " stroke="black" stroke-width="2" marker-end="url(#arrow)" fill="none" /><rect x="99.0" y="184" width="202" height="52" style="fill:none;stroke:black;stroke-width:2"/><image id="keras-network_hidden2" class="keras-network" x="100.0" y="185" height="50" width="200" preserveAspectRatio="none" image-rendering="optimizeSpeed" xlink:href="data:image/gif;base64,R0lGODdhGQABAIQAAC8vLzQ0NDk5OUxMTFlZWV1dXWFhYWZmZmlpaW1tbXd3d3t7e319fYCAgIKCgoeHh5CQkJubm6ampqysrK2trbS0tLW1tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACwAAAAAGQABAAAIHwALPKiAAIKAAwoaUHAwYIIFCQsiIGAQgACABAYSBAQAOw=="><title>Layer: hidden2 'Dense'
-Act function: sigmoid
-Act output range: (0.0, 1.0)
-Actual minmax: (0.0, 1.0)
-Shape = (None, 25)</title></image><text x="305.0" y="212.0" font-family="monospace" font-size="12" text-anchor="start" fill="blue" alignment-baseline="central" >hidden2</text><path d="M 200.0 264 L 200.0 237 " stroke="black" stroke-width="2" marker-end="url(#arrow)" fill="none" /><rect x="99.0" y="264" width="202" height="52" style="fill:none;stroke:black;stroke-width:2"/><image id="keras-network_hidden1" class="keras-network" x="100.0" y="265" height="50" width="200" preserveAspectRatio="none" image-rendering="optimizeSpeed" xlink:href="data:image/gif;base64,R0lGODdhMgABAIUAAD8/P0RERE5OTk9PT1VVVVdXV1hYWF1dXWBgYGFhYWdnZ2hoaGxsbG5ubnFxcXV1dXl5eX9/f4KCgoWFhYaGhoiIiIqKiouLi4+Pj5OTk5WVlZaWlpeXl5iYmJmZmZqampubm56enqKioqOjo6SkpKWlpampqaurq7Ozs7S0tLa2tgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACwAAAAAMgABAAAIOwARnAChAUOCCAQ6PIAgYYEHASMyUDBBIkAJAxUiqPjgwIKDBgcyiCjQAcMABhRQGOCgIMSGFAAmXAgIADs="><title>Layer: hidden1 'Dense'
-Act function: sigmoid
-Act output range: (0.0, 1.0)
-Actual minmax: (0.0, 1.0)
-Shape = (None, 50)</title></image><text x="305.0" y="292.0" font-family="monospace" font-size="12" text-anchor="start" fill="blue" alignment-baseline="central" >hidden1</text><path d="M 200.0 344 L 200.0 317 " stroke="black" stroke-width="2" marker-end="url(#arrow)" fill="none" /><rect x="99.0" y="344" width="202" height="202" style="fill:none;stroke:black;stroke-width:2"/><image id="keras-network_hidden1_input" class="keras-network" x="100.0" y="345" height="200" width="200" preserveAspectRatio="none" image-rendering="optimizeSpeed" xlink:href="data:image/gif;base64,R0lGODdhHAAcAIYAAAAAAAYGBgcHBwoKCgwMDBMTExUVFRkZGRwcHB0dHSUlJSYmJi8vLzAwMDIyMjMzMzY2Njg4ODk5OTw8PD8/P0dHR0tLS0xMTE9PT1RUVFVVVVZWVmBgYHBwcHJycnl5eXp6eoCAgIKCgoODg4eHh42NjZGRkZKSkpSUlJ+fn6KioqOjo6Wlpaenp6ioqK2trbKysrOzs7q6ur29vb6+vsPDw8TExMbGxsfHx8rKytDQ0NfX19/f3+Dg4OHh4ePj4+Tk5OXl5ebm5unp6e3t7e7u7u/v7/Dw8PPz8/b29vn5+fz8/P39/f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACwAAAAAHAAcAEAI5gABCBxIsKDBgwgHrljCkAlDDjOYtEg4UMMSIQcQCiDBRAYBiiBDihT4IAWTFA5GAhAAY8mRCgUQGHRYA6RFJScaJNAAwwcTHi0iqBxKVCCEHw6NDFkiIYDKBkUYxiBg4YMBgUyQpAR5gwkNik2Y2LC5xMTBBiyWvBiJAEdDhkPMFp1Lt65dilAZLiEyd8CEHksc5sgQGMTQB0WYePXABAgDDE1cjFzAgskQHRlmLmERUgJDCglpgryQZEkHig5RkOWhccQSHxVCbmDiw6CHxCpUWmQYZIdeGyKKHggReEkJBXeT3w0IADs="><title>Layer: hidden1_input 'InputLayer'
-Actual minmax: (0.0, 1.0)
-Shape = [(None, 784)]</title></image><text x="305.0" y="447.0" font-family="monospace" font-size="12" text-anchor="start" fill="blue" alignment-baseline="central" >hidden1_input</text><text x="200.0" y="12.5" font-family="monospace" font-size="15" text-anchor="middle" fill="black" alignment-baseline="central" >Activations for sequential</text></svg></g></svg>
 
 
 What do we see?
