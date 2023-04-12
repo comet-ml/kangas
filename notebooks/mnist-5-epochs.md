@@ -385,17 +385,6 @@ dg.show()
 ```
 
 
-
-<iframe
-    width="100%"
-    height="750px"
-    src="http://127.0.1.1:4000/?datagrid=mnist-5-epochs.datagrid"
-    frameborder="0"
-    allowfullscreen
-
-></iframe>
-
-
 Some example filters to try in the UI:
 
 1. Show rows before training: `{"epoch"} == 0`
