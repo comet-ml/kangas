@@ -47,7 +47,7 @@ from .tasks import (
     select_asset_task,
     select_category_task,
     select_histogram_task,
-    select_pca_data_task,
+    select_projection_data_task,
 )
 from .translogger import TransLogger
 from .utils import get_node_version
@@ -627,7 +627,7 @@ def get_datagrid_about_handler():
 
 @application.route("/datagrid/embeddings-as-pca", methods=["GET"])
 @auth_wrapper
-def get_embeddings_as_pca():
+def get_embeddings_as_projection():
     dgid = request.args.get("dgid")
     timestamp = request.args.get("timestamp")
     # if one asset:
@@ -643,7 +643,7 @@ def get_embeddings_as_pca():
     width = int(request.args.get("width", "0"))
 
     if ensure_datagrid_path(dgid):
-        pca_data = select_pca_data_task.apply(
+        projection_data = select_projection_data_task.apply(
             args=(
                 dgid,
                 timestamp,
@@ -656,14 +656,14 @@ def get_embeddings_as_pca():
         ).get()
         if thumbnail:
             image = generate_chart_image_task.apply(
-                args=("scatter", pca_data, width, height)
+                args=("scatter", projection_data, width, height)
             ).get()
             response = make_response(image)
             response.headers.add("Cache-Control", "max-age=604800")
             response.headers.add("Content-type", "image/png")
             return response
         else:
-            return pca_data
+            return projection_data
     else:
         return error(404)
 

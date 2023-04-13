@@ -56,19 +56,19 @@ import math
 
 VALID_CHARS = string.ascii_letters + string.digits + "_"
 
-PCA_SAMPLES_CACHE = {}
-PCA_MAX_SIZE = 1024
+PROJECTION_SAMPLES_CACHE = {}
+PROJECTION_MAX_SIZE = 1024
 
 
-def update_pca_cache(key, value):
-    if key not in PCA_SAMPLES_CACHE:
+def update_projection_cache(key, value):
+    if key not in PROJECTION_SAMPLES_CACHE:
         # Check size:
-        if len(PCA_SAMPLES_CACHE) >= PCA_MAX_SIZE:
+        if len(PROJECTION_SAMPLES_CACHE) >= PROJECTION_MAX_SIZE:
             # too many
-            first_in_key = list(PCA_SAMPLES_CACHE.keys())[0]
-            # pop the first in
-            PCA_SAMPLES_CACHE.pop(first_in_key)
-    PCA_SAMPLES_CACHE[key] = value
+            first_in_key = list(PROJECTION_SAMPLES_CACHE.keys())[0]
+            # del the first-in
+            del PROJECTION_SAMPLES_CACHE[first_in_key]
+    PROJECTION_SAMPLES_CACHE[key] = value
 
 
 def sqlite_query_explain(
@@ -2192,8 +2192,16 @@ def get_fields(dgid, metadata=None, computed_columns=None):
     return fields
 
 
-def process_pca_asset_ids(
-    name, cur, asset_ids, pca, traces, size, default_color, color_override=None
+def process_projection_asset_ids(
+    name,
+    cur,
+    asset_ids,
+    projection_name,
+    projection,
+    traces,
+    size,
+    default_color,
+    color_override=None,
 ):
     # asset_ids is a list of str
     # side-effect: adds to traces
@@ -2222,7 +2230,7 @@ def process_pca_asset_ids(
             color = default_color
 
         # FIXME: can transform all at once
-        eigen_vector = pca.transform([vector])
+        eigen_vector = projection.transform([vector])
         xs.append(round(eigen_vector[0][0], 3))
         ys.append(round(eigen_vector[0][1], 3))
         colors.append(color)
@@ -2239,32 +2247,35 @@ def process_pca_asset_ids(
     )
 
 
-def select_pca_data(
+def select_projection_data(
     dgid, timestamp, asset_id, column_name, column_value, group_by, where_expr
 ):
-    from sklearn.decomposition import PCA
-
     conn = get_database_connection(dgid)
     cur = conn.cursor()
     metadata = get_metadata(conn)
     column_limit = None
     column_offset = 0
 
-    pca_eigen_vectors = metadata[column_name]["other"]["pca_eigen_vectors"]
-    pca_mean = metadata[column_name]["other"]["pca_mean"]
-    default_color = get_color(column_name)
+    projection_name = metadata[column_name]["other"]["projection"]
 
-    pca = PCA()
-    pca.components_ = np.array(pca_eigen_vectors)
-    pca.mean_ = np.array(pca_mean)
+    if projection_name == "pca":
+        from sklearn.decomposition import PCA
+
+        pca_eigen_vectors = metadata[column_name]["other"]["pca_eigen_vectors"]
+        pca_mean = metadata[column_name]["other"]["pca_mean"]
+        projection = PCA()
+        projection.components_ = np.array(pca_eigen_vectors)
+        projection.mean_ = np.array(pca_mean)
+
+    default_color = get_color(column_name)
 
     traces = []
     if asset_id:
         # First, add some points to provide context:
         key = (dgid, timestamp, column_name, where_expr)
-        if key not in PCA_SAMPLES_CACHE:
+        if key not in PROJECTION_SAMPLES_CACHE:
             # FIXME: make an LRU so as not to fill up memory
-            update_pca_cache(
+            update_projection_cache(
                 key,
                 list(
                     select_query_raw(
@@ -2282,12 +2293,13 @@ def select_pca_data(
                     )
                 ),
             )
-        rows = PCA_SAMPLES_CACHE[key]
-        process_pca_asset_ids(
+        rows = PROJECTION_SAMPLES_CACHE[key]
+        process_projection_asset_ids(
             "Sampled Data",
             cur,
             [row[0] for row in rows],
-            pca,
+            projection_name,
+            projection,
             traces,
             3,
             default_color,
@@ -2297,7 +2309,7 @@ def select_pca_data(
         # Next, add the selected asset:
         asset_data_raw = select_asset(dgid, asset_id)
         asset_data = json.loads(asset_data_raw)
-        vector = pca.transform([asset_data["vector"]])
+        vector = projection.transform([asset_data["vector"]])
         if asset_data["color"]:
             color = asset_data["color"]
         else:
@@ -2323,8 +2335,15 @@ def select_pca_data(
                 values = row[0].split(",")
                 if column_limit is not None:
                     values = values[column_offset : column_offset + column_limit]
-                process_pca_asset_ids(
-                    column_name, cur, values, pca, traces, 3, default_color
+                process_projection_asset_ids(
+                    column_name,
+                    cur,
+                    values,
+                    projection_name,
+                    projection,
+                    traces,
+                    3,
+                    default_color,
                 )
     return traces
 

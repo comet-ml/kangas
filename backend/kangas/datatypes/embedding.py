@@ -28,6 +28,8 @@ class Embedding(Asset):
         self,
         embedding=None,
         label=None,
+        projection="pca",
+        scale=True,
         file_name=None,
         metadata=None,
         source=None,
@@ -53,6 +55,8 @@ class Embedding(Asset):
 
         self.metadata["label"] = label
         self.metadata["color"] = color
+        self.metadata["projection"] = projection
+        self.metadata["scale"] = scale
 
         if file_name:
             if is_valid_file_path(file_name):
@@ -73,8 +77,6 @@ class Embedding(Asset):
 
     @classmethod
     def get_statistics(cls, datagrid, col_name, field_name):
-        from sklearn.decomposition import IncrementalPCA
-
         # FIXME: compute min and max of eigenspace
         minimum = None
         maximum = None
@@ -86,11 +88,10 @@ class Embedding(Asset):
         name = col_name
 
         kwargs = {}
-
-        pca = IncrementalPCA(**kwargs)
+        projection = None
         batch = []
         for row in datagrid.conn.execute(
-            """SELECT {field_name} as assetId, asset_data from datagrid JOIN assets ON assetId = assets.asset_id;""".format(
+            """SELECT {field_name} as assetId, asset_data, json_extract(asset_metadata, '$.projection') from datagrid JOIN assets ON assetId = assets.asset_id;""".format(
                 field_name=field_name
             )
         ):
@@ -98,17 +99,49 @@ class Embedding(Asset):
             vectors = embedding["vector"]
             vector = flatten(vectors)
             # FIXME: could scale them here; leave to user for now
-            batch.append(vector)
-            if len(batch) == 10:
-                pca.partial_fit(batch)
-                batch = []
-        if len(batch) > 0:
-            pca.partial_fit(batch)
+            if row[2] is None or row[2] == "pca":
+                if projection is None:
+                    from sklearn.decomposition import IncrementalPCA
 
-        other = json.dumps(
-            {
-                "pca_eigen_vectors": pca.components_.tolist(),
-                "pca_mean": pca.mean_.tolist(),
-            }
-        )
+                    projection = IncrementalPCA(**kwargs)
+                    projection_name = "pca"
+                batch.append(vector)
+                if len(batch) == 10:
+                    projection.partial_fit(batch)
+                    batch = []
+            elif row[2] == "t-sne":
+                if projection is None:
+                    projection_name = "t-sne"
+            elif row[2] == "umap":
+                if projection is None:
+                    projection_name = "umap"
+            else:
+                raise Exception(
+                    "unknown projection %r; should be 'pca', 't-sne', or 'umap'"
+                    % row[2]
+                )
+
+        if projection_name == "pca":
+            if len(batch) > 0:
+                projection.partial_fit(batch)
+            other = json.dumps(
+                {
+                    "pca_eigen_vectors": projection.components_.tolist(),
+                    "pca_mean": projection.mean_.tolist(),
+                    "projection": projection_name,
+                }
+            )
+        elif projection_name == "t-sne":
+            other = json.dumps(
+                {
+                    "projection": projection_name,
+                }
+            )
+        elif projection_name == "umap":
+            other = json.dumps(
+                {
+                    "projection": projection_name,
+                }
+            )
+
         return [minimum, maximum, avg, variance, total, stddev, other, name]

@@ -30,7 +30,7 @@ from .queries import (
     select_asset_metadata,
     select_category,
     select_histogram,
-    select_pca_data,
+    select_projection_data,
 )
 
 # from .utils import get_bool_from_env
@@ -124,11 +124,11 @@ def select_asset_metadata_task(self, dgid, asset_id):
 
 
 @app.task(bind=True)
-def select_pca_data_task(
+def select_projection_data_task(
     self, dgid, timestamp, asset_id, column_name, column_value, group_by, where_expr
 ):
     try:
-        result = select_pca_data(
+        result = select_projection_data(
             dgid, timestamp, asset_id, column_name, column_value, group_by, where_expr
         )
         return result
