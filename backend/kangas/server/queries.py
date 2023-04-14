@@ -2673,9 +2673,9 @@ def generate_chart_image(chart_type, data, width, height):
 
             drawing.line(
                 [
-                    margin + (total_width * (-100 - min_x) / span_x),
+                    margin + (total_width * (-1000 - min_x) / span_x),
                     margin + (total_height - total_height * (0 - min_y) / span_y),
-                    margin + (total_width * (100 - min_x) / span_x),
+                    margin + (total_width * (1000 - min_x) / span_x),
                     margin + (total_height - total_height * (0 - min_y) / span_y),
                 ],
                 fill="black",
@@ -2684,9 +2684,9 @@ def generate_chart_image(chart_type, data, width, height):
             drawing.line(
                 [
                     margin + (total_width * (0 - min_x) / span_x),
-                    margin + (total_height - total_height * (-100 - min_y) / span_y),
+                    margin + (total_height - total_height * (-1000 - min_y) / span_y),
                     margin + (total_width * (0 - min_x) / span_x),
-                    margin + (total_height - total_height * (100 - min_y) / span_y),
+                    margin + (total_height - total_height * (1000 - min_y) / span_y),
                 ],
                 fill="black",
                 width=1,
