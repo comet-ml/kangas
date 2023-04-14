@@ -57,10 +57,11 @@ import math
 VALID_CHARS = string.ascii_letters + string.digits + "_"
 
 PROJECTION_SAMPLES_CACHE = {}
-PROJECTION_MAX_SIZE = 1024
+PROJECTION_MAX_SIZE = 100
 
 
-def update_projection_cache(key, value):
+def get_projection_cache(key, value):
+    # Returns a copy of the value list
     if key not in PROJECTION_SAMPLES_CACHE:
         # Check size:
         if len(PROJECTION_SAMPLES_CACHE) >= PROJECTION_MAX_SIZE:
@@ -68,7 +69,8 @@ def update_projection_cache(key, value):
             first_in_key = list(PROJECTION_SAMPLES_CACHE.keys())[0]
             # del the first-in
             del PROJECTION_SAMPLES_CACHE[first_in_key]
-    PROJECTION_SAMPLES_CACHE[key] = value
+        PROJECTION_SAMPLES_CACHE[key] = value
+    return PROJECTION_SAMPLES_CACHE[key][:]
 
 
 def sqlite_query_explain(
@@ -2283,39 +2285,34 @@ def select_projection_data(
     traces = []
     if asset_id:
         # First, add some points to provide context:
-        key = (dgid, timestamp, column_name, where_expr)
+        key = ("sampled", dgid, timestamp, column_name, where_expr)
         if key not in PROJECTION_SAMPLES_CACHE:
-            # FIXME: make an LRU so as not to fill up memory
-            update_projection_cache(
-                key,
-                list(
-                    select_query_raw(
-                        cur,
-                        metadata,
-                        [column_name],
-                        offset="0",
-                        sort_by="RANDOM()",
-                        sort_desc=None,
-                        where=None,
-                        limit=200,
-                        computed_columns=None,
-                        where_expr=where_expr,
-                        debug=False,
-                    )
-                ),
+            rows = select_query_raw(
+                cur,
+                metadata,
+                [column_name],
+                offset="0",
+                sort_by="RANDOM()",
+                sort_desc=None,
+                where=None,
+                limit=200,
+                computed_columns=None,
+                where_expr=where_expr,
+                debug=False,
             )
-        rows = PROJECTION_SAMPLES_CACHE[key]
-        process_projection_asset_ids(
-            "Sampled Data",
-            cur,
-            [row[0] for row in rows],
-            projection_name,
-            projection,
-            traces,
-            3,
-            default_color,
-            "gray",
-        )
+            process_projection_asset_ids(
+                "Sampled Data",
+                cur,
+                [row[0] for row in rows],
+                projection_name,
+                projection,
+                traces,
+                3,
+                default_color,
+                "gray",
+            )
+        # Traces contains projection data:
+        traces = get_projection_cache(key, traces)
 
         # Next, add the selected asset:
         asset_data_raw = select_asset(dgid, asset_id)
@@ -2337,25 +2334,30 @@ def select_projection_data(
             }
         )
     else:
-        rows = select_group_by_rows(
-            column_name, column_value, group_by, where_expr, metadata, cur
-        )
-        if rows:
-            row = rows[0]
-            if row and row[0]:
-                values = row[0].split(",")
-                if column_limit is not None:
-                    values = values[column_offset : column_offset + column_limit]
-                process_projection_asset_ids(
-                    column_name,
-                    cur,
-                    values,
-                    projection_name,
-                    projection,
-                    traces,
-                    3,
-                    default_color,
-                )
+        key = ("selection", dgid, timestamp, column_name, where_expr)
+        if key not in PROJECTION_SAMPLES_CACHE:
+            rows = select_group_by_rows(
+                column_name, column_value, group_by, where_expr, metadata, cur
+            )
+            if rows:
+                row = rows[0]
+                if row and row[0]:
+                    values = row[0].split(",")
+                    if column_limit is not None:
+                        values = values[column_offset : column_offset + column_limit]
+
+                    process_projection_asset_ids(
+                        column_name,
+                        cur,
+                        values,
+                        projection_name,
+                        projection,
+                        traces,
+                        3,
+                        default_color,
+                    )
+        # Traces contains projection data:
+        traces = get_projection_cache(key, traces)
     return traces
 
 
