@@ -114,7 +114,7 @@ class Embedding(Asset):
                 if projection is None:
                     from openTSNE import TSNE
 
-                    projection = TSNE(perplexity=30, learning_rate=10, n_iter=500)
+                    projection = TSNE()
                     projection_name = "t-sne"
                 batch.append(vector)
             elif row[2] == "umap":
