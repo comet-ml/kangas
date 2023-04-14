@@ -13,6 +13,7 @@
 
 import json
 
+from ..server.utils import pickle_dumps
 from .base import Asset
 from .utils import flatten, get_color, get_file_extension, is_valid_file_path
 
@@ -77,6 +78,8 @@ class Embedding(Asset):
 
     @classmethod
     def get_statistics(cls, datagrid, col_name, field_name):
+        import numpy as np
+
         # FIXME: compute min and max of eigenspace
         minimum = None
         maximum = None
@@ -111,7 +114,11 @@ class Embedding(Asset):
                     batch = []
             elif row[2] == "t-sne":
                 if projection is None:
+                    from openTSNE import TSNE
+
+                    projection = TSNE(perplexity=30, learning_rate=10, n_iter=500)
                     projection_name = "t-sne"
+                batch.append(vector)
             elif row[2] == "umap":
                 if projection is None:
                     projection_name = "umap"
@@ -132,10 +139,9 @@ class Embedding(Asset):
                 }
             )
         elif projection_name == "t-sne":
+            embedding = projection.fit(np.array(batch))
             other = json.dumps(
-                {
-                    "projection": projection_name,
-                }
+                {"projection": projection_name, "embedding": pickle_dumps(embedding)}
             )
         elif projection_name == "umap":
             other = json.dumps(

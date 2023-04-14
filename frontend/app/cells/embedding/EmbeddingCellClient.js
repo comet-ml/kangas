@@ -75,14 +75,14 @@ const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
                     size: 13,
                     color: '#3D4355',
                 },
-                range: [ -3, 3 ]
             },
             yaxis: {
                 font: {
                     size: 13,
                     color: '#3D4355',
                 },
-                range: [ -3, 3 ]
+		scaleanchor: "x",
+		scaleratio: 1,
             }
         };
     }, [columnName]);

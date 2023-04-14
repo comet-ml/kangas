@@ -11,9 +11,13 @@
 #    All rights reserved                             #
 ######################################################
 
+import base64
 import inspect
+import io
+import pickle
 import re
 import subprocess
+import sys
 import urllib
 
 try:
@@ -218,3 +222,62 @@ def get_node_version():
         return output.decode("utf-8").strip()
 
     return "unknown"
+
+
+class RestrictedUnpickler(pickle.Unpickler):
+    def __init__(self, safe, *args, **kwargs):
+        self.safe = safe
+        super().__init__(*args, **kwargs)
+
+    def find_class(self, module, name):
+        if (module, name) in self.safe:
+            if module == "builtins":
+                return __builtins__[name]
+            else:
+                return getattr(sys.modules[module], name)
+
+        raise pickle.UnpicklingError(
+            "global module '%s', name '%s' is forbidden" % (module, name)
+        )
+
+
+def pickle_dumps(obj):
+    """
+    Helper function analogous to pickle.dumps().
+    """
+    return base64.b64encode(pickle.dumps(obj)).decode("ascii")
+
+
+def pickle_loads(safe, ascii_string):
+    """
+    Helper function analogous to pickle.loads().
+    """
+    return RestrictedUnpickler(
+        safe,
+        io.BytesIO(base64.b64decode(ascii_string)),
+    ).load()
+
+
+def pickle_loads_embedding(ascii_string):
+    safe = {
+        ("numpy", "dtype"),
+        ("numpy", "ndarray"),
+        ("numpy.core.multiarray", "_reconstruct"),
+        ("numpy.core.multiarray", "scalar"),
+        ("openTSNE.affinity", "MultiscaleMixture"),
+        ("openTSNE.nearest_neighbors", "Sklearn"),
+        ("openTSNE.tsne", "TSNEEmbedding"),
+        ("openTSNE.tsne", "gradient_descent"),
+        ("scipy.sparse._csr", "csr_matrix"),
+        ("sklearn.metrics._dist_metrics", "EuclideanDistance"),
+        ("sklearn.metrics._dist_metrics", "newObj"),
+        ("sklearn.neighbors._kd_tree", "KDTree"),
+        ("sklearn.neighbors._kd_tree", "newObj"),
+        ("sklearn.neighbors._unsupervised", "NearestNeighbors"),
+    }
+    import numpy  # noqa
+    import openTSNE  # noqa
+    import scipy  # noqa
+    import sklearn  # noqa
+
+    return pickle_loads(safe, ascii_string)

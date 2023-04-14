@@ -37,7 +37,7 @@ from ..datatypes.utils import (
     pytype_to_dgtype,
 )
 from .computed_columns import update_state
-from .utils import process_about, safe_compile, safe_env
+from .utils import pickle_loads_embedding, process_about, safe_compile, safe_env
 
 LOGGER = logging.getLogger(__name__)
 KANGAS_ROOT = os.environ.get("KANGAS_ROOT", ".")
@@ -2215,8 +2215,7 @@ def process_projection_asset_ids(
         values=values,
     )
 
-    xs = []
-    ys = []
+    vectors = []
     colors = []
     for asset_data_row in cur.execute(sql):
         asset_data_raw = asset_data_row[0]
@@ -2229,11 +2228,12 @@ def process_projection_asset_ids(
         else:
             color = default_color
 
-        # FIXME: can transform all at once
-        eigen_vector = projection.transform([vector])
-        xs.append(round(eigen_vector[0][0], 3))
-        ys.append(round(eigen_vector[0][1], 3))
+        vectors.append(vector)
         colors.append(color)
+
+    eigen_vector = projection.transform(np.array(vectors))
+    xs = eigen_vector[:, 0].tolist()
+    ys = eigen_vector[:, 1].tolist()
 
     traces.append(
         {
@@ -2256,7 +2256,10 @@ def select_projection_data(
     column_limit = None
     column_offset = 0
 
-    projection_name = metadata[column_name]["other"]["projection"]
+    if "projection" in metadata[column_name]["other"]:
+        projection_name = metadata[column_name]["other"]["projection"]
+    else:
+        projection_name = "pca"
 
     if projection_name == "pca":
         from sklearn.decomposition import PCA
@@ -2266,6 +2269,14 @@ def select_projection_data(
         projection = PCA()
         projection.components_ = np.array(pca_eigen_vectors)
         projection.mean_ = np.array(pca_mean)
+    elif projection_name == "t-sne":
+        ascii_string = metadata[column_name]["other"]["embedding"]
+        projection = pickle_loads_embedding(ascii_string)
+
+    elif projection_name == "umap":
+        pass
+    else:
+        return
 
     default_color = get_color(column_name)
 
@@ -2576,6 +2587,8 @@ def generate_chart_image(chart_type, data, width, height):
     image = PIL.Image.new("RGBA", (width, height))
 
     drawing = PIL.ImageDraw.Draw(image)
+    max_x, min_x = None, None
+    max_y, min_y = None, None
 
     for trace in data:
         if chart_type == "category":
@@ -2629,8 +2642,10 @@ def generate_chart_image(chart_type, data, width, height):
             if "y" not in trace or len(trace["y"]) == 0:
                 continue
 
-            min_x, max_x = -3, 3
-            min_y, max_y = -3, 3
+            if max_x is None:
+                min_x, max_x = min(trace["x"]), max(trace["x"])
+                min_y, max_y = min(trace["y"]), max(trace["y"])
+
             span_x = max_x - min_x
             span_y = max_y - min_y
 
@@ -2644,10 +2659,24 @@ def generate_chart_image(chart_type, data, width, height):
             span_y = max_y - min_y
 
             drawing.line(
-                [width / 2, margin, width / 2, height - margin], fill="black", width=1
+                [
+                    margin + (total_width * (-100 - min_x) / span_x),
+                    margin + (total_height - total_height * (0 - min_y) / span_y),
+                    margin + (total_width * (100 - min_x) / span_x),
+                    margin + (total_height - total_height * (0 - min_y) / span_y),
+                ],
+                fill="black",
+                width=1,
             )
             drawing.line(
-                [margin, height / 2, width - margin, height / 2], fill="black", width=1
+                [
+                    margin + (total_width * (0 - min_x) / span_x),
+                    margin + (total_height - total_height * (-100 - min_y) / span_y),
+                    margin + (total_width * (0 - min_x) / span_x),
+                    margin + (total_height - total_height * (100 - min_y) / span_y),
+                ],
+                fill="black",
+                width=1,
             )
 
             for count, [x, y] in enumerate(zip(trace["x"], trace["y"])):
