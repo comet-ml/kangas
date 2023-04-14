@@ -30,6 +30,7 @@ class Embedding(Asset):
         embedding=None,
         label=None,
         projection="pca",
+        include=True,
         file_name=None,
         metadata=None,
         source=None,
@@ -56,6 +57,7 @@ class Embedding(Asset):
         self.metadata["label"] = label
         self.metadata["color"] = color
         self.metadata["projection"] = projection
+        self.metadata["include"] = include
 
         if file_name:
             if is_valid_file_path(file_name):
@@ -92,10 +94,14 @@ class Embedding(Asset):
         projection = None
         batch = []
         for row in datagrid.conn.execute(
-            """SELECT {field_name} as assetId, asset_data, json_extract(asset_metadata, '$.projection') from datagrid JOIN assets ON assetId = assets.asset_id;""".format(
+            """SELECT {field_name} as assetId, asset_data, json_extract(asset_metadata, '$.projection'), json_extract(asset_metadata, '$.include') from datagrid JOIN assets ON assetId = assets.asset_id;""".format(
                 field_name=field_name
             )
         ):
+            # Skip if explicitly False
+            if row[3] is False:
+                continue
+
             embedding = json.loads(row[1])
             vectors = embedding["vector"]
             vector = flatten(vectors)
