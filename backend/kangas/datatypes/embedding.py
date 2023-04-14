@@ -36,6 +36,28 @@ class Embedding(Asset):
         source=None,
         unserialize=False,
     ):
+        """
+        Create an embedding vector.
+
+        Args:
+            embedding: a vector (list of numbers)
+            label: (str) a label that provides the color of this embedding's point
+            projection: (str) the type of projection either 'pca' or 't-sne'
+            include: (bool) whether to include this vector when determining the
+                projection. Useful if you want to see one part of the datagrid in
+                the project of another.
+
+        Example:
+
+        ```python
+        >>> import kangas as kg
+        >>> dg = kg.DataGrid()
+        >>> for row in rows:
+        >>>     target = row[0]
+        >>>     kg.append([kg.Embedding(row[1:], label=target)])
+        >>> dg.save("embeddings.datagrid")
+        ```
+        """
         super().__init__(source)
         if unserialize:
             return
