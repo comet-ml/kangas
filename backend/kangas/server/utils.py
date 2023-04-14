@@ -274,9 +274,11 @@ def pickle_loads_embedding(ascii_string):
         ("sklearn.neighbors._kd_tree", "KDTree"),
         ("sklearn.neighbors._kd_tree", "newObj"),
         ("sklearn.neighbors._unsupervised", "NearestNeighbors"),
+        ("openTSNE.nearest_neighbors", "Annoy"),
     }
     import numpy  # noqa
     import openTSNE  # noqa
+    import openTSNE.tsne  # noqa
     import scipy  # noqa
     import sklearn  # noqa
 

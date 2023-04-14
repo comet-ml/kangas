@@ -2320,7 +2320,7 @@ def select_projection_data(
         # Next, add the selected asset:
         asset_data_raw = select_asset(dgid, asset_id)
         asset_data = json.loads(asset_data_raw)
-        vector = projection.transform([asset_data["vector"]])
+        vector = projection.transform(np.array([asset_data["vector"]]))
         if asset_data["color"]:
             color = asset_data["color"]
         else:
