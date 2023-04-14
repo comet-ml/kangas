@@ -231,9 +231,7 @@ class RestrictedUnpickler(pickle.Unpickler):
 
     def find_class(self, module, name):
         if (module, name) in self.safe:
-            if module == "builtins":
-                return __builtins__[name]
-            else:
+            if module != "builtins":
                 return getattr(sys.modules[module], name)
 
         raise pickle.UnpicklingError(
@@ -258,6 +256,12 @@ def pickle_loads(safe, ascii_string):
     ).load()
 
 
+def pickle_loads_embedding_unsafe(ascii_string):
+    return pickle.Unpickler(
+        io.BytesIO(base64.b64decode(ascii_string)),
+    ).load()
+
+
 def pickle_loads_embedding(ascii_string):
     safe = {
         ("numpy", "dtype"),
@@ -269,6 +273,7 @@ def pickle_loads_embedding(ascii_string):
         ("openTSNE.tsne", "TSNEEmbedding"),
         ("openTSNE.tsne", "gradient_descent"),
         ("scipy.sparse._csr", "csr_matrix"),
+        ("sklearn.base", "clone"),
         ("sklearn.metrics._dist_metrics", "EuclideanDistance"),
         ("sklearn.metrics._dist_metrics", "newObj"),
         ("sklearn.neighbors._kd_tree", "KDTree"),
@@ -281,5 +286,6 @@ def pickle_loads_embedding(ascii_string):
     import openTSNE.tsne  # noqa
     import scipy  # noqa
     import sklearn  # noqa
+    import sklearn.decomposition  # noqa
 
     return pickle_loads(safe, ascii_string)
