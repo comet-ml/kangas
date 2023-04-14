@@ -30,7 +30,6 @@ class Embedding(Asset):
         embedding=None,
         label=None,
         projection="pca",
-        scale=True,
         file_name=None,
         metadata=None,
         source=None,
@@ -57,7 +56,6 @@ class Embedding(Asset):
         self.metadata["label"] = label
         self.metadata["color"] = color
         self.metadata["projection"] = projection
-        self.metadata["scale"] = scale
 
         if file_name:
             if is_valid_file_path(file_name):
@@ -101,7 +99,7 @@ class Embedding(Asset):
             embedding = json.loads(row[1])
             vectors = embedding["vector"]
             vector = flatten(vectors)
-            # FIXME: could scale them here; leave to user for now
+
             if row[2] is None or row[2] == "pca":
                 if projection is None:
                     from sklearn.decomposition import IncrementalPCA
