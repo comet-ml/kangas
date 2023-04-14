@@ -81,8 +81,6 @@ const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
                     size: 13,
                     color: '#3D4355',
                 },
-		scaleanchor: "x",
-		scaleratio: 1,
             }
         };
     }, [columnName]);

@@ -2272,6 +2272,9 @@ def select_projection_data(
         projection.components_ = np.array(pca_eigen_vectors)
         projection.mean_ = np.array(pca_mean)
     elif projection_name == "t-sne":
+        # FIXME: Trying to prevent an error on first load; race condition?
+        from openTSNE import TSNE  # noqa
+
         ascii_string = metadata[column_name]["other"]["embedding"]
         projection = pickle_loads_embedding(ascii_string)
 
@@ -2334,7 +2337,15 @@ def select_projection_data(
             }
         )
     else:
-        key = ("selection", dgid, timestamp, column_name, where_expr)
+        key = (
+            "selection",
+            dgid,
+            timestamp,
+            column_name,
+            column_value,
+            group_by,
+            where_expr,
+        )
         if key not in PROJECTION_SAMPLES_CACHE:
             rows = select_group_by_rows(
                 column_name, column_value, group_by, where_expr, metadata, cur
