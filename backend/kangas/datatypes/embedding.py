@@ -13,6 +13,7 @@
 
 import json
 
+from ..server.utils import pickle_dumps
 from .base import Asset
 from .utils import flatten, get_color, get_file_extension, is_valid_file_path
 
@@ -28,6 +29,7 @@ class Embedding(Asset):
         self,
         embedding=None,
         label=None,
+        projection="pca",
         file_name=None,
         metadata=None,
         source=None,
@@ -53,6 +55,7 @@ class Embedding(Asset):
 
         self.metadata["label"] = label
         self.metadata["color"] = color
+        self.metadata["projection"] = projection
 
         if file_name:
             if is_valid_file_path(file_name):
@@ -73,7 +76,7 @@ class Embedding(Asset):
 
     @classmethod
     def get_statistics(cls, datagrid, col_name, field_name):
-        from sklearn.decomposition import IncrementalPCA
+        import numpy as np
 
         # FIXME: compute min and max of eigenspace
         minimum = None
@@ -86,29 +89,63 @@ class Embedding(Asset):
         name = col_name
 
         kwargs = {}
-
-        pca = IncrementalPCA(**kwargs)
+        projection = None
         batch = []
         for row in datagrid.conn.execute(
-            """SELECT {field_name} as assetId, asset_data from datagrid JOIN assets ON assetId = assets.asset_id;""".format(
+            """SELECT {field_name} as assetId, asset_data, json_extract(asset_metadata, '$.projection') from datagrid JOIN assets ON assetId = assets.asset_id;""".format(
                 field_name=field_name
             )
         ):
             embedding = json.loads(row[1])
             vectors = embedding["vector"]
             vector = flatten(vectors)
-            # FIXME: could scale them here; leave to user for now
-            batch.append(vector)
-            if len(batch) == 10:
-                pca.partial_fit(batch)
-                batch = []
-        if len(batch) > 0:
-            pca.partial_fit(batch)
 
-        other = json.dumps(
-            {
-                "pca_eigen_vectors": pca.components_.tolist(),
-                "pca_mean": pca.mean_.tolist(),
-            }
-        )
+            if row[2] is None or row[2] == "pca":
+                if projection is None:
+                    from sklearn.decomposition import IncrementalPCA
+
+                    projection = IncrementalPCA(**kwargs)
+                    projection_name = "pca"
+                batch.append(vector)
+                if len(batch) == 10:
+                    projection.partial_fit(batch)
+                    batch = []
+            elif row[2] == "t-sne":
+                if projection is None:
+                    from openTSNE import TSNE
+
+                    projection = TSNE(perplexity=30, learning_rate=10, n_iter=500)
+                    projection_name = "t-sne"
+                batch.append(vector)
+            elif row[2] == "umap":
+                if projection is None:
+                    projection_name = "umap"
+            else:
+                raise Exception(
+                    "unknown projection %r; should be 'pca', 't-sne', or 'umap'"
+                    % row[2]
+                )
+
+        if projection_name == "pca":
+            if len(batch) > 0:
+                projection.partial_fit(batch)
+            other = json.dumps(
+                {
+                    "pca_eigen_vectors": projection.components_.tolist(),
+                    "pca_mean": projection.mean_.tolist(),
+                    "projection": projection_name,
+                }
+            )
+        elif projection_name == "t-sne":
+            embedding = projection.fit(np.array(batch))
+            other = json.dumps(
+                {"projection": projection_name, "embedding": pickle_dumps(embedding)}
+            )
+        elif projection_name == "umap":
+            other = json.dumps(
+                {
+                    "projection": projection_name,
+                }
+            )
+
         return [minimum, maximum, avg, variance, total, stddev, other, name]

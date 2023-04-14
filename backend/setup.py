@@ -60,8 +60,8 @@ setup_args = dict(
         "requests",
         "scikit-learn",
         "scipy",
-        "tornado",
         "waitress",
+        "opentsne",
     ],
     packages=[
         "kangas",

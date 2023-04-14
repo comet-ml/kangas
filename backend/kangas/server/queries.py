@@ -37,7 +37,7 @@ from ..datatypes.utils import (
     pytype_to_dgtype,
 )
 from .computed_columns import update_state
-from .utils import process_about, safe_compile, safe_env
+from .utils import pickle_loads_embedding, process_about, safe_compile, safe_env
 
 LOGGER = logging.getLogger(__name__)
 KANGAS_ROOT = os.environ.get("KANGAS_ROOT", ".")
@@ -56,19 +56,21 @@ import math
 
 VALID_CHARS = string.ascii_letters + string.digits + "_"
 
-PCA_SAMPLES_CACHE = {}
-PCA_MAX_SIZE = 1024
+PROJECTION_SAMPLES_CACHE = {}
+PROJECTION_MAX_SIZE = 100
 
 
-def update_pca_cache(key, value):
-    if key not in PCA_SAMPLES_CACHE:
+def get_projection_cache(key, value):
+    # Returns a copy of the value list
+    if key not in PROJECTION_SAMPLES_CACHE:
         # Check size:
-        if len(PCA_SAMPLES_CACHE) >= PCA_MAX_SIZE:
+        if len(PROJECTION_SAMPLES_CACHE) >= PROJECTION_MAX_SIZE:
             # too many
-            first_in_key = list(PCA_SAMPLES_CACHE.keys())[0]
-            # pop the first in
-            PCA_SAMPLES_CACHE.pop(first_in_key)
-    PCA_SAMPLES_CACHE[key] = value
+            first_in_key = list(PROJECTION_SAMPLES_CACHE.keys())[0]
+            # del the first-in
+            del PROJECTION_SAMPLES_CACHE[first_in_key]
+        PROJECTION_SAMPLES_CACHE[key] = value
+    return PROJECTION_SAMPLES_CACHE[key][:]
 
 
 def sqlite_query_explain(
@@ -2192,8 +2194,16 @@ def get_fields(dgid, metadata=None, computed_columns=None):
     return fields
 
 
-def process_pca_asset_ids(
-    name, cur, asset_ids, pca, traces, size, default_color, color_override=None
+def process_projection_asset_ids(
+    name,
+    cur,
+    asset_ids,
+    projection_name,
+    projection,
+    traces,
+    size,
+    default_color,
+    color_override=None,
 ):
     # asset_ids is a list of str
     # side-effect: adds to traces
@@ -2207,8 +2217,7 @@ def process_pca_asset_ids(
         values=values,
     )
 
-    xs = []
-    ys = []
+    vectors = []
     colors = []
     for asset_data_row in cur.execute(sql):
         asset_data_raw = asset_data_row[0]
@@ -2221,11 +2230,12 @@ def process_pca_asset_ids(
         else:
             color = default_color
 
-        # FIXME: can transform all at once
-        eigen_vector = pca.transform([vector])
-        xs.append(round(eigen_vector[0][0], 3))
-        ys.append(round(eigen_vector[0][1], 3))
+        vectors.append(vector)
         colors.append(color)
+
+    eigen_vector = projection.transform(np.array(vectors))
+    xs = eigen_vector[:, 0].tolist()
+    ys = eigen_vector[:, 1].tolist()
 
     traces.append(
         {
@@ -2239,65 +2249,78 @@ def process_pca_asset_ids(
     )
 
 
-def select_pca_data(
+def select_projection_data(
     dgid, timestamp, asset_id, column_name, column_value, group_by, where_expr
 ):
-    from sklearn.decomposition import PCA
-
     conn = get_database_connection(dgid)
     cur = conn.cursor()
     metadata = get_metadata(conn)
     column_limit = None
     column_offset = 0
 
-    pca_eigen_vectors = metadata[column_name]["other"]["pca_eigen_vectors"]
-    pca_mean = metadata[column_name]["other"]["pca_mean"]
-    default_color = get_color(column_name)
+    if "projection" in metadata[column_name]["other"]:
+        projection_name = metadata[column_name]["other"]["projection"]
+    else:
+        projection_name = "pca"
 
-    pca = PCA()
-    pca.components_ = np.array(pca_eigen_vectors)
-    pca.mean_ = np.array(pca_mean)
+    if projection_name == "pca":
+        from sklearn.decomposition import PCA
+
+        pca_eigen_vectors = metadata[column_name]["other"]["pca_eigen_vectors"]
+        pca_mean = metadata[column_name]["other"]["pca_mean"]
+        projection = PCA()
+        projection.components_ = np.array(pca_eigen_vectors)
+        projection.mean_ = np.array(pca_mean)
+    elif projection_name == "t-sne":
+        # FIXME: Trying to prevent an error on first load; race condition?
+        from openTSNE import TSNE  # noqa
+
+        ascii_string = metadata[column_name]["other"]["embedding"]
+        projection = pickle_loads_embedding(ascii_string)
+
+    elif projection_name == "umap":
+        pass
+    else:
+        return
+
+    default_color = get_color(column_name)
 
     traces = []
     if asset_id:
         # First, add some points to provide context:
-        key = (dgid, timestamp, column_name, where_expr)
-        if key not in PCA_SAMPLES_CACHE:
-            # FIXME: make an LRU so as not to fill up memory
-            update_pca_cache(
-                key,
-                list(
-                    select_query_raw(
-                        cur,
-                        metadata,
-                        [column_name],
-                        offset="0",
-                        sort_by="RANDOM()",
-                        sort_desc=None,
-                        where=None,
-                        limit=200,
-                        computed_columns=None,
-                        where_expr=where_expr,
-                        debug=False,
-                    )
-                ),
+        key = ("sampled", dgid, timestamp, column_name, where_expr)
+        if key not in PROJECTION_SAMPLES_CACHE:
+            rows = select_query_raw(
+                cur,
+                metadata,
+                [column_name],
+                offset="0",
+                sort_by="RANDOM()",
+                sort_desc=None,
+                where=None,
+                limit=200,
+                computed_columns=None,
+                where_expr=where_expr,
+                debug=False,
             )
-        rows = PCA_SAMPLES_CACHE[key]
-        process_pca_asset_ids(
-            "Sampled Data",
-            cur,
-            [row[0] for row in rows],
-            pca,
-            traces,
-            3,
-            default_color,
-            "gray",
-        )
+            process_projection_asset_ids(
+                "Sampled Data",
+                cur,
+                [row[0] for row in rows],
+                projection_name,
+                projection,
+                traces,
+                3,
+                default_color,
+                "gray",
+            )
+        # Traces contains projection data:
+        traces = get_projection_cache(key, traces)
 
         # Next, add the selected asset:
         asset_data_raw = select_asset(dgid, asset_id)
         asset_data = json.loads(asset_data_raw)
-        vector = pca.transform([asset_data["vector"]])
+        vector = projection.transform(np.array([asset_data["vector"]]))
         if asset_data["color"]:
             color = asset_data["color"]
         else:
@@ -2314,18 +2337,38 @@ def select_pca_data(
             }
         )
     else:
-        rows = select_group_by_rows(
-            column_name, column_value, group_by, where_expr, metadata, cur
+        key = (
+            "selection",
+            dgid,
+            timestamp,
+            column_name,
+            column_value,
+            group_by,
+            where_expr,
         )
-        if rows:
-            row = rows[0]
-            if row and row[0]:
-                values = row[0].split(",")
-                if column_limit is not None:
-                    values = values[column_offset : column_offset + column_limit]
-                process_pca_asset_ids(
-                    column_name, cur, values, pca, traces, 3, default_color
-                )
+        if key not in PROJECTION_SAMPLES_CACHE:
+            rows = select_group_by_rows(
+                column_name, column_value, group_by, where_expr, metadata, cur
+            )
+            if rows:
+                row = rows[0]
+                if row and row[0]:
+                    values = row[0].split(",")
+                    if column_limit is not None:
+                        values = values[column_offset : column_offset + column_limit]
+
+                    process_projection_asset_ids(
+                        column_name,
+                        cur,
+                        values,
+                        projection_name,
+                        projection,
+                        traces,
+                        3,
+                        default_color,
+                    )
+        # Traces contains projection data:
+        traces = get_projection_cache(key, traces)
     return traces
 
 
@@ -2557,6 +2600,8 @@ def generate_chart_image(chart_type, data, width, height):
     image = PIL.Image.new("RGBA", (width, height))
 
     drawing = PIL.ImageDraw.Draw(image)
+    max_x, min_x = None, None
+    max_y, min_y = None, None
 
     for trace in data:
         if chart_type == "category":
@@ -2610,8 +2655,10 @@ def generate_chart_image(chart_type, data, width, height):
             if "y" not in trace or len(trace["y"]) == 0:
                 continue
 
-            min_x, max_x = -3, 3
-            min_y, max_y = -3, 3
+            if max_x is None:
+                min_x, max_x = min(trace["x"]), max(trace["x"])
+                min_y, max_y = min(trace["y"]), max(trace["y"])
+
             span_x = max_x - min_x
             span_y = max_y - min_y
 
@@ -2625,10 +2672,24 @@ def generate_chart_image(chart_type, data, width, height):
             span_y = max_y - min_y
 
             drawing.line(
-                [width / 2, margin, width / 2, height - margin], fill="black", width=1
+                [
+                    margin + (total_width * (-100 - min_x) / span_x),
+                    margin + (total_height - total_height * (0 - min_y) / span_y),
+                    margin + (total_width * (100 - min_x) / span_x),
+                    margin + (total_height - total_height * (0 - min_y) / span_y),
+                ],
+                fill="black",
+                width=1,
             )
             drawing.line(
-                [margin, height / 2, width - margin, height / 2], fill="black", width=1
+                [
+                    margin + (total_width * (0 - min_x) / span_x),
+                    margin + (total_height - total_height * (-100 - min_y) / span_y),
+                    margin + (total_width * (0 - min_x) / span_x),
+                    margin + (total_height - total_height * (100 - min_y) / span_y),
+                ],
+                fill="black",
+                width=1,
             )
 
             for count, [x, y] in enumerate(zip(trace["x"], trace["y"])):
