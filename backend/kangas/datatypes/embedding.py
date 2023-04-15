@@ -28,7 +28,7 @@ class Embedding(Asset):
     def __init__(
         self,
         embedding=None,
-        label=None,
+        name=None,
         text=None,
         color=None,
         projection="pca",
@@ -43,8 +43,8 @@ class Embedding(Asset):
 
         Args:
             embedding: a vector (list of numbers)
-            label: (str) a label that provides the color and label of this
-                embedding's point, if color is not given (below)
+            name: (str) a name that provides the color (if not given below) and
+                set name to which this embedding point belongs
             text: (str) text that will show when you hover over point in expanded
                 view
             color: (str) a string that represents a color for the chart, typically
@@ -61,7 +61,7 @@ class Embedding(Asset):
         >>> dg = kg.DataGrid()
         >>> for row in rows:
         >>>     target = row[0]
-        >>>     kg.append([kg.Embedding(row[1:], label=target)])
+        >>>     kg.append([kg.Embedding(row[1:], name=target)])
         >>> dg.save("embeddings.datagrid")
         ```
         """
@@ -79,10 +79,10 @@ class Embedding(Asset):
             return
 
         if color is None:
-            if label:
-                color = get_color(label)
+            if name:
+                color = get_color(name)
 
-        self.metadata["label"] = label
+        self.metadata["name"] = name
         self.metadata["text"] = text
         self.metadata["color"] = color
         self.metadata["projection"] = projection
@@ -94,7 +94,7 @@ class Embedding(Asset):
                     self.asset_data = json.dumps(
                         {
                             "vector": io_object.read(),
-                            "label": label,
+                            "name": name,
                             "color": color,
                             "text": text,
                         }
@@ -105,7 +105,7 @@ class Embedding(Asset):
                 raise ValueError("file not found: %r" % file_name)
         else:
             self.asset_data = json.dumps(
-                {"vector": embedding, "label": label, "color": color, "text": text}
+                {"vector": embedding, "name": name, "color": color, "text": text}
             )
         if metadata:
             self.metadata.update(metadata)

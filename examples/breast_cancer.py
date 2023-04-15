@@ -55,51 +55,49 @@ normalized_pca = []
 normalized_t_sne = []
 standardized_pca = []
 standardized_t_sne = []
-labels = []
+names = []
 
-names = list(df.columns)
+col_names = list(df.columns)
 for index, column in df.iterrows():
     # Everything, but target:
     # Scale the data
-    normalized_data = [normalize(row, names[i + 1]) for i, row in enumerate(column[1:])]
+    normalized_data = [
+        normalize(row, col_names[i + 1]) for i, row in enumerate(column[1:])
+    ]
     standardized_data = [
-        standardize(row, names[i + 1]) for i, row in enumerate(column[1:])
+        standardize(row, col_names[i + 1]) for i, row in enumerate(column[1:])
     ]
     data = [row for i, row in enumerate(column[1:])]
-    # The target is the label:
-    label = str(int(column[0]))
-    labels.append(label)
+    # The target is the name:
+    name = str(int(column[0]))
+    names.append(name)
     # PCA:
-    pca.append(kg.Embedding(data, label=label, text=str(index + 1), projection="pca"))
+    pca.append(kg.Embedding(data, name=name, text=str(index + 1), projection="pca"))
     normalized_pca.append(
-        kg.Embedding(
-            normalized_data, label=label, text=str(index + 1), projection="pca"
-        )
+        kg.Embedding(normalized_data, name=name, text=str(index + 1), projection="pca")
     )
     standardized_pca.append(
         kg.Embedding(
-            standardized_data, label=label, text=str(index + 1), projection="pca"
+            standardized_data, name=name, text=str(index + 1), projection="pca"
         )
     )
     # t-SNE:
-    t_sne.append(
-        kg.Embedding(data, label=label, text=str(index + 1), projection="t-sne")
-    )
+    t_sne.append(kg.Embedding(data, name=name, text=str(index + 1), projection="t-sne"))
     normalized_t_sne.append(
         kg.Embedding(
-            normalized_data, label=label, text=str(index + 1), projection="t-sne"
+            normalized_data, name=name, text=str(index + 1), projection="t-sne"
         )
     )
     standardized_t_sne.append(
         kg.Embedding(
-            standardized_data, label=label, text=str(index + 1), projection="t-sne"
+            standardized_data, name=name, text=str(index + 1), projection="t-sne"
         )
     )
 
 dg = kg.read_dataframe(df, name="breast-cancer")
 dg.append_columns(
     {
-        "Label": labels,
+        "Label": names,
         "PCA": pca,
         "Normalized PCA": normalized_pca,
         "Standardized PCA": standardized_pca,

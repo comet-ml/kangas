@@ -2217,9 +2217,7 @@ def process_projection_asset_ids(
         values=values,
     )
 
-    vectors = []
-    colors = []
-    texts = []
+    trace_data = {}
     for asset_data_row in cur.execute(sql):
         asset_data_raw = asset_data_row[0]
         asset_data = json.loads(asset_data_raw)
@@ -2231,24 +2229,47 @@ def process_projection_asset_ids(
         else:
             color = default_color
 
-        texts.append(asset_data.get("text"))
-        vectors.append(vector)
-        colors.append(color)
+        if name:
+            trace_name = name
+        else:
+            trace_name = asset_data.get("name", "Grouped")
 
-    eigen_vector = projection.transform(np.array(vectors))
-    xs = eigen_vector[:, 0].tolist()
-    ys = eigen_vector[:, 1].tolist()
+        if trace_name not in trace_data:
+            trace_data[trace_name] = {"vectors": [], "colors": [], "texts": []}
 
-    trace = {
-        "x": xs,
-        "y": ys,
-        "type": "scatter",
-        "mode": "markers",
-        "text": texts if any(texts) else name,
-        "name": name,
-        "marker": {"size": 3, "color": colors},
-    }
-    traces.append(trace)
+        trace_data[trace_name]["texts"].append(asset_data.get("text"))
+        trace_data[trace_name]["vectors"].append(vector)
+        trace_data[trace_name]["colors"].append(color)
+
+    for trace_name in trace_data:
+        vectors = trace_data[trace_name]["vectors"]
+        texts = trace_data[trace_name]["texts"]
+        colors = trace_data[trace_name]["colors"]
+
+        eigen_vector = projection.transform(np.array(vectors))
+        xs = eigen_vector[:, 0].tolist()
+        ys = eigen_vector[:, 1].tolist()
+
+        if texts:
+            if any(texts):
+                text_set = set(texts)
+                if len(text_set) == 1:
+                    texts = list(text_set)[0]
+            else:
+                texts = None
+        else:
+            texts = None
+
+        trace = {
+            "x": xs,
+            "y": ys,
+            "type": "scatter",
+            "mode": "markers",
+            "text": texts,
+            "name": trace_name,
+            "marker": {"size": 3, "color": colors},
+        }
+        traces.append(trace)
 
 
 def select_projection_data(
@@ -2333,7 +2354,7 @@ def select_projection_data(
             "x": [round(vector[0][0], 3)],
             "y": [round(vector[0][1], 3)],
             "text": text,
-            "name": column_name,
+            "name": text,
             "color": [color],
             "type": "scatter",
             "mode": "markers",
@@ -2362,7 +2383,7 @@ def select_projection_data(
                         values = values[column_offset : column_offset + column_limit]
 
                     process_projection_asset_ids(
-                        column_name,
+                        None,
                         cur,
                         values,
                         projection_name,
@@ -2604,8 +2625,39 @@ def generate_chart_image(chart_type, data, width, height):
     image = PIL.Image.new("RGBA", (width, height))
 
     drawing = PIL.ImageDraw.Draw(image)
-    max_x, min_x = None, None
-    max_y, min_y = None, None
+    max_x, min_x = float("-inf"), float("inf")
+    max_y, min_y = float("-inf"), float("inf")
+
+    for trace in data:
+        if "y" not in trace or len(trace["y"]) == 0:
+            continue
+        if "x" not in trace or len(trace["x"]) == 0:
+            continue
+
+        min_x, max_x = min(min([float(x) for x in trace["x"]]), min_x), max(
+            max([float(x) for x in trace["x"]]), max_x
+        )
+        min_y, max_y = min(min([float(y) for y in trace["y"]]), min_y), max(
+            max([float(y) for y in trace["y"]]), max_y
+        )
+
+    if max_x == float("-inf") or min_x == float("inf"):
+        # May not be needed
+        max_x, min_x = 0, 0
+
+    if max_y == float("-inf") or min_y == float("inf"):
+        # May not be needed
+        max_y, min_y = 0, 0
+
+    if min_x == max_x:
+        min_x, max_x = min_x - 1, max_x + 1
+
+    if min_y == max_y:
+        min_y, max_y = min_y - 1, max_y + 1
+
+    span_x = max_x - min_x
+    span_y = max_y - min_y
+    initialized = False
 
     for trace in data:
         if chart_type == "category":
@@ -2613,16 +2665,12 @@ def generate_chart_image(chart_type, data, width, height):
                 continue
             spacing = height / len(trace["x"])
             margin = max(spacing * 0.20, 1)
-            max_x = max(trace["x"])
-
-            if max_x == 0:
-                continue
 
             for count, [x, y, color] in enumerate(
                 zip(trace["x"], trace["y"], trace["marker"]["color"])
             ):
                 position = len(trace["x"]) - count - 1
-                x0, y0 = (0, position * spacing)
+                x0, y0 = (0, position * spacing + margin)
                 x1, y1 = (width * x / max_x), ((position + 1) * spacing - margin)
                 x0, x1 = min(x0, x1), max(x0, x1)
                 y0, y1 = min(y0, y1), max(y0, y1)
@@ -2636,11 +2684,7 @@ def generate_chart_image(chart_type, data, width, height):
                 continue
             spacing = width / len(trace["y"])
             margin = max(spacing * 0.20, 1)
-            max_y = max(trace["y"])
             color = trace["marker"]["color"]
-
-            if max_y == 0:
-                continue
 
             for count, [x, y] in enumerate(zip(trace["x"], trace["y"])):
                 position = count
@@ -2659,42 +2703,35 @@ def generate_chart_image(chart_type, data, width, height):
             if "y" not in trace or len(trace["y"]) == 0:
                 continue
 
-            if max_x is None:
-                min_x, max_x = min(trace["x"]), max(trace["x"])
-                min_y, max_y = min(trace["y"]), max(trace["y"])
-
-            span_x = max_x - min_x
-            span_y = max_y - min_y
-
             radius = trace["marker"]["size"] / 2
             colors = trace["marker"]["color"]
             margin = 5
 
             total_width = width - margin * 2
             total_height = height - margin * 2
-            span_x = max_x - min_x
-            span_y = max_y - min_y
 
-            drawing.line(
-                [
-                    margin + (total_width * (-1000 - min_x) / span_x),
-                    margin + (total_height - total_height * (0 - min_y) / span_y),
-                    margin + (total_width * (1000 - min_x) / span_x),
-                    margin + (total_height - total_height * (0 - min_y) / span_y),
-                ],
-                fill="black",
-                width=1,
-            )
-            drawing.line(
-                [
-                    margin + (total_width * (0 - min_x) / span_x),
-                    margin + (total_height - total_height * (-1000 - min_y) / span_y),
-                    margin + (total_width * (0 - min_x) / span_x),
-                    margin + (total_height - total_height * (1000 - min_y) / span_y),
-                ],
-                fill="black",
-                width=1,
-            )
+            if not initialized:
+                initialized = True
+                drawing.line(
+                    [
+                        margin,
+                        margin + (total_height - total_height * (0 - min_y) / span_y),
+                        margin + total_width,
+                        margin + (total_height - total_height * (0 - min_y) / span_y),
+                    ],
+                    fill="black",
+                    width=1,
+                )
+                drawing.line(
+                    [
+                        margin + (total_width * (0 - min_x) / span_x),
+                        margin,
+                        margin + (total_width * (0 - min_x) / span_x),
+                        margin + total_height,
+                    ],
+                    fill="black",
+                    width=1,
+                )
 
             for count, [x, y] in enumerate(zip(trace["x"], trace["y"])):
                 if isinstance(colors, list):
