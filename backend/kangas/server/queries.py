@@ -2219,6 +2219,7 @@ def process_projection_asset_ids(
 
     vectors = []
     colors = []
+    texts = []
     for asset_data_row in cur.execute(sql):
         asset_data_raw = asset_data_row[0]
         asset_data = json.loads(asset_data_raw)
@@ -2230,6 +2231,7 @@ def process_projection_asset_ids(
         else:
             color = default_color
 
+        texts.append(asset_data.get("text"))
         vectors.append(vector)
         colors.append(color)
 
@@ -2237,16 +2239,16 @@ def process_projection_asset_ids(
     xs = eigen_vector[:, 0].tolist()
     ys = eigen_vector[:, 1].tolist()
 
-    traces.append(
-        {
-            "x": xs,
-            "y": ys,
-            "type": "scatter",
-            "mode": "markers",
-            "name": name,
-            "marker": {"size": 3, "color": colors},
-        }
-    )
+    trace = {
+        "x": xs,
+        "y": ys,
+        "type": "scatter",
+        "mode": "markers",
+        "text": texts if any(texts) else name,
+        "name": name,
+        "marker": {"size": 3, "color": colors},
+    }
+    traces.append(trace)
 
 
 def select_projection_data(
@@ -2325,17 +2327,19 @@ def select_projection_data(
             color = asset_data["color"]
         else:
             color = default_color
-        traces.append(
-            {
-                "x": [round(vector[0][0], 3)],
-                "y": [round(vector[0][1], 3)],
-                "name": column_name,
-                "color": [color],
-                "type": "scatter",
-                "mode": "markers",
-                "marker": {"size": 12, "color": color},
-            }
-        )
+        text = asset_data.get("text", column_name)
+
+        trace = {
+            "x": [round(vector[0][0], 3)],
+            "y": [round(vector[0][1], 3)],
+            "text": text,
+            "name": column_name,
+            "color": [color],
+            "type": "scatter",
+            "mode": "markers",
+            "marker": {"size": 12, "color": color},
+        }
+        traces.append(trace)
     else:
         key = (
             "selection",

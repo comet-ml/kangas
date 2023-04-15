@@ -29,6 +29,8 @@ class Embedding(Asset):
         self,
         embedding=None,
         label=None,
+        text=None,
+        color=None,
         projection="pca",
         include=True,
         file_name=None,
@@ -41,7 +43,12 @@ class Embedding(Asset):
 
         Args:
             embedding: a vector (list of numbers)
-            label: (str) a label that provides the color of this embedding's point
+            label: (str) a label that provides the color and label of this
+                embedding's point, if color is not given (below)
+            text: (str) text that will show when you hover over point in expanded
+                view
+            color: (str) a string that represents a color for the chart, typically
+                given as a "#rrggbb" hex string where "rr" is between "00" and "ff".
             projection: (str) the type of projection either 'pca' or 't-sne'
             include: (bool) whether to include this vector when determining the
                 projection. Useful if you want to see one part of the datagrid in
@@ -71,12 +78,12 @@ class Embedding(Asset):
                 self._log_metadata(**metadata)
             return
 
-        if label:
-            color = get_color(label)
-        else:
-            color = None
+        if color is None:
+            if label:
+                color = get_color(label)
 
         self.metadata["label"] = label
+        self.metadata["text"] = text
         self.metadata["color"] = color
         self.metadata["projection"] = projection
         self.metadata["include"] = include
@@ -85,7 +92,12 @@ class Embedding(Asset):
             if is_valid_file_path(file_name):
                 with open(file_name, "r") as io_object:
                     self.asset_data = json.dumps(
-                        {"vector": io_object.read(), "label": label, "color": color}
+                        {
+                            "vector": io_object.read(),
+                            "label": label,
+                            "color": color,
+                            "text": text,
+                        }
                     )
                 self.metadata["extension"] = get_file_extension(file_name)
                 self.metadata["filename"] = file_name
@@ -93,7 +105,7 @@ class Embedding(Asset):
                 raise ValueError("file not found: %r" % file_name)
         else:
             self.asset_data = json.dumps(
-                {"vector": embedding, "label": label, "color": color}
+                {"vector": embedding, "label": label, "color": color, "text": text}
             )
         if metadata:
             self.metadata.update(metadata)

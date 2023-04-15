@@ -70,18 +70,30 @@ for index, column in df.iterrows():
     label = str(int(column[0]))
     labels.append(label)
     # PCA:
-    pca.append(kg.Embedding(data, label=label, projection="pca"))
-    normalized_pca.append(kg.Embedding(normalized_data, label=label, projection="pca"))
+    pca.append(kg.Embedding(data, label=label, text=str(index + 1), projection="pca"))
+    normalized_pca.append(
+        kg.Embedding(
+            normalized_data, label=label, text=str(index + 1), projection="pca"
+        )
+    )
     standardized_pca.append(
-        kg.Embedding(standardized_data, label=label, projection="pca")
+        kg.Embedding(
+            standardized_data, label=label, text=str(index + 1), projection="pca"
+        )
     )
     # t-SNE:
-    t_sne.append(kg.Embedding(data, label=label, projection="t-sne"))
+    t_sne.append(
+        kg.Embedding(data, label=label, text=str(index + 1), projection="t-sne")
+    )
     normalized_t_sne.append(
-        kg.Embedding(normalized_data, label=label, projection="t-sne")
+        kg.Embedding(
+            normalized_data, label=label, text=str(index + 1), projection="t-sne"
+        )
     )
     standardized_t_sne.append(
-        kg.Embedding(standardized_data, label=label, projection="t-sne")
+        kg.Embedding(
+            standardized_data, label=label, text=str(index + 1), projection="t-sne"
+        )
     )
 
 dg = kg.read_dataframe(df, name="breast-cancer")
