@@ -2308,7 +2308,15 @@ def select_projection_data(
     traces = []
     if asset_id:
         # First, add some points to provide context:
-        key = ("sampled", dgid, timestamp, column_name, where_expr)
+        key = (
+            "sampled",
+            dgid,
+            timestamp,
+            column_name,
+            column_value,
+            group_by,
+            where_expr,
+        )
         if not PROJECTION_TRACE_CACHE.contains(key):
             rows = select_query_raw(
                 cur,
