@@ -124,7 +124,6 @@ class Embedding(Asset):
         other = None
         name = col_name
 
-        kwargs = {}
         projection = None
         batch = []
         for row in datagrid.conn.execute(
@@ -140,48 +139,53 @@ class Embedding(Asset):
             vectors = embedding["vector"]
             vector = flatten(vectors)
 
+            batch.append(vector)
             if row[2] is None or row[2] == "pca":
-                if projection is None:
-                    from sklearn.decomposition import IncrementalPCA
-
-                    projection = IncrementalPCA(**kwargs)
-                    projection_name = "pca"
-                batch.append(vector)
-                if len(batch) == 10:
-                    projection.partial_fit(batch)
-                    batch = []
+                projection_name = "pca"
             elif row[2] == "t-sne":
-                if projection is None:
-                    from openTSNE import TSNE
-
-                    projection = TSNE()
-                    projection_name = "t-sne"
-                batch.append(vector)
+                projection_name = "t-sne"
             elif row[2] == "umap":
-                if projection is None:
-                    projection_name = "umap"
-            else:
-                raise Exception(
-                    "unknown projection %r; should be 'pca', 't-sne', or 'umap'"
-                    % row[2]
-                )
+                projection_name = "umap"
 
         if projection_name == "pca":
-            if len(batch) > 0:
-                projection.partial_fit(batch)
+            from sklearn.decomposition import PCA
+
+            projection = PCA()
+            embedding = projection.fit_transform(np.array(batch))
+            x_max = float(embedding[:, 0].max())
+            x_min = float(embedding[:, 0].min())
+            y_max = float(embedding[:, 1].max())
+            y_min = float(embedding[:, 1].min())
+            x_span = abs(x_max - x_min)
+            x_max += x_span * 0.1
+            x_min -= x_span * 0.1
+            y_span = abs(y_max - y_min)
+            y_max += y_span * 0.1
+            y_min -= y_span * 0.1
             other = json.dumps(
                 {
                     "pca_eigen_vectors": projection.components_.tolist(),
                     "pca_mean": projection.mean_.tolist(),
                     "projection": projection_name,
+                    "x_range": [x_min, x_max],
+                    "y_range": [y_min, y_max],
                 }
             )
         elif projection_name == "t-sne":
+            from openTSNE import TSNE
+
+            projection = TSNE()
             embedding = projection.fit(np.array(batch))
             x_max = float(embedding[:, 0].max())
             x_min = float(embedding[:, 0].min())
             y_max = float(embedding[:, 1].max())
             y_min = float(embedding[:, 1].min())
+            x_span = abs(x_max - x_min)
+            x_max += x_span * 0.1
+            x_min -= x_span * 0.1
+            y_span = abs(y_max - y_min)
+            y_max += y_span * 0.1
+            y_min -= y_span * 0.1
             other = json.dumps(
                 {
                     "projection": projection_name,
@@ -191,6 +195,7 @@ class Embedding(Asset):
                 }
             )
         elif projection_name == "umap":
+            projection_name = (projection_name,)
             other = json.dumps(
                 {
                     "projection": projection_name,
