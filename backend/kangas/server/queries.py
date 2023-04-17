@@ -2634,11 +2634,15 @@ def generate_chart_image(chart_type, data, width, height):
         if "x" not in trace or len(trace["x"]) == 0:
             continue
 
-        min_x, max_x = min(min([float(x) for x in trace["x"]]), min_x), max(
-            max([float(x) for x in trace["x"]]), max_x
+        min_x, max_x = min(
+            min([float(x) if not isinstance(x, str) else 0 for x in trace["x"]]), min_x
+        ), max(
+            max([float(x) if not isinstance(x, str) else 0 for x in trace["x"]]), max_x
         )
-        min_y, max_y = min(min([float(y) for y in trace["y"]]), min_y), max(
-            max([float(y) for y in trace["y"]]), max_y
+        min_y, max_y = min(
+            min([float(y) if not isinstance(y, str) else 0 for y in trace["y"]]), min_y
+        ), max(
+            max([float(y) if not isinstance(y, str) else 0 for y in trace["y"]]), max_y
         )
 
     if max_x == float("-inf") or min_x == float("inf"):
