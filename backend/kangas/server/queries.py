@@ -37,7 +37,13 @@ from ..datatypes.utils import (
     pytype_to_dgtype,
 )
 from .computed_columns import update_state
-from .utils import pickle_loads_embedding, process_about, safe_compile, safe_env
+from .utils import (
+    Cache,
+    pickle_loads_embedding_unsafe,
+    process_about,
+    safe_compile,
+    safe_env,
+)
 
 LOGGER = logging.getLogger(__name__)
 KANGAS_ROOT = os.environ.get("KANGAS_ROOT", ".")
@@ -56,21 +62,8 @@ import math
 
 VALID_CHARS = string.ascii_letters + string.digits + "_"
 
-PROJECTION_SAMPLES_CACHE = {}
-PROJECTION_MAX_SIZE = 100
-
-
-def get_projection_cache(key, value):
-    # Returns a copy of the value list
-    if key not in PROJECTION_SAMPLES_CACHE:
-        # Check size:
-        if len(PROJECTION_SAMPLES_CACHE) >= PROJECTION_MAX_SIZE:
-            # too many
-            first_in_key = list(PROJECTION_SAMPLES_CACHE.keys())[0]
-            # del the first-in
-            del PROJECTION_SAMPLES_CACHE[first_in_key]
-        PROJECTION_SAMPLES_CACHE[key] = value
-    return PROJECTION_SAMPLES_CACHE[key][:]
+PROJECTION_TRACE_CACHE = Cache(100)
+PROJECTION_EMBEDDING_CACHE = Cache(50)
 
 
 def sqlite_query_explain(
@@ -2299,7 +2292,11 @@ def select_projection_data(
         from openTSNE import TSNE  # noqa
 
         ascii_string = metadata[column_name]["other"]["embedding"]
-        projection = pickle_loads_embedding(ascii_string)
+        if not PROJECTION_EMBEDDING_CACHE.contains(ascii_string):
+            PROJECTION_EMBEDDING_CACHE.put(
+                ascii_string, pickle_loads_embedding_unsafe(ascii_string)
+            )
+        projection = PROJECTION_EMBEDDING_CACHE.get(ascii_string)
 
     elif projection_name == "umap":
         pass
@@ -2312,7 +2309,7 @@ def select_projection_data(
     if asset_id:
         # First, add some points to provide context:
         key = ("sampled", dgid, timestamp, column_name, where_expr)
-        if key not in PROJECTION_SAMPLES_CACHE:
+        if not PROJECTION_TRACE_CACHE.contains(key):
             rows = select_query_raw(
                 cur,
                 metadata,
@@ -2337,8 +2334,9 @@ def select_projection_data(
                 default_color,
                 "lightgray",
             )
-        # Traces contains projection data:
-        traces = get_projection_cache(key, traces)
+            PROJECTION_TRACE_CACHE.put(key, traces)
+        # Traces contains projection data; make copy:
+        traces = PROJECTION_TRACE_CACHE.get(key)[:]
 
         # Next, add the selected asset:
         asset_data_raw = select_asset(dgid, asset_id)
@@ -2371,7 +2369,7 @@ def select_projection_data(
             group_by,
             where_expr,
         )
-        if key not in PROJECTION_SAMPLES_CACHE:
+        if not PROJECTION_TRACE_CACHE.contains(key):
             rows = select_group_by_rows(
                 column_name, column_value, group_by, where_expr, metadata, cur
             )
@@ -2392,8 +2390,9 @@ def select_projection_data(
                         3,
                         default_color,
                     )
-        # Traces contains projection data:
-        traces = get_projection_cache(key, traces)
+            PROJECTION_TRACE_CACHE.put(key, traces)
+        # Traces contains projection data; make copy:
+        traces = PROJECTION_TRACE_CACHE.get(key)[:]
     return traces
 
 

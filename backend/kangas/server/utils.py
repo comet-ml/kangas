@@ -282,10 +282,40 @@ def pickle_loads_embedding(ascii_string):
         ("openTSNE.nearest_neighbors", "Annoy"),
     }
     import numpy  # noqa
-    import openTSNE  # noqa
     import openTSNE.tsne  # noqa
-    import scipy  # noqa
+    import scipy.sparse.csr  # noqa
     import sklearn  # noqa
     import sklearn.decomposition  # noqa
 
     return pickle_loads(safe, ascii_string)
+
+
+class Cache:
+    """
+    LRU Cache.
+
+    Note: Make sure you copy retrieved items to avoid
+    changing it in cache.
+    """
+
+    def __init__(self, size):
+        self.cache = {}
+        self.max_size = 100
+
+    def contains(self, key):
+        return key in self.cache
+
+    def put(self, key, value):
+        # Check size:
+        if len(self.cache) >= self.max_size:
+            # too many
+            first_in_key = list(self.cache.keys())[0]
+            # del the first-in
+            del self.cache[first_in_key]
+        self.cache[key] = value
+
+    def get(self, key):
+        return self.cache[key]
+
+    def clear(self):
+        self.cache.clear()
