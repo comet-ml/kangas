@@ -603,7 +603,7 @@ def get_datagrid_chart_image_handler():
     width = int(request.args.get("width", "0"))
 
     image = generate_chart_image_task.apply(
-        args=(chart_type, data, width, height)
+        args=(chart_type, data, width, height, None, None)
     ).get()
 
     response = make_response(image)
@@ -655,8 +655,11 @@ def get_embeddings_as_projection():
             )
         ).get()
         if thumbnail:
+            metadata = select_metadata(dgid)
+            x_range = metadata[column_name]["other"].get("x_range")
+            y_range = metadata[column_name]["other"].get("y_range")
             image = generate_chart_image_task.apply(
-                args=("scatter", projection_data, width, height)
+                args=("scatter", projection_data, width, height, x_range, y_range)
             ).get()
             response = make_response(image)
             response.headers.add("Cache-Control", "max-age=604800")

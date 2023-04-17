@@ -100,12 +100,12 @@ else:
 
 
 @app.task(bind=True)
-def generate_chart_image_task(self, chart_type, data, width, height):
+def generate_chart_image_task(self, chart_type, data, width, height, x_range, y_range):
     try:
         if width == 0:
             width = int(height * 4.5 / 2.75)  # keep same ratio as expanded chart
 
-        image = generate_chart_image(chart_type, data, width, height)
+        image = generate_chart_image(chart_type, data, width, height, x_range, y_range)
 
         return image
     except Exception as e:

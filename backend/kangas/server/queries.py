@@ -2267,7 +2267,7 @@ def process_projection_asset_ids(
             "mode": "markers",
             "text": texts,
             "name": trace_name,
-            "marker": {"size": 3, "color": colors},
+            "marker": {"size": 8, "color": colors},
         }
         traces.append(trace)
 
@@ -2335,7 +2335,7 @@ def select_projection_data(
                 traces,
                 3,
                 default_color,
-                "gray",
+                "lightgray",
             )
         # Traces contains projection data:
         traces = get_projection_cache(key, traces)
@@ -2358,7 +2358,7 @@ def select_projection_data(
             "color": [color],
             "type": "scatter",
             "mode": "markers",
-            "marker": {"size": 12, "color": color},
+            "marker": {"size": 14, "color": color},
         }
         traces.append(trace)
     else:
@@ -2619,39 +2619,46 @@ def get_about(url, dgid):
         return about_text
 
 
-def generate_chart_image(chart_type, data, width, height):
+def generate_chart_image(chart_type, data, width, height, x_range=None, y_range=None):
     # data is a list of plotly traces
     image_data = None
     image = PIL.Image.new("RGBA", (width, height))
 
     drawing = PIL.ImageDraw.Draw(image)
-    max_x, min_x = float("-inf"), float("inf")
-    max_y, min_y = float("-inf"), float("inf")
 
-    for trace in data:
-        if "y" not in trace or len(trace["y"]) == 0:
-            continue
-        if "x" not in trace or len(trace["x"]) == 0:
-            continue
+    if x_range is None and y_range is None:
+        max_x, min_x = float("-inf"), float("inf")
+        max_y, min_y = float("-inf"), float("inf")
+        for trace in data:
+            if "y" not in trace or len(trace["y"]) == 0:
+                continue
+            if "x" not in trace or len(trace["x"]) == 0:
+                continue
 
-        min_x, max_x = min(
-            min([float(x) if not isinstance(x, str) else 0 for x in trace["x"]]), min_x
-        ), max(
-            max([float(x) if not isinstance(x, str) else 0 for x in trace["x"]]), max_x
-        )
-        min_y, max_y = min(
-            min([float(y) if not isinstance(y, str) else 0 for y in trace["y"]]), min_y
-        ), max(
-            max([float(y) if not isinstance(y, str) else 0 for y in trace["y"]]), max_y
-        )
+            min_x, max_x = min(
+                min([float(x) if not isinstance(x, str) else 0 for x in trace["x"]]),
+                min_x,
+            ), max(
+                max([float(x) if not isinstance(x, str) else 0 for x in trace["x"]]),
+                max_x,
+            )
+            min_y, max_y = min(
+                min([float(y) if not isinstance(y, str) else 0 for y in trace["y"]]),
+                min_y,
+            ), max(
+                max([float(y) if not isinstance(y, str) else 0 for y in trace["y"]]),
+                max_y,
+            )
+        if max_x == float("-inf") or min_x == float("inf"):
+            # May not be needed
+            max_x, min_x = 0, 0
 
-    if max_x == float("-inf") or min_x == float("inf"):
-        # May not be needed
-        max_x, min_x = 0, 0
-
-    if max_y == float("-inf") or min_y == float("inf"):
-        # May not be needed
-        max_y, min_y = 0, 0
+        if max_y == float("-inf") or min_y == float("inf"):
+            # May not be needed
+            max_y, min_y = 0, 0
+    else:
+        min_x, max_x = x_range
+        min_y, max_y = y_range
 
     if min_x == max_x:
         min_x, max_x = min_x - 1, max_x + 1

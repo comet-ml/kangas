@@ -178,8 +178,17 @@ class Embedding(Asset):
             )
         elif projection_name == "t-sne":
             embedding = projection.fit(np.array(batch))
+            x_max = float(embedding[:, 0].max())
+            x_min = float(embedding[:, 0].min())
+            y_max = float(embedding[:, 1].max())
+            y_min = float(embedding[:, 1].min())
             other = json.dumps(
-                {"projection": projection_name, "embedding": pickle_dumps(embedding)}
+                {
+                    "projection": projection_name,
+                    "embedding": pickle_dumps(embedding),
+                    "x_range": [x_min, x_max],
+                    "y_range": [y_min, y_max],
+                }
             )
         elif projection_name == "umap":
             other = json.dumps(
