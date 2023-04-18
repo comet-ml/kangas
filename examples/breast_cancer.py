@@ -51,10 +51,10 @@ def standardize(value, name):
 # Create the datagrid:
 pca = []
 t_sne = []
-normalized_pca = []
-normalized_t_sne = []
-standardized_pca = []
-standardized_t_sne = []
+# normalized_pca = []
+# normalized_t_sne = []
+# standardized_pca = []
+# standardized_t_sne = []
 names = []
 
 col_names = list(df.columns)
@@ -73,6 +73,11 @@ for index, column in df.iterrows():
     names.append(name)
     # PCA:
     pca.append(kg.Embedding(data, name=name, text=str(index + 1), projection="pca"))
+    # t-SNE:
+    t_sne.append(kg.Embedding(data, name=name, text=str(index + 1), projection="t-sne"))
+
+    """
+    # PCA:
     normalized_pca.append(
         kg.Embedding(normalized_data, name=name, text=str(index + 1), projection="pca")
     )
@@ -93,17 +98,17 @@ for index, column in df.iterrows():
             standardized_data, name=name, text=str(index + 1), projection="t-sne"
         )
     )
-
+    """
 dg = kg.read_dataframe(df, name="breast-cancer")
 dg.append_columns(
     {
         "Label": names,
         "PCA": pca,
-        "Normalized PCA": normalized_pca,
-        "Standardized PCA": standardized_pca,
+        # "Normalized PCA": normalized_pca,
+        # "Standardized PCA": standardized_pca,
         "t-SNE": t_sne,
-        "Normalized t-SNE": normalized_t_sne,
-        "Standardized t-SNE": standardized_t_sne,
+        # "Normalized t-SNE": normalized_t_sne,
+        # "Standardized t-SNE": standardized_t_sne,
         "All": [1] * len(pca),
     }
 )
