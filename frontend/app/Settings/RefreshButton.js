@@ -24,6 +24,7 @@ const RefreshButton = ({ query }) => {
             filter: undefined,
             descending: undefined,
             select: undefined,
+	    cc: undefined,
             begin: Math.max(view?.start, 0),
             boundary: view?.stop
         });

@@ -28,6 +28,7 @@ const MatrixSelect = ({ query, options=['blah'] }) => {
             page: undefined,
             rows: undefined,
             select: undefined,
+	    cc: undefined,
         });
     }, [updateParams]);
 
