@@ -45,7 +45,8 @@ const Page = async ({ searchParams }) => {
         rows,
         select,
         boundary,
-        begin
+        begin,
+	cc
     } = searchParams;
 
     // Limit and offset are always set; get base or view defaults:
@@ -64,10 +65,16 @@ const Page = async ({ searchParams }) => {
         offset,
         limit,
         boundary,
-        begin
+        begin,
     };
 
     if (!!datagrid) query.timestamp = await fetchTimestamp(datagrid);
+
+    if (!!cc) {
+	const ccParts = cc.split(',');
+	const fieldExpr = ccParts[1].replace(/\{"([^]*)"\}/g, "{'$1'}");
+	query.computedColumns = {[ccParts[0]]: {field_expr: fieldExpr, type: ccParts[2]}};
+    }
 
     return (
         <div>
