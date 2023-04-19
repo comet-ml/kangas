@@ -61,6 +61,12 @@ const Page = async ({ searchParams }) => {
         sortBy: sort,
         sortDesc: descending === 'true',
         select: select?.split(','),
+        computedColumns: {
+            'Small Row IDs': {
+                field_expr: '{"row-id"} < 100',
+                type: "BOOLEAN",
+            }
+        },
         offset,
         limit,
         boundary,

@@ -20,7 +20,7 @@ const cx = classNames.bind(styles);
 const SettingsBar = async ({ query }) => {
     const status = await fetchStatus(true);
     const options = await fetchDatagrids();
-    const completions = await fetchCompletions(query?.dgid, query?.timestamp);
+    const completions = await fetchCompletions(query?.dgid, query?.timestamp, query?.computedColumns);
     const firstRow = await fetchDataGrid( { ...query, select: null, limit: 1, offset: 0} );
 
     return (

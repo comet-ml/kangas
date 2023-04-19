@@ -17,6 +17,7 @@ import logging
 import os
 import platform
 import sys
+from urllib.parse import unquote
 
 import waitress
 from flask import Flask, make_response, request, send_file
@@ -170,7 +171,7 @@ def get_datagrid_category_handler():
     column_value = get_column_value(request.args.get("columnValue", None))
     where_description = request.args.get("whereDescription", where)
     where_expr = request.args.get("whereExpr", where)
-    computed_columns = request.args.get("computedColumns", None)
+    computed_columns = json.loads(unquote(request.args.get("computedColumns", "null")))
     where_expr = where_expr.strip() if where_expr else None
 
     if ensure_datagrid_path(dgid):
@@ -212,7 +213,7 @@ def get_datagrid_histogram_handler():
     column_value = get_column_value(request.args.get("columnValue", None))
     where_description = request.args.get("whereDescription", where)
     where_expr = request.args.get("whereExpr", where)
-    computed_columns = request.args.get("computedColumns", None)
+    computed_columns = json.loads(unquote(request.args.get("computedColumns", "null")))
 
     if ensure_datagrid_path(dgid):
         results = select_histogram_task.apply(
@@ -239,7 +240,7 @@ def get_datagrid_query_total_handler():
     dgid = request.args.get("dgid")
     # Optional:
     group_by = request.args.get("groupBy", None)
-    computed_columns = request.args.get("computedColumns", None)
+    computed_columns = json.loads(unquote(request.args.get("computedColumns", "null")))
     where_expr = request.args.get("whereExpr", None)
     where_expr = where_expr.strip() if where_expr else None
 
@@ -267,10 +268,8 @@ def get_datagrid_query_page_handler():
     group_by = request.args.get("groupBy", None)
     sort_by = request.args.get("sortBy", None)
     sort_desc = request.args.get("sortDesc", "false") == "true"
-    select = request.args.get("select", None)
-    if select:
-        select = select.split(",")
-    computed_columns = request.args.get("computedColumns", None)
+    select = json.loads(unquote(request.args.get("select", "null")))
+    computed_columns = json.loads(unquote(request.args.get("computedColumns", "null")))
     where = request.args.get("where", None)
     where_expr = request.args.get("whereExpr", None)
     where_expr = where_expr.strip() if where_expr else None
@@ -305,7 +304,7 @@ def get_datagrid_description_handler():
     if select:
         select = select.split(",")
 
-    computed_columns = request.args.get("computedColumns", None)
+    computed_columns = json.loads(unquote(request.args.get("computedColumns", "null")))
     column_name = request.args.get("columnName", None)
     column_value = get_column_value(request.args.get("columnValue", None))
     where = request.args.get("where", None)
@@ -433,7 +432,7 @@ def get_datagrid_asset_group_handler():
     column_offset = int(request.args.get("columnOffset", "0"))
     column_limit = request.args.get("columnLimit", None)
     where_expr = request.args.get("whereExpr", where)
-    computed_columns = request.args.get("computedColumns", None)
+    computed_columns = json.loads(unquote(request.args.get("computedColumns", "null")))
     where_expr = where_expr.strip() if where_expr else None
     return_url = request.args.get("returnUrl", "false") == "true"
 
@@ -477,7 +476,7 @@ def get_datagrid_asset_group_metadata_handler():
     column_offset = int(request.args.get("columnOffset", "0"))
     column_limit = request.args.get("columnLimit", None)
     where_expr = request.args.get("whereExpr", where)
-    computed_columns = request.args.get("computedColumns", None)
+    computed_columns = json.loads(unquote(request.args.get("computedColumns", "null")))
     where_expr = where_expr.strip() if where_expr else None
     distinct = request.args.get("distinct", "true") == "true"
 
@@ -513,19 +512,11 @@ def get_datagrid_asset_group_thumbnail_handler():
     column_value = get_column_value(request.args.get("columnValue", None))
     column_offset = int(request.args.get("columnOffset", "0"))
     where_expr = request.args.get("whereExpr", where)
-    computed_columns = request.args.get("computedColumns", None)
+    computed_columns = json.loads(unquote(request.args.get("computedColumns", "null")))
     where_expr = where_expr.strip() if where_expr else None
-    gallery_size = request.args.get("gallerySize", None)
-    if gallery_size:
-        gallery_size = [int(n) for n in gallery_size.split(",")]
-    image_size = request.args.get("imageSize", None)
-    if image_size:
-        image_size = [int(n) for n in image_size.split(",")]
-    else:
-        image_size = THUMBNAIL_SIZE
-    background_color = request.args.get("backgroundColor", None)
-    if background_color:
-        background_color = [int(n) for n in background_color.split(",")]
+    gallery_size = json.loads(unquote(request.args.get("gallerySize", "[]")))
+    image_size = json.loads(unquote(request.args.get("imageSize", str(THUMBNAIL_SIZE))))
+    background_color = json.loads(unquote(request.args.get("backgroundColor", "null")))
     border_width = int(request.args.get("borderWidth", "1"))
     return_url = request.args.get("returnUrl", "false") == "true"
     distinct = True
@@ -565,7 +556,7 @@ def get_datagrid_asset_group_thumbnail_handler():
 def get_datagrid_verify_where_handler():
     # Required:
     dgid = request.args.get("dgid")
-    computed_columns = request.args.get("computedColumns", None)
+    computed_columns = json.loads(unquote(request.args.get("computedColumns", "null")))
     where_expr = request.args.get("whereExpr", None)
     where_expr = where_expr.strip() if where_expr else None
 
@@ -585,9 +576,10 @@ def get_datagrid_verify_where_handler():
 def get_datagrid_completions_handler():
     # Required:
     dgid = request.args.get("dgid")
+    computed_columns = json.loads(unquote(request.args.get("computedColumns", "null")))
 
     if ensure_datagrid_path(dgid):
-        results = get_completions(dgid)
+        results = get_completions(dgid, computed_columns)
         return results
     else:
         return error(404)
@@ -641,6 +633,7 @@ def get_embeddings_as_projection():
     thumbnail = request.args.get("thumbnail", "false") == "true"
     height = int(request.args.get("height", "116"))
     width = int(request.args.get("width", "0"))
+    computed_columns = json.loads(unquote(request.args.get("computedColumns", "null")))
 
     if ensure_datagrid_path(dgid):
         projection_data = select_projection_data_task.apply(
@@ -652,6 +645,7 @@ def get_embeddings_as_projection():
                 column_value,
                 group_by,
                 where_expr,
+                computed_columns,
             )
         ).get()
         if thumbnail:

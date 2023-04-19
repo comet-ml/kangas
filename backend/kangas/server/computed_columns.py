@@ -641,3 +641,21 @@ def update_state(
         select_expr_as.append(sub_select)
 
     return where_sql
+
+
+def unify_computed_columns(computed_columns):
+    if computed_columns:
+        # Turn quick form into full form.
+        # Updates computed_columns in place
+        for i, (column_name, expr) in enumerate(computed_columns.items()):
+            if isinstance(expr, str):
+                computed_columns[column_name] = {
+                    "field_expr": expr,
+                    "field_name": "cc%d" % i,
+                    "type": "TEXT",
+                }
+            else:
+                if "type" not in computed_columns[column_name]:
+                    computed_columns[column_name]["type"] = "TEXT"
+                if "field_name" not in computed_columns[column_name]:
+                    computed_columns[column_name]["field_name"] = "cc%d" % i

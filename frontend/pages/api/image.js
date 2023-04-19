@@ -1,9 +1,10 @@
 import stream, { Stream } from 'stream';
 import config from '../../config';
+import formatQueryArgs from '../../lib/formatQueryArgs';
 
 const handler = async (req, res) => {
     const { endpoint, ...query } = req.query;
-    const queryString = new URLSearchParams(query).toString();
+    const queryString = formatQueryArgs(query);
     const result = await fetch(`${config.apiUrl}${endpoint}?${queryString}`, { next: { revalidate: 100000 } });
     const image = await result.body;
     const passthrough = new Stream.PassThrough();

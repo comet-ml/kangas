@@ -1,17 +1,11 @@
 import stream, { Stream } from 'stream';
 import config from '../../config';
+import formatQueryArgs from '../../lib/formatQueryArgs';
 
 const handler = async (req, res) => {
-    const query = new URLSearchParams(
-        Object.fromEntries(
-            Object.entries({
-                ...req.query
-            }).filter(([k, v]) => typeof(v) !== 'undefined' && v !== null)
-        )
-    );
-
+    const queryString = formatQueryArgs(req.query);
     const result = await fetch(
-        `${config.apiUrl}embeddings-as-pca?${query.toString()}`,
+        `${config.apiUrl}embeddings-as-pca?${queryString}`,
         { next: { revalidate: 10000 } }
     );
 

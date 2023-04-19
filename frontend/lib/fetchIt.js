@@ -1,4 +1,5 @@
 import config from '../config';
+import formatQueryArgs from './formatQueryArgs';
 
 const fetchIt = async ({
     url,
@@ -18,14 +19,11 @@ const fetchIt = async ({
     };
 
     if (method === 'GET') {
-        queryArgs = new URLSearchParams(
-            Object.fromEntries(
-                Object.entries({
-                    ...query,
-                    returnUrl: returnUrl ? true : undefined
-                }).filter(([k, v]) => typeof(v) !== 'undefined' && v !== null)
-            )
-        ).toString();
+        const args = {
+            ...query,
+            returnUrl,
+        };
+        queryArgs = formatQueryArgs(args);
     } else {
         request.body = JSON.stringify(query);
     }
