@@ -1,5 +1,4 @@
-> This is a Jupyter Notebook example using Kangas. You can open and run it in <a href="https://colab.research.google.com/github/comet-ml/kangas/blob/main/notebooks/DataGrid-Getting%20Started.ipynb">Google's Colab</a>. If you appreciate this project, give us a star!
-
+> This is a Jupyter Notebook example using Kangas. You can open and run it in <a href="https://colab.research.google.com/github/comet-ml/kangas/blob/main/notebooks/PandasVsKangas.ipynb">Google's Colab</a>. If you appreciate this project, give us a star!
 ---
 
 # "Make Your Pandas Code Lightning Fast"
@@ -350,6 +349,4 @@ Thanks! You can find out more about Kangas DataGrid here:
 https://github.com/comet-ml/kangas
 
 ---
-
-> This is a Jupyter Notebook example using Kangas. You can open and run it in <a href="https://colab.research.google.com/github/comet-ml/kangas/blob/main/notebooks/DataGrid-Getting%20Started.ipynb">Google's Colab</a>. If you appreciate this project, give us a star!
-
+> This is a Jupyter Notebook example using Kangas. You can open and run it in <a href="https://colab.research.google.com/github/comet-ml/kangas/blob/main/notebooks/PandasVsKangas.ipynb">Google's Colab</a>. If you appreciate this project, give us a star!
