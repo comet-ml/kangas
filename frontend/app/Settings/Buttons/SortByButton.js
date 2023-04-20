@@ -7,7 +7,7 @@ import usePopover from '../../../lib/hooks/usePopover';
 import SelectColumnDropdown from '../../modals/SelectColumnDrowpdown/SelectColumnDropdown';
 const cx = classNames.bind(styles);
 
-const SortByButton = () => {
+const SortByButton = ({columns}) => {
     const { open, toggleOpen, anchor } = usePopover();
     return (
         <>
@@ -28,7 +28,7 @@ const SortByButton = () => {
                 open={open}
                 anchorEl={anchor?.current}
             >
-                <SelectColumnDropdown toggleOpen={toggleOpen} />
+                <SelectColumnDropdown columns={columns} toggleOpen={toggleOpen} />
             </Popover>
         </>
     );

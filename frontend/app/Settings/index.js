@@ -23,6 +23,9 @@ const SettingsBar = async ({ query }) => {
     const completions = await fetchCompletions(query?.dgid, query?.timestamp, query?.computedColumns);
     const firstRow = await fetchDataGrid( { ...query, select: null, limit: 1, offset: 0} );
 
+    // Map of displayed columns to use in sort and group
+    const columns = firstRow?.displayColumns.reduce((a, v) => ({ ...a, [v]: v}), {});
+
     return (
         <div className={cx('settings-bar')}>
             <div className={cx('left-settings-bar')}>
@@ -37,8 +40,8 @@ const SettingsBar = async ({ query }) => {
                 <RefreshButton query={query} />
             </div>
             <div className={cx('right-settings-bar')}>
-                <GroupByButton />
-                <SortByButton />
+                <GroupByButton columns={columns} />
+                <SortByButton columns={columns} />
                 <SelectButton columns={firstRow?.displayColumns} />
                 <ComputedColumnsButton query={query} completions={completions} />
                 <FilterExpr query={query} completions={completions} />
