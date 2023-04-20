@@ -71,9 +71,7 @@ const Page = async ({ searchParams }) => {
     if (!!datagrid) query.timestamp = await fetchTimestamp(datagrid);
 
     if (!!cc) {
-	const ccParts = cc.split(',');
-	const fieldExpr = ccParts[1].replace(/\{"([^]*)"\}/g, "{'$1'}");
-	query.computedColumns = {[ccParts[0]]: {field_expr: fieldExpr, type: ccParts[2]}};
+	query.computedColumns = JSON.parse(cc);
     }
 
     return (
