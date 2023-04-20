@@ -4,10 +4,10 @@ import DialogueModal from '../modals/DialogueModal/DialogueModalClient';
 import fetchStatus from '../../lib/fetchStatus';
 import fetchCompletions from '../../lib/fetchCompletions';
 import MatrixSelect from './MatrixSelectClient';
-import RefreshButton from './RefreshButton';
 import FilterExpr from './FilterExpr';
 import HelpText from './HelpText.js';
-import { KangasButton, AboutDialog, SelectButton, HelpButton, GroupByButton, SortByButton } from './Buttons';
+import { KangasButton, AboutDialog, SelectButton, HelpButton, GroupByButton,
+	 SortByButton, RefreshButton, ComputedColumnsButton } from './Buttons';
 import styles from './SettingsBar.module.scss';
 import classNames from 'classnames/bind';
 import { Suspense } from 'react';
@@ -40,6 +40,7 @@ const SettingsBar = async ({ query }) => {
                 <GroupByButton />
                 <SortByButton />
                 <SelectButton columns={firstRow?.displayColumns} />
+                <ComputedColumnsButton query={query} completions={completions} />
                 <FilterExpr query={query} completions={completions} />
                 <DialogueModal fullScreen={false} toggleElement={<HelpButton />}>
                     <HelpText />

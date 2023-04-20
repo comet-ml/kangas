@@ -78,6 +78,10 @@
     align-items: baseline;
 }
 
+.multi-select-columns-body > .computed-column-textarea {
+    width: 100%;
+}
+
 .multi-select-columns-body .reset {
     font-size: 14px;
     color: #5155F5;

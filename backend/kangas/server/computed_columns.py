@@ -659,3 +659,8 @@ def unify_computed_columns(computed_columns):
                     computed_columns[column_name]["type"] = "TEXT"
                 if "field_name" not in computed_columns[column_name]:
                     computed_columns[column_name]["field_name"] = "cc%d" % i
+                if "expr" in computed_columns[column_name]:
+                    computed_columns[column_name]["field_expr"] = computed_columns[
+                        column_name
+                    ]["expr"]
+                    del computed_columns[column_name]["expr"]
