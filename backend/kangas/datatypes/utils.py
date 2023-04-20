@@ -469,6 +469,8 @@ def generate_image(asset_data):
     from PIL import Image
 
     image = Image.open(io.BytesIO(asset_data))
+    if image.mode not in ["RGBA", "RGB"]:
+        image = image.convert("RGB")
     return image
 
 
