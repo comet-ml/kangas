@@ -17,7 +17,7 @@ const ComputedColumnsModal = ({ query, completions }) => {
         "type": "BOOLEAN"
     }
 }`;
-    const [text, setText] = useState(defaultText);
+    const [text, setText] = useState('');
 
     useEffect(() => {
         if (!!query?.computedColumns)
