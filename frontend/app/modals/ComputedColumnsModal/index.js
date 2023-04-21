@@ -3,12 +3,15 @@
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { ModalContext } from '../../contexts/ModalContext';
 import useQueryParams from '../../../lib/hooks/useQueryParams';
+import formatQueryArgs from '../../../lib/formatQueryArgs';
+import { ConfigContext } from "../../contexts/ConfigContext";
 
 import classNames from 'classnames/bind';
 import styles from '../../Settings/SettingsBar.module.scss';
 const cx = classNames.bind(styles);
 
 const ComputedColumnsModal = ({ columns, query, completions }) => {
+    const { config } = useContext(ConfigContext);
     const { params, updateParams } = useQueryParams();
     const { closeModal } = useContext(ModalContext);
     const defaultText = `{
@@ -39,7 +42,7 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
         setText(event.target.value);
     }, [setText]);
 
-    const apply = useCallback(() => {
+    const apply = useCallback((close=false) => {
         let realJSON = null;
         let textJSON = null;
         if (text !== '') {
@@ -48,32 +51,43 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
                 textJSON = JSON.stringify(realJSON).replace(/\\n/g, '');
             } catch (error) {
                 console.log(`invalid json: ${text}`);
-                return false;
+                return;
             }
         } else {
 	    realJSON = {};
             textJSON = undefined;
         }
-	const myParams = {
-            cc: textJSON
-        };
-	if ((params.group in origJSON) && !(params.group in realJSON)) {
-	    myParams.group = undefined;
-            myParams.page = undefined;
-            myParams.rows = undefined;
-	}
-	if ((params.sort in origJSON) && !(params.sort in realJSON)) {
-	    myParams.sort = undefined;
-	}
-        updateParams(myParams);
-	return true;
-    }, [text, updateParams]);
-
-    const update = useCallback(() => {
-	const result = apply();
-	if (result)
-            closeModal();
-    }, [text, updateParams, closeModal]);
+	// Verify that this works, with (or without) filter:
+        const queryString = formatQueryArgs({
+	    dgid: query?.dgid,
+	    timestamp: query?.timestamp,
+	    where: query?.whereExpr,
+	    computedColumns: realJSON,
+        });
+        fetch(`${config.rootPath}api/filter?${queryString}`,
+	      { next: { revalidate: 10000 }})
+	    .then(res => res.json())
+	    .then(data => {
+		if (data?.valid) {
+		    const myParams = {
+			cc: textJSON
+		    };
+		    if ((params.group in origJSON) && !(params.group in realJSON)) {
+			myParams.group = undefined;
+			myParams.page = undefined;
+			myParams.rows = undefined;
+		    }
+		    if ((params.sort in origJSON) && !(params.sort in realJSON)) {
+			myParams.sort = undefined;
+		    }
+		    updateParams(myParams);
+		    if (close)
+			closeModal();
+		} else {
+		    console.log(`failed to fetch with filter: ${text}`);
+		}
+	    });
+    }, [text, updateParams, params, closeModal]);
 
     return (
             <div className={cx("multi-select-columns")}>
@@ -96,8 +110,8 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
                     <div className={cx("button-row")}>
                         <div className={cx("reset")} onClick={reset}>Template</div>
                         <div className={cx("reset")} onClick={clear}>Clear</div>
-                        <button className={cx('button-outline')} onClick={apply}>Apply</button>
-                        <button className={cx('button')} onClick={update}>Done</button>
+                        <button className={cx('button-outline')} onClick={() => apply(false)}>Apply</button>
+                        <button className={cx('button')} onClick={() => apply(true)}>Done</button>
                     </div>
                 </div>
             </div>
