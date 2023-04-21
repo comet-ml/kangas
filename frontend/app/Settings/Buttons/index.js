@@ -4,6 +4,8 @@ import KangasButton from "./KangasButton";
 import HelpButton from "./HelpButton";
 import GroupByButton from './GroupByButton';
 import SortByButton from "./SortByButton";
+import ComputedColumnsButton from "./ComputedColumnsButton";
+import RefreshButton from "./RefreshButton";
 
 export {
     AboutDialog,
@@ -11,5 +13,7 @@ export {
     KangasButton,
     HelpButton,
     GroupByButton,
-    SortByButton
+    SortByButton,
+    ComputedColumnsButton,
+    RefreshButton,
 }

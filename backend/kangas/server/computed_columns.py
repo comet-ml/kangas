@@ -48,6 +48,7 @@ class Evaluator:
         # Selections keep track of aggregate select clauses
         self.selections = {}
         self.operators = {
+            ast.Mod: "({leftOperand} % {rightOperand})",
             ast.Add: "({leftOperand} + {rightOperand})",
             ast.Sub: "({leftOperand} - {rightOperand})",
             ast.Mult: "({leftOperand} * {rightOperand})",
@@ -641,3 +642,26 @@ def update_state(
         select_expr_as.append(sub_select)
 
     return where_sql
+
+
+def unify_computed_columns(computed_columns):
+    if computed_columns:
+        # Turn quick form into full form.
+        # Updates computed_columns in place
+        for i, (column_name, expr) in enumerate(computed_columns.items()):
+            if isinstance(expr, str):
+                computed_columns[column_name] = {
+                    "field_expr": expr,
+                    "field_name": "cc%d" % i,
+                    "type": "TEXT",
+                }
+            else:
+                if "type" not in computed_columns[column_name]:
+                    computed_columns[column_name]["type"] = "TEXT"
+                if "field_name" not in computed_columns[column_name]:
+                    computed_columns[column_name]["field_name"] = "cc%d" % i
+                if "expr" in computed_columns[column_name]:
+                    computed_columns[column_name]["field_expr"] = computed_columns[
+                        column_name
+                    ]["expr"]
+                    del computed_columns[column_name]["expr"]

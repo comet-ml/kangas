@@ -1,16 +1,10 @@
 import config from '../../config';
+import formatQueryArgs from '../../lib/formatQueryArgs';
 
 const handler = async (req, res) => {
-    const query = new URLSearchParams(
-        Object.fromEntries(
-            Object.entries({
-                ...req.query
-            }).filter(([k, v]) => typeof(v) !== 'undefined' && v !== null)
-        )
-    );
-
-    const result = await fetch(`${config.apiUrl}metadata?${query.toString()}`,
-			       { next: { revalidate: 10000 } });
+    const queryString = formatQueryArgs(req.query);
+    const result = await fetch(`${config.apiUrl}metadata?${queryString}`,
+                               { next: { revalidate: 10000 } });
     const json = await result.json();
     res.send(json);
 }

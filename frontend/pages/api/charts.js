@@ -1,9 +1,9 @@
 import stream, { Stream } from 'stream';
 import config from '../../config';
+import formatQueryArgs from '../../lib/formatQueryArgs';
 
 const handler = async (req, res) => {
-    const { query } = req;
-    const queryString = new URLSearchParams(query).toString();
+    const queryString = formatQueryArgs(req.query);
     const result = await fetch(`${config.apiUrl}chart-image?${queryString}`, { next: { revalidate: 100000 } });
     /*const image = await GoogleChartsNode.render(drawChart, {
         width: 400,

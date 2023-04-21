@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { ConfigContext } from '../../contexts/ConfigContext';
 import { useInView } from "react-intersection-observer";
 import fetchEmbeddingsAsPCA from '../../../lib/fetchEmbeddingsAsPCA';
+import formatQueryArgs from '../../../lib/formatQueryArgs';
 
 const Plot = dynamic(() => import("react-plotly.js"), {
     ssr: false
@@ -93,6 +94,7 @@ const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
                 timestamp: query?.timestamp,
                 columnName,
                 assetId: value?.assetId,
+                computedColumns: query?.computedColumns,
                 whereExpr: value?.whereExpr
             };
         } else {
@@ -101,8 +103,9 @@ const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
                 timestamp: query?.timestamp,
                 columnName,
                 columnValue: value?.columnValue,
-                groupBy: value?.groupBy,
-                whereExpr: value?.whereExpr
+                groupBy: query?.groupBy,
+                computedColumns: query?.computedColumns,
+                whereExpr: query?.whereExpr
             };
         }
     }, [query, value, columnName]);
@@ -119,14 +122,10 @@ const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
     const queryString = useMemo(() => {
         if (!query?.dgid) return;
 
-        return new URLSearchParams(
-            Object.fromEntries(
-                Object.entries({
-                    ...queryParams,
-                    thumbnail: true
-                }).filter(([k, v]) => typeof(v) !== 'undefined' && v !== null)
-            )
-        ).toString();
+        return formatQueryArgs({
+            ...queryParams,
+            thumbnail: true
+        });
     }, [queryParams]);
 
 

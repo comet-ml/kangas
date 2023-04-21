@@ -2,11 +2,11 @@
 
 import CachedIcon from '@mui/icons-material/Cached';
 import { useCallback, useContext } from 'react';
-import useQueryParams from '../../lib/hooks/useQueryParams';
+import useQueryParams from '../../../lib/hooks/useQueryParams';
 
 import styles from './RefreshButton.module.scss';
 import classNames from 'classnames/bind';
-import { ViewContext } from '../contexts/ViewContext';
+import { ViewContext } from '../../contexts/ViewContext';
 const cx = classNames.bind(styles);
 
 const RefreshButton = ({ query }) => {
@@ -24,6 +24,7 @@ const RefreshButton = ({ query }) => {
             filter: undefined,
             descending: undefined,
             select: undefined,
+	    cc: undefined,
             begin: Math.max(view?.start, 0),
             boundary: view?.stop
         });

@@ -125,11 +125,26 @@ def select_asset_metadata_task(self, dgid, asset_id):
 
 @app.task(bind=True)
 def select_projection_data_task(
-    self, dgid, timestamp, asset_id, column_name, column_value, group_by, where_expr
+    self,
+    dgid,
+    timestamp,
+    asset_id,
+    column_name,
+    column_value,
+    group_by,
+    where_expr,
+    computed_columns,
 ):
     try:
         result = select_projection_data(
-            dgid, timestamp, asset_id, column_name, column_value, group_by, where_expr
+            dgid,
+            timestamp,
+            asset_id,
+            column_name,
+            column_value,
+            group_by,
+            where_expr,
+            computed_columns,
         )
         return result
     except Exception as e:

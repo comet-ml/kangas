@@ -4,10 +4,10 @@ import DialogueModal from '../modals/DialogueModal/DialogueModalClient';
 import fetchStatus from '../../lib/fetchStatus';
 import fetchCompletions from '../../lib/fetchCompletions';
 import MatrixSelect from './MatrixSelectClient';
-import RefreshButton from './RefreshButton';
 import FilterExpr from './FilterExpr';
 import HelpText from './HelpText.js';
-import { KangasButton, AboutDialog, SelectButton, HelpButton, GroupByButton, SortByButton } from './Buttons';
+import { KangasButton, AboutDialog, SelectButton, HelpButton, GroupByButton,
+	 SortByButton, RefreshButton, ComputedColumnsButton } from './Buttons';
 import styles from './SettingsBar.module.scss';
 import classNames from 'classnames/bind';
 import { Suspense } from 'react';
@@ -20,8 +20,11 @@ const cx = classNames.bind(styles);
 const SettingsBar = async ({ query }) => {
     const status = await fetchStatus(true);
     const options = await fetchDatagrids();
-    const completions = await fetchCompletions(query?.dgid, query?.timestamp);
+    const completions = await fetchCompletions(query?.dgid, query?.timestamp, query?.computedColumns);
     const firstRow = await fetchDataGrid( { ...query, select: null, limit: 1, offset: 0} );
+
+    // Map of displayed columns to use in sort and group
+    const columns = firstRow?.displayColumns.reduce((a, v) => ({ ...a, [v]: v}), {});
 
     return (
         <div className={cx('settings-bar')}>
@@ -37,9 +40,10 @@ const SettingsBar = async ({ query }) => {
                 <RefreshButton query={query} />
             </div>
             <div className={cx('right-settings-bar')}>
-                <GroupByButton />
-                <SortByButton />
+                <GroupByButton columns={columns} />
+                <SortByButton columns={columns} />
                 <SelectButton columns={firstRow?.displayColumns} />
+                <ComputedColumnsButton columns={columns} query={query} completions={completions} />
                 <FilterExpr query={query} completions={completions} />
                 <DialogueModal fullScreen={false} toggleElement={<HelpButton />}>
                     <HelpText />

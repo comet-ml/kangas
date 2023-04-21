@@ -7,7 +7,7 @@ import usePopover from '../../../lib/hooks/usePopover';
 import SelectColumnDropdown from '../../modals/SelectColumnDrowpdown/SelectColumnDropdown';
 const cx = classNames.bind(styles);
 
-const GroupByButton = () => {
+const GroupByButton = ({columns}) => {
     const { open, toggleOpen, anchor } = usePopover();
     return (
         <>
@@ -28,7 +28,7 @@ const GroupByButton = () => {
                 onClose={toggleOpen}
                 anchorEl={anchor?.current}
             >
-              <SelectColumnDropdown toggleOpen={toggleOpen} group={true} />
+                <SelectColumnDropdown columns={columns} toggleOpen={toggleOpen} group={true} />
             </Popover>
         </>
     );

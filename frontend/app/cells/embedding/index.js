@@ -13,6 +13,7 @@ const EmbeddingCell = async ({ value, query, style, ssr, columnName }) => {
 	    timestamp: query?.timestamp,
 	    columnName,
 	    assetId: value?.assetId,
+	    computedColumns: query?.computedColumns,
 	    whereExpr: value?.whereExpr
         }, ssr) : false;
     } else {
@@ -22,6 +23,7 @@ const EmbeddingCell = async ({ value, query, style, ssr, columnName }) => {
 	    columnName,
 	    columnValue: value?.columnValue,
 	    groupBy: value?.groupBy,
+	    computedColumns: query?.computedColumns,
 	    whereExpr: value?.whereExpr
         }, ssr) : false;
     }

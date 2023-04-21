@@ -36,7 +36,7 @@ from ..datatypes.utils import (
     is_nan,
     pytype_to_dgtype,
 )
-from .computed_columns import update_state
+from .computed_columns import unify_computed_columns, update_state
 from .utils import (
     Cache,
     pickle_loads_embedding_unsafe,
@@ -172,6 +172,7 @@ def sqlite_query(
         raise Exception("file not found: %r" % filename)
 
     add_python_functions(conn)
+    unify_computed_columns(computed_columns)
 
     columns = [
         row[0]
@@ -198,12 +199,6 @@ def sqlite_query(
             )
         }
     )
-
-    if computed_columns:
-        computed_columns = {
-            key: {"field_expr": value, "field_name": "cc%d" % i, "type": "STRING"}
-            for i, (key, value) in enumerate(computed_columns.items())
-        }
 
     select_expr_as = [metadata[column]["field_name"] for column in columns]
     databases = [database]
@@ -536,10 +531,15 @@ def get_database_connection(dgid):
     return conn
 
 
-def get_completions(dgid):
+def get_completions(dgid, computed_columns):
     db_path = get_dg_path(dgid)
     conn = sqlite3.connect(db_path)
-    rows = conn.execute("SELECT name, other, type from metadata;")
+    unify_computed_columns(computed_columns)
+    rows = conn.execute("SELECT name, other, type from metadata;").fetchall()
+    if computed_columns:
+        rows.extend(
+            [(key, None, computed_columns[key]["type"]) for key in computed_columns]
+        )
     results = defaultdict(set)
     constructs = [
         "AVG()",
@@ -827,11 +827,18 @@ def quote_value(value):
     return "'%s'" % value.replace("'", "''")
 
 
-def get_column_value(value):
+def get_column_value(value, column_name, metadata):
     if value == "NULL" or value is None:
         return "NULL"
-    elif isinstance(value, str):
+
+    column_type = metadata[column_name]["type"]
+
+    if column_type == "TEXT":
         return quote_value(value)
+    elif column_type == "FLOAT":
+        return float(value)
+    elif column_type == "INTEGER":
+        return int(value)
     else:
         return value
 
@@ -882,12 +889,12 @@ def get_type_column_name(column_name, columns, column_types):
 
 
 def select_group_by_rows(
-    column_name, column_value, group_by, where_expr, metadata, cur
+    column_name, column_value, group_by, where_expr, metadata, cur, computed_columns
 ):
-    computed_columns = None
     distinct = False
     where = None
 
+    unify_computed_columns(computed_columns)
     columns = list(metadata.keys())
     select_expr_as = [get_field_name(column, metadata) for column in columns]
     databases = ["datagrid"]
@@ -910,6 +917,8 @@ def select_group_by_rows(
     group_by_field_expr = get_field_expr(group_by, metadata)
     field_name = get_field_name(column_name, metadata)
     field_expr = get_field_expr(column_name, metadata)
+
+    column_value = get_column_value(column_value, group_by, metadata)
 
     try:
         rows = get_group_by_rows(
@@ -948,7 +957,7 @@ def get_group_by_rows(
         "group_by_field_expr": group_by_field_expr,
         "field_name": field_name,
         "field_expr": field_expr,
-        "column_value": get_column_value(column_value),
+        "column_value": column_value,
         "where": where,
         "databases": ", ".join(databases),
         "select_expr_as": ", ".join(select_expr_as),
@@ -979,6 +988,7 @@ def select_histogram(
     conn = get_database_connection(dgid)
     cur = conn.cursor()
 
+    unify_computed_columns(computed_columns)
     metadata = get_metadata(conn)
     columns = list(metadata.keys())
     select_expr_as = [get_field_name(column, metadata) for column in columns]
@@ -1002,6 +1012,8 @@ def select_histogram(
     field_expr = metadata[column_name]["field_expr"]
     group_by_field_name = get_field_name(group_by, metadata)
     group_by_field_expr = get_field_expr(group_by, metadata)
+
+    column_value = get_column_value(column_value, group_by, metadata)
 
     try:
         rows = get_group_by_rows(
@@ -1034,6 +1046,7 @@ def select_histogram(
     results_json["groupBy"] = group_by
     results_json["groupByValue"] = column_value
     results_json["whereDescription"] = where_description
+    results_json["computedColumns"] = computed_columns
 
     return results_json
 
@@ -1059,6 +1072,7 @@ def select_description(
     conn = get_database_connection(dgid)
     cur = conn.cursor()
 
+    unify_computed_columns(computed_columns)
     metadata = get_metadata(conn)
     columns = list(metadata.keys())
     select_expr_as = [get_field_name(column, metadata) for column in columns]
@@ -1083,6 +1097,8 @@ def select_description(
     field_expr = metadata[column_name]["field_expr"]
     group_by_field_name = get_field_name(group_by, metadata)
     group_by_field_expr = get_field_expr(group_by, metadata)
+
+    column_value = get_column_value(column_value, group_by, metadata)
 
     try:
         rows = get_group_by_rows(
@@ -1131,6 +1147,7 @@ def select_category(
     conn = get_database_connection(dgid)
     cur = conn.cursor()
 
+    unify_computed_columns(computed_columns)
     metadata = get_metadata(conn)
     columns = list(metadata.keys())
     select_expr_as = [get_field_name(column, metadata) for column in columns]
@@ -1155,6 +1172,8 @@ def select_category(
     field_expr = get_field_expr(column_name, metadata)
     group_by_field_name = get_field_name(group_by, metadata)
     group_by_field_expr = get_field_expr(group_by, metadata)
+
+    column_value = get_column_value(column_value, group_by, metadata)
 
     try:
         rows = get_group_by_rows(
@@ -1231,6 +1250,7 @@ def select_category(
                     "groupBy": group_by,
                     "groupByValue": column_value,
                     "whereDescription": where_description,
+                    "computedColumns": computed_columns,
                 }
 
     return results_json
@@ -1318,6 +1338,7 @@ def select_asset_group(
     conn = get_database_connection(dgid)
     cur = conn.cursor()
 
+    unify_computed_columns(computed_columns)
     metadata = get_metadata(conn)
     columns = list(metadata.keys())
     select_expr_as = [get_field_name(column, metadata) for column in columns]
@@ -1343,6 +1364,8 @@ def select_asset_group(
     field_name = get_field_name(column_name, metadata)
     field_expr = get_field_expr(column_name, metadata)
 
+    column_value = get_column_value(column_value, group_by, metadata)
+
     try:
         rows = get_group_by_rows(
             cur,
@@ -1363,7 +1386,7 @@ def select_asset_group(
     env = {
         "group_by_field_name": group_by_field_name,
         "field_name": field_name,
-        "column_value": get_column_value(column_value),
+        "column_value": get_column_value(column_value, group_by, metadata),
         "where": where,
         "databases": ", ".join(databases),
         "select_expr_as": ", ".join(select_expr_as),
@@ -1423,6 +1446,7 @@ def select_asset_group_metadata(
     conn = get_database_connection(dgid)
     cur = conn.cursor()
 
+    unify_computed_columns(computed_columns)
     metadata = get_metadata(conn)
     columns = list(metadata.keys())
     select_expr_as = [get_field_name(column, metadata) for column in columns]
@@ -1446,6 +1470,8 @@ def select_asset_group_metadata(
     group_by_field_expr = get_field_expr(group_by, metadata)
     field_name = get_field_name(column_name, metadata)
     field_expr = get_field_expr(column_name, metadata)
+
+    column_value = get_column_value(column_value, group_by, metadata)
 
     try:
         rows = get_group_by_rows(
@@ -1567,6 +1593,7 @@ def verify_where(
     conn = get_database_connection(dgid)
     cur = conn.cursor()
 
+    unify_computed_columns(computed_columns)
     metadata = get_metadata(conn)
     columns = list(metadata.keys())
     select_expr_as = [get_field_name(column, metadata) for column in columns]
@@ -1634,10 +1661,6 @@ def query_sql(
     dgid = datagrid.filename
     select_columns = datagrid.get_columns()
     if computed_columns:
-        computed_columns = {
-            key: {"field_expr": value, "field_name": "cc%d" % i, "type": "STRING"}
-            for i, (key, value) in enumerate(computed_columns.items())
-        }
         select_columns.extend(list(computed_columns.keys()))
     else:
         computed_columns = {}
@@ -1675,6 +1698,8 @@ def select_query_count(
 ):
     conn = get_database_connection(dgid)
     cur = conn.cursor()
+
+    unify_computed_columns(computed_columns)
     metadata = get_metadata(conn)
     columns = list(metadata.keys())
     select_expr_as = [get_field_name(column, metadata) for column in columns]
@@ -1764,6 +1789,7 @@ def select_query_page(
     conn = get_database_connection(dgid)
     cur = conn.cursor()
 
+    unify_computed_columns(computed_columns)
     metadata = get_metadata(conn)
     columns = list(metadata.keys())
     select_expr_as = [get_field_name(column, metadata) for column in columns]
@@ -1794,8 +1820,8 @@ def select_query_page(
             for column_name in columns
             if not column_name.endswith("--metadata")
         ]
-    select_fields = [get_field_name(column, metadata) for column in select_columns]
 
+    select_fields = [get_field_name(column, metadata) for column in select_columns]
     sort_by_field_name = get_field_name(sort_by, metadata) if sort_by else "rowid"
     remove_columns = []
 
@@ -1875,6 +1901,7 @@ def select_query_page(
                         "columnName": select_column,
                         "columnValue": group_by_value,
                         "whereExpr": where_expr,
+                        "computedColumns": computed_columns,
                     }
                     if column_type == "ROW_ID":
                         cell["type"] = "row-group"
@@ -1956,6 +1983,7 @@ def select_query_raw(
     where_expr=None,
     debug=False,
 ):
+    unify_computed_columns(computed_columns)
     sort_desc = "DESC" if sort_desc else "ASC"
     if not columns:
         columns = list(metadata.keys())
@@ -1981,10 +2009,10 @@ def select_query_raw(
     limit = ("LIMIT %s OFFSET %s" % (limit, offset)) if limit is not None else ""
 
     # Metadata now has computed_columns:
-    select_columns = [
-        column_name for column_name in columns if not column_name.endswith("--metadata")
-    ]
-    select_fields = [get_field_name(column, metadata) for column in select_columns]
+    # select_columns = [
+    #    column_name for column_name in columns if not column_name.endswith("--metadata")
+    # ]
+    select_fields = [get_field_name(column, metadata) for column in columns]
 
     if sort_by:
         if sort_by in metadata:
@@ -2057,6 +2085,7 @@ def get_fields(dgid, metadata=None, computed_columns=None):
         metadata = get_metadata(conn)
 
     # Used to evaluate computed columns
+    unify_computed_columns(computed_columns)
     columns = list(metadata.keys())
     select_expr_as = [get_field_name(column, metadata) for column in columns]
     databases = ["datagrid"]
@@ -2266,10 +2295,18 @@ def process_projection_asset_ids(
 
 
 def select_projection_data(
-    dgid, timestamp, asset_id, column_name, column_value, group_by, where_expr
+    dgid,
+    timestamp,
+    asset_id,
+    column_name,
+    column_value,
+    group_by,
+    where_expr,
+    computed_columns,
 ):
     conn = get_database_connection(dgid)
     cur = conn.cursor()
+    unify_computed_columns(computed_columns)
     metadata = get_metadata(conn)
     column_limit = None
     column_offset = 0
@@ -2327,7 +2364,7 @@ def select_projection_data(
                 sort_desc=None,
                 where=None,
                 limit=200,
-                computed_columns=None,
+                computed_columns=computed_columns,
                 where_expr=where_expr,
                 debug=False,
             )
@@ -2379,7 +2416,13 @@ def select_projection_data(
         )
         if not PROJECTION_TRACE_CACHE.contains(key):
             rows = select_group_by_rows(
-                column_name, column_value, group_by, where_expr, metadata, cur
+                column_name,
+                column_value,
+                group_by,
+                where_expr,
+                metadata,
+                cur,
+                computed_columns,
             )
             if rows:
                 row = rows[0]

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useContext } from 'react';
 import dynamic from 'next/dynamic';
 import fetchHistogram from "../../../../lib/fetchHistogram"
+import formatQueryArgs from '../../../../lib/formatQueryArgs';
 import truncateValue from '../../../../lib/truncateValue';
 import { ConfigContext } from '../../../contexts/ConfigContext';
 import { useInView } from "react-intersection-observer";
@@ -117,14 +118,10 @@ const HistogramClient = ({ value, expanded, ssrData }) => {
     const queryString = useMemo(() => {
         if (!data) return;
 
-        return new URLSearchParams(
-            Object.fromEntries(
-                Object.entries({
-                    chartType: 'histogram',
-                    data: JSON.stringify(data)
-                }).filter(([k, v]) => typeof(v) !== 'undefined' && v !== null)
-            )
-        ).toString();
+        return formatQueryArgs({
+            chartType: 'histogram',
+            data: JSON.stringify(data)
+        });
     }, [data]);
 
 

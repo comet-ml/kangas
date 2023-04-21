@@ -5,6 +5,7 @@ import styles from '../Charts.module.scss';
 import { useMemo, useCallback, useState, useRef, useEffect, useContext } from 'react';
 import dynamic from 'next/dynamic';
 import useQueryParams from '../../../../lib/hooks/useQueryParams';
+import formatQueryArgs from '../../../../lib/formatQueryArgs';
 import fetchCategory from '../../../../lib/fetchCategory';
 import { ConfigContext } from '../../../contexts/ConfigContext';
 import { useInView } from "react-intersection-observer";
@@ -104,20 +105,16 @@ const CategoryClient = ({ expanded, value, ssrData }) => {
             },
             yaxis: {
                 type: 'category'
-	        },
+                },
         };
     }, [value?.columnName]);
 
     const queryString = useMemo(() => {
         if (!data) return;
-        return new URLSearchParams(
-            Object.fromEntries(
-                Object.entries({
-                    chartType: 'category',
-                    data: JSON.stringify(data)
-                }).filter(([k, v]) => typeof(v) !== 'undefined' && v !== null)
-            )
-        ).toString();
+        return formatQueryArgs({
+            chartType: 'category',
+            data: JSON.stringify(data)
+        });
     }, [data]);
 
     useEffect(() => {
