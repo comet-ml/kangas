@@ -43,7 +43,7 @@ const SettingsBar = async ({ query }) => {
                 <GroupByButton columns={columns} />
                 <SortByButton columns={columns} />
                 <SelectButton columns={firstRow?.displayColumns} />
-                <ComputedColumnsButton query={query} completions={completions} />
+                <ComputedColumnsButton columns={columns} query={query} completions={completions} />
                 <FilterExpr query={query} completions={completions} />
                 <DialogueModal fullScreen={false} toggleElement={<HelpButton />}>
                     <HelpText />

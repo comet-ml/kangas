@@ -8,7 +8,7 @@ import classNames from 'classnames/bind';
 import styles from '../../Settings/SettingsBar.module.scss';
 const cx = classNames.bind(styles);
 
-const ComputedColumnsModal = ({ query, completions }) => {
+const ComputedColumnsModal = ({ columns, query, completions }) => {
     const { params, updateParams } = useQueryParams();
     const { closeModal } = useContext(ModalContext);
     const defaultText = `{
@@ -18,10 +18,13 @@ const ComputedColumnsModal = ({ query, completions }) => {
     }
 }`;
     const [text, setText] = useState('');
+    const [origJSON, setOrigJSON] = useState({});
 
     useEffect(() => {
-        if (!!query?.computedColumns)
-            setText(JSON.stringify(query?.computedColumns, null, 4));
+        if (!!query?.computedColumns) {
+            setText(JSON.stringify(query.computedColumns, null, 4));
+            setOrigJSON(query.computedColumns);
+	}
     }, [query?.computedColumns]);
 
     const reset = useCallback(() => {
@@ -37,39 +40,41 @@ const ComputedColumnsModal = ({ query, completions }) => {
     }, [setText]);
 
     const apply = useCallback(() => {
+        let realJSON = null;
         let textJSON = null;
         if (text !== '') {
             try {
-                textJSON = JSON.stringify(JSON.parse(text)).replace(/\\n/g, '');
+		realJSON = JSON.parse(text);
+                textJSON = JSON.stringify(realJSON).replace(/\\n/g, '');
             } catch (error) {
                 console.log(`invalid json: ${text}`);
-                return;
+                return false;
             }
         } else {
+	    realJSON = {};
             textJSON = undefined;
         }
-        updateParams({
+	const myParams = {
             cc: textJSON
-        });
-    }, [text, updateParams, closeModal]);
+        };
+	if ((params.group in origJSON) && !(params.group in realJSON)) {
+	    console.log("clear group!");
+	    myParams.group = undefined;
+            myParams.page = undefined;
+            myParams.rows = undefined;
+	}
+	if ((params.sort in origJSON) && !(params.sort in realJSON)) {
+	    console.log("clear sort!");
+	    myParams.sort = undefined;
+	}
+        updateParams(myParams);
+	return true;
+    }, [text, updateParams]);
 
     const update = useCallback(() => {
-        let textJSON = null;
-        if (text !== '') {
-            try {
-                textJSON = JSON.stringify(JSON.parse(text)).replace(/\\n/g, '');
-            } catch (error) {
-                console.log(`invalid json: ${text}`);
-                return;
-            }
-        } else {
-            textJSON = undefined;
-        }
-
-        updateParams({
-            cc: textJSON
-        });
-        closeModal();
+	const result = apply();
+	if (result)
+            closeModal();
     }, [text, updateParams, closeModal]);
 
     return (
