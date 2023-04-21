@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { useRef, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { ModalContext } from '../../contexts/ModalContext';
 import useQueryParams from '../../../lib/hooks/useQueryParams';
 import formatQueryArgs from '../../../lib/formatQueryArgs';
@@ -14,6 +14,8 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
     const { config } = useContext(ConfigContext);
     const { params, updateParams } = useQueryParams();
     const { closeModal } = useContext(ModalContext);
+    const status = useRef();
+
     const defaultText = `{
     "New Column Name": {
         "expr": "{'row-id'} < 5",
@@ -22,6 +24,12 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
 }`;
     const [text, setText] = useState('');
     const [origJSON, setOrigJSON] = useState({});
+
+    const setStatus = useCallback((newStatus) => {
+	console.log(status);
+	if (status?.current)
+	    status.current.value = newStatus;
+    }, [status]);
 
     useEffect(() => {
         if (!!query?.computedColumns) {
@@ -32,15 +40,18 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
 
     const reset = useCallback(() => {
         setText(defaultText);
-    }, [setText]);
+	setStatus('');
+    }, [setText, status]);
 
     const clear = useCallback(() => {
         setText('');
-    }, [setText]);
+	setStatus('');
+    }, [setText, status]);
 
     const onChange = useCallback((event) => {
         setText(event.target.value);
-    }, [setText]);
+	setStatus('Edited');
+    }, [setText, status]);
 
     const apply = useCallback((close=false) => {
         let realJSON = null;
@@ -51,6 +62,7 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
                 textJSON = JSON.stringify(realJSON).replace(/\\n/g, '');
             } catch (error) {
                 console.log(`invalid json: ${text}`);
+		setStatus('Invalid JSON');
                 return;
             }
         } else {
@@ -83,11 +95,14 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
 		    updateParams(myParams);
 		    if (close)
 			closeModal();
+		    else
+			setStatus('Successfully applied');
 		} else {
+		    setStatus('Remove filter before changing computed columns');
 		    console.log(`failed to fetch with filter: ${text}`);
 		}
 	    });
-    }, [text, updateParams, params, closeModal]);
+    }, [text, updateParams, params, closeModal, status]);
 
     return (
             <div className={cx("multi-select-columns")}>
@@ -104,9 +119,10 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
                         spellCheck={"false"}
                         value={text}
                         onChange={onChange}
-                        rows={25}
+                        rows={23}
                         cols={50}
                     />
+	            <div className={cx("status-row")}><b>Status</b>: <input className={cx("status-message")} readOnly type="text" ref={status} /></div>
                     <div className={cx("button-row")}>
                         <div className={cx("reset")} onClick={reset}>Template</div>
                         <div className={cx("reset")} onClick={clear}>Clear</div>
