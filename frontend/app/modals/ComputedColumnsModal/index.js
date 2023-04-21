@@ -96,7 +96,7 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
                     <div className={cx("button-row")}>
                         <div className={cx("reset")} onClick={reset}>Template</div>
                         <div className={cx("reset")} onClick={clear}>Clear</div>
-                        <button className={cx('button')} onClick={apply}>Apply</button>
+                        <button className={cx('button-outline')} onClick={apply}>Apply</button>
                         <button className={cx('button')} onClick={update}>Done</button>
                     </div>
                 </div>

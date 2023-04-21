@@ -48,6 +48,7 @@ class Evaluator:
         # Selections keep track of aggregate select clauses
         self.selections = {}
         self.operators = {
+            ast.Mod: "({leftOperand} % {rightOperand})",
             ast.Add: "({leftOperand} + {rightOperand})",
             ast.Sub: "({leftOperand} - {rightOperand})",
             ast.Mult: "({leftOperand} * {rightOperand})",
