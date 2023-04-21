@@ -26,7 +26,6 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
     const [origJSON, setOrigJSON] = useState({});
 
     const setStatus = useCallback((newStatus) => {
-	console.log(status);
 	if (status?.current)
 	    status.current.value = newStatus;
     }, [status]);
@@ -35,23 +34,24 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
         if (!!query?.computedColumns) {
             setText(JSON.stringify(query.computedColumns, null, 4));
             setOrigJSON(query.computedColumns);
+	    setStatus('Unedited');
 	}
-    }, [query?.computedColumns]);
+    }, [query?.computedColumns, setText, setOrigJSON, setStatus]);
 
     const reset = useCallback(() => {
         setText(defaultText);
-	setStatus('');
-    }, [setText, status]);
+	setStatus('Set to sample template');
+    }, [setText, setStatus]);
 
     const clear = useCallback(() => {
         setText('');
-	setStatus('');
-    }, [setText, status]);
+	setStatus('Cleared');
+    }, [setText, setStatus]);
 
     const onChange = useCallback((event) => {
         setText(event.target.value);
 	setStatus('Edited');
-    }, [setText, status]);
+    }, [setText, setStatus]);
 
     const apply = useCallback((close=false) => {
         let realJSON = null;
@@ -61,8 +61,7 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
 		realJSON = JSON.parse(text);
                 textJSON = JSON.stringify(realJSON).replace(/\\n/g, '');
             } catch (error) {
-                console.log(`invalid json: ${text}`);
-		setStatus('Invalid JSON');
+		setStatus('Invalid JSON syntax (trailing comma?)');
                 return;
             }
         } else {
@@ -98,8 +97,13 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
 		    else
 			setStatus('Successfully applied');
 		} else {
-		    setStatus('Remove filter before changing computed columns');
-		    console.log(`failed to fetch with filter: ${text}`);
+		    if (!textJSON) {
+			setStatus('Error: filter depends on computed columns; remove it');
+		    } else if (typeof query?.whereExpr === 'undefined') {
+			setStatus('Error: fix JSON syntax above (trailing comma?)');
+		    } else {
+			setStatus('Error: fix JSON syntax above, or remove filter dependency');
+		    }
 		}
 	    });
     }, [text, updateParams, params, closeModal, status]);
