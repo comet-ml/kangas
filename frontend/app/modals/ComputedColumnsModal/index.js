@@ -58,13 +58,11 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
             cc: textJSON
         };
 	if ((params.group in origJSON) && !(params.group in realJSON)) {
-	    console.log("clear group!");
 	    myParams.group = undefined;
             myParams.page = undefined;
             myParams.rows = undefined;
 	}
 	if ((params.sort in origJSON) && !(params.sort in realJSON)) {
-	    console.log("clear sort!");
 	    myParams.sort = undefined;
 	}
         updateParams(myParams);
