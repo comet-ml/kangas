@@ -18,7 +18,7 @@ import json
 from .utils import is_nan, is_null
 
 
-def serialize_identity_function(datagrid, item):
+def serialize_identity_function(datagrid, item, row_id):
     """
     For FLOAT (mixed float and int) columns.
     """
@@ -28,21 +28,21 @@ def serialize_identity_function(datagrid, item):
     return item
 
 
-def serialize_bool_function(datagrid, item):
+def serialize_bool_function(datagrid, item, row_id):
     if is_null(item):
         return None
 
     return bool(item)
 
 
-def serialize_int_function(datagrid, item):
+def serialize_int_function(datagrid, item, row_id):
     if is_null(item):
         return None
 
     return int(item)
 
 
-def serialize_string_function(datagrid, item):
+def serialize_string_function(datagrid, item, row_id):
     if is_null(item):
         return None
 
@@ -52,7 +52,7 @@ def serialize_string_function(datagrid, item):
     return item[: datagrid.MAX_COL_STRING_LENGTH]
 
 
-def serialize_datetime_function(datagrid, item):
+def serialize_datetime_function(datagrid, item, row_id):
     if is_null(item):
         return None
 
@@ -66,7 +66,7 @@ def serialize_datetime_function(datagrid, item):
         raise Exception("Can't convert %r to a DATETIME" % item)
 
 
-def serialize_json_function(datagrid, item):
+def serialize_json_function(datagrid, item, row_id):
     if is_null(item):
         return None
 
@@ -76,7 +76,7 @@ def serialize_json_function(datagrid, item):
         raise Exception("Can't convert %r to JSON" % item)
 
 
-def serialize_vector_function(datagrid, item):
+def serialize_vector_function(datagrid, item, row_id):
     if is_null(item):
         return None
 
@@ -94,8 +94,8 @@ def unserialize_vector(datagrid, row, column_name):
         return ast.literal_eval(value)
 
 
-def log_and_serialize_function(datagrid, item):
-    return item.log_and_serialize(datagrid)
+def log_and_serialize_function(datagrid, item, row_id):
+    return item.log_and_serialize(datagrid, row_id)
 
 
 def unserialize(datagrid, row, column_name):

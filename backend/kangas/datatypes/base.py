@@ -65,13 +65,15 @@ class Asset:
             self._unserialize = None
         return self
 
-    def log_and_serialize(self, datagrid):
+    def log_and_serialize(self, datagrid, row_id):
         """
         Log and serialize an asset.
 
         NOTE: will only log an asset once in each datagrid db.
         """
-        datagrid._log(self.asset_id, self.ASSET_TYPE, self.asset_data, self.metadata)
+        datagrid._log(
+            self.asset_id, self.ASSET_TYPE, self.asset_data, self.metadata, row_id
+        )
         return self.asset_id
 
     @classmethod

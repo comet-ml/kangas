@@ -154,6 +154,21 @@ const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
         }
     }
 
+    const copyTextToClipboard = async (text) => {
+	if ('clipboard' in navigator) {
+	    return await navigator.clipboard.writeText(text);
+	} else {
+	    return document.execCommand('copy', true, text);
+	}
+    }
+
+    const onSelected = async (figure) => {
+	if (figure) {
+	    const text = figure.points.map(point => `${point.customdata}`).join(",");
+	    await copyTextToClipboard(text);
+	}
+    };
+
     return (
         <div style={{ minWidth: '700px', display: 'flex' }}>
             <div className={cx('plotly-container', { expanded })}>
@@ -163,6 +178,7 @@ const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
                         data={data}
                         layout={Layout}
                         config={Config}
+		        onSelected={onSelected}
                     />
                 }
             </div>

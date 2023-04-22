@@ -1606,7 +1606,9 @@ class DataGrid:
                 new_column_names.add(metadata_column_name)
 
             # Now we replace assets with asset_id:
-            row_dict[column_name] = self._log_and_serialize_item(item, column_name)
+            row_dict[column_name] = self._log_and_serialize_item(
+                item, column_name, row_id=index + 1
+            )
             data.append(row_dict)
 
         # 3. Final type check for new columns (checks all):
@@ -1669,7 +1671,9 @@ class DataGrid:
                 new_columns[metadata_column_name] = metadata_json
 
             # Now we replace assets with asset_id:
-            new_columns[column_name] = self._log_and_serialize_item(item, column_name)
+            new_columns[column_name] = self._log_and_serialize_item(
+                item, column_name, row_id=index
+            )
 
         row_dict.update(new_columns)
 
@@ -2416,13 +2420,15 @@ class DataGrid:
         """
         return [
             {
-                column_name: self._log_and_serialize_item(value, column_name)
-                for (column_name, value) in row_dict.items()
+                column_name: self._log_and_serialize_item(
+                    value, column_name, row_id=index + 1
+                )
+                for index, (column_name, value) in enumerate(row_dict.items())
             }
             for row_dict in self._data
         ]
 
-    def _log_and_serialize_item(self, item, column_name):
+    def _log_and_serialize_item(self, item, column_name, row_id=None):
         """
         Log and serialize each column of data.
         """
@@ -2432,7 +2438,7 @@ class DataGrid:
         ctype = self._get_type(item)
 
         if ctype in DATAGRID_TYPES:
-            return DATAGRID_TYPES[ctype]["serialize"](self, item)
+            return DATAGRID_TYPES[ctype]["serialize"](self, item, row_id)
         else:
             raise ValueError(
                 "unable to serialize %r in column %r" % (item, column_name)
@@ -2446,7 +2452,7 @@ class DataGrid:
         else:
             return None
 
-    def _log(self, asset_id, asset_type, asset_data, metadata):
+    def _log(self, asset_id, asset_type, asset_data, metadata, row_id):
         """
         Log the asset. As a side-effect, possibly create a thumbnail.
 

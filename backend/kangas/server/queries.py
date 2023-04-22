@@ -2256,17 +2256,29 @@ def process_projection_asset_ids(
         else:
             trace_name = asset_data.get("name", "Grouped")
 
+        if "row_id" in asset_data:
+            row_id = asset_data["row_id"]
+        else:
+            row_id = None
+
         if trace_name not in trace_data:
-            trace_data[trace_name] = {"vectors": [], "colors": [], "texts": []}
+            trace_data[trace_name] = {
+                "vectors": [],
+                "colors": [],
+                "texts": [],
+                "customdata": [],
+            }
 
         trace_data[trace_name]["texts"].append(asset_data.get("text"))
         trace_data[trace_name]["vectors"].append(vector)
         trace_data[trace_name]["colors"].append(color)
+        trace_data[trace_name]["customdata"].append(row_id)
 
     for trace_name in trace_data:
         vectors = trace_data[trace_name]["vectors"]
         texts = trace_data[trace_name]["texts"]
         colors = trace_data[trace_name]["colors"]
+        customdata = trace_data[trace_name]["customdata"]
 
         eigen_vector = projection.transform(np.array(vectors))
         xs = eigen_vector[:, 0].tolist()
@@ -2290,6 +2302,7 @@ def process_projection_asset_ids(
             "text": texts,
             "name": trace_name,
             "marker": {"size": 8, "color": colors},
+            "customdata": customdata,
         }
         traces.append(trace)
 
@@ -2391,6 +2404,10 @@ def select_projection_data(
             color = asset_data["color"]
         else:
             color = default_color
+        if "row_id" in asset_data:
+            row_id = asset_data["row_id"]
+        else:
+            row_id = None
         text = asset_data.get("text", column_name)
 
         trace = {
@@ -2402,6 +2419,7 @@ def select_projection_data(
             "type": "scatter",
             "mode": "markers",
             "marker": {"size": 14, "color": color},
+            "customdata": [row_id],
         }
         traces.append(trace)
     else:

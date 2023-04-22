@@ -110,6 +110,17 @@ class Embedding(Asset):
         if metadata:
             self.metadata.update(metadata)
 
+    def log_and_serialize(self, datagrid, row_id):
+        """
+        Override to save row_id.
+        """
+        # Put row_id in asset_data and metadata:
+        asset_data = json.loads(self.asset_data)
+        asset_data["row_id"] = row_id
+        self.asset_data = json.dumps(asset_data)
+        self.metadata["row_id"] = row_id
+        return super().log_and_serialize(datagrid, row_id)
+
     @classmethod
     def get_statistics(cls, datagrid, col_name, field_name):
         import numpy as np
