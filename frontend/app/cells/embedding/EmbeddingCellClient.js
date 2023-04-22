@@ -17,6 +17,7 @@ const cx = classNames.bind(styles);
 
 const Config = {
     displayModeBar: false,
+    showAxisDragHandles: false,
 };
 
 const VisibleWrapper = (props) => {
