@@ -6,6 +6,7 @@ import DateCell from "../../app/cells/date";
 import EmbeddingCell from "../../app/cells/embedding";
 import BooleanCell from "../../app/cells/boolean";
 import LoadingCell from "../../app/cells/loading";
+import NACell from "../../app/cells/na";
 
 const cellMap = {
     TEXT: {
@@ -43,6 +44,12 @@ const cellMap = {
         width: 400,
         groupedWidth: 220,
         component: JSONCell
+
+    },
+    'VECTOR-ASSET': {
+        width: 100,
+        groupedWidth: 100,
+        component: NACell
 
     },
     'IMAGE-ASSET': {
