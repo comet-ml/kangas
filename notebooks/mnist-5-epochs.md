@@ -1,4 +1,4 @@
-> This is a Jupyter Notebook example using Kangas. You can open and run it in <a href="https://colab.research.google.com/github/comet-ml/kangas/blob/main/examples/mnist-5-epochs.ipynb">Google's Colab</a>. If you appreciate this project, give us a star!
+> This is a Jupyter Notebook example using Kangas. You can open and run it in <a href="https://colab.research.google.com/github/comet-ml/kangas/blob/main/notebooks/mnist-5-epochs.ipynb">Google's Colab</a>. If you appreciate this project, give us a star!
 
 ---
 
@@ -339,5 +339,5 @@ Some example filters to try in the UI:
 
 ---
 
-> This is a Jupyter Notebook example using Kangas. You can open and run it in <a href="https://colab.research.google.com/github/comet-ml/kangas/blob/main/examples/mnist-5-epochs.ipynb">Google's Colab</a>. If you appreciate this project, give us a star!
+> This is a Jupyter Notebook example using Kangas. You can open and run it in <a href="https://colab.research.google.com/github/comet-ml/kangas/blob/main/notebooks/mnist-5-epochs.ipynb">Google's Colab</a>. If you appreciate this project, give us a star!
 
