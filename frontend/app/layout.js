@@ -6,7 +6,7 @@ import config from '../config';
 const RootLayout = ({ children }) => {
     return (
         <html>
-            <Script src='/scripts/ga.js' strategy='afterInteractive' /
+            <Script src='/scripts/ga.js' strategy='afterInteractive' />
             <ConfigProvider value={{
                 config
             }}>
