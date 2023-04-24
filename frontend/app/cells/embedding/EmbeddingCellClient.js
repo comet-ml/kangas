@@ -16,8 +16,10 @@ import styles from '../charts/Charts.module.scss';
 const cx = classNames.bind(styles);
 
 const Config = {
-    displayModeBar: false,
+    displayModeBar: true,
     showAxisDragHandles: false,
+    displaylogo: false,
+    modeBarButtonsToRemove: ['select2d'],
 };
 
 const VisibleWrapper = (props) => {
@@ -30,7 +32,7 @@ const VisibleWrapper = (props) => {
     const visible = useMemo(() => hasRendered || inView, [hasRendered, inView]);
     const render = useCallback(() => {
         if (!hasRendered) setHasRendered(true)
-    }, [hasRendered])
+    }, [hasRendered]);
 
     useEffect(() => {
         /*
@@ -42,7 +44,7 @@ const VisibleWrapper = (props) => {
         if (inView && !hasRendered) {
             render();
         }
-    }, [inView, render, hasRendered])
+    }, [inView, render, hasRendered]);
 
 
 
@@ -69,21 +71,24 @@ const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
             dragmode: 'lasso',
             font: {
                 family: 'Roboto',
-                size: 22,
+                size: 12,
                 color: '#191A1C',
             },
             xaxis: {
                 font: {
-                    size: 13,
+                    size: 8,
                     color: '#3D4355',
                 },
             },
             yaxis: {
                 font: {
-                    size: 13,
+                    size: 8,
                     color: '#3D4355',
                 },
-            }
+            },
+            modebar: {
+                orientation: 'v',
+            },
         };
     }, [columnName]);
 
@@ -160,7 +165,7 @@ const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
 	} else {
 	    return document.execCommand('copy', true, text);
 	}
-    }
+    };
 
     const onSelected = async (figure) => {
 	if (figure) {
@@ -170,11 +175,10 @@ const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
     };
 
     return (
-        <div style={{ minWidth: '700px', display: 'flex' }}>
-            <div className={cx('plotly-container', { expanded })}>
+            <div className={cx('plotly-scatter-container', { expanded })}>
                 { data &&
                     <Plot
-                        className={cx('plotly-chart', { expanded })}
+                        className={cx('plotly-scatter-chart', { expanded })}
                         data={data}
                         layout={Layout}
                         config={Config}
@@ -182,8 +186,7 @@ const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
                     />
                 }
             </div>
-      </div>
     );
-}
+};
 
 export default VisibleWrapper;
