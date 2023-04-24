@@ -46,7 +46,7 @@ const cellMap = {
         component: JSONCell
 
     },
-    'VECTOR-ASSET': {
+    'TENSOR-ASSET': {
         width: 100,
         groupedWidth: 100,
         component: NACell

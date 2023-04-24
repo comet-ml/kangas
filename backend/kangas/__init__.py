@@ -22,8 +22,8 @@ from .datatypes import (  # noqa
     DataGrid,
     Embedding,
     Image,
+    Tensor,
     Text,
-    Vector,
     Video,
 )
 from .integrations import export_to_comet, import_from_comet  # noqa

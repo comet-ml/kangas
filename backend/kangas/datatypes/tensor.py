@@ -16,24 +16,24 @@ import json
 from .base import Asset
 
 
-class Vector(Asset):
+class Tensor(Asset):
     """
-    A Vector asset.
+    A Tensor asset.
     """
 
-    ASSET_TYPE = "Vector"
+    ASSET_TYPE = "Tensor"
 
     def __init__(
         self,
-        vector,
+        tensor=None,
         metadata=None,
         unserialize=False,
     ):
         """
-        Create a vector asset.
+        Create a tensor asset.
 
         Args:
-            vector: a vector (possibly-nested list of numbers)
+            tensor: a tensor (possibly-nested list of numbers)
 
         Example:
 
@@ -41,15 +41,16 @@ class Vector(Asset):
         >>> import kangas as kg
         >>> dg = kg.DataGrid()
         >>> for row in rows:
-        >>>     vector = row[0]
-        >>>     kg.append([kg.Vector(vector)])
-        >>> dg.save("vectors.datagrid")
+        >>>     tensor = row[0]
+        >>>     kg.append([kg.Tensor(tensor)])
+        >>> dg.save("tensors.datagrid")
         ```
         """
         super().__init__()
         if unserialize:
+            self._unserialize = unserialize
             return
 
-        self.asset_data = json.dumps(vector)
+        self.asset_data = json.dumps(tensor)
         if metadata:
             self.metadata.update(metadata)

@@ -18,8 +18,8 @@ from .datagrid import DataGrid  # noqa
 from .embedding import Embedding
 from .image import Image
 from .serialize import register_asset_type
+from .tensor import Tensor
 from .text import Text
-from .vector import Vector
 from .video import Video
 
 for name, cls, asset_type in [
@@ -30,6 +30,6 @@ for name, cls, asset_type in [
     ("TEXT-ASSET", Text, "text"),
     ("VIDEO-ASSET", Video, "video"),
     ("EMBEDDING-ASSET", Embedding, "embedding"),
-    ("VECTOR-ASSET", Vector, "vector"),
+    ("TENSOR-ASSET", Tensor, "tensor"),
 ]:
     register_asset_type(name, cls, asset_type)
