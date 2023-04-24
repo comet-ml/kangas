@@ -110,6 +110,7 @@ class Image(Asset):
             self._unserialize = unserialize
             return
         if self.source is not None:
+            # FIXME: this is for images, not others?
             filename = self.source
             self._log_metadata(
                 name=name,

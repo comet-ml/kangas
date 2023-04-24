@@ -67,9 +67,10 @@ class Embedding(Asset):
         """
         super().__init__(source)
         if unserialize:
+            self._unserialize = unserialize
             return
         if self.source is not None:
-            # FIXME: this is for images, not others
+            # FIXME: this is for images, not others?
             self._log_metadata(
                 filename=self.source,
                 extension=get_file_extension(self.source),

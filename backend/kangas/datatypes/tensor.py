@@ -25,7 +25,7 @@ class Tensor(Asset):
 
     def __init__(
         self,
-        tensor,
+        tensor=None,
         metadata=None,
         unserialize=False,
     ):
@@ -48,6 +48,7 @@ class Tensor(Asset):
         """
         super().__init__()
         if unserialize:
+            self._unserialize = unserialize
             return
 
         self.asset_data = json.dumps(tensor)
