@@ -299,7 +299,7 @@ to see a UI in the notebook to perform operations without code:
 If you were to try to write out the logic of the reward function in Python, one might write:
 
 ```python
-{"favorite_food"} if (({"time_in_bed"} > 5 and {"pct_sleeping"} > 0.5) or ({"age"} >= 90)) else {"hate_food"}'
+{"favorite_food"} if (({"time_in_bed"} > 5 and {"pct_sleeping"} > 0.5) or ({"age"} >= 90)) else {"hate_food"}
 ```
 
 Here, we are using the special syntax `{"column name"}` to represent a column in the datagrid.
