@@ -21,3 +21,4 @@ docs::
 	pydoc-markdown -m kangas.datatypes.datagrid > wiki/DataGrid.md
 	pydoc-markdown -m kangas.datatypes.image > wiki/Image.md
 	pydoc-markdown -m kangas.datatypes.embedding > wiki/Embedding.md
+	pydoc-markdown -m kangas.datatypes.tensor > wiki/Tensor.md
