@@ -1,6 +1,113 @@
 import { getContrastingColor, hexToRgb, getColor } from "./generateChartColor";
 import { createColormap } from './createColormap';
 import { isTagHidden, makeTag } from './tags';
+import truncateValue from './truncateValue';
+
+const drawRegions = (ctx, points, name, label, imageScale, hiddenLabels) => {
+    if (!isTagHidden(hiddenLabels, makeTag(name, label))) {
+        for (let r = 0; r < points.length; r++) {
+            const region = points[r];
+	    const color = getColor(label);
+	    // add some transparency:
+            ctx.fillStyle = color + '88';
+            ctx.strokeStyle = getContrastingColor(color);
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(
+                region[0] * imageScale,
+                region[1] * imageScale
+            );
+            for (let i = 2; i < region.length; i += 2) {
+                ctx.lineTo(
+                    region[i] * imageScale,
+                    region[i + 1] * imageScale
+                );
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        }
+    }
+};
+
+const drawLines = (ctx, lines, name, label, imageScale, hiddenLabels) => {
+    if (!isTagHidden(hiddenLabels, makeTag(name, label))) {
+        for (let r = 0; r < lines.length; r++) {
+            const [x1, y1, x2, y2] = lines[r];
+            ctx.strokeStyle = getColor(
+                label
+            );
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(x1 * imageScale, y1 * imageScale);
+            ctx.lineTo(x2 * imageScale, y2 * imageScale);
+            ctx.stroke();
+        }
+    }
+};
+
+const drawBoxes = (ctx, boxes, name, label, score, imageScale, hiddenLabels) => {
+    if (!isTagHidden(hiddenLabels, makeTag(name, label))) {
+        for (let r = 0; r < boxes.length; r++) {
+            const [x1, y1, x2, y2] = boxes[r];
+            ctx.strokeStyle = getColor(
+                label
+            );
+            if (r === 0) {
+                let text = null;
+
+                if (typeof score === "number") {
+                    text = `${label}: ${truncateValue(score)}`;
+                } else {
+                    text = `${label}`;
+                }
+
+                const fontMetrics = ctx.measureText(text);
+                const startX = x1 * imageScale - 1;
+                const startY = y1 * imageScale;
+                const border = 5;
+                const width = fontMetrics.width + border * 2;
+                const height = fontMetrics.fontBoundingBoxAscent + fontMetrics.fontBoundingBoxDescent + border * 2;
+
+                // Draw text background box
+                ctx.fillStyle = ctx.strokeStyle;
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo( startX, startY - height);
+                ctx.lineTo( startX + width, startY - height);
+                ctx.lineTo( startX + width, startY);
+                ctx.closePath();
+                ctx.fill();
+
+                // Draw the label:
+                ctx.fillStyle = getContrastingColor(ctx.strokeStyle);
+                ctx.fillText(text, startX + border, startY - border);
+            }
+            // Draw the bounding box
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(x1 * imageScale, y1 * imageScale);
+            ctx.lineTo((x1 + x2) * imageScale, y1 * imageScale);
+            ctx.lineTo((x1 + x2) * imageScale, (y1 + y2) * imageScale);
+            ctx.lineTo(x1 * imageScale, (y1 + y2) * imageScale);
+            ctx.closePath();
+            ctx.stroke();
+        }
+    }
+};
+
+const drawMarkers = (ctx, markers, name, label, imageScale, hiddenLabels) => {
+    let marker = null;
+    if (!isTagHidden(hiddenLabels, makeTag(name, label))) {
+        for (let r = 0; r < markers.length; r++) {
+            const marker = markers[r];
+            marker.color = getColor(
+                label
+            );
+            drawMarker(ctx, marker, marker.x * imageScale, marker.y * imageScale);
+        }
+    }
+};
 
 const drawMarker = (ctx, marker, x, y) => {
     if (marker.shape === "circle") {
@@ -51,7 +158,7 @@ const drawRaindrop = (ctx, marker, x, y) => {
 const rainDrop = (ctx, x, y, width, height, fill, stroke)  => {
     // Center points
     const center = {
-	x: x + width/2,
+        x: x + width/2,
         y: y + height/2
     };
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -93,17 +200,17 @@ const rainDrop = (ctx, x, y, width, height, fill, stroke)  => {
 };
 
 
-const processMask = (ctx, annotation, imgDims, hiddenLabels, layerName, score, alpha) => {
+const drawMask = (ctx, annotation, imgDims, hiddenLabels, layerName, score, alpha) => {
     const mask = annotation.mask;
     if (mask.type === "segmentation") {
-        processSegmentationMask(ctx, mask, imgDims, hiddenLabels, layerName, annotation.scores, score, alpha);
+        drawSegmentationMask(ctx, mask, imgDims, hiddenLabels, layerName, annotation.scores, score, alpha);
     } else if (mask.type === "metric") {
         if (isTagHidden(hiddenLabels, makeTag(layerName, annotation.label))) {
             // pass, hidden label
         } else if (annotation.score && annotation.score <= score) {
             // skip it, score not high enough
         } else {
-            processMetricMask(ctx, mask, imgDims, alpha);
+            drawMetricMask(ctx, mask, imgDims, alpha);
         }
     }
 };
@@ -119,18 +226,18 @@ const makeSegmentationMaskImage = (mask, hiddenLabels, layerName, scores, score,
 
     // Get colors and hidden status for labels first:
     const rgbMap = Object.values(mask.map).reduce(
-	(accum, label) => (
-	    {
-		...accum, [label]: hexToRgb(
-		    getColor(layerName === '(uncategorized)' ? label : makeTag(layerName, label)))
-	    }
-	), {});
+        (accum, label) => (
+            {
+                ...accum, [label]: hexToRgb(
+                    getColor(layerName === '(uncategorized)' ? label : makeTag(layerName, label)))
+            }
+        ), {});
     const hiddenMap = Object.values(mask.map).reduce(
-	(accum, label) => (
-	    {
-		...accum, [label]: isTagHidden(hiddenLabels, makeTag(layerName, label))
-	    }
-	), {});
+        (accum, label) => (
+            {
+                ...accum, [label]: isTagHidden(hiddenLabels, makeTag(layerName, label))
+            }
+        ), {});
 
     for (let y = 0; y < mask.height; y++) {
         for (let x = 0; x < mask.width; x++) {
@@ -142,20 +249,20 @@ const makeSegmentationMaskImage = (mask, hiddenLabels, layerName, scores, score,
                 if (scores && scores[label] && scores[label] <= score)
                     continue;
                 let pos = (y * mask.width + x) * 4;
-		const rgb = rgbMap[label];
-		if (rgb) {
+                const rgb = rgbMap[label];
+                if (rgb) {
                     buffer[pos  ] = rgb[0];
                     buffer[pos+1] = rgb[1];
                     buffer[pos+2] = rgb[2];
                     buffer[pos+3] = alpha;
-		}
+                }
             }
         }
     }
     return new ImageData(buffer, mask.width, mask.height); // settings can be colorSpace name
 };
 
-const processMetricMask = (ctx, mask, imgDims, alpha) => {
+const drawMetricMask = (ctx, mask, imgDims, alpha) => {
     const image = makeMetricMaskImage(mask, alpha);
 
 // Scale the mask to fit the size of the scaled image:
@@ -189,12 +296,12 @@ const makeMetricMaskImage = (mask, alpha) => {
             if (value > 0) {
                 // Show metric with some transparency
                 const rgba = colorMap[value]
-		if (rgba) {
+                if (rgba) {
                     buffer[pos  ] = rgba[0];
                     buffer[pos+1] = rgba[1];
                     buffer[pos+2] = rgba[2];
                     buffer[pos+3] = 200; // FIXME: get alpha from a control
-		}
+                }
             } else {
                 // transparent
                 buffer[pos  ] = 0;
@@ -220,7 +327,7 @@ const rleDecode = (encoding, width, height) => {
     return sequence;
 };
 
-    const processSegmentationMask = (ctx, mask, imgDims, hiddenLabels, layerName, scores, score, alpha) => {
+    const drawSegmentationMask = (ctx, mask, imgDims, hiddenLabels, layerName, scores, score, alpha) => {
         const image = makeSegmentationMaskImage(mask, hiddenLabels, layerName, scores, score, alpha);
 
         // Scale the mask to fit the size of the scaled image:
@@ -232,13 +339,16 @@ const rleDecode = (encoding, width, height) => {
 
 
 export {
-    processSegmentationMask,
-    drawMarker,
+    drawSegmentationMask,
+    drawMarkers,
     drawCircle,
+    drawBoxes,
+    drawRegions,
+    drawLines,
     drawRaindrop,
     rainDrop,
     rleDecode,
-    processMask,
-    processMetricMask,
+    drawMask,
+    drawMetricMask,
     makeMetricMaskImage
 }

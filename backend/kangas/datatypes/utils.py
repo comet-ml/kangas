@@ -639,7 +639,7 @@ def draw_annotations_on_image(image, annotations, width, height):
                                 int(y * scale_y) * mask["width"] + int(x * scale_x)
                             ]
                             if index > 0:
-                                rgb = colormap[index]
+                                rgb = colormap[min(index, len(colormap) - 1)]
                                 # blend the colors for transparency:
                                 pixels[(x, y)] = tuple(
                                     [
