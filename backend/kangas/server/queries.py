@@ -2294,6 +2294,9 @@ def process_projection_asset_ids(
         else:
             texts = None
 
+        if colors and len(set(colors)) == 1:
+            colors = colors[0]
+
         trace = {
             "x": xs,
             "y": ys,
@@ -2415,7 +2418,6 @@ def select_projection_data(
             "y": [round(vector[0][1], 3)],
             "text": text,
             "name": text,
-            "color": [color],
             "type": "scatter",
             "mode": "markers",
             "marker": {"size": 14, "color": color},
