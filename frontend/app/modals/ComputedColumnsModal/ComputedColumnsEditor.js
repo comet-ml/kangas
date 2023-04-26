@@ -21,19 +21,37 @@ const ComputedColumnsEditor = ({ className, name, onChange, value }) => {
     { label: "date", value: "DATETIME" }
   ];
 
-  if (value) {
-    // Only set the first time:
-    const cc = JSON.parse(value);
-    setFormRows(Object.keys(cc).map(key => { return {"name": key, "expr": cc[key]["expr"], "type": cc[key]["type"]}}));
-  }
+  useEffect(() => {
+    if (value) {
+	// Only set the first time:
+	// value is {key: {"expr": , "type": }}
+	console.log("useEffect:");
+	console.log(value);
+	const cc = Object.keys(value).map(key => {
+            return {name: key, expr: value[key]["expr"] || value[key]["field_expr"], type: value[key]["type"] };
+        });
+	// formRows is [{"name":, "expr": , "type"}]
+	console.log("setFormRows:");
+	console.log(cc);
+	setFormRows(cc);
+    }
+  }, [value, setFormRows]);
 
-  const makeOnChange = useCallback(() => {
-    // Make the JSON string to send to onChange:
-    const cc = formRows.map((item) => {
-      return { [item["name"]]: { expr: item["expr"], type: item["type"] } };
-    });
-    onChange(JSON.stringify(cc));
-  }, [onChange, formRows]);
+  const makeOnChange = useCallback((rows) => {
+      // Make the JSON string to send to onChange:
+      // rows/formRows is [{"name":, "expr": , "type"}]
+      console.log("makeOnChange: rows is");
+      console.log(rows);
+      const cc = {};
+      rows.forEach(item => {
+          cc[item["name"]] = {expr: item["expr"], type: item["type"] };
+      });
+      // cc is {key: {"expr": , "type": }}
+      console.log("makeOnChange: onChange:");
+      console.log(cc);
+      onChange(cc);
+      setFormRows(rows);
+  }, [onChange, setFormRows]);
 
   const updateRow = useCallback(
     (idx, field, value) => {
@@ -46,10 +64,9 @@ const ComputedColumnsEditor = ({ className, name, onChange, value }) => {
           return v;
         }
       });
-      setFormRows(nextRows);
-      makeOnChange();
+      makeOnChange(nextRows);
     },
-    [formRows, setFormRows, makeOnChange]
+    [makeOnChange]
   );
 
   const makeRow = useCallback(() => {
@@ -64,18 +81,16 @@ const ComputedColumnsEditor = ({ className, name, onChange, value }) => {
 
   const appendNewRow = useCallback(() => {
     // Append a new new row
-    setFormRows([...formRows, makeRow()]);
-    makeOnChange();
-  }, [setFormRows, makeOnChange, formRows, makeRow]);
+    makeOnChange([...formRows, makeRow()]);
+  }, [makeOnChange, formRows, makeRow]);
 
   const removeRow = useCallback(
     (idx) => {
       // Remove a row:
       const rows = formRows.filter((v, fidx) => fidx !== idx);
-      setFormRows(rows);
-      makeOnChange();
+      makeOnChange(rows);
     },
-    [setFormRows, makeOnChange, formRows]
+    [makeOnChange]
   );
 
   return (
@@ -111,7 +126,7 @@ const ComputedColumnsEditor = ({ className, name, onChange, value }) => {
               key={`cc-type-${idx}`}
               options={options}
               value={options.find(
-                (item) => item["value"] == formRows[idx]["type"]
+                (item) => item["value"] === formRows[idx]["type"]
               )}
               onChange={(event) => updateRow(idx, "type", event.value)}
             />
