@@ -39,10 +39,16 @@ const CategoryLayout = {
         showticklabels: true,
         type: 'category',
     },
+    modebar: {
+        orientation: 'v',
+    },
 };
 
 const CategoryConfig = {
-    displayModeBar: false,
+    displayModeBar: true,
+    showAxisDragHandles: false,
+    displaylogo: false,
+    modeBarButtonsToRemove: ['select2d', 'lasso2d'],
 };
 
 const VisibleWrapper = (props) => {
@@ -83,7 +89,7 @@ const VisibleWrapper = (props) => {
 }
 
 
-const CategoryClient = ({ expanded, value, ssrData }) => {
+const CategoryClient = ({ expanded, value, ssrData, query, columnName }) => {
     const { config } = useContext(ConfigContext);
     const [response, setResponse] = useState(false);
     const data = useMemo(() => ssrData || response, [ssrData, response]);
@@ -106,6 +112,9 @@ const CategoryClient = ({ expanded, value, ssrData }) => {
             yaxis: {
                 type: 'category'
                 },
+            modebar: {
+                orientation: 'v',
+            },
         };
     }, [value?.columnName]);
 
@@ -138,6 +147,21 @@ const CategoryClient = ({ expanded, value, ssrData }) => {
         return <img src={`${config.rootPath}api/charts?${queryString}`} loading="lazy" className={cx(['chart-thumbnail', 'category'])} />
     }
 
+    const copyTextToClipboard = async (text) => {
+	if ('clipboard' in navigator) {
+	    return await navigator.clipboard.writeText(text);
+	} else {
+	    return document.execCommand('copy', true, text);
+	}
+    };
+
+    const onClick = useCallback(async (figure) => {
+	if (figure) {
+            const text = `{"${value.groupBy}"} == "${value.columnValue}" and {"${value.columnName}"} == '${figure.points[0].label}'`;
+	    await copyTextToClipboard(text);
+	}
+    }, [value]);
+
     return (
         <div className={cx('plotly-container', { expanded })}>
             { data &&
@@ -146,6 +170,7 @@ const CategoryClient = ({ expanded, value, ssrData }) => {
                 data={data}
                 layout={expanded ? ExpandedLayout : CategoryLayout}
                 config={CategoryConfig}
+	        onClick={onClick}
             />
             }
         </div>
