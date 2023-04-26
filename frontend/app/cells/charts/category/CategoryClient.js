@@ -89,7 +89,7 @@ const VisibleWrapper = (props) => {
 }
 
 
-const CategoryClient = ({ expanded, value, ssrData, query, columnName }) => {
+const CategoryClient = ({ expanded, value, ssrData }) => {
     const { config } = useContext(ConfigContext);
     const [response, setResponse] = useState(false);
     const data = useMemo(() => ssrData || response, [ssrData, response]);
