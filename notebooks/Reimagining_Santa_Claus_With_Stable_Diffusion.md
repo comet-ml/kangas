@@ -12,10 +12,14 @@ More specifically, I am going to use a technique called textual inversion to rep
 - Kirby (lovely pink video game star)
 - Barack Obama (former US president)
 - Charmander (animated fire lizard)
-- Coraline (clay-mation preteen)
+- Cat Toy (small toy in the likeness of a cat)
 - Babs Bunny (ACME's only glove-less rabbit)
 - Alf (1980's television star)
 - Waffle (a large-ish waffle)
+
+As a peek ahead of the results we are able to generate, here is the cat toy as Santa:
+
+![png](Reimagining_Santa_Claus_With_Stable_Diffusion_files/cat-toy-santa.png)
 
 You can follow along by running the code in this notebook. We're going to assume some familiarity with Stable Diffusion, as well as diffusion models more generally. If you're unfamiliar with either, I'd strongly recommend Jay Alammar's [Illustrated Stable Diffusion](https://jalammar.github.io/illustrated-stable-diffusion/) for a higher-level overview, and the second part [fastai's fantastic Practical Deep Learning for Coders course](https://course.fast.ai/Lessons/part2.html) for a deeper, bulid-SD-from-scratch exploration.
 
@@ -154,26 +158,18 @@ Now, we will not be messing with attention, so we can ignore the attention_mask 
 
 Using this knowledge, we can view the actual embedding for "Santa" within CLIP:
 
-
 ```python
 text_encoder.text_model.embeddings.token_embedding(torch.tensor([4555])).shape
 ```
-
-
-
 ```
     torch.Size([1, 768])
 ```
-
 
 At this point, we have all the information we need to perform textual inversion. All we need to do now is to access our replacement embeddings—which we'll do shortly—and swap them for Santa's embedding.
 
 Training your own concept is fairly trivial, you can do so by following [this tutorial](https://colab.research.google.com/github/huggingface/notebooks/blob/main/diffusers/sd_textual_inversion_training.ipynb), but for the sake of brevity, we're going to use HuggingFace's [publicly accessible sd-concepts-library](https://huggingface.co/sd-concepts-library).
 
  I've prepackaged the concepts we'll be using as a zip file, which you can download by running the following code:
-
-
-
 
 ```python
 kangas.download('https://github.com/caleb-kaiser/kangas_examples/blob/master/concepts.zip?raw=true')
@@ -209,7 +205,6 @@ torch.Size([768])
 
 For a better look, we can log them to a DataGrid, along with the embedding for "Santa," and visualize their PCA projections:
 
-
 ```python
 embedding_dg = kangas.DataGrid(name="embeddings")
 
@@ -231,6 +226,8 @@ with torch.no_grad():
 ```python
 embedding_dg.show()
 ```
+
+You can view the DataGrid directly here: https://huggingface.co/spaces/CalebCometML/embeddings
 
 Now, we can edit our embedding layer and generate some images.
 
@@ -412,7 +409,7 @@ inverter = TextualInversion(device=torch_device)
 
 
 ```python
-dg = kangas.DataGrid(name="generated_images2")
+dg = kangas.DataGrid(name="generated_images")
 ```
 
 
@@ -606,6 +603,8 @@ Now, we can view our outputs from within the Kangas UI by running dg.show()
 dg.show()
 ```
 
+You can view the DataGrid here: https://huggingface.co/spaces/CalebCometML/generated-images
+
 Alright, so replacing the embedding wholesale doesn't get us where want. Intuitively, this makes sense. We're replacing the entire concept of Santa from the embedding layer, and so none of the Santa-related details we'd hope for will be preserved. Although, I must say, there is something compelling about the waffle:
 
 ![png](Reimagining_Santa_Claus_With_Stable_Diffusion_files/santa_waffle.png)
@@ -737,6 +736,8 @@ for concept_name in concepts:
 ```python
 dg.show()
 ```
+
+You can view the DataGrid of our generated images here: https://huggingface.co/spaces/CalebCometML/generate_images_datagrid
 
 
 Now, we can group by concept or filter by parameters and explore our outputs. If we wanted to, we could even do a simple grid search over parameters like guidance scale or inference steps and similarly compare their results within our DataGrid.
