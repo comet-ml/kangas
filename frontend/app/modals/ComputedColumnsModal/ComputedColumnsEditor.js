@@ -84,14 +84,14 @@ const ComputedColumnsEditor = ({ className, name, onChange, value }) => {
     makeOnChange([...formRows, makeRow()]);
   }, [makeOnChange, formRows, makeRow]);
 
-  const removeRow = useCallback(
-    (idx) => {
-      // Remove a row:
-      const rows = formRows.filter((v, fidx) => fidx !== idx);
-      makeOnChange(rows);
-    },
-    [makeOnChange]
-  );
+    const removeRow = useCallback((idx) => {
+	// Remove a row:
+	console.log("delete");
+	console.log(formRows);
+	const rows = formRows.filter((v, fidx) => fidx !== idx);
+	console.log(rows);
+	makeOnChange(rows);
+    }, [formRows, makeOnChange]);
 
   return (
     <div>
