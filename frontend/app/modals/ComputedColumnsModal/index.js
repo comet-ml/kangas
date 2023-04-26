@@ -5,6 +5,7 @@ import { ModalContext } from '../../contexts/ModalContext';
 import useQueryParams from '../../../lib/hooks/useQueryParams';
 import formatQueryArgs from '../../../lib/formatQueryArgs';
 import { ConfigContext } from "../../contexts/ConfigContext";
+import ComputedColumnsEditor from './ComputedColumnsEditor';
 
 import classNames from 'classnames/bind';
 import styles from '../../Settings/SettingsBar.module.scss';
@@ -48,8 +49,9 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
 	setStatus('Cleared');
     }, [setText, setStatus]);
 
-    const onChange = useCallback((event) => {
-        setText(event.target.value);
+    const onChange = useCallback((value) => {
+	//FIXME: currently cause a loop
+        //setText(value);
 	setStatus('Edited');
     }, [setText, setStatus]);
 
@@ -117,14 +119,11 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
                     Add computed columns to the table
                 </div>
                 <div className={cx("multi-select-columns-body")}>
-                    <textarea
+                    <ComputedColumnsEditor
                         className={cx("computed-column-textarea")}
                         name="computedColumnsTextarea"
-                        spellCheck={"false"}
                         value={text}
                         onChange={onChange}
-                        rows={23}
-                        cols={50}
                     />
 	            <div className={cx("status-row")}><b>Status</b>: <input className={cx("status-message")} readOnly type="text" ref={status} /></div>
                     <div className={cx("button-row")}>
