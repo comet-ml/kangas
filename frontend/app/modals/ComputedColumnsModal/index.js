@@ -6,6 +6,7 @@ import useQueryParams from '../../../lib/hooks/useQueryParams';
 import formatQueryArgs from '../../../lib/formatQueryArgs';
 import { ConfigContext } from "../../contexts/ConfigContext";
 import ComputedColumnsEditor from './ComputedColumnsEditor';
+//import setStatus from './Somewhere';
 
 import classNames from 'classnames/bind';
 import styles from '../../Settings/SettingsBar.module.scss';
@@ -16,26 +17,22 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
   const { params, updateParams } = useQueryParams();
   const { closeModal } = useContext(ModalContext);
   const [computedColumns, setComputedColumns] = useState();
-  const status = useRef();
+  const [valid, setValid] = useState(true);
+
+  const setStatus = useCallback((message) => {
+    console.log(message);
+  });
 
     useEffect(() => {
         if (query?.computedColumns)
             setComputedColumns(query.computedColumns);
     }, [setComputedColumns, query?.computedColumns]);
 
-  const setStatus = useCallback(
-    (newStatus) => {
-      if (status?.current) status.current.value = newStatus;
-    },
-    [status]
-  );
-
   const onChange = useCallback(
     (value) => {
       setComputedColumns(value);
-      setStatus("Edited");
     },
-    [setStatus, setComputedColumns]
+    [setComputedColumns]
   );
 
   const origJSON = useMemo(() => {
@@ -76,15 +73,19 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
             }
             updateParams(myParams);
             if (close) closeModal();
-            else setStatus("Successfully applied");
+            else {
+                setStatus("Successfully applied computed columns to DataGrid");
+                setValid(true);
+            }
           } else {
+            setValid(false);
             if (Object.keys(computedColumns).length === 0) {
               setStatus("Error: filter depends on computed columns; remove it");
             } else if (typeof query?.whereExpr === "undefined") {
-              setStatus("Error: fix JSON syntax above (trailing comma?)");
+              setStatus("Error: fix expression syntax in computed column");
             } else {
               setStatus(
-                "Error: fix JSON syntax above, or remove filter dependency"
+                "Error: fix expression syntax, or remove filter dependency"
               );
             }
           }
@@ -115,16 +116,6 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
             value={origJSON}
           />
         </div>
-        <div className={cx("status-row")}>
-          <b>Status</b>:{" "}
-          <input
-            className={cx("status-message")}
-            readOnly
-            type="text"
-            ref={status}
-          />
-        </div>
-
         <div className={cx("button-row")}>
           <button className={cx("button-outline")} onClick={() => apply(false)}>
             Apply
