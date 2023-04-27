@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState, useContext } from 'react';
+import { Snackbar } from '@mui/material';
 import dynamic from 'next/dynamic';
 import fetchHistogram from "../../../../lib/fetchHistogram"
 import formatQueryArgs from '../../../../lib/formatQueryArgs';
@@ -92,6 +93,9 @@ const HistogramClient = ({ value, expanded, ssrData }) => {
     const { config } = useContext(ConfigContext);
     const [response, setResponse] = useState();
     const data = useMemo(() => ssrData || response, [ssrData, response]);
+    const [open, setOpen] = useState(false);
+    const handleClose = useCallback(() => setOpen(false), []);
+    const [message, setMessage] = useState("");
 
     const statistics = useMemo(() => {
         return data?.[0]?.statistics
@@ -135,12 +139,34 @@ const HistogramClient = ({ value, expanded, ssrData }) => {
 
 
     useEffect(() => {
+        setMessage('Clicking on histogram bar will copy expression to clipboard');
+        setOpen(true);
         if (!value || ssrData) return;
         fetchHistogram(value).then(res => {
             setResponse(res);
         });
     }, [value])
 
+
+    const copyTextToClipboard = async (text) => {
+        if ('clipboard' in navigator) {
+            return await navigator.clipboard.writeText(text);
+        } else {
+            return document.execCommand('copy', true, text);
+        }
+    };
+
+    const onClick = useCallback(async (figure) => {
+        if (figure) {
+            const delta = figure.points[0].data.x[1]  - figure.points[0].data.x[0];
+            const max = figure.points[0].data.x[figure.points[0].pointIndex] + delta;
+            const min = figure.points[0].data.x[figure.points[0].pointIndex];
+            const text = `{"${value.groupBy}"} == "${value.columnValue}" and ${min} < {"${value.columnName}"} < ${max}`;
+            await copyTextToClipboard(text);
+            setMessage(`Copied expression to clipboard`);
+            setOpen(true);
+        }
+    }, [value]);
 
     if (!data || data?.error) {
         return <>Loading</>
@@ -154,24 +180,6 @@ const HistogramClient = ({ value, expanded, ssrData }) => {
         return <img src={`${config.rootPath}api/charts?${queryString}`} loading="lazy" className={cx(['chart-thumbnail', 'category'])} />
     }
 
-    const copyTextToClipboard = async (text) => {
-	if ('clipboard' in navigator) {
-	    return await navigator.clipboard.writeText(text);
-	} else {
-	    return document.execCommand('copy', true, text);
-	}
-    };
-
-    const onClick = useCallback(async (figure) => {
-	if (figure) {
-            const delta = figure.points[0].data.x[1]  - figure.points[0].data.x[0];
-            const max = figure.points[0].data.x[figure.points[0].pointIndex] + delta;
-            const min = figure.points[0].data.x[figure.points[0].pointIndex];
-            const text = `{"${value.groupBy}"} == "${value.columnValue}" and ${min} < {"${value.columnName}"} < ${max}`;
-	    await copyTextToClipboard(text);
-	}
-    }, [value]);
-
     return (
         <div style={{ minWidth: '700px', display: 'flex' }}>
             <div className={cx('plotly-container-with-stats', { expanded })}>
@@ -181,7 +189,7 @@ const HistogramClient = ({ value, expanded, ssrData }) => {
                         data={data}
                         layout={expanded ? ExpandedLayout : HistogramLayout}
                         config={HistogramConfig}
-		        onClick={onClick}
+                        onClick={onClick}
                     />
                 }
             </div>
@@ -200,6 +208,12 @@ const HistogramClient = ({ value, expanded, ssrData }) => {
                     })}
                 </div>
             )}
+            <Snackbar
+                open={open}
+                autoHideDuration={6000}
+                onClose={handleClose}
+                message={message}
+            />
       </div>
     );
 }
