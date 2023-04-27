@@ -66,7 +66,7 @@ const ComputedColumnsEditor = ({ className, name, onChange, value }) => {
     setCount(count + 1);
     return {
       name: `New Column ${count + 1}`,
-      expr: "{'row-id'} < 5",
+      expr: '{"row-id"} < 5',
       type: "BOOLEAN"
     };
   }, [count, setCount]);
