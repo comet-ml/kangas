@@ -109,7 +109,7 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
     <div className={cx("multi-select-columns")}>
       <div className={cx("title")}>Computed Columns</div>
       <div className={cx("subtitle")}>Add computed columns to the table</div>
-      <div className={cx("multi-select-columns-body")}>
+      <div>
         <div>
           <ComputedColumnsEditor
             className={cx("computed-column-textarea")}
@@ -118,7 +118,7 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
             value={origJSON}
           />
         </div>
-        <div className={cx("button-row")}>
+        <div style={{ display: 'flex', justifyContent: 'space-between'}}>
           <button className={cx("button-outline")} onClick={() => apply(false)}>
             Apply
           </button>

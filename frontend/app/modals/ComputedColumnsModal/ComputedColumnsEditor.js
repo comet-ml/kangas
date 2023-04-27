@@ -84,7 +84,7 @@ const ComputedColumnsEditor = ({ className, name, onChange, value }) => {
 
   return (
     <div>
-      <div style={{ overflowY: 'scroll', maxHeight: '300px' }}>
+      <div style={{ overflowY: 'scroll', maxHeight: '150px' }}>
         {formRows.map((row, idx) => (
           <div
             style={{
@@ -128,7 +128,7 @@ const ComputedColumnsEditor = ({ className, name, onChange, value }) => {
           </div>
         ))}
       </div>
-      <div style={{ paddingTop: '5px' }} className={cx("reset")} onClick={() => appendNewRow()}>
+      <div style={{ paddingTop: '5px', paddingBottom: '10px', fontSize: '14px', color: '#5155F5', cursor: 'pointer'}} className={cx("reset")} onClick={() => appendNewRow()}>
         Add Column
       </div>
     </div>
