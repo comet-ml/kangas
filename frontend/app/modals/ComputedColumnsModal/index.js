@@ -107,7 +107,7 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
       <div className={cx("title")}>Computed Columns</div>
       <div className={cx("subtitle")}>Add computed columns to the table</div>
       <div className={cx("multi-select-columns-body")}>
-        <div className={cx("computed-columns-container")}>
+        <div>
           <ComputedColumnsEditor
             className={cx("computed-column-textarea")}
             name="computedColumnsTextarea"

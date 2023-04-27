@@ -84,46 +84,51 @@ const ComputedColumnsEditor = ({ className, name, onChange, value }) => {
 
   return (
     <div>
-      {formRows.map((row, idx) => (
-        <div
-          style={{
-            display: "flex",
-            alignContent: "stretch",
-            flexDirection: "row",
-            justifyContent: "space-evenly",
-            alignItems: "stretch"
-          }}
-          key={`cc-row-${idx}`}
-          className={cx("computed-columns-row")}
-        >
-          <input
-            key={`cc-name-${idx}`}
-            className={cx("cc-name")}
-            style={{ width: "25%" }}
-            value={formRows[idx]["name"]}
-            onChange={(event) => updateRow(idx, "name", event.target.value)}
-          ></input>
-          <input
-            key={`cc-expr-${idx}`}
-            className={cx("cc-type")}
-            style={{ width: "25%" }}
-            value={formRows[idx]["expr"]}
-            onChange={(event) => updateRow(idx, "expr", event.target.value)}
-          ></input>
-          <div style={{ width: "25%" }}>
-            <Select
-              key={`cc-type-${idx}`}
-              options={options}
-              value={options.find(
-                (item) => item["value"] === formRows[idx]["type"]
-              )}
-              onChange={(event) => updateRow(idx, "type", event.value)}
-            />
+      <div style={{ overflowY: 'scroll', maxHeight: '300px' }}>
+        {formRows.map((row, idx) => (
+          <div
+            style={{
+              display: "flex",
+              alignContent: "stretch",
+              flexDirection: "row",
+              justifyContent: "space-evenly",
+              alignItems: "stretch",
+              paddingBottom: '5px'
+            }}
+            key={`cc-row-${idx}`}
+            className={cx("computed-columns-row")}
+          >
+            <input
+              key={`cc-name-${idx}`}
+              className={cx("cc-name")}
+              style={{ width: "25%" }}
+              value={formRows[idx]["name"]}
+              onChange={(event) => updateRow(idx, "name", event.target.value)}
+            ></input>
+            <input
+              key={`cc-expr-${idx}`}
+              className={cx("cc-type")}
+              style={{ width: "25%" }}
+              value={formRows[idx]["expr"]}
+              onChange={(event) => updateRow(idx, "expr", event.target.value)}
+            ></input>
+            <div style={{ width: "25%" }}>
+              <Select
+                key={`cc-type-${idx}`}
+                options={options}
+                value={options.find(
+                  (item) => item["value"] === formRows[idx]["type"]
+                )}
+                onChange={(event) => updateRow(idx, "type", event.value)}
+              />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <DeleteIcon key={`cc-delete-${idx}`} onClick={() => removeRow(idx)} />
+            </div>
           </div>
-          <DeleteIcon key={`cc-delete-${idx}`} onClick={() => removeRow(idx)} />
-        </div>
-      ))}
-      <div className={cx("reset")} onClick={() => appendNewRow()}>
+        ))}
+      </div>
+      <div style={{ paddingTop: '5px' }} className={cx("reset")} onClick={() => appendNewRow()}>
         Add Column
       </div>
     </div>
