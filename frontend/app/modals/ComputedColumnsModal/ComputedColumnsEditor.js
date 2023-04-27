@@ -3,12 +3,13 @@
 import { useState, useCallback, useEffect } from "react";
 import Select from "react-select";
 import DeleteIcon from "@mui/icons-material/Delete";
+import ExpressionEditor from './ExpressionEditor';
 
 import classNames from "classnames/bind";
 import styles from "../../Settings/SettingsBar.module.scss";
 const cx = classNames.bind(styles);
 
-const ComputedColumnsEditor = ({ className, name, onChange, value }) => {
+const ComputedColumnsEditor = ({ className, name, onChange, value, completions }) => {
   const [count, setCount] = useState(0);
   const [formRows, setFormRows] = useState([]);
 
@@ -105,6 +106,14 @@ const ComputedColumnsEditor = ({ className, name, onChange, value }) => {
               value={formRows[idx]["name"]}
               onChange={(event) => updateRow(idx, "name", event.target.value)}
             ></input>
+            <ExpressionEditor
+              key={`cc-expr-${idx}`}
+              className={cx("cc-type")}
+              style={{ width: "25%" }}
+              expression={formRows[idx]["expr"]}
+              completions={completions}
+              computedColumns={null}
+            ></ExpressionEditor>
             <input
               key={`cc-expr-${idx}`}
               className={cx("cc-type")}

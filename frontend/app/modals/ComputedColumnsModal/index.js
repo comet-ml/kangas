@@ -21,7 +21,7 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
   const [open, setOpen] = useState(false);
   const handleClose = useCallback(() => setOpen(false), []);
   const [message, setMessage] = useState("");
-  
+
   useEffect(() => {
       if (query?.computedColumns)
           setComputedColumns(query.computedColumns);
@@ -116,6 +116,7 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
             name="computedColumnsTextarea"
             onChange={onChange}
             value={origJSON}
+            completions={completions}
           />
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between'}}>
