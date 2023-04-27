@@ -122,7 +122,7 @@ const ComputedColumnsEditor = ({ className, name, onChange, value }) => {
                 onChange={(event) => updateRow(idx, "type", event.value)}
               />
             </div>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', color: '#5155f5', cursor: 'pointer' }}>
               <DeleteIcon key={`cc-delete-${idx}`} onClick={() => removeRow(idx)} />
             </div>
           </div>
