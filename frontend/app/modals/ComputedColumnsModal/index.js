@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useRef, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { Snackbar } from '@mui/material';
 import { ModalContext } from '../../contexts/ModalContext';
 import useQueryParams from '../../../lib/hooks/useQueryParams';
 import formatQueryArgs from '../../../lib/formatQueryArgs';
 import { ConfigContext } from "../../contexts/ConfigContext";
 import ComputedColumnsEditor from './ComputedColumnsEditor';
-//import setStatus from './Somewhere';
 
 import classNames from 'classnames/bind';
 import styles from '../../Settings/SettingsBar.module.scss';
@@ -18,15 +18,14 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
   const { closeModal } = useContext(ModalContext);
   const [computedColumns, setComputedColumns] = useState();
   const [valid, setValid] = useState(true);
-
-  const setStatus = useCallback((message) => {
-    console.log(message);
-  });
-
-    useEffect(() => {
-        if (query?.computedColumns)
-            setComputedColumns(query.computedColumns);
-    }, [setComputedColumns, query?.computedColumns]);
+  const [open, setOpen] = useState(false);
+  const handleClose = useCallback(() => setOpen(false), []);
+  const [message, setMessage] = useState("");
+  
+  useEffect(() => {
+      if (query?.computedColumns)
+          setComputedColumns(query.computedColumns);
+  }, [setComputedColumns, query?.computedColumns]);
 
   const onChange = useCallback(
     (value) => {
@@ -51,6 +50,7 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
         where: query?.whereExpr,
         computedColumns: computedColumns
       });
+
       fetch(`${config.rootPath}api/filter?${queryString}`, {
         next: { revalidate: 10000 }
       })
@@ -74,20 +74,22 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
             updateParams(myParams);
             if (close) closeModal();
             else {
-                setStatus("Successfully applied computed columns to DataGrid");
+                setMessage("Successfully applied computed columns to DataGrid");
                 setValid(true);
+                setOpen(true);
             }
           } else {
             setValid(false);
             if (Object.keys(computedColumns).length === 0) {
-              setStatus("Error: filter depends on computed columns; remove it");
+              setMessage("Error: filter depends on computed columns; remove it");
             } else if (typeof query?.whereExpr === "undefined") {
-              setStatus("Error: fix expression syntax in computed column");
+              setMessage("Error: fix expression syntax in computed column");
             } else {
-              setStatus(
+              setMessage(
                 "Error: fix expression syntax, or remove filter dependency"
               );
             }
+            setOpen(true);
           }
         });
     },
@@ -98,7 +100,7 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
       updateParams,
       params,
       closeModal,
-      setStatus,
+      setMessage,
       config.rootPath
     ]
   );
@@ -125,6 +127,12 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
           </button>
         </div>
       </div>
+      <Snackbar
+        open={open}
+        autoHideDuration={6000}
+        onClose={handleClose}
+        message={message}
+      />
     </div>
   );
 };
