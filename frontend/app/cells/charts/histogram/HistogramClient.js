@@ -37,10 +37,16 @@ const HistogramLayout = {
         visible: true,
         showticklabels: true,
     },
+    modebar: {
+        orientation: 'v',
+    },
 };
 
 const HistogramConfig = {
-    displayModeBar: false,
+    displayModeBar: true,
+    showAxisDragHandles: false,
+    displaylogo: false,
+    modeBarButtonsToRemove: ['select2d', 'lasso2d'],
 };
 
 const VisibleWrapper = (props) => {
@@ -111,7 +117,10 @@ const HistogramClient = ({ value, expanded, ssrData }) => {
                     size: 13,
                     color: '#3D4355',
                 },
-            }
+            },
+            modebar: {
+                orientation: 'v',
+            },
         };
     }, [value?.columnName]);
 
@@ -145,6 +154,24 @@ const HistogramClient = ({ value, expanded, ssrData }) => {
         return <img src={`${config.rootPath}api/charts?${queryString}`} loading="lazy" className={cx(['chart-thumbnail', 'category'])} />
     }
 
+    const copyTextToClipboard = async (text) => {
+	if ('clipboard' in navigator) {
+	    return await navigator.clipboard.writeText(text);
+	} else {
+	    return document.execCommand('copy', true, text);
+	}
+    };
+
+    const onClick = useCallback(async (figure) => {
+	if (figure) {
+            const delta = figure.points[0].data.x[1]  - figure.points[0].data.x[0];
+            const max = figure.points[0].data.x[figure.points[0].pointIndex] + delta;
+            const min = figure.points[0].data.x[figure.points[0].pointIndex];
+            const text = `{"${value.groupBy}"} == "${value.columnValue}" and ${min} < {"${value.columnName}"} < ${max}`;
+	    await copyTextToClipboard(text);
+	}
+    }, [value]);
+
     return (
         <div style={{ minWidth: '700px', display: 'flex' }}>
             <div className={cx('plotly-container-with-stats', { expanded })}>
@@ -154,11 +181,12 @@ const HistogramClient = ({ value, expanded, ssrData }) => {
                         data={data}
                         layout={expanded ? ExpandedLayout : HistogramLayout}
                         config={HistogramConfig}
+		        onClick={onClick}
                     />
                 }
             </div>
             { !!statistics && (
-                <div style={{ margin: 'auto', marginLeft: 'inherit' }}>
+                    <div style={{ margin: 'auto', marginLeft: '50px', width: '200px' }}>
                     {Object.keys(statistics).map((key, index) => {
                         return (
                             <ul style={{ paddingLeft: '0' }}>
