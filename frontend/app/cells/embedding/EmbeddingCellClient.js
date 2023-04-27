@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState, useContext } from 'react';
+import { Snackbar } from '@mui/material';
 import dynamic from 'next/dynamic';
 import { ConfigContext } from '../../contexts/ConfigContext';
 import { useInView } from "react-intersection-observer";
@@ -64,6 +65,9 @@ const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
     const [response, setResponse] = useState();
     const data = useMemo(() => ssrData || response, [ssrData, response]);
     const { config } = useContext(ConfigContext);
+    const [open, setOpen] = useState(false);
+    const handleClose = useCallback(() => setOpen(false), []);
+    const [message, setMessage] = useState("");
 
     const Layout = useMemo(() => {
         return {
@@ -118,11 +122,12 @@ const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
 
     useEffect(() => {
         if (ssrData || !queryParams) return;
-
+        setMessage('Selection will copy row-ids to clipboard');
+        setOpen(true);
         fetchEmbeddingsAsPCA(queryParams).then(res => {
             setResponse(res);
         });
-    }, [ssrData, queryParams]);
+    }, [ssrData, queryParams, setMessage, setOpen]);
 
 
     const queryString = useMemo(() => {
@@ -134,6 +139,26 @@ const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
         });
     }, [queryParams]);
 
+
+    const copyTextToClipboard = async (text) => {
+        if ('clipboard' in navigator) {
+            return await navigator.clipboard.writeText(text);
+        } else {
+            return document.execCommand('copy', true, text);
+        }
+    };
+
+    const onSelected = useCallback(async (figure) => {
+        if (figure) {
+            const text = figure.points.map(point => `${point.customdata}`).join(",");
+            await copyTextToClipboard(text);
+            setMessage(`Copied ${figure.points.length} row-ids to clipboard`);
+            setOpen(true);
+        }
+    }, [setMessage, setOpen]);
+
+
+    // all hooks should be above this line
 
     if (!data || data?.error) {
         return <>Loading</>
@@ -159,32 +184,23 @@ const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
         }
     }
 
-    const copyTextToClipboard = async (text) => {
-	if ('clipboard' in navigator) {
-	    return await navigator.clipboard.writeText(text);
-	} else {
-	    return document.execCommand('copy', true, text);
-	}
-    };
-
-    const onSelected = async (figure) => {
-	if (figure) {
-	    const text = figure.points.map(point => `${point.customdata}`).join(",");
-	    await copyTextToClipboard(text);
-	}
-    };
-
     return (
             <div className={cx('plotly-scatter-container', { expanded })}>
-                { data &&
+              { data &&
                     <Plot
                         className={cx('plotly-scatter-chart', { expanded })}
                         data={data}
                         layout={Layout}
                         config={Config}
-		        onSelected={onSelected}
+                        onSelected={onSelected}
                     />
-                }
+              }
+              <Snackbar
+                  open={open}
+                  autoHideDuration={6000}
+                  onClose={handleClose}
+                  message={message}
+              />
             </div>
     );
 };
