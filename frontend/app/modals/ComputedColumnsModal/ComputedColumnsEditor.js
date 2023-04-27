@@ -1,130 +1,111 @@
 'use client';
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import Select from "react-select";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 import classNames from "classnames/bind";
-import styles from "../../Settings/SettingsBar.module.scss";
+import styles from "./ComputedColumnsModal.module.scss";
 const cx = classNames.bind(styles);
+
+
+const options = [
+  { label: "int", value: "INTEGER" },
+  { label: "float", value: "FLOAT" },
+  { label: "bool", value: "BOOLEAN" },
+  { label: "JSON", value: "JSON" },
+  { label: "text", value: "TEXT" },
+  { label: "date", value: "DATETIME" }
+];
+
+
+
+const Row = ({ update, value }) => {
+  const { name, expr, type } = value;
+
+  const updateName = useCallback((e) => update({ name: e.target.value }), [update]);
+  const updateExpr = useCallback((e) => {
+    update({ 
+      name, 
+      expr: e.target.value 
+    }
+  )}, [update]);
+  const updateType = useCallback((e) => {
+    update({
+      name,
+      type: e.value 
+    }
+  )}, [update]);
+
+  return (
+    <div className={cx("computed-columns-row")}>
+      <input
+        className={cx("cc-input")}
+        defaultValue={name}
+        onChange={updateName}
+      />
+      <input
+        className={cx("cc-input")}
+        defaultValue={expr}
+        onChange={updateExpr}
+      />
+      <div className={cx("cc-input")}>
+        <Select
+          options={options}
+          defaultValue={type}
+          onChange={updateType}
+        />
+      </div>
+      <DeleteIcon {/*onClick={() => removeRow(idx)}*/ ...{}} />
+    </div>
+    )
+}
 
 const ComputedColumnsEditor = ({ className, name, onChange, value }) => {
   const [count, setCount] = useState(0);
   const [formRows, setFormRows] = useState([]);
 
-  const options = [
-    { label: "int", value: "INTEGER" },
-    { label: "float", value: "FLOAT" },
-    { label: "bool", value: "BOOLEAN" },
-    { label: "JSON", value: "JSON" },
-    { label: "text", value: "TEXT" },
-    { label: "date", value: "DATETIME" }
-  ];
+  const [proposedColumns, setProposedColumns] = useState({});
 
-  useEffect(() => {
-    if (value) {
-	// Only set the first time:
-	// value is {key: {"expr": , "type": }}
-	const cc = Object.keys(value).map(key => {
-            return {name: key, expr: value[key]["expr"] || value[key]["field_expr"], type: value[key]["type"] };
-        });
-	// formRows is [{"name":, "expr": , "type"}]
-	setFormRows(cc);
-    }
-  }, [value, setFormRows]);
-
-  const makeOnChange = useCallback((rows) => {
-      // Make the JSON string to send to onChange:
-      // rows/formRows is [{"name":, "expr": , "type"}]
-      const cc = {};
-      rows.forEach(item => {
-          cc[item["name"]] = {expr: item["expr"], type: item["type"] };
-      });
-      // cc is {key: {"expr": , "type": }}
-      onChange(cc);
-      setFormRows(rows);
-  }, [onChange, setFormRows]);
-
-  const updateRow = useCallback(
-    (idx, field, value) => {
-      // update the row with changes on the fly
-      const nextRows = formRows.map((v, i) => {
-        if (i === idx) {
-          v[field] = value;
-          return v;
-        } else {
-          return v;
-        }
-      });
-      makeOnChange(nextRows);
-    },
-      [makeOnChange, formRows]
-  );
-
-  const makeRow = useCallback(() => {
-    // Make a new dummy row
-    setCount(count + 1);
+  const displayColumns = useMemo(() => {
     return {
-      name: `New Column ${count + 1}`,
-      expr: "{'row-id'} < 5",
-      type: "BOOLEAN"
-    };
-  }, [count, setCount]);
+      ...value,
+      ...proposedColumns
+    }
+  }, [proposedColumns, value]);
 
-  const appendNewRow = useCallback(() => {
-    // Append a new new row
-    makeOnChange([...formRows, makeRow()]);
-  }, [makeOnChange, formRows, makeRow]);
 
-    const removeRow = useCallback((idx) => {
-	// Remove a row:
-	const rows = formRows.filter((v, fidx) => fidx !== idx);
-	makeOnChange(rows);
-    }, [formRows, makeOnChange]);
+  const addColumn = useCallback(() => {
+    setProposedColumns({
+      ...proposedColumns,
+      [Object.keys(displayColumns)?.length]: {
+        name: `New Columns`,
+        expr: "{'row-id'} < 5",
+        type: "BOOLEAN"  
+      }
+    })
+  }, [proposedColumns, displayColumns]);
+
+    const update = useCallback((column, idx) => {
+      const columns = {
+        ...proposedColumns
+      }
+      columns[idx] = column;
+      setProposedColumns({
+        ...proposedColumns,
+        [idx]: column
+      })
+    }, [proposedColumns]);
 
   return (
     <div>
-      {formRows.map((row, idx) => (
-        <div
-          style={{
-            display: "flex",
-            alignContent: "stretch",
-            flexDirection: "row",
-            justifyContent: "space-evenly",
-            alignItems: "stretch"
-          }}
-          key={`cc-row-${idx}`}
-          className={cx("computed-columns-row")}
-        >
-          <input
-            key={`cc-name-${idx}`}
-            className={cx("cc-name")}
-            style={{ width: "25%" }}
-            value={formRows[idx]["name"]}
-            onChange={(event) => updateRow(idx, "name", event.target.value)}
-          ></input>
-          <input
-            key={`cc-expr-${idx}`}
-            className={cx("cc-type")}
-            style={{ width: "25%" }}
-            value={formRows[idx]["expr"]}
-            onChange={(event) => updateRow(idx, "expr", event.target.value)}
-          ></input>
-          <div style={{ width: "25%" }}>
-            <Select
-              key={`cc-type-${idx}`}
-              options={options}
-              value={options.find(
-                (item) => item["value"] === formRows[idx]["type"]
-              )}
-              onChange={(event) => updateRow(idx, "type", event.value)}
-            />
-          </div>
-          <DeleteIcon key={`cc-delete-${idx}`} onClick={() => removeRow(idx)} />
-        </div>
+      {Object.keys(displayColumns).map((key, idx) => (
+        <Row update={update} value={displayColumns[key]} idx={key} />
       ))}
-      <div className={cx("reset")} onClick={() => appendNewRow()}>
+      <div className={cx("reset")} onClick={addColumn}>
         Add Column
+      </div>
+      <div>
       </div>
     </div>
   );

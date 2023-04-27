@@ -23,20 +23,16 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
             setComputedColumns(query.computedColumns);
     }, [setComputedColumns, query?.computedColumns]);
 
-  const setStatus = useCallback(
-    (newStatus) => {
+  const setStatus = useCallback((newStatus) => {
       if (status?.current) status.current.value = newStatus;
     },
-    [status]
-  );
+    [status]);
 
   const onChange = useCallback(
     (value) => {
       setComputedColumns(value);
       setStatus("Edited");
-    },
-    [setStatus, setComputedColumns]
-  );
+    }, [setStatus, setComputedColumns]);
 
   const origJSON = useMemo(() => {
     if (!!query?.computedColumns) {

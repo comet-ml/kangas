@@ -1,0 +1,12 @@
+.computed-columns-row {
+    display: flex;
+    align-content: stretch;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: stretch;
+    max-width: 100%;
+}
+
+.cc-input {
+    max-width: 200px;
+}

@@ -6,7 +6,7 @@ import classNames from 'classnames/bind';
 
 const cx = classNames.bind(styles);
 
-const ComputedColumnsButton = ({columns, query, completions}) => (
+const ComputedColumnsButton = ({ columns, query, completions }) => (
     <DialogueModal
         fullScreen={false}
         toggleElement={
