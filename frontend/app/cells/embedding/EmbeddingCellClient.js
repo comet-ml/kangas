@@ -122,7 +122,7 @@ const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
 
     useEffect(() => {
         if (ssrData || !queryParams) return;
-        setMessage('Selection will copy row-ids to clipboard');
+        setMessage('Selection will copy expression to clipboard');
         setOpen(true);
         fetchEmbeddingsAsPCA(queryParams).then(res => {
             setResponse(res);
@@ -150,9 +150,9 @@ const EmbeddingClient = ({ value, expanded, query, columnName, ssrData }) => {
 
     const onSelected = useCallback(async (figure) => {
         if (figure) {
-            const text = figure.points.map(point => `${point.customdata}`).join(",");
+            const text = `{"row-id"} in [` + figure.points.map(point => `${point.customdata}`).join(",") + `]`;
             await copyTextToClipboard(text);
-            setMessage(`Copied ${figure.points.length} row-ids to clipboard`);
+            setMessage(`Copied expression (with ${figure.points.length} row-ids) to clipboard`);
             setOpen(true);
         }
     }, [setMessage, setOpen]);
