@@ -71,6 +71,15 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
             if (params.sort in origJSON && !(params.sort in computedColumns)) {
               myParams.sort = undefined;
             }
+            if (params.select) {
+                const selectColumns = params.select.split(",");
+                for (let selectName of selectColumns) {
+                    if (selectName in origJSON && !(selectName in computedColumns)) {
+                        myParams.select = undefined;
+                        break;
+                    }
+                }
+            }
             updateParams(myParams);
             if (close) closeModal();
             else {
