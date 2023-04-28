@@ -5,6 +5,7 @@ import styles from './Table.module.scss';
 import classNames from 'classnames/bind';
 import { Suspense } from 'react';
 import Skeleton from '../Skeleton';
+import TableClientWrapper from './tableClientWrapper';
 
 const cx = classNames.bind(styles);
 
@@ -60,29 +61,31 @@ export const TableDisplay = ({ query, data, start=0, end=10 }) => {
     ));
     
       return (
-        <div className={styles.tableRoot}>
-            {[ displayColumns, ...displayRows ]?.map((row, ridx) => (
-                <div className={cx('row', { group: !!query?.groupBy, headerRow: ridx < 1 })} key={`row-${ridx}`}>
-                    {
-                        Object.values(row).map( (cell, cidx) => (
-                          <Suspense fallback={<Skeleton message={`suspending ${cell} - ${cidx}`} />}>
-                            <CellSorter
-                                cell={cell}
-                                cidx={cidx}
-                                row={row}
-                                query={query}
-                                start={start}
-                                end={end}
-                                columns={columns}
-                                columnTypes={columnTypes}
-                                ridx={ridx}
-                            />
-                          </Suspense>
-                        ) )
-                    }
-                </div>
-                ))}
-        </div>
+        <TableClientWrapper data={data}>
+            <div className={styles.tableRoot}>
+                {[ displayColumns, ...displayRows ]?.map((row, ridx) => (
+                    <div className={cx('row', { group: !!query?.groupBy, headerRow: ridx < 1 })} key={`row-${ridx}`}>
+                        {
+                            Object.values(row).map( (cell, cidx) => (
+                            <Suspense fallback={<Skeleton message={`suspending ${cell} - ${cidx}`} />}>
+                                <CellSorter
+                                    cell={cell}
+                                    cidx={cidx}
+                                    row={row}
+                                    query={query}
+                                    start={start}
+                                    end={end}
+                                    columns={columns}
+                                    columnTypes={columnTypes}
+                                    ridx={ridx}
+                                />
+                            </Suspense>
+                            ) )
+                        }
+                    </div>
+                    ))}
+            </div>
+        </TableClientWrapper>
      );
    }
 

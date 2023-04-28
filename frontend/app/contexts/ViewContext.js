@@ -11,7 +11,8 @@ const initialState = {
     view: {
         start: 0,
         stop: 10
-    }
+    },
+    isLoading: false
 }
 
 const reducer = (state=initialState, action) => {
@@ -60,6 +61,16 @@ const reducer = (state=initialState, action) => {
                     ...action.payload.view
                 }
             }
+        case 'BEGIN_LOADING':
+            return {
+                ...state,
+                isLoading: true
+            }
+        case 'COMPLETE_LOADING':
+            return {
+                ...state,
+                isLoading: false
+            }
         default:
             return state
     }
@@ -76,13 +87,18 @@ const ViewProvider = ({ value, children }) => {
         }
     }, [state?.query, value?.query, dispatch])
 
+
+
     return (
         <ViewContext.Provider value={{
             columns: state.columns,
             view: state.view,
             updateWidth: (payload) => dispatch({ type: 'RESIZE_COL_WIDTH', payload }),
             toggleLoading: (payload) => dispatch({ type: 'UPDATE_COL_STATUS', payload }),
-            updateView: (payload) => dispatch({ type: 'UPDATE_VIEW', payload })
+            updateView: (payload) => dispatch({ type: 'UPDATE_VIEW', payload }),
+            beginLoading: () => dispatch({ type: 'BEGIN_LOADING' }),
+            completeLoading: () => dispatch({ type: 'COMPLETE_LOADING'}),
+            isLoading: state?.isLoading
         }}>
             { children }
         </ViewContext.Provider>
