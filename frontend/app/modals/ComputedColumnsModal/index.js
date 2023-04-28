@@ -108,7 +108,7 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
   return (
     <div className={cx("multi-select-columns")}>
       <div className={cx("title")}>Computed Columns</div>
-      <div className={cx("subtitle")}>Add computed columns to the table</div>
+      <div className={cx("subtitle")}>Add computed columns to the DataGrid</div>
       <div>
         <div>
           <ComputedColumnsEditor

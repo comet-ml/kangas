@@ -3,6 +3,7 @@
 import classNames from 'classnames/bind';
 import styles from '../Charts.module.scss';
 import { useMemo, useCallback, useState, useRef, useEffect, useContext } from 'react';
+import { Snackbar } from '@mui/material';
 import dynamic from 'next/dynamic';
 import useQueryParams from '../../../../lib/hooks/useQueryParams';
 import formatQueryArgs from '../../../../lib/formatQueryArgs';
@@ -93,6 +94,9 @@ const CategoryClient = ({ expanded, value, ssrData }) => {
     const { config } = useContext(ConfigContext);
     const [response, setResponse] = useState(false);
     const data = useMemo(() => ssrData || response, [ssrData, response]);
+    const [open, setOpen] = useState(false);
+    const handleClose = useCallback(() => setOpen(false), []);
+    const [message, setMessage] = useState("");
 
     const ExpandedLayout = useMemo(() => {
         return {
@@ -127,12 +131,31 @@ const CategoryClient = ({ expanded, value, ssrData }) => {
     }, [data]);
 
     useEffect(() => {
+        setMessage('Clicking on category bar will copy expression to clipboard');
+        setOpen(true);
         if (!value || ssrData) return;
         fetchCategory(value).then(res => {
             setResponse(res);
         });
-    }, [value])
+    }, [value, setMessage, setOpen])
 
+
+    const copyTextToClipboard = async (text) => {
+        if ('clipboard' in navigator) {
+            return await navigator.clipboard.writeText(text);
+        } else {
+            return document.execCommand('copy', true, text);
+        }
+    };
+
+    const onClick = useCallback(async (figure) => {
+        if (figure) {
+            const text = `{"${value.groupBy}"} == "${value.columnValue}" and {"${value.columnName}"} == '${figure.points[0].label}'`;
+            await copyTextToClipboard(text);
+            setMessage(`Copied expression to clipboard`);
+            setOpen(true);
+        }
+    }, [value, setMessage, setOpen]);
 
 
     if (!data || data?.error) {
@@ -147,21 +170,6 @@ const CategoryClient = ({ expanded, value, ssrData }) => {
         return <img src={`${config.rootPath}api/charts?${queryString}`} loading="lazy" className={cx(['chart-thumbnail', 'category'])} />
     }
 
-    const copyTextToClipboard = async (text) => {
-	if ('clipboard' in navigator) {
-	    return await navigator.clipboard.writeText(text);
-	} else {
-	    return document.execCommand('copy', true, text);
-	}
-    };
-
-    const onClick = useCallback(async (figure) => {
-	if (figure) {
-            const text = `{"${value.groupBy}"} == "${value.columnValue}" and {"${value.columnName}"} == '${figure.points[0].label}'`;
-	    await copyTextToClipboard(text);
-	}
-    }, [value]);
-
     return (
         <div className={cx('plotly-container', { expanded })}>
             { data &&
@@ -170,9 +178,15 @@ const CategoryClient = ({ expanded, value, ssrData }) => {
                 data={data}
                 layout={expanded ? ExpandedLayout : CategoryLayout}
                 config={CategoryConfig}
-	        onClick={onClick}
+                onClick={onClick}
             />
             }
+            <Snackbar
+                open={open}
+                autoHideDuration={6000}
+                onClose={handleClose}
+                message={message}
+            />
         </div>
     );
 }

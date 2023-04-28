@@ -189,7 +189,7 @@ const MultiColumnSelectModal = ({ columns = {} }) => {
                 Column Selection & Ordering
             </div>
             <div className={cx("subtitle")}>
-                Add and remove column tags to update the table
+                Add and remove column tags to update the DataGrid
             </div>
             <div className={cx("multi-select-columns-body")}>
                 <DndContext
