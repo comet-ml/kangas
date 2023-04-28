@@ -11,7 +11,7 @@ import { ConfigContext } from "../../contexts/ConfigContext";
 const cx = classNames.bind(styles);
 
 const ExpressionEditor = ({ key, className, style, expression, completions,
-                            computedColumns }) => {
+                            computedColumns, onChange }) => {
     const { config } = useContext(ConfigContext);
     const { params, updateParams } = useQueryParams();
     const expressionRef = useRef();
@@ -36,6 +36,8 @@ const ExpressionEditor = ({ key, className, style, expression, completions,
             } else {
                 setStatus('INVALID');
             }
+	    // FIXME? set the field regardless of validity
+            onChange({target: {value: text}});
         });
     }, [params]);
 
@@ -115,6 +117,7 @@ const ExpressionEditor = ({ key, className, style, expression, completions,
                 onKeyPress={onKeyPress}
                 refInput={expressionRef}
                 onChange={editorOnChange}
+                adornment={false}
             />
         </div>
     );

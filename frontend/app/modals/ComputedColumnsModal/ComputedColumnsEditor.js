@@ -23,13 +23,13 @@ const ComputedColumnsEditor = ({ className, name, onChange, value, completions }
 
   useEffect(() => {
     if (value) {
-	// Only set the first time:
-	// value is {key: {"expr": , "type": }}
-	const cc = Object.keys(value).map(key => {
+        // Only set the first time:
+        // value is {key: {"expr": , "type": }}
+        const cc = Object.keys(value).map(key => {
             return {name: key, expr: value[key]["expr"] || value[key]["field_expr"], type: value[key]["type"] };
         });
-	// formRows is [{"name":, "expr": , "type"}]
-	setFormRows(cc);
+        // formRows is [{"name":, "expr": , "type"}]
+        setFormRows(cc);
     }
   }, [value, setFormRows]);
 
@@ -79,9 +79,9 @@ const ComputedColumnsEditor = ({ className, name, onChange, value, completions }
   }, [makeOnChange, formRows]);
 
     const removeRow = useCallback((idx) => {
-	// Remove a row:
-	const rows = formRows.filter((v, fidx) => fidx !== idx);
-	makeOnChange(rows);
+        // Remove a row:
+        const rows = formRows.filter((v, fidx) => fidx !== idx);
+        makeOnChange(rows);
     }, [formRows, makeOnChange]);
 
   return (
@@ -101,6 +101,7 @@ const ComputedColumnsEditor = ({ className, name, onChange, value, completions }
             className={cx("computed-columns-row")}
           >
             <input
+              spellCheck={false}
               key={`cc-name-${idx}`}
               className={cx("cc-name")}
               style={{ width: "15%" }}
@@ -109,19 +110,13 @@ const ComputedColumnsEditor = ({ className, name, onChange, value, completions }
             ></input>
             <ExpressionEditor
               key={`cc-expr-${idx}`}
-              className={cx("cc-type")}
-              style={{ width: "25%" }}
+              className={cx("cc-expr")}
+              style={{ width: "55%" }}
               expression={formRows[idx]["expr"]}
               completions={completions}
               computedColumns={null}
-            ></ExpressionEditor>
-            <input
-              key={`cc-expr-${idx}`}
-              className={cx("cc-expr")}
-              style={{ width: "55%" }}
-              value={formRows[idx]["expr"]}
               onChange={(event) => updateRow(idx, "expr", event.target.value)}
-            ></input>
+            />
             <div style={{ width: "15%" }}>
               <Select
                 key={`cc-type-${idx}`}
