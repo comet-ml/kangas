@@ -1286,6 +1286,56 @@ class DataGrid:
                 new_data[1].append(None)
         self.append_columns([new_column, new_column_iou], new_data)
 
+    def remove_unused_assets(self):
+        """
+        Remove any assets that don't have a reference to them
+        from the datagrid table.
+        """
+        # First, get all columns that are -ASSET
+        schema = self.get_schema()
+        columns = [
+            column["field_name"]
+            for column in schema.values()
+            if column["type"].endswith("-ASSET")
+        ]
+        # Delete any asset that is not used
+        cursor = self.conn.cursor()
+        cursor.execute(
+            """DELETE FROM assets WHERE asset_id NOT IN (SELECT asset_id FROM datagrid WHERE {where});""".format(
+                where=" OR ".join(
+                    ["%s = assets.asset_id" % column for column in columns]
+                )
+            )
+        )
+        result = cursor.rowcount
+        self.conn.commit()
+        if result > 0:
+            print("Deleted %s unused assets" % result)
+            self._compute_stats()
+
+    def remove_rows(self, *row_ids):
+        """
+        Remove specific rows, and any associated assets.
+        """
+        if self._on_disk:
+            cursor = self.conn.cursor()
+            cursor.execute(
+                "DELETE from datagrid where column_0 in ({row_ids})".format(
+                    row_ids=",".join(["'%s'" % x for x in row_ids])
+                )
+            )
+            result = cursor.rowcount
+            self.conn.commit()
+            if result > 0:
+                print("Deleted %s items" % result)
+                # renumber row_ids:
+                self.conn.execute("""VACUUM""")
+                self.conn.execute("""UPDATE datagrid SET column_0 = rowid""")
+                self.conn.commit()
+                self.remove_unused_assets()
+        else:
+            raise Exception("unable to delete rows from in-memory data")
+
     def remove_columns(self, *column_names):
         """
         Delete columns from the saved DataGrid.
