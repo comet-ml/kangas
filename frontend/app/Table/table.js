@@ -5,7 +5,7 @@ import styles from './Table.module.scss';
 import classNames from 'classnames/bind';
 import { Suspense } from 'react';
 import Skeleton from '../Skeleton';
-import TableClientWrapper from './tableClientWrapper';
+import TableClientWrapper from './TableClientWrapper';
 
 const cx = classNames.bind(styles);
 
