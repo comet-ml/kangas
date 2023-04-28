@@ -9,7 +9,6 @@ import styles from "../../Settings/SettingsBar.module.scss";
 const cx = classNames.bind(styles);
 
 const ComputedColumnsEditor = ({ className, name, onChange, value }) => {
-  const [count, setCount] = useState(0);
   const [formRows, setFormRows] = useState([]);
 
   const options = [
@@ -61,20 +60,22 @@ const ComputedColumnsEditor = ({ className, name, onChange, value }) => {
       [makeOnChange, formRows]
   );
 
-  const makeRow = useCallback(() => {
-    // Make a new dummy row
-    setCount(count + 1);
-    return {
-      name: `New Column ${count + 1}`,
-      expr: '{"row-id"} < 5',
-      type: "BOOLEAN"
-    };
-  }, [count, setCount]);
-
   const appendNewRow = useCallback(() => {
-    // Append a new new row
-    makeOnChange([...formRows, makeRow()]);
-  }, [makeOnChange, formRows, makeRow]);
+      // Append a new new row
+      let count = 1;
+      let newName = `New Column ${count}`;
+      const names = formRows.map(row => row["name"]);
+      while (names.includes(newName)) {
+          count++;
+          newName = `New Column ${count}`;
+      }
+      const newRow = {
+          name: newName,
+          expr: '{"row-id"} < 5',
+          type: "BOOLEAN"
+      };
+      makeOnChange([...formRows, newRow]);
+  }, [makeOnChange, formRows]);
 
     const removeRow = useCallback((idx) => {
 	// Remove a row:
@@ -84,7 +85,7 @@ const ComputedColumnsEditor = ({ className, name, onChange, value }) => {
 
   return (
     <div>
-      <div style={{ overflowY: 'scroll', maxHeight: '150px' }}>
+      <div style={{ overflowY: 'auto', height: '150px' }}>
         {formRows.map((row, idx) => (
           <div
             style={{
@@ -101,18 +102,18 @@ const ComputedColumnsEditor = ({ className, name, onChange, value }) => {
             <input
               key={`cc-name-${idx}`}
               className={cx("cc-name")}
-              style={{ width: "25%" }}
+              style={{ width: "15%" }}
               value={formRows[idx]["name"]}
               onChange={(event) => updateRow(idx, "name", event.target.value)}
             ></input>
             <input
               key={`cc-expr-${idx}`}
-              className={cx("cc-type")}
-              style={{ width: "25%" }}
+              className={cx("cc-expr")}
+              style={{ width: "55%" }}
               value={formRows[idx]["expr"]}
               onChange={(event) => updateRow(idx, "expr", event.target.value)}
             ></input>
-            <div style={{ width: "25%" }}>
+            <div style={{ width: "15%" }}>
               <Select
                 key={`cc-type-${idx}`}
                 options={options}
@@ -122,7 +123,7 @@ const ComputedColumnsEditor = ({ className, name, onChange, value }) => {
                 onChange={(event) => updateRow(idx, "type", event.value)}
               />
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', color: '#5155f5', cursor: 'pointer' }}>
+                <div style={{ display: 'flex', alignItems: 'center', color: '#5155f5', cursor: 'pointer', width: '10%' }}>
               <DeleteIcon key={`cc-delete-${idx}`} onClick={() => removeRow(idx)} />
             </div>
           </div>
