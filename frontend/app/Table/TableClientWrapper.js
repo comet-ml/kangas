@@ -17,20 +17,23 @@ const TableClientWrapper = ({ data, children }) => {
 
     if (isLoading) {
         return (
-        <div
-            style={{ 
-                position: 'absolute', 
-                width: '100%', 
-                height: '100%',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center'
-            }}
-        >
-            <div >
-                <CircularProgress />
+            <div>
+                <div
+                    style={{ 
+                        position: 'absolute', 
+                        width: '100%', 
+                        height: '100%',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    <div >
+                        <CircularProgress />
+                    </div>
+                </div>
+                { children }
             </div>
-        </div>
         )
     } else {
         return <>{ children }</>
