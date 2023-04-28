@@ -18,7 +18,8 @@ const ComputedColumnsButton = ({columns, query, completions}) => (
             "& .MuiDialog-container": {
                 "& .MuiPaper-root": {
                     width: "100%",
-                    maxWidth: "540px",  // Set your width here
+                    maxWidth: "800px",  // Set your width here
+                    maxHeight: "400px"
                 },
             },
            }}

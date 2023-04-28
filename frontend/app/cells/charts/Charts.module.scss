@@ -1,53 +1,33 @@
 .plotly-chart {
     height: 100%;
-    width: 100%;
     max-height: 110px;
 
     * {
         max-height: 110px;
-        width: 100%;
-//        max-width: 100px;
     }
 
     &.expanded {
-        min-width: 600px;
         max-height: unset;
-        max-width: unset;
-
-        div {
-            width: 75%;
-        }
 
         * {
             max-height: unset;
-            max-width: unset;
         }
     }
 }
 
 .plotly-chart-with-stats {
     height: 100%;
-    width: 100%;
     max-height: 110px;
 
     * {
         max-height: 110px;
-        width: 100%;
-//        max-width: 100px;
     }
 
     &.expanded {
-        min-width: 400px;
         max-height: unset;
-        max-width: unset;
-
-        div {
-            width: 75%;
-        }
 
         * {
             max-height: unset;
-            max-width: unset;
         }
     }
 }
@@ -55,7 +35,6 @@
 .plotly-container {
     &.expanded {
         height: 100%;
-        width: 75%;
     }
 
 }
@@ -63,7 +42,6 @@
 .plotly-container-with-stats {
     &.expanded {
         height: 100%;
-        width: 80%;
     }
 
 }
