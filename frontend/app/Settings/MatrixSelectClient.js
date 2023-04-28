@@ -9,6 +9,7 @@ import useQueryParams from '../../lib/hooks/useQueryParams';
 import classNames from 'classnames/bind';
 import styles from './MatrixSelectClient.module.scss';
 import { ConfigContext } from '../contexts/ConfigContext';
+import { ViewContext } from '../contexts/ViewContext';
 const cx = classNames.bind(styles);
 
 
@@ -17,6 +18,7 @@ const cx = classNames.bind(styles);
 const MatrixSelect = ({ query, options=['blah'] }) => {
     const { params, updateParams, prefetch } = useQueryParams();
     const { config } = useContext(ConfigContext)
+    const { beginLoading } = useContext(ViewContext)
 
     const changeDatagrid = useCallback((e) => {
         updateParams({
@@ -30,6 +32,7 @@ const MatrixSelect = ({ query, options=['blah'] }) => {
             select: undefined,
 	    cc: undefined,
         });
+        beginLoading();
     }, [updateParams]);
 
     const customStyles = {

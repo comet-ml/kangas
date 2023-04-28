@@ -11,10 +11,12 @@ import { ConfigContext } from '../contexts/ConfigContext';
 
 import styles from './Pager.module.scss';
 import classNames from 'classnames/bind';
+import { ViewContext } from '../contexts/ViewContext';
 const cx = classNames.bind(styles);
 
 const Pager = ({ dgid, aboutText, firstRow, totalRows, currentPage, totalPages, maxRow, pageSize }) => {
     const { config } = useContext(ConfigContext);
+    const { beginLoading } = useContext(ViewContext);
     const { params, updateParams } = useQueryParams();
     const pageInput = useRef();
     const aboutButton = aboutText !== '' ? (<AboutDataGridButton text={aboutText} />) : (<></>);
@@ -29,7 +31,7 @@ const Pager = ({ dgid, aboutText, firstRow, totalRows, currentPage, totalPages, 
     };
 
     const canGoto = (page) => {
-	return page > 0 && page <= totalPages && page !== currentPage;
+        return page > 0 && page <= totalPages && page !== currentPage;
     };
 
     const gotoPage = useCallback((page) => {
@@ -37,8 +39,10 @@ const Pager = ({ dgid, aboutText, firstRow, totalRows, currentPage, totalPages, 
             updateParams({
                 page
             });
+
+        beginLoading();
         }
-    }, [updateParams]);
+    }, [updateParams, beginLoading]);
 
     const setPageSize = useCallback((pagesize) => {
         updateParams({
@@ -59,19 +63,19 @@ const Pager = ({ dgid, aboutText, firstRow, totalRows, currentPage, totalPages, 
     }, [currentPage]);
 
     const notGotoFirst = useMemo(() => {
-	return !canGoto(1);
+        return !canGoto(1);
     }, [currentPage, totalPages]);
 
     const notGotoLast = useMemo(() => {
-	return !canGoto(totalPages);
+        return !canGoto(totalPages);
     }, [currentPage, totalPages]);
 
     const notGotoNext = useMemo(() => {
-	return !canGoto(currentPage + 1);
+        return !canGoto(currentPage + 1);
     }, [currentPage, totalPages]);
 
     const notGotoPrevious = useMemo(() => {
-	return !canGoto(currentPage - 1);
+        return !canGoto(currentPage - 1);
     }, [currentPage, totalPages]);
 
     return (
@@ -81,25 +85,25 @@ const Pager = ({ dgid, aboutText, firstRow, totalRows, currentPage, totalPages, 
             {downloadLink}
           </div>
           <div className={cx("right-bar")}>
-	    <span>
-	    Showing {`${getLocaleString(firstRow)} - ${getLocaleString(maxRow)} of ${getLocaleString(totalRows)} rows`}
+            <span>
+                Showing {`${getLocaleString(firstRow)} - ${getLocaleString(maxRow)} of ${getLocaleString(totalRows)} rows`}
             </span>
             <button
-               className={cx('rounded')}
-	       onClick={() => gotoPage(1)}
-	       disabled={notGotoFirst}
+                className={cx('rounded')}
+                onClick={() => gotoPage(1)}
+                disabled={notGotoFirst}
             >
-	      {'|<'}
+                {'|<'}
             </button>
             <button
-               className={cx('rounded')}
-	       onClick={() => gotoPage(currentPage - 1)}
-	       disabled={notGotoPrevious}
+                className={cx('rounded')}
+                onClick={() => gotoPage(currentPage - 1)}
+                disabled={notGotoPrevious}
             >
 	      {'<'}
             </button>
-	    <span>
-	    Page
+            <span>
+                Page
             </span>
             <input
                 type="text"
@@ -118,20 +122,20 @@ const Pager = ({ dgid, aboutText, firstRow, totalRows, currentPage, totalPages, 
                         height: '25px',
                 }}
             />
-	    <span>
-	    of {`${getLocaleString(totalPages)}`}
+            <span>
+                of {`${getLocaleString(totalPages)}`}
             </span>
             <button
-               className={cx('rounded')}
-	       onClick={() => gotoPage(currentPage + 1)}
-	       disabled={notGotoNext}
+                className={cx('rounded')}
+                onClick={() => gotoPage(currentPage + 1)}
+                disabled={notGotoNext}
             >
 	      {'>'}
             </button>
             <button
-               className={cx('rounded')}
-	       onClick={() => gotoPage(totalPages)}
-	       disabled={notGotoLast}
+                className={cx('rounded')}
+                onClick={() => gotoPage(totalPages)}
+                disabled={notGotoLast}
             >
 	      {'>|'}
             </button>
