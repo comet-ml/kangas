@@ -104,7 +104,16 @@ const ComputedColumnsEditor = ({ className, name, onChange, value, completions }
               spellCheck={false}
               key={`cc-name-${idx}`}
               className={cx("cc-name")}
-              style={{ width: "15%" }}
+              style={{ 
+                width: "15%", 
+                height: '34px', 
+                padding: '0px',
+                fontWeight: '400',
+                fontSize: '1rem',
+                fontFamily: 'Roboto',
+                lineHeight: '1.4375em',
+                letterSpacing: '0.00938em'
+              }}
               value={formRows[idx]["name"]}
               onChange={(event) => updateRow(idx, "name", event.target.value)}
             ></input>

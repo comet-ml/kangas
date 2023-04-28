@@ -118,6 +118,10 @@ const ExpressionEditor = ({ key, className, style, expression, completions,
                 refInput={expressionRef}
                 onChange={editorOnChange}
                 adornment={false}
+                inputProps={{
+                    spellcheck: false,
+                    style: { height: '5px' }
+                }}
             />
         </div>
     );
