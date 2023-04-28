@@ -116,6 +116,7 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
             name="computedColumnsTextarea"
             onChange={onChange}
             value={origJSON}
+            completions={completions}
           />
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between'}}>

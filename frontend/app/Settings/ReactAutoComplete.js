@@ -65,7 +65,8 @@ const propTypes = {
   offsetY: PropTypes.number,
   passThroughEnter: PropTypes.bool,
   refInput: PropTypes.shape({ current: PropTypes.any }),
-  status: PropTypes.string
+  status: PropTypes.string,
+  adornment: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -90,7 +91,8 @@ const defaultProps = {
   offsetY: 0,
   value: null,
   passThroughEnter: false,
-  status: 'VALID'
+  status: 'VALID',
+  adornment: true,
 };
 
 class AutocompleteTextField extends React.Component {
@@ -483,7 +485,7 @@ class AutocompleteTextField extends React.Component {
     });
 
     return (
-	    <ul className={cx2("react-autocomplete-input")} style={{ left: left + offsetX, top: top + offsetY }}>
+      <ul className={cx2("react-autocomplete-input")} style={{ left: left + offsetX, top: top + offsetY }}>
         {helperOptions}
       </ul>
     );
@@ -498,6 +500,7 @@ class AutocompleteTextField extends React.Component {
       onBlur,
       value,
       status,
+      adornment,
       ...rest
     } = this.props;
 
@@ -516,8 +519,24 @@ class AutocompleteTextField extends React.Component {
       val = defaultValue;
     }
 
+      const InputProps = adornment ? {
+          endAdornment: <ClearButton callback={clearFilter} />,
+          sx: {
+              fontSize: '13px',
+              width: '360px',
+              lineHeight: '1.5',
+              maxHeight: '34px'
+          },
+      } : {};
+
+      const style = adornment ? {
+	  position: 'relative ',
+	  display: 'flex',
+	  maxHeight: '34px'
+      } : {};
+
     return (
-      <div style={{ position: 'relative ', display: 'flex', maxHeight: '34px' }}>
+      <div style={style}>
         <TextField
           autoComplete={'off'}
           disabled={disabled}
@@ -526,15 +545,7 @@ class AutocompleteTextField extends React.Component {
           onKeyDown={this.handleKeyDown}
           inputRef={this.refInput}
           value={val}
-          InputProps={{
-            endAdornment: <ClearButton callback={clearFilter} />,
-            sx: {
-                fontSize: '13px',
-                width: '360px',
-                lineHeight: '1.5',
-                maxHeight: '34px'
-            },
-          }}
+          InputProps={InputProps}
           inputProps={{
             spellCheck: false
           }}
