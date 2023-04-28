@@ -27,7 +27,7 @@ const SortArrow = ({ toggle, sortDesc }) => {
 
 const SelectColumnDropdown = ({ columns, toggleOpen, group = false }) => {
     const { params, updateParams } = useQueryParams();
-    const { view } = useContext(ViewContext);
+    const { view, beginLoading } = useContext(ViewContext);
     const [selected, setSelected] = useState();
 
     const toggleDesc = useCallback(() => {
@@ -62,7 +62,8 @@ const SelectColumnDropdown = ({ columns, toggleOpen, group = false }) => {
             });
         }
         toggleOpen();
-    }, [group, selected, updateParams, toggleOpen])
+        beginLoading();
+    }, [group, selected, updateParams, toggleOpen, beginLoading])
 
     const resetDefault = useCallback(() => {
         if (group) {
