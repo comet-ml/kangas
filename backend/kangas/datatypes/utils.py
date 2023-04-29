@@ -1023,3 +1023,86 @@ def expand_mask(mask, label):
     # only interested in label
     indices = [int(index) for index in mask["map"] if mask["map"][index] == label]
     return np.array([value in indices for value in array])
+
+
+def is_comment(line):
+    if line.startswith("#"):
+        return True, line[1:].lstrip()
+    return False, line
+
+
+def is_quote(line):
+    if line.startswith("'''"):
+        return True
+    elif line.startswith('"""'):
+        return True
+    return False
+
+
+# Python to markdown
+
+
+def python_to_markdown(filename):
+    """
+    Open a python script, and return it as markdown
+    """
+    mode = "code"
+    markdown = ""
+    start_state = True
+    with open(filename) as fp:
+        line = fp.readline()
+        while line:
+            # markdown += "%s:" % mode
+            if line == "\n":
+                # stay in same mode for now
+                markdown += line
+            elif "coding: utf-8" in line:
+                mode = "pre"
+                markdown += "<pre>\n"
+            elif mode == "pre":
+                if line.startswith("#"):
+                    markdown += line
+                else:
+                    markdown += "</pre>\n"
+                    mode = "code"
+                    continue
+            elif mode == "quote":
+                if is_quote(line):
+                    mode = "code"
+                    start_state = True
+                else:
+                    markdown += line
+            else:
+                if is_quote(line):
+                    mode = "quote"
+                elif mode == "code":
+                    comment_q, text = is_comment(line)
+                    if comment_q:
+                        # end code
+                        if not start_state:
+                            markdown += "```\n"
+                        mode = "comment"
+                        # removed comment start
+                        markdown += "\n" + text
+                    else:  # still code
+                        if start_state:
+                            markdown += "```python\n"
+                        markdown += line
+                elif mode == "comment":
+                    comment_q, text = is_comment(line)
+                    if comment_q:
+                        markdown += text
+                    else:
+                        # end comment; start code
+                        mode = "code"
+                        markdown += "\n```python\n"
+                        markdown += line
+                else:
+                    raise Exception("Unknown mode: %s" % mode)
+                start_state = False
+            line = fp.readline()
+        # End all
+        if mode == "code":
+            markdown += "```\n"
+
+    return markdown

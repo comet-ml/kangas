@@ -113,3 +113,4 @@ dg.append_columns(
     }
 )
 dg.save()
+dg.set_about_from_script(__file__)

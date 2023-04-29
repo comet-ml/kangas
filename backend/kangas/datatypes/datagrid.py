@@ -44,6 +44,7 @@ from .utils import (
     get_mask_from_annotations,
     is_null,
     make_dict_factory,
+    python_to_markdown,
     pytype_to_dgtype,
     sanitize_name,
 )
@@ -2235,6 +2236,16 @@ class DataGrid:
         Args:
             markdown: (str) the text of the markdown About text
         """
+        self._save_settings(about=markdown)
+
+    def set_about_from_script(self, filename):
+        """
+        Set the about page for this DataGrid.
+
+        Args:
+            filename: (str) the file that created the DataGrid
+        """
+        markdown = python_to_markdown(filename)
         self._save_settings(about=markdown)
 
     def get_about(self):
