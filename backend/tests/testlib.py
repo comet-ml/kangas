@@ -7,7 +7,7 @@
 #    | |__/ ( ( | | | ( ( | | |__| | | | ( (_| |     #
 #    |_____/ \_||_|___)\_||_|_____/|_| |_|\____|     #
 #                                                    #
-#    Copyright (c) 2022 Kangas Development Team      #
+#    Copyright (c) 2023 Kangas Development Team      #
 #    All rights reserved                             #
 ######################################################
 
@@ -18,7 +18,7 @@ from contextlib import contextmanager
 MAX_TRY_SECONDS = 20
 
 
-class AlwaysEquals():
+class AlwaysEquals:
     def __eq__(self, other):
         return True
 
