@@ -108,6 +108,10 @@ def get_localhost():
     return localhost
 
 
+def _in_kaggle_environment():
+    return os.path.isdir("/kaggle")
+
+
 def _in_colab_environment():
     # type: () -> bool
     """

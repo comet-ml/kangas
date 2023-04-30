@@ -31,6 +31,7 @@ from .server.queries import sqlite_query, sqlite_query_explain  # noqa
 from .utils import (
     _in_colab_environment,
     _in_jupyter_environment,
+    _in_kaggle_environment,
     get_localhost,
     new_kangas_version_available,
 )
@@ -238,6 +239,17 @@ def show(
 
         clear_output(wait=True)
         init_colab(port, width, height, qvs)
+
+    elif _in_kaggle_environment():
+        from IPython.display import IFrame, clear_output, display
+
+        from .kaggle_env import init_kaggle
+
+        tunnel = init_kaggle(port)
+        clear_output(wait=True)
+        display(
+            IFrame(src="%s%s" % (tunnel.public_url, qvs), width=width, height=height)
+        )
 
     elif _in_jupyter_environment():
         from IPython.display import IFrame, clear_output, display
