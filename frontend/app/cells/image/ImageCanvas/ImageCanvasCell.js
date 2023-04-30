@@ -1,14 +1,14 @@
 import { Suspense } from "react";
-import DialogueModal from '../../../modals/DialogueModal/DialogueModalClient';
+import DialogueModal from '@kangas/app/modals/DialogueModal/DialogueModalClient';
 import styles from './ImageCanvas.module.scss';
 import classNames from 'classnames/bind';
 import ImageCanvasControls from "./Controls";
 import ImageCanvasOutput from "./Output";
 //import ImageCanvasClient from "./ImageCanvasClient";
-import Deferred from "../../../DeferredComponent";
-import CanvasProvider from "../../../contexts/CanvasContext";
-import fetchAssetMetadata from '../../../../lib/fetchAssetMetadata';
-import fetchAsset from '../../../../lib/fetchAsset';
+import Deferred from "@kangas/app/DeferredComponent";
+import CanvasProvider from "@kangas/app/contexts/CanvasContext";
+import fetchAssetMetadata from '@kangas/lib/fetchAssetMetadata';
+import fetchAsset from '@kangas/lib/fetchAsset';
 import ExpandedCanvasClientSide from "./ExpandedCanvasClientSide";
 
 const cx = classNames.bind(styles);
@@ -30,7 +30,7 @@ const ImageCanvasCell = async ({ assets, query }) => {
                             } >
 
                                 <Suspense fallback={<>Loading</>}>
-                                    <ExpandedCanvasClientSide dgid={dgid} timestamp={timestamp} assetId={id} /> 
+                                    <ExpandedCanvasClientSide dgid={dgid} timestamp={timestamp} assetId={id} />
                                 </Suspense>
 
                             </DialogueModal>

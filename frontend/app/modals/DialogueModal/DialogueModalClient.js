@@ -5,7 +5,7 @@ import { useState, useCallback } from 'react';
 import Dialogue from '@mui/material/Dialog';
 import classNames from 'classnames/bind';
 import styles from './DialogueModal.module.scss';
-import ModalContext from '../../contexts/ModalContext';
+import ModalContext from '@kangas/app/contexts/ModalContext';
 
 const cx = classNames.bind(styles);
 

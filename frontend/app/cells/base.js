@@ -2,7 +2,7 @@ import styles from './Cell.module.scss';
 import classNames from 'classnames/bind';
 import CellClient from './baseClient';
 import Header from './header';
-import cellMap from '../../lib/consts/cellMap';
+import cellMap from '@kangas/lib/consts/cellMap';
 
 const cx = classNames.bind(styles);
 

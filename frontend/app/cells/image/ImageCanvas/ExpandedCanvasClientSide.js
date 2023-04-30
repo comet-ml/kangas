@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useState, useContext } from "react";
-import fetchAssetMetadata from "../../../../lib/fetchAssetMetadata";
+import fetchAssetMetadata from "@kangas/lib/fetchAssetMetadata";
 import styles from './ImageCanvas.module.scss';
 import classNames from 'classnames/bind';
-import Deferred from "../../../DeferredComponent";
-import CanvasProvider from "../../../contexts/CanvasContext";
-import { ConfigContext } from "../../../contexts/ConfigContext";
+import Deferred from "@kangas/app/DeferredComponent";
+import CanvasProvider from "@kangas/app/contexts/CanvasContext";
+import { ConfigContext } from "@kangas/app/contexts/ConfigContext";
 import ImageCanvasControls from "./Controls";
 import ImageCanvasOutputClient from "./OutputClient";
 

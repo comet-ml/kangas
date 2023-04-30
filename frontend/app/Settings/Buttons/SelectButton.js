@@ -2,8 +2,8 @@
 
 import styles from './Buttons.module.scss';
 import classNames from 'classnames/bind';
-import DialogueModal from '../../modals/DialogueModal/DialogueModalClient';
-import MultiColumnSelectModal from '../../modals/MultiColumnSelectModal';
+import DialogueModal from '@kangas/app/modals/DialogueModal/DialogueModalClient';
+import MultiColumnSelectModal from '@kangas/app/modals/MultiColumnSelectModal';
 
 const cx = classNames.bind(styles);
 

@@ -2,11 +2,11 @@
 
 import Autocomplete from './ReactAutoComplete';
 import { useCallback, useEffect, useRef, useMemo, useState, useContext } from 'react';
-import useQueryParams from '../../lib/hooks/useQueryParams';
-import formatQueryArgs from '../../lib/formatQueryArgs';
+import useQueryParams from '@kangas/lib/hooks/useQueryParams';
+import formatQueryArgs from '@kangas/lib/formatQueryArgs';
 import styles from './Filter.module.scss';
 import classNames from 'classnames/bind';
-import { ConfigContext } from "../contexts/ConfigContext";
+import { ConfigContext } from "@kangas/app/contexts/ConfigContext";
 
 const cx = classNames.bind(styles);
 

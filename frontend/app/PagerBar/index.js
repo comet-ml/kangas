@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-key */
 
-import fetchDataGridTotal from '../../lib/fetchDatagridTotal';
-import fetchAbout from '../../lib/fetchAbout';
+import fetchDataGridTotal from '@kangas/lib/fetchDatagridTotal';
+import fetchAbout from '@kangas/lib/fetchAbout';
 import Pager from './pager';
 
 const PagerBar = async ({query}) => {

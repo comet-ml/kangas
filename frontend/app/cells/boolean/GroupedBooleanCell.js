@@ -1,7 +1,7 @@
 import { Suspense } from "react";
-import Category from "../charts/category/Category";
-import isPrimitive from '../../../lib/isPrimitive';
-import formatValue from "../../../lib/formatValue";
+import Category from "@kangas/app/cells/charts/category/Category";
+import isPrimitive from '@kangas/lib/isPrimitive';
+import formatValue from "@kangas/lib/formatValue";
 import classNames from 'classnames/bind';
 import styles from '../Cell.module.scss';
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useEffect, useReducer } from 'react';
-import useDebounce from '../../lib/hooks/useDebounce';
+import useDebounce from '@kangas/lib/hooks/useDebounce';
 
 export const ViewContext = createContext();
 

@@ -2,7 +2,7 @@
 
 import { CircularProgress } from "@mui/material";
 import { useContext, useEffect, useRef } from "react"
-import { ViewContext } from "../contexts/ViewContext"
+import { ViewContext } from "@kangas/app/contexts/ViewContext"
 
 const TableClientWrapper = ({ data, children }) => {
     const { isLoading, completeLoading } = useContext(ViewContext);
@@ -19,9 +19,9 @@ const TableClientWrapper = ({ data, children }) => {
         return (
             <div>
                 <div
-                    style={{ 
-                        position: 'absolute', 
-                        width: '100%', 
+                    style={{
+                        position: 'absolute',
+                        width: '100%',
                         height: '100%',
                         display: 'flex',
                         justifyContent: 'center',

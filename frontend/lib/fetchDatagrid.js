@@ -1,4 +1,4 @@
-import config from '../config';
+import config from '@kangas/config';
 import fetchIt from './fetchIt';
 
 const fetchDataGrid = async (query, url=config.apiUrl) => {

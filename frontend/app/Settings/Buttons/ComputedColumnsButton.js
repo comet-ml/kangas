@@ -1,5 +1,5 @@
-import DialogueModal from '../../modals/DialogueModal/DialogueModalClient';
-import ComputedColumnsModal from '../../modals/ComputedColumnsModal';
+import DialogueModal from '@kangas/app/modals/DialogueModal/DialogueModalClient';
+import ComputedColumnsModal from '@kangas/app/modals/ComputedColumnsModal';
 
 import styles from './Buttons.module.scss';
 import classNames from 'classnames/bind';

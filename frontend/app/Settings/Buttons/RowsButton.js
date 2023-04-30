@@ -2,7 +2,7 @@
 
 import styles from './Buttons.module.scss';
 import classNames from 'classnames/bind';
-import DialogueModal from '../../modals/DialogueModal/DialogueModalClient';
+import DialogueModal from '@kangas/app/modals/DialogueModal/DialogueModalClient';
 
 const cx = classNames.bind(styles);
 

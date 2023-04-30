@@ -3,8 +3,8 @@
 import { Popover } from '@mui/material';
 import styles from './Buttons.module.scss';
 import classNames from 'classnames/bind';
-import usePopover from '../../../lib/hooks/usePopover';
-import SelectColumnDropdown from '../../modals/SelectColumnDrowpdown/SelectColumnDropdown';
+import usePopover from '@kangas/lib/hooks/usePopover';
+import SelectColumnDropdown from '@kangas/app/modals/SelectColumnDrowpdown/SelectColumnDropdown';
 const cx = classNames.bind(styles);
 
 const SortByButton = ({columns}) => {

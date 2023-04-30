@@ -4,12 +4,12 @@ import Select from 'react-select';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useCallback, useContext, useEffect, useMemo } from 'react';
-import useQueryParams from '../../lib/hooks/useQueryParams';
+import useQueryParams from '@kangas/lib/hooks/useQueryParams';
 
 import classNames from 'classnames/bind';
 import styles from './MatrixSelectClient.module.scss';
-import { ConfigContext } from '../contexts/ConfigContext';
-import { ViewContext } from '../contexts/ViewContext';
+import { ConfigContext } from '@kangas/app/contexts/ConfigContext';
+import { ViewContext } from '@kangas/app/contexts/ViewContext';
 const cx = classNames.bind(styles);
 
 

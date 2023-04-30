@@ -1,8 +1,8 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo, useContext } from "react";
-import { ConfigContext } from '../../app/contexts/ConfigContext';
+import { ConfigContext } from '@kangas/app/contexts/ConfigContext';
 
-import config from '../../config';
+import config from '@kangas/config';
 
 const useQueryParams = () => {
     const { config } = useContext(ConfigContext);

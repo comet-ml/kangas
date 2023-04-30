@@ -1,6 +1,6 @@
 import stream, { Stream } from 'stream';
-import config from '../../config';
-import formatQueryArgs from '../../lib/formatQueryArgs';
+import config from '@kangas/config';
+import formatQueryArgs from '@kangas/lib/formatQueryArgs';
 
 const handler = async (req, res) => {
     const { endpoint, ...query } = req.query;

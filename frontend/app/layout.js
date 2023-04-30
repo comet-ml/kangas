@@ -1,7 +1,7 @@
 // import { Html, Head, Main, NextScript } from 'next/document';
 import Script from 'next/script';
-import ConfigProvider from './contexts/ConfigContext';
-import config from '../config';
+import ConfigProvider from '@kangas/app/contexts/ConfigContext';
+import config from '@kangas/config';
 
 const RootLayout = ({ children }) => {
     return (

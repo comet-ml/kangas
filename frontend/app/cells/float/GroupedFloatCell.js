@@ -1,7 +1,7 @@
 import { Suspense } from "react";
-import Histogram from "../charts/histogram/Histogram";
-import isPrimitive from '../../../lib/isPrimitive';
-import formatValue from "../../../lib/formatValue";
+import Histogram from "@kangas/app/cells/charts/histogram/Histogram";
+import isPrimitive from '@kangas/lib/isPrimitive';
+import formatValue from "@kangas/lib/formatValue";
 import classNames from 'classnames/bind';
 import styles from '../Cell.module.scss'
 

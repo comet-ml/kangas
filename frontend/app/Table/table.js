@@ -1,10 +1,10 @@
 /* eslint-disable react/jsx-key */
 
-import Cell from '../cells/base';
+import Cell from '@kangas/app/cells/base';
 import styles from './Table.module.scss';
 import classNames from 'classnames/bind';
 import { Suspense } from 'react';
-import Skeleton from '../Skeleton';
+import Skeleton from '@kangas/app/Skeleton';
 import TableClientWrapper from './TableClientWrapper';
 
 const cx = classNames.bind(styles);
@@ -50,7 +50,7 @@ const CellSorter = ({ cell, cidx, start, end, row, columns, columnTypes, ridx, q
         />
     )
 }
- 
+
 
 export const TableDisplay = ({ query, data, start=0, end=10 }) => {
     const { columnTypes, columns, rows, displayColumns } = data;
@@ -59,7 +59,7 @@ export const TableDisplay = ({ query, data, start=0, end=10 }) => {
     const displayRows = rows.map(row => Object.fromEntries(
         Object.entries(row).filter(([name]) => displayColumns.includes(name))
     ));
-    
+
       return (
         <TableClientWrapper data={data}>
             <div className={styles.tableRoot}>

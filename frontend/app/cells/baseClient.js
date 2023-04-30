@@ -1,13 +1,13 @@
 'use client';
 
 import { useContext, useCallback, useState, useEffect, useMemo, useRef } from "react";
-import useDebounce from "../../lib/hooks/useDebounce";
-import { ViewContext } from "../contexts/ViewContext";
+import useDebounce from "@kangas/lib/hooks/useDebounce";
+import { ViewContext } from "@kangas/app/contexts/ViewContext";
 import classNames from 'classnames/bind';
 import styles from './Cell.module.scss';
 import { Resizable } from 're-resizable';
 import { useInView } from "react-intersection-observer";
-import getDefaultCellSize from "../../lib/getDefaultCellSize";
+import getDefaultCellSize from "@kangas/lib/getDefaultCellSize";
 
 const cx = classNames.bind(styles);
 

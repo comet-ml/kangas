@@ -1,4 +1,4 @@
-import config from '../../config';
+import config from '@kangas/config';
 
 const handler = async (req, res) => {
     const result = await fetch(`${config.apiUrl}status`);

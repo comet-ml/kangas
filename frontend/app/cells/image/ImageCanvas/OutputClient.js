@@ -1,12 +1,12 @@
 'use client';
 
 import { useCallback, useMemo, useEffect, useRef, useState, useContext, useLayoutEffect } from 'react';
-import { CanvasContext } from '../../../contexts/CanvasContext';
-import useLabels from '../../../../lib/hooks/useLabels';
-import { getColor, getContrastingColor } from '../../../../lib/generateChartColor';
-import truncateValue from '../../../../lib/truncateValue';
-import { drawRegions, drawBoxes, drawLines, drawMask, drawMarkers } from '../../../../lib/canvas';
-import { isTagHidden, makeTag } from '../../../../lib/tags';
+import { CanvasContext } from '@kangas/app/contexts/CanvasContext';
+import useLabels from '@kangas/lib/hooks/useLabels';
+import { getColor, getContrastingColor } from '@kangas/lib/generateChartColor';
+import truncateValue from '@kangas/lib/truncateValue';
+import { drawRegions, drawBoxes, drawLines, drawMask, drawMarkers } from '@kangas/lib/canvas';
+import { isTagHidden, makeTag } from '@kangas/lib/tags';
 import styles from './ImageCanvas.module.scss';
 import classNames from 'classnames/bind';
 const cx = classNames.bind(styles);

@@ -5,10 +5,10 @@ import styles from '../Charts.module.scss';
 import { useMemo, useCallback, useState, useRef, useEffect, useContext } from 'react';
 import { Snackbar } from '@mui/material';
 import dynamic from 'next/dynamic';
-import useQueryParams from '../../../../lib/hooks/useQueryParams';
-import formatQueryArgs from '../../../../lib/formatQueryArgs';
-import fetchCategory from '../../../../lib/fetchCategory';
-import { ConfigContext } from '../../../contexts/ConfigContext';
+import useQueryParams from '@kangas/lib/hooks/useQueryParams';
+import formatQueryArgs from '@kangas/lib/formatQueryArgs';
+import fetchCategory from '@kangas/lib/fetchCategory';
+import { ConfigContext } from '@kangas/app/contexts/ConfigContext';
 import { useInView } from "react-intersection-observer";
 
 const Plot = dynamic(() => import("react-plotly.js"), {

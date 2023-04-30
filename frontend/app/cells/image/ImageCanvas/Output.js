@@ -1,11 +1,11 @@
 import ImageCanvasOutputClient from "./OutputClient"
-import fetchAsset from "../../../../lib/fetchAsset"
-import fetchAssetMetadata from "../../../../lib/fetchAssetMetadata";
+import fetchAsset from "@kangas/lib/fetchAsset"
+import fetchAssetMetadata from "@kangas/lib/fetchAssetMetadata";
 import styles from './ImageCanvas.module.scss';
 import classNames from 'classnames/bind';
-import Deferred from "../../../DeferredComponent";
+import Deferred from "@kangas/app/DeferredComponent";
 
-import config from "../../../../config";
+import config from "@kangas/config";
 
 const cx = classNames.bind(styles);
 

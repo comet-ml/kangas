@@ -1,4 +1,4 @@
-import config from '../config';
+import config from '@kangas/config';
 import fetchIt from './fetchIt';
 
 export const parseEndpoint = ({ thumbnail, group }) => {

@@ -1,6 +1,6 @@
 import Base from './BaseBooleanCell';
 import Grouped from './GroupedBooleanCell';
-import DialogueModal from '../../modals/DialogueModal/DialogueModalClient';
+import DialogueModal from '@kangas/app/modals/DialogueModal/DialogueModalClient';
 
 const BooleanCell = ({ value, query, style, ssr }) => {
     if (!query?.groupBy) return (

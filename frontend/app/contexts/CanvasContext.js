@@ -2,7 +2,7 @@
 
 import { createContext, useEffect, useMemo, useReducer } from 'react';
 
-import { makeTag } from '../../lib/tags';
+import { makeTag } from '@kangas/lib/tags';
 
 export const CanvasContext = createContext({
     images: {},

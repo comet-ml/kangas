@@ -1,4 +1,4 @@
-import formatValue from '../../../lib/formatValue';
+import formatValue from '@kangas/lib/formatValue';
 
 import classNames from 'classnames/bind';
 import styles from '../Cell.module.scss';

@@ -1,8 +1,8 @@
 /* eslint-disable react/jsx-key */
 
-import DialogueModal from '../modals/DialogueModal/DialogueModalClient';
-import fetchStatus from '../../lib/fetchStatus';
-import fetchCompletions from '../../lib/fetchCompletions';
+import DialogueModal from '@kangas/app/modals/DialogueModal/DialogueModalClient';
+import fetchStatus from '@kangas/lib/fetchStatus';
+import fetchCompletions from '@kangas/lib/fetchCompletions';
 import MatrixSelect from './MatrixSelectClient';
 import FilterExpr from './FilterExpr';
 import HelpText from './HelpText.js';
@@ -11,8 +11,8 @@ import { KangasButton, AboutDialog, SelectButton, HelpButton, GroupByButton,
 import styles from './SettingsBar.module.scss';
 import classNames from 'classnames/bind';
 import { Suspense } from 'react';
-import fetchDatagrids from '../../lib/fetchDatagrids';
-import fetchDataGrid from '../../lib/fetchDatagrid';
+import fetchDatagrids from '@kangas/lib/fetchDatagrids';
+import fetchDataGrid from '@kangas/lib/fetchDatagrid';
 
 const cx = classNames.bind(styles);
 

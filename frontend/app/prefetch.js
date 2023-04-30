@@ -1,6 +1,6 @@
-import config from '../config';
+import config from '@kangas/config';
 
-import fetchDataGrid from "../lib/fetchDatagrid";
+import fetchDataGrid from "@kangas/lib/fetchDatagrid";
 
 const Prefetch = async ({ datagrids, query }) => {
     const offset = query?.offset ?? 0;

@@ -11,8 +11,8 @@ import {
     useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { ModalContext } from '../../contexts/ModalContext';
-import useQueryParams from '../../../lib/hooks/useQueryParams';
+import { ModalContext } from '@kangas/app/contexts/ModalContext';
+import useQueryParams from '@kangas/lib/hooks/useQueryParams';
 
 import classNames from 'classnames/bind';
 import styles from '../../Settings/SettingsBar.module.scss';

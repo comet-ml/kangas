@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useContext } from 'react';
 import { Snackbar } from '@mui/material';
 import dynamic from 'next/dynamic';
-import fetchHistogram from "../../../../lib/fetchHistogram"
-import formatQueryArgs from '../../../../lib/formatQueryArgs';
-import truncateValue from '../../../../lib/truncateValue';
-import { ConfigContext } from '../../../contexts/ConfigContext';
+import fetchHistogram from "@kangas/lib/fetchHistogram"
+import formatQueryArgs from '@kangas/lib/formatQueryArgs';
+import truncateValue from '@kangas/lib/truncateValue';
+import { ConfigContext } from '@kangas/app/contexts/ConfigContext';
 import { useInView } from "react-intersection-observer";
 
 const Plot = dynamic(() => import("react-plotly.js"), {

@@ -2,11 +2,11 @@
 
 import CachedIcon from '@mui/icons-material/Cached';
 import { useCallback, useContext } from 'react';
-import useQueryParams from '../../../lib/hooks/useQueryParams';
+import useQueryParams from '@kangas/lib/hooks/useQueryParams';
 
 import styles from './RefreshButton.module.scss';
 import classNames from 'classnames/bind';
-import { ViewContext } from '../../contexts/ViewContext';
+import { ViewContext } from '@kangas/app/contexts/ViewContext';
 const cx = classNames.bind(styles);
 
 const RefreshButton = ({ query }) => {

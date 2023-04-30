@@ -1,12 +1,12 @@
 // Config
-import config from '../config';
+import config from '@kangas/config';
 
 // Utils
 import fetchIt from './fetchIt';
 
 const fetchAbout = async (query) => {
     if (!!query?.dgid) {
-		const data = await fetchIt({ 
+		const data = await fetchIt({
 			url: `${config.apiUrl}about`,
 			query: {
 				dgid: query.dgid,
@@ -15,7 +15,7 @@ const fetchAbout = async (query) => {
 		});
 		return data?.about;
     }
-	
+
     return "";
 };
 

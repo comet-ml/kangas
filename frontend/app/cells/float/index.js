@@ -1,6 +1,6 @@
-import { Suspense } from "react";
-import DialogueModal from "../../modals/DialogueModal/DialogueModalClient";
-import Base from "./BaseFloatCell";
+import { Suspense } from 'react';
+import DialogueModal from '@kangas/app/modals/DialogueModal/DialogueModalClient';
+import Base from './BaseFloatCell';
 import Grouped from './GroupedFloatCell'
 
 const FloatCell = ({ value, query, style, ssr }) => {
@@ -12,7 +12,7 @@ const FloatCell = ({ value, query, style, ssr }) => {
             <Suspense fallback={<>Loading</>}>
                 <Grouped value={value} query={query} expanded={true} ssr={ssr} />
             </Suspense>
-            
+
         </DialogueModal>
     );
 };

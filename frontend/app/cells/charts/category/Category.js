@@ -1,11 +1,11 @@
-import fetchCategory from "../../../../lib/fetchCategory"
+import fetchCategory from "@kangas/lib/fetchCategory"
 import CategoryClient from './CategoryClient';
 
 const Category = async ({ value, expanded, ssr }) => {
-    const ssrData = ssr ? await fetchCategory(value, ssr) : false; 
+    const ssrData = ssr ? await fetchCategory(value, ssr) : false;
 
     return (
-        <CategoryClient 
+        <CategoryClient
             expanded={expanded}
             value={value}
             ssrData={ssrData}

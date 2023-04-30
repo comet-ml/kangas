@@ -4,12 +4,12 @@ import styles from './ImageCanvas.module.scss';
 import "./Mui.css";
 import classNames from 'classnames/bind';
 import { useCallback, useContext, useEffect, useMemo } from 'react';
-import { CanvasContext } from '../../../contexts/CanvasContext';
+import { CanvasContext } from '@kangas/app/contexts/CanvasContext';
 import Label from './Label';
 import { Accordion, AccordionDetails, AccordionSummary } from '@mui/material';
 import { ExpandMoreOutlined } from '@material-ui/icons';
 import { JsonViewer } from '@textea/json-viewer';
-import { isTagHidden } from '../../../../lib/tags';
+import { isTagHidden } from '@kangas/lib/tags';
 
 const cx = classNames.bind(styles);
 

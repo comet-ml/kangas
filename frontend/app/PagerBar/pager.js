@@ -4,14 +4,14 @@
 import DownloadIcon from '@mui/icons-material/Download';
 
 import { useCallback, useMemo, useEffect, useRef, useContext } from 'react';
-import useQueryParams from '../../lib/hooks/useQueryParams';
-import RowsButton from '../Settings/Buttons/RowsButton';
-import AboutDataGridButton from '../Settings/Buttons/AboutDataGridButton';
-import { ConfigContext } from '../contexts/ConfigContext';
+import useQueryParams from '@kangas/lib/hooks/useQueryParams';
+import RowsButton from '@kangas/app/Settings/Buttons/RowsButton';
+import AboutDataGridButton from '@kangas/app/Settings/Buttons/AboutDataGridButton';
+import { ConfigContext } from '@kangas/app/contexts/ConfigContext';
 
 import styles from './Pager.module.scss';
 import classNames from 'classnames/bind';
-import { ViewContext } from '../contexts/ViewContext';
+import { ViewContext } from '@kangas/app/contexts/ViewContext';
 const cx = classNames.bind(styles);
 
 const Pager = ({ dgid, aboutText, firstRow, totalRows, currentPage, totalPages, maxRow, pageSize }) => {

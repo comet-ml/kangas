@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useContext, useEffect } from 'react';
-import { CanvasContext } from '../../app/contexts/CanvasContext';
-import fetchIt from '../fetchIt';
-import config from '../../config';
+import { CanvasContext } from '@kangas/app/contexts/CanvasContext';
+import fetchIt from '@kangas/lib/fetchIt';
+import config from '@kangas/config';
 
 /*
 

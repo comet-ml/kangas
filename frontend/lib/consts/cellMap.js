@@ -1,12 +1,12 @@
-import TextCell from "../../app/cells/text";
-import FloatCell from "../../app/cells/float";
-import JSONCell from "../../app/cells/json";
-import ImageCell from "../../app/cells/image";
-import DateCell from "../../app/cells/date";
-import EmbeddingCell from "../../app/cells/embedding";
-import BooleanCell from "../../app/cells/boolean";
-import LoadingCell from "../../app/cells/loading";
-import NACell from "../../app/cells/na";
+import TextCell from "@kangas/app/cells/text";
+import FloatCell from "@kangas/app/cells/float";
+import JSONCell from "@kangas/app/cells/json";
+import ImageCell from "@kangas/app/cells/image";
+import DateCell from "@kangas/app/cells/date";
+import EmbeddingCell from "@kangas/app/cells/embedding";
+import BooleanCell from "@kangas/app/cells/boolean";
+import LoadingCell from "@kangas/app/cells/loading";
+import NACell from "@kangas/app/cells/na";
 
 const cellMap = {
     TEXT: {

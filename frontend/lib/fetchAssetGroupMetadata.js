@@ -1,5 +1,5 @@
 // Config
-import config from '../config';
+import config from '@kangas/config';
 
 // Utils
 import fetchData from './fetchIt';

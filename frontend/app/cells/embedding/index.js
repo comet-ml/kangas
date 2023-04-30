@@ -1,8 +1,8 @@
-import { Suspense } from "react";
-import DialogueModal from "../../modals/DialogueModal/DialogueModalClient";
+import { Suspense } from 'react';
+import DialogueModal from '@kangas/app/modals/DialogueModal/DialogueModalClient';
 
 import EmbeddingCellClient from './EmbeddingCellClient'
-import fetchEmbeddingsAsPCA from '../../../lib/fetchEmbeddingsAsPCA';
+import fetchEmbeddingsAsPCA from '@kangas/lib/fetchEmbeddingsAsPCA';
 
 const EmbeddingCell = async ({ value, query, style, ssr, columnName }) => {
     let ssrData = null;

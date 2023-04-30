@@ -1,11 +1,11 @@
-import fetchAsset from '../../../lib/fetchAsset';
+import fetchAsset from '@kangas/lib/fetchAsset';
 import ImageCanvasCell from './ImageCanvas/ImageCanvasCell';
-import CanvasProvider from "../../contexts/CanvasContext";
+import CanvasProvider from "@kangas/app/contexts/CanvasContext";
 
 import classNames from 'classnames/bind';
 import styles from '../Cell.module.scss';
 import { Suspense } from 'react';
-import fetchAssetGroupMetadata from '../../../lib/fetchAssetGroupMetadata';
+import fetchAssetGroupMetadata from '@kangas/lib/fetchAssetGroupMetadata';
 const cx = classNames.bind(styles);
 
 const ThumbnailGroupCell = async ({ value, query, columnName, expanded }) => {

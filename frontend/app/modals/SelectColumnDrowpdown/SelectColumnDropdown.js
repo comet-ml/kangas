@@ -2,8 +2,8 @@
 
 import { useCallback, useContext, useMemo, useState } from 'react';
 import Select from 'react-select';
-import { ViewContext } from '../../contexts/ViewContext';
-import useQueryParams from '../../../lib/hooks/useQueryParams';
+import { ViewContext } from '@kangas/app/contexts/ViewContext';
+import useQueryParams from '@kangas/lib/hooks/useQueryParams';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import styles from './SelectColumnDropdown.module.scss';

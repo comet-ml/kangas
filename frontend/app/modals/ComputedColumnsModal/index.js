@@ -2,10 +2,10 @@
 
 import React, { useRef, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Snackbar } from '@mui/material';
-import { ModalContext } from '../../contexts/ModalContext';
-import useQueryParams from '../../../lib/hooks/useQueryParams';
-import formatQueryArgs from '../../../lib/formatQueryArgs';
-import { ConfigContext } from "../../contexts/ConfigContext";
+import { ModalContext } from '@kangas/app/contexts/ModalContext';
+import useQueryParams from '@kangas/lib/hooks/useQueryParams';
+import formatQueryArgs from '@kangas/lib/formatQueryArgs';
+import { ConfigContext } from "@kangas/app/contexts/ConfigContext";
 import ComputedColumnsEditor from './ComputedColumnsEditor';
 
 import classNames from 'classnames/bind';

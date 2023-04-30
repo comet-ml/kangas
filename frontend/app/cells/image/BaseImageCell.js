@@ -1,12 +1,12 @@
-import fetchAsset, { parseEndpoint } from '../../../lib/fetchAsset';
+import fetchAsset, { parseEndpoint } from '@kangas/lib/fetchAsset';
 import ImageCanvasCell from './ImageCanvas/ImageCanvasCell';
 import { Suspense } from 'react';
-import config from '../../../config';
+import config from '@kangas/config';
 // TODO create a parseDataURL helper
 
 import Image from 'next/image';
-import fetchAssetMetadata from '../../../lib/fetchAssetMetadata';
-import CanvasProvider from '../../contexts/CanvasContext';
+import fetchAssetMetadata from '@kangas/lib/fetchAssetMetadata';
+import CanvasProvider from '@kangas/app/contexts/CanvasContext';
 
 import classNames from 'classnames/bind';
 import styles from '../Cell.module.scss';

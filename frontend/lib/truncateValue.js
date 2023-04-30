@@ -1,5 +1,5 @@
 // Config
-import config from '../config';
+import config from '@kangas/config';
 
 const countDecimals = (value) => {
     if (Math.floor(value) === value) return 0;

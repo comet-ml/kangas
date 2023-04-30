@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useContext } from 'react';
 import { Snackbar } from '@mui/material';
 import dynamic from 'next/dynamic';
-import { ConfigContext } from '../../contexts/ConfigContext';
+import { ConfigContext } from '@kangas/app/contexts/ConfigContext';
 import { useInView } from "react-intersection-observer";
-import fetchEmbeddingsAsPCA from '../../../lib/fetchEmbeddingsAsPCA';
-import formatQueryArgs from '../../../lib/formatQueryArgs';
+import fetchEmbeddingsAsPCA from '@kangas/lib/fetchEmbeddingsAsPCA';
+import formatQueryArgs from '@kangas/lib/formatQueryArgs';
 
 const Plot = dynamic(() => import("react-plotly.js"), {
     ssr: false

@@ -1,4 +1,4 @@
-import config from '../config';
+import config from '@kangas/config';
 
 const fetchAvailableMatrices = async () => {
     const res = await fetch(`${config.apiUrl}list`)
