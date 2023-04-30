@@ -48,9 +48,8 @@
     font-size: 13px;
     color: #3d4355;
 
-    height: 100%;
+    min-height: 100px;
     display: flex;
-    justify-content: flex-start;
 }
 
 .cell-content > img {
