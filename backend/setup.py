@@ -57,6 +57,7 @@ setup_args = dict(
         "nodejs-bin==16.15.1a4",
         "numpy",
         "psutil",
+        "pyngrok",
         "requests",
         "scikit-learn",
         "scipy",
