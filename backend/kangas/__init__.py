@@ -32,70 +32,14 @@ from .utils import (
     _in_colab_environment,
     _in_jupyter_environment,
     _in_kaggle_environment,
+    _is_running,
     get_localhost,
     new_kangas_version_available,
+    terminate,
 )
 
 if new_kangas_version_available():
     print("A new Kangas version is available", file=sys.stderr)
-
-
-def _is_running(name, command):
-    import psutil
-
-    for pid in psutil.pids():
-        try:
-            process = psutil.Process(pid)
-        except Exception:
-            continue
-
-        try:
-            cmdline = " ".join(process.cmdline())
-        except Exception:
-            continue
-
-        if process.name().startswith(name) and command in cmdline:
-            return process.is_running() and process.status() != psutil.STATUS_ZOMBIE
-
-    return False
-
-
-def _process_method(name, command, method):
-    import psutil
-
-    for pid in psutil.pids():
-        try:
-            process = psutil.Process(pid)
-        except Exception:
-            continue
-
-        try:
-            cmdline = " ".join(process.cmdline())
-        except Exception:
-            continue
-
-        if (
-            process.name().startswith(name)
-            and command in cmdline
-            and "--terminate" not in cmdline
-        ):
-            return getattr(process, method)()
-
-
-def terminate():
-    """
-    Terminate the Kangas servers.
-
-    Note: this should never be needed.
-
-    ```python
-    >>> import kangas
-    >>> kangas.terminate()
-    ```
-    """
-    _process_method("node", "kangas", "terminate")
-    _process_method("kangas", "server", "terminate")
-    _process_method("python", "kangas", "terminate")
 
 
 def launch(
@@ -182,6 +126,7 @@ def show(
     width="100%",
     protocol="http",
     hide_selector=False,
+    use_ngrok=False,
     cli_kwargs=None,
     **kwargs
 ):
@@ -203,6 +148,7 @@ def show(
             iframe shown in the Jupyter notebook.
         width: (str) the width (in "px" pixels or "%" percentages) of the
             iframe shown in the Jupyter notebook.
+        use_ngrok: (optional, bool) force using ngrok as a proxy
         cli_kwargs: (dict) a dictionary with keys the names
             of the kangas server flags, and values the setting value
             (such as: `{"backend-port": 8000}`)
@@ -232,15 +178,7 @@ def show(
     else:
         qvs = ""
 
-    if _in_colab_environment():
-        from IPython.display import clear_output
-
-        from .colab_env import init_colab
-
-        clear_output(wait=True)
-        init_colab(port, width, height, qvs)
-
-    elif _in_kaggle_environment() and _in_jupyter_environment():
+    if _in_kaggle_environment() or use_ngrok:
         from IPython.display import IFrame, clear_output, display
 
         try:
@@ -255,8 +193,21 @@ def show(
         tunnel = init_kaggle(port)
         url = "%s%s" % (tunnel.public_url, qvs)
 
+        if _in_jupyter_environment():
+            clear_output(wait=True)
+            display(IFrame(src=url, width=width, height=height))
+        else:
+            import webbrowser
+
+            webbrowser.open(url, autoraise=True)
+
+    elif _in_colab_environment():
+        from IPython.display import clear_output
+
+        from .colab_env import init_colab
+
         clear_output(wait=True)
-        display(IFrame(src=url, width=width, height=height))
+        init_colab(port, width, height, qvs)
 
     elif _in_jupyter_environment():
         from IPython.display import IFrame, clear_output, display

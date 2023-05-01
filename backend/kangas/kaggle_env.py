@@ -16,21 +16,28 @@ import os
 
 from pyngrok import ngrok
 
+from .utils import _is_running, _process_method
+
 
 def init_kaggle(port):
     # Check to see if the token is in ~/.ngrok2/ngrok.yml
     # authtoken: ...
-    ngrok_yml = os.path.expanduser("~/.ngrok2/ngrok.yml")
-    auth_token = None
-    if os.path.isfile(ngrok_yml):
-        with open(ngrok_yml) as fp:
-            line = fp.readline()
-            while line:
-                key, value = [item.strip() for item in line.split(":")]
-                if key == "authtoken":
-                    auth_token = value
-                    break
+
+    for ngrok_config in ["~/.config/ngrok/ngrok.yml", "~/.ngrok2/ngrok.yml"]:
+        ngrok_yml = os.path.expanduser(ngrok_config)
+        auth_token = None
+        if os.path.isfile(ngrok_yml):
+            with open(ngrok_yml) as fp:
                 line = fp.readline()
+                while line:
+                    key, value = [item.strip() for item in line.split(":")]
+                    if key == "authtoken":
+                        auth_token = value
+                        print("Kaggle auth token found in %r" % ngrok_yml)
+                        break
+                    line = fp.readline()
+        if auth_token:
+            break
 
     if auth_token is None:
         while True:
@@ -45,6 +52,9 @@ def init_kaggle(port):
                 break
             if auth_token == "":
                 raise Exception("No kaggle auth token given")
+
+    if _is_running("ngrok", "start"):
+        _process_method("ngrok", "start", "terminate")
 
     print("Starting ngrok...")
     ngrok.set_auth_token(auth_token)

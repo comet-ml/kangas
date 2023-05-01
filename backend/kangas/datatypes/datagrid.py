@@ -298,6 +298,7 @@ class DataGrid:
         width="100%",
         protocol="http",
         hide_selector=None,
+        use_ngrok=False,
         cli_kwargs=None,
         **kwargs
     ):
@@ -313,6 +314,7 @@ class DataGrid:
                from the server (may not be visible in a notebook)
             height: (optional, str) the height of iframe in px or percentage
             width: (optional, str) the width of iframe in px or percentage
+            use_ngrok: (optional, bool) force using ngrok as a proxy
             cli_kwargs: (dict) a dictionary with keys the names
                 of the kangas server flags, and values the setting value
                 (such as: `{"backend-port": 8000}`)
@@ -352,15 +354,7 @@ class DataGrid:
         qvs = "?" + urllib.parse.urlencode(query_vars)
         url = "%s%s" % (url, qvs)
 
-        if _in_colab_environment():
-            from IPython.display import clear_output
-
-            from ..colab_env import init_colab
-
-            clear_output(wait=True)
-            init_colab(port, width, height, qvs)
-
-        elif _in_kaggle_environment() and _in_jupyter_environment():
+        if _in_kaggle_environment() or use_ngrok:
             from IPython.display import IFrame, clear_output, display
 
             try:
@@ -375,8 +369,21 @@ class DataGrid:
             tunnel = init_kaggle(port)
             url = "%s%s" % (tunnel.public_url, qvs)
 
+            if _in_jupyter_environment():
+                clear_output(wait=True)
+                display(IFrame(src=url, width=width, height=height))
+            else:
+                import webbrowser
+
+                webbrowser.open(url, autoraise=True)
+
+        elif _in_colab_environment():
+            from IPython.display import clear_output
+
+            from ..colab_env import init_colab
+
             clear_output(wait=True)
-            display(IFrame(src=url, width=width, height=height))
+            init_colab(port, width, height, qvs)
 
         elif _in_jupyter_environment():
             from IPython.display import IFrame, clear_output, display
