@@ -769,7 +769,7 @@ def histogram(cur, metadata, values, column):
         # probably using random.random()
         np_values = np.array([], dtype=np.float_)
 
-    if stats["minimum"] is None:
+    if "minimum" not in stats or stats["minimum"] is None:
         LOGGER.debug(
             "column %r does not have pre-computed stats; computing on the fly", column
         )
