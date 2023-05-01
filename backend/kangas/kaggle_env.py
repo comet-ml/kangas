@@ -42,10 +42,13 @@ def init_kaggle(port):
     if auth_token is None:
         while True:
             print(
-                "Copy your Kaggle Authorization Token from here: https://dashboard.ngrok.com/get-started/setup"
+                "Copy your Ngrok Authorization Token from here: https://dashboard.ngrok.com/get-started/setup"
             )
             print("Paste it below: ")
-            auth_token = getpass.getpass("Kaggle Authorization Token: ")
+            try:
+                auth_token = getpass.getpass("Ngrok Authorization Token: ")
+            except Exception:
+                raise Exception("This notebook should be run interactively") from None
             if " " in auth_token:
                 auth_token = auth_token.split(" ")[-1]
             if 45 < len(auth_token) < 55:
