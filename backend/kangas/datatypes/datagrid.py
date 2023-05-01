@@ -2378,12 +2378,14 @@ class DataGrid:
                               MAX({field_name}),
                               AVG({field_name}),
                               TOTAL({field_name}),
-                              COUNT({field_name}) from datagrid;""".format(
+                              COUNT({field_name}),
+                              COUNT(DISTINCT {field_name}) from datagrid;""".format(
                         field_name=field_name
                     )
                 ).fetchone()
-                minimum, maximum, avg, total, count = row
+                minimum, maximum, avg, total, count, count_unique = row
 
+                other = json.dumps({"count": count, "count_unique": count_unique})
                 ## FIXME: somebody check my math:
                 deviations = []
                 for row in self.conn.execute(
@@ -2399,12 +2401,21 @@ class DataGrid:
                     stddev = math.sqrt(variance)
                     # min, max, avg, variance, total, stddev, other, name
                     data.append(
-                        [minimum, maximum, avg, variance, total, stddev, None, col_name]
+                        [
+                            minimum,
+                            maximum,
+                            avg,
+                            variance,
+                            total,
+                            stddev,
+                            other,
+                            col_name,
+                        ]
                     )
                 else:
                     # min, max, avg, variance, total, stddev, other, name
                     data.append(
-                        [minimum, maximum, avg, variance, total, None, None, col_name]
+                        [minimum, maximum, avg, variance, total, None, other, col_name]
                     )
 
             elif col_type == "VECTOR":
@@ -2483,9 +2494,21 @@ class DataGrid:
                     data.append(stats)
             else:
                 if col_type == "TEXT":
-                    completions_serialized = json.dumps({"completions": {"": ["str"]}})
+                    row = self.conn.execute(
+                        """SELECT COUNT({field_name}), COUNT(DISTINCT {field_name}) from datagrid;""".format(
+                            field_name=field_name
+                        )
+                    ).fetchone()
+                    count, count_unique = row
+                    other = json.dumps(
+                        {
+                            "completions": {"": ["str"]},
+                            "count": count,
+                            "count_unique": count_unique,
+                        }
+                    )
                 else:
-                    completions_serialized = None
+                    other = None
                 # min, max, avg, variance, total, stddev, other, name
                 data.append(
                     [
@@ -2495,7 +2518,7 @@ class DataGrid:
                         None,
                         None,
                         None,
-                        completions_serialized,
+                        other,
                         col_name,
                     ]
                 )
