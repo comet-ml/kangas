@@ -240,16 +240,23 @@ def show(
         clear_output(wait=True)
         init_colab(port, width, height, qvs)
 
-    elif _in_kaggle_environment():
+    elif _in_kaggle_environment() and _in_jupyter_environment():
         from IPython.display import IFrame, clear_output, display
+
+        try:
+            from pyngrok import ngrok  # noqa
+        except ImportError:
+            raise Exception(
+                "pyngrok is required for use in kaggle; pip install pyngrok"
+            ) from None
 
         from .kaggle_env import init_kaggle
 
         tunnel = init_kaggle(port)
+        url = "%s%s" % (tunnel.public_url, qvs)
+
         clear_output(wait=True)
-        display(
-            IFrame(src="%s%s" % (tunnel.public_url, qvs), width=width, height=height)
-        )
+        display(IFrame(src=url, width=width, height=height))
 
     elif _in_jupyter_environment():
         from IPython.display import IFrame, clear_output, display

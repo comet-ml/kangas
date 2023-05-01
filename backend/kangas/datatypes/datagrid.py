@@ -24,7 +24,12 @@ from collections import defaultdict
 
 import numpy as np
 
-from ..utils import ProgressBar, _in_colab_environment, _in_jupyter_environment
+from ..utils import (
+    ProgressBar,
+    _in_colab_environment,
+    _in_jupyter_environment,
+    _in_kaggle_environment,
+)
 from .base import Asset
 from .serialize import ASSET_TYPE_MAP, DATAGRID_TYPES
 from .utils import (
@@ -354,6 +359,24 @@ class DataGrid:
 
             clear_output(wait=True)
             init_colab(port, width, height, qvs)
+
+        elif _in_kaggle_environment() and _in_jupyter_environment():
+            from IPython.display import IFrame, clear_output, display
+
+            try:
+                from pyngrok import ngrok  # noqa
+            except ImportError:
+                raise Exception(
+                    "pyngrok is required for use in kaggle; pip install pyngrok"
+                ) from None
+
+            from ..kaggle_env import init_kaggle
+
+            tunnel = init_kaggle(port)
+            url = "%s%s" % (tunnel.public_url, qvs)
+
+            clear_output(wait=True)
+            display(IFrame(src=url, width=width, height=height))
 
         elif _in_jupyter_environment():
             from IPython.display import IFrame, clear_output, display
