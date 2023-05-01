@@ -24,7 +24,12 @@ from collections import defaultdict
 
 import numpy as np
 
-from ..utils import ProgressBar, _in_colab_environment, _in_jupyter_environment
+from ..utils import (
+    ProgressBar,
+    _in_colab_environment,
+    _in_jupyter_environment,
+    _in_kaggle_environment,
+)
 from .base import Asset
 from .serialize import ASSET_TYPE_MAP, DATAGRID_TYPES
 from .utils import (
@@ -293,6 +298,7 @@ class DataGrid:
         width="100%",
         protocol="http",
         hide_selector=None,
+        use_ngrok=False,
         cli_kwargs=None,
         **kwargs
     ):
@@ -308,6 +314,7 @@ class DataGrid:
                from the server (may not be visible in a notebook)
             height: (optional, str) the height of iframe in px or percentage
             width: (optional, str) the width of iframe in px or percentage
+            use_ngrok: (optional, bool) force using ngrok as a proxy
             cli_kwargs: (dict) a dictionary with keys the names
                 of the kangas server flags, and values the setting value
                 (such as: `{"backend-port": 8000}`)
@@ -347,7 +354,30 @@ class DataGrid:
         qvs = "?" + urllib.parse.urlencode(query_vars)
         url = "%s%s" % (url, qvs)
 
-        if _in_colab_environment():
+        if _in_kaggle_environment() or use_ngrok:
+            from IPython.display import IFrame, clear_output, display
+
+            try:
+                from pyngrok import ngrok  # noqa
+            except ImportError:
+                raise Exception(
+                    "pyngrok is required for use in kaggle; pip install pyngrok"
+                ) from None
+
+            from ..kaggle_env import init_kaggle
+
+            tunnel = init_kaggle(port)
+            url = "%s%s" % (tunnel.public_url, qvs)
+
+            if _in_jupyter_environment():
+                clear_output(wait=True)
+                display(IFrame(src=url, width=width, height=height))
+            else:
+                import webbrowser
+
+                webbrowser.open(url, autoraise=True)
+
+        elif _in_colab_environment():
             from IPython.display import clear_output
 
             from ..colab_env import init_colab

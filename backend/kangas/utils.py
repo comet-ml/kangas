@@ -25,6 +25,64 @@ import six
 RESERVED_NAMES = ["ROW-ID"]
 
 
+def _is_running(name, command):
+    import psutil
+
+    for pid in psutil.pids():
+        try:
+            process = psutil.Process(pid)
+        except Exception:
+            continue
+
+        try:
+            cmdline = " ".join(process.cmdline())
+        except Exception:
+            continue
+
+        if process.name().startswith(name) and command in cmdline:
+            return process.is_running() and process.status() != psutil.STATUS_ZOMBIE
+
+    return False
+
+
+def _process_method(name, command, method):
+    import psutil
+
+    for pid in psutil.pids():
+        try:
+            process = psutil.Process(pid)
+        except Exception:
+            continue
+
+        try:
+            cmdline = " ".join(process.cmdline())
+        except Exception:
+            continue
+
+        if (
+            process.name().startswith(name)
+            and command in cmdline
+            and "--terminate" not in cmdline
+        ):
+            return getattr(process, method)()
+
+
+def terminate():
+    """
+    Terminate the Kangas servers.
+
+    Note: this should never be needed.
+
+    ```python
+    >>> import kangas
+    >>> kangas.terminate()
+    ```
+    """
+    _process_method("node", "kangas", "terminate")
+    _process_method("kangas", "server", "terminate")
+    _process_method("python", "kangas", "terminate")
+
+
 def get_session_id():
     """
     Get a session uuid.
@@ -106,6 +164,10 @@ def get_localhost():
         localhost = socket.gethostbyname("localhost")
 
     return localhost
+
+
+def _in_kaggle_environment():
+    return os.path.isdir("/kaggle")
 
 
 def _in_colab_environment():
