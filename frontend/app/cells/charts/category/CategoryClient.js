@@ -8,6 +8,7 @@ import dynamic from 'next/dynamic';
 import useQueryParams from '@kangas/lib/hooks/useQueryParams';
 import formatQueryArgs from '@kangas/lib/formatQueryArgs';
 import fetchCategory from '@kangas/lib/fetchCategory';
+import fetchMetadata from '@kangas/lib/fetchMetadata';
 import { ConfigContext } from '@kangas/app/contexts/ConfigContext';
 import { useInView } from "react-intersection-observer";
 
@@ -90,13 +91,14 @@ const VisibleWrapper = (props) => {
 }
 
 
-const CategoryClient = ({ expanded, value, ssrData }) => {
+const CategoryClient = ({ query, expanded, value, ssrData }) => {
     const { config } = useContext(ConfigContext);
     const [response, setResponse] = useState(false);
     const data = useMemo(() => ssrData || response, [ssrData, response]);
     const [open, setOpen] = useState(false);
     const handleClose = useCallback(() => setOpen(false), []);
     const [message, setMessage] = useState("");
+    const [metadata, setMetadata] = useState();
 
     const ExpandedLayout = useMemo(() => {
         return {
@@ -139,6 +141,17 @@ const CategoryClient = ({ expanded, value, ssrData }) => {
         });
     }, [value, setMessage, setOpen])
 
+    useEffect(() => {
+        if (!query) return;
+	const qargs = {
+	    dgid: query?.dgid,
+	    timestamp: query?.timestamp,
+	    computedColumns: query?.computedColumns
+	};
+	fetchMetadata(qargs, false).then(res => {
+	    setMetadata(res);
+	});
+    }, [query, setMetadata]);
 
     const copyTextToClipboard = async (text) => {
         if ('clipboard' in navigator) {
@@ -148,14 +161,28 @@ const CategoryClient = ({ expanded, value, ssrData }) => {
         }
     };
 
+    const quoteString = useCallback((columnName, value) => {
+	// Put quotes around values that are to be compared
+	// with a TEXT column.
+	if (value === null)
+	    return "None"
+	else if (metadata && Object.keys(metadata).includes(columnName) && metadata[columnName]["type"] === "TEXT")
+	    // FIXME: bug: how to query on values that have a double quote in them?
+	    return `"${value}"`;
+	else
+	    return value;
+    }, [metadata]);
+
     const onClick = useCallback(async (figure) => {
         if (figure) {
-            const text = `{"${value.groupBy}"} == "${value.columnValue}" and {"${value.columnName}"} == '${figure.points[0].label}'`;
+	    const groupbyValue = quoteString(value.groupBy, value.columnValue);
+	    const labelValue = quoteString(value.columnName, figure.points[0].label);
+            const text = `{"${value.groupBy}"} == ${groupbyValue} and {"${value.columnName}"} == ${labelValue}`;
             await copyTextToClipboard(text);
             setMessage(`Copied expression to clipboard`);
             setOpen(true);
         }
-    }, [value, setMessage, setOpen]);
+    }, [metadata, value, setMessage, setOpen]);
 
 
     if (!data || data?.error) {
