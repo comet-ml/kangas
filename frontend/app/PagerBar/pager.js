@@ -39,15 +39,14 @@ const Pager = ({ dgid, aboutText, firstRow, totalRows, currentPage, totalPages, 
             updateParams({
                 page
             });
-
-        beginLoading();
+            beginLoading();
         }
     }, [updateParams, beginLoading]);
 
     const setPageSize = useCallback((pagesize) => {
         updateParams({
             rows: pagesize,
-	    page: 1,
+	        page: 1,
         });
     }, [updateParams]);
 
