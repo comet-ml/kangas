@@ -12,6 +12,7 @@ import EMPTY from '@kangas/lib/consts/emptyTable';
 import Prefetch from './prefetch';
 import Skeleton from './Skeleton';
 import Imports from './perf/Imports';
+import Polling from './Polling';
 
 const Main = async ({ query }) => {
     const data = await fetchDataGrid(query);
@@ -46,7 +47,8 @@ const Page = async ({ searchParams }) => {
         select,
         boundary,
         begin,
-	cc
+	    cc,
+        timestamp
     } = searchParams;
 
     // Limit and offset are always set; get base or view defaults:
@@ -66,16 +68,19 @@ const Page = async ({ searchParams }) => {
         limit,
         boundary,
         begin,
+        timestamp
     };
 
-    if (!!datagrid) query.timestamp = await fetchTimestamp(datagrid);
+    if (!!datagrid && !timestamp) {
+        query.timestamp = await fetchTimestamp(datagrid);
+    } 
 
     if (!!cc) {
-	query.computedColumns = JSON.parse(cc);
+	    query.computedColumns = JSON.parse(cc);
     }
 
     return (
-        <div>
+        <Polling>
             <Imports />
             <Suspense fallback={<Skeleton message={"Suspending Page"} />}>
                 <Main query={query} />
@@ -83,7 +88,7 @@ const Page = async ({ searchParams }) => {
             <Suspense fallback={<></>}>
                 <Prefetch datagrids={datagrids} query={query} />
             </Suspense>
-        </div>
+        </Polling>
     );
 };
 
