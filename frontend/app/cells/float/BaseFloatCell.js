@@ -7,8 +7,16 @@ import classNames from 'classnames/bind';
 import styles from '../Cell.module.scss';
 const cx = classNames.bind(styles);
 
+const COLORMAPS = {};
+
 const BaseFloatCell = ({ value, style, metadata }) => {
-    const colormap = createColormap({colormap: 'bone', "nshades": 64});
+    const colormapName = 'bone';
+    const nshades = 64;
+    const key = `${colormapName}-${nshades}`;
+    if (!Object.keys(COLORMAPS).includes(key)) {
+	COLORMAPS[key] = createColormap({colormap: colormapName, nshades});
+    }
+    const colormap = COLORMAPS[key];
 
     const backgroundColor = useMemo(() => {
         if (metadata) {
