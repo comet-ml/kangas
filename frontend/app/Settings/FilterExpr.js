@@ -16,6 +16,7 @@ const FilterExpr = ({ query, completions }) => {
     const filterRef = useRef();
     const timeout = useRef();
     const [status, setStatus] = useState();
+    const [filterText, setFilterText] = useState(query?.whereExpr || '');
 
     const fetchValidity = useCallback((filter) => {
         setStatus('LOADING');
@@ -40,6 +41,7 @@ const FilterExpr = ({ query, completions }) => {
 
     // Debounce call to verify-filter so that we don't spam the endpoint
     const onChange = useCallback((filter) => {
+        setFilterText(filter);
         if (status !== 'LOADING') {
             try {
                 clearTimeout(timeout.current)
@@ -68,16 +70,12 @@ const FilterExpr = ({ query, completions }) => {
     }, [updateParams, status]);
 
     const clearFilter = useCallback((event) => {
+        setFilterText('');
         updateParams({
             filter: undefined,
             page: undefined,
         });
     }, [updateParams]);
-
-    useEffect(() => {
-        if (typeof(filterRef?.current?.value) !== "undefined")
-            filterRef.current.value = query?.whereExpr || '';
-    }, [query]);
 
     const onChangeSelect = useCallback((trigger, slug) => {
         if (trigger === '{') {
@@ -107,7 +105,7 @@ const FilterExpr = ({ query, completions }) => {
     return (
         <div className={cx('filter-bar')}>
             <Autocomplete
-                defaultValue={query?.whereExpr || ''}
+                value={filterText}
                 trigger={triggers}
                 options={completions}
                 changeOnSelect={onChangeSelect}
