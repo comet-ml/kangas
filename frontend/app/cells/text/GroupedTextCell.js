@@ -7,13 +7,13 @@ import styles from '../Cell.module.scss';
 
 const cx = classNames.bind(styles);
 
-const GroupedTextCell = ({ value, expanded = false, ssr}) => {
+const GroupedTextCell = ({ query, value, expanded = false, ssr}) => {
     const primitive = isPrimitive(value);
 
     return (
         <div className={cx(['cell', 'group', 'cell-content'], { expanded })}>
             { primitive && formatValue(value)}
-            { !primitive && <Suspense fallback={<>Loading</>}><Category value={value} expanded={expanded} ssr={ssr} /></Suspense>}
+            { !primitive && <Suspense fallback={<>Loading</>}><Category value={value} expanded={expanded} ssr={ssr} query={query} /></Suspense>}
         </div>
     );
 }
