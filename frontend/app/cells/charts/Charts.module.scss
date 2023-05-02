@@ -49,11 +49,11 @@
 .chart-thumbnail {
     // padding-top: 5px;
     &.embedding {
-	width: 100%;
+	max-width: 100%;
 	max-height: 55px;
     }
     &.embedding-grouped {
-	width: 100%;
+	max-width: 100%;
 	max-height: 110px;
     }
 }
