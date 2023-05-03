@@ -13,7 +13,7 @@ const Polling = ({ children }) => {
 
         const mostRecent = await fetchTimestamp(params.datagrid, false);
 
-        if (params?.timestamp !== mostRecent) {
+        if (params?.timestamp != mostRecent) {
             updateParams({ timestamp: mostRecent })
         }
     }, [params?.datagrid, params?.timestamp, updateParams])
@@ -21,7 +21,7 @@ const Polling = ({ children }) => {
     useEffect(() => {
         if (!!interval.current) clearInterval(interval.current);
 
-        interval.current = setInterval(checkTimestamp, 30000);
+        interval.current = setInterval(checkTimestamp, 3000);
 
         return () => clearInterval(interval.current);
       }, [checkTimestamp]);

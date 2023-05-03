@@ -10,7 +10,8 @@ const fetchAbout = async (query) => {
 			url: `${config.apiUrl}about`,
 			query: {
 				dgid: query.dgid,
-				url: `${config.rootUrl}`
+				url: `${config.rootUrl}`,
+				timestamp: query?.timestamp
 			}
 		});
 		return data?.about;

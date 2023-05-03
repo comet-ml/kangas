@@ -6,10 +6,7 @@ const cx = classNames.bind(styles);
 
 const DateCell = ({ value, style }) => {
     return (
-            <div className={cx("cell-content")} style={style}>{`${formatValue(
-            value,
-            'DATETIME'
-        )}`}</div>
+            <div className={cx("cell-content")} style={style}>{`${formatValue(value, 'DATETIME')}`}</div>
     );
 };
 
