@@ -18,6 +18,13 @@ const FilterExpr = ({ query, completions }) => {
     const [status, setStatus] = useState();
     const [filterText, setFilterText] = useState(query?.whereExpr || '');
 
+    // If the filter is cleared in the refresh button:
+    useEffect(() => {
+	if (typeof query?.whereExpr === "undefined" && filterText != '') {
+	    setFilterText('');
+	}
+    }, [query?.whereExpr]);
+
     const fetchValidity = useCallback((filter) => {
         setStatus('LOADING');
 
