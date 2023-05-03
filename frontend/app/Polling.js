@@ -21,7 +21,7 @@ const Polling = ({ children }) => {
     useEffect(() => {
         if (!!interval.current) clearInterval(interval.current);
 
-        interval.current = setInterval(checkTimestamp, 3000);
+        interval.current = setInterval(checkTimestamp, 30000);
 
         return () => clearInterval(interval.current);
       }, [checkTimestamp]);
