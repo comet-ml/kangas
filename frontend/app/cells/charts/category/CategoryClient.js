@@ -91,8 +91,9 @@ const VisibleWrapper = (props) => {
 }
 
 
-const CategoryClient = ({ query, expanded, value, ssrData }) => {
+const CategoryClient = ({ expanded, value, ssrData }) => {
     const { config } = useContext(ConfigContext);
+    const { params } = useQueryParams();
     const [response, setResponse] = useState(false);
     const data = useMemo(() => ssrData || response, [ssrData, response]);
     const [open, setOpen] = useState(false);
@@ -128,9 +129,10 @@ const CategoryClient = ({ query, expanded, value, ssrData }) => {
         if (!data) return;
         return formatQueryArgs({
             chartType: 'category',
-            data: JSON.stringify(data)
+            data: JSON.stringify(data),
+            timestamp: params?.timestamp
         });
-    }, [data]);
+    }, [data, params?.timestamp]);
 
     useEffect(() => {
         setMessage('Clicking on category bar will copy expression to clipboard');
@@ -142,16 +144,15 @@ const CategoryClient = ({ query, expanded, value, ssrData }) => {
     }, [value, setMessage, setOpen])
 
     useEffect(() => {
-        if (!query) return;
-	const qargs = {
-	    dgid: query?.dgid,
-	    timestamp: query?.timestamp,
-	    computedColumns: query?.computedColumns
-	};
-	fetchMetadata(qargs, false).then(res => {
-	    setMetadata(res);
-	});
-    }, [query, setMetadata]);
+        const qargs = {
+            dgid: params?.datagrid,
+            timestamp: params?.timestamp,
+            computedColumns: params?.computedColumns
+        };
+        fetchMetadata(qargs, false).then(res => {
+            setMetadata(res);
+        });
+    }, [params, setMetadata]);
 
     const copyTextToClipboard = async (text) => {
         if ('clipboard' in navigator) {
@@ -175,8 +176,8 @@ const CategoryClient = ({ query, expanded, value, ssrData }) => {
 
     const onClick = useCallback(async (figure) => {
         if (figure) {
-	    const groupbyValue = quoteString(value.groupBy, value.columnValue);
-	    const labelValue = quoteString(value.columnName, figure.points[0].label);
+            const groupbyValue = quoteString(value.groupBy, value.columnValue);
+            const labelValue = quoteString(value.columnName, figure.points[0].label);
             const text = `{"${value.groupBy}"} == ${groupbyValue} and {"${value.columnName}"} == ${labelValue}`;
             await copyTextToClipboard(text);
             setMessage(`Copied expression to clipboard`);
@@ -194,19 +195,25 @@ const CategoryClient = ({ query, expanded, value, ssrData }) => {
     }
 
     if (!expanded) {
-        return <img src={`${config.rootPath}api/charts?${queryString}`} loading="lazy" className={cx(['chart-thumbnail', 'category'])} />
+        return (
+            <img 
+                src={`${config.rootPath}api/charts?${queryString}`} 
+                loading="lazy" 
+                className={cx(['chart-thumbnail', 'category'])} 
+            />
+        )
     }
 
     return (
         <div className={cx('plotly-container', { expanded })}>
-            { data &&
-            <Plot
-                className={cx('plotly-chart', { expanded })}
-                data={data}
-                layout={expanded ? ExpandedLayout : CategoryLayout}
-                config={CategoryConfig}
-                onClick={onClick}
-            />
+            { data && 
+                <Plot
+                    className={cx('plotly-chart', { expanded })}
+                    data={data}
+                    layout={expanded ? ExpandedLayout : CategoryLayout}
+                    config={CategoryConfig}
+                    onClick={onClick}
+                />
             }
             <Snackbar
                 open={open}

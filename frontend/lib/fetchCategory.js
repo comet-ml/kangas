@@ -10,8 +10,8 @@ const fetchCategory = async (query, ssr=false) => {
     //const data = await fetch(`http://localhost:4000/category?${queryString}`)
 
     const data = ssr ?
-        await fetchIt({ url: `${config.apiUrl}category`, query}) :
-        await fetchIt({url: `${config.rootPath}api/category`, query});
+        await fetchIt({ url: `${config.apiUrl}category`, query }) :
+        await fetchIt({ url: `${config.rootPath}api/category`, query });
 
     if (data?.error) {
         return data;

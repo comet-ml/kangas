@@ -13,7 +13,7 @@ const Polling = ({ children }) => {
 
         const mostRecent = await fetchTimestamp(params.datagrid, false);
 
-        if (params?.timestamp !== mostRecent) {
+        if (params?.timestamp != mostRecent) {
             updateParams({ timestamp: mostRecent })
         }
     }, [params?.datagrid, params?.timestamp, updateParams])
