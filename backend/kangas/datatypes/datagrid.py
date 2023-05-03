@@ -2394,7 +2394,7 @@ class DataGrid:
                     if not is_null(row[0]):
                         deviations.append((row[0] - avg) ** 2)
 
-                variance = sum(deviations) / count
+                variance = sum(deviations) / count if count > 0 else None
                 if not is_null(variance):
                     stddev = math.sqrt(variance)
                     # min, max, avg, variance, total, stddev, other, name
