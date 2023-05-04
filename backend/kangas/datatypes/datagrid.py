@@ -1211,10 +1211,10 @@ class DataGrid:
                     new_value, self._columns[column_name]
                 )
             except Exception:
-                print(
+                raise Exception(
                     "Invalid type for column %r: value was %r, but should have been type %r"
                     % (column_name, value, self._columns[column_name])
-                )
+                ) from None
 
         # After conversion, apply a row-level conversion:
         convert_row_dict(row_dict, self.converters)
