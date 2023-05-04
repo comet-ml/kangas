@@ -1219,6 +1219,12 @@ def select_category(
                     "value": values[0],
                     "columnType": column_type,
                 }
+            elif ulength == 1:
+                results_json = {
+                    "type": "verbatim",
+                    "value": "%s (%s of them)" % (values[0], length),
+                    "columnType": column_type,
+                }
             elif ulength > MAX_CATEGORIES:
                 if length == ulength:
                     results_json = {

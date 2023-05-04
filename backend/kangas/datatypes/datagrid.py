@@ -346,7 +346,10 @@ class DataGrid:
         if not self._on_disk:
             self.save()
 
-        query_vars = {"datagrid": self.filename}
+        query_vars = {
+            "datagrid": self.filename,
+            "timestamp": os.path.getmtime(self.filename),
+        }
         query_vars.update(kwargs)
 
         if filter:
