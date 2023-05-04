@@ -1790,6 +1790,7 @@ def select_query_page(
     computed_columns,
     where_expr=None,
     debug=False,
+    timestamp=None,
 ):
     sort_desc = "DESC" if sort_desc else "ASC"
     conn = get_database_connection(dgid)
@@ -1903,6 +1904,7 @@ def select_query_page(
                 else:  # all of the rest should be grouped
                     cell = {
                         "dgid": dgid,
+                        "timestamp": timestamp,
                         "groupBy": group_by,
                         "columnName": select_column,
                         "columnValue": group_by_value,
@@ -2530,6 +2532,15 @@ def select_asset_metadata(dgid, asset_id):
     LOGGER.debug("SQL %s seconds", time.time() - start_time)
     if row:
         return row[0]
+    else:
+        error_image = PIL.Image.new(
+            mode="RGB",
+            size=(100, 100),
+            color="red",
+        )
+        asset_data = image_to_fp(error_image, "png").read()
+        return asset_data
+
     return None
 
 

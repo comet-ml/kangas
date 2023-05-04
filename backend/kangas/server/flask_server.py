@@ -25,7 +25,7 @@ from flask.logging import default_handler
 from flask_caching import Cache
 
 from .._version import __version__
-from ..datatypes.utils import THUMBNAIL_SIZE
+from ..datatypes.utils import THUMBNAIL_SIZE, image_to_fp
 from .queries import (  # custom_output,
     KANGAS_ROOT,
     get_about,
@@ -262,6 +262,7 @@ def get_datagrid_query_total_handler():
 def get_datagrid_query_page_handler():
     # Required:
     dgid = request.args.get("dgid")
+    timestamp = request.args.get("timestamp")
     # Optional:
     offset = int(request.args.get("offset", "0"))
     limit = int(request.args.get("limit", "10"))
@@ -286,6 +287,7 @@ def get_datagrid_query_page_handler():
             select,
             computed_columns,
             where_expr,
+            timestamp=timestamp,
         )
         return result
     else:
@@ -380,6 +382,8 @@ def get_asset_metadata_handler():
 @application.route("/datagrid/download", methods=["GET"])
 @auth_wrapper
 def get_datagrid_download_handler():
+    import PIL.Image
+
     # Required:
     asset_id = request.args.get("assetId")
     dgid = request.args.get("dgid")
@@ -392,8 +396,25 @@ def get_datagrid_download_handler():
     if asset_id:
         result = select_asset_task.apply(args=(dgid, asset_id, thumbnail)).get()
         if return_url:
-            return {"uri": base64.b64encode(result).decode("utf-8")}
+            if result:
+                return {"uri": base64.b64encode(result).decode("utf-8")}
+            else:
+                error_image = PIL.Image.new(
+                    mode="RGB",
+                    size=(100, 100),
+                    color="red",
+                )
+                result = image_to_fp(error_image, "png").read()
+                return {"uri": base64.b64encode(result).decode("utf-8")}
         else:
+            if result is None:
+                error_image = PIL.Image.new(
+                    mode="RGB",
+                    size=(100, 100),
+                    color="red",
+                )
+                result = image_to_fp(error_image, "png").read()
+
             response = make_response(result)
             response.headers.add("Cache-Control", "max-age=604800")
             response.headers.add("Content-type", "image")
