@@ -2,9 +2,11 @@
 
 import fetchTimestamp from "@kangas/lib/fetchTimestamp";
 import useQueryParams from "@kangas/lib/hooks/useQueryParams";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useContext } from "react";
+import { ConfigContext } from "@kangas/app/contexts/ConfigContext";
 
 const Polling = ({ children }) => {
+    const { config } = useContext(ConfigContext);
     const { params, updateParams } = useQueryParams();
     const interval = useRef();
 
@@ -19,7 +21,8 @@ const Polling = ({ children }) => {
     }, [params?.datagrid, params?.timestamp, updateParams]);
 
     useEffect(() => {
-        // First time without a timestamp: cause timestamp to be added ASAP
+	// If disabled, don't start
+	if (!config.dynamic) return;
 
         if (!!interval.current) clearInterval(interval.current);
 
