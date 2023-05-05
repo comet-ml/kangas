@@ -2606,7 +2606,6 @@ class DataGrid:
         """
         self._upgrade_table("asset_id", "asset_metadata", "assets")
         schema = self.get_schema()
-        computed_stats = False
         for column_name in schema:
             if (
                 column_name.endswith("--metadata")
@@ -2615,10 +2614,7 @@ class DataGrid:
                 self._upgrade_table(
                     "column_0", schema[column_name]["field_name"], "datagrid"
                 )
-                self._compute_stats([column_name])
-                computed_stats = True
-        if not computed_stats:
-            self._compute_stats()
+        self._compute_stats()
 
     def _upgrade_table(self, column_id_name, column_metadata_name, table_name):
         """
