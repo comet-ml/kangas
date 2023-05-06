@@ -7,6 +7,7 @@ import EmbeddingCell from "@kangas/app/cells/embedding";
 import BooleanCell from "@kangas/app/cells/boolean";
 import LoadingCell from "@kangas/app/cells/loading";
 import NACell from "@kangas/app/cells/na";
+import NAGroupCell from "@kangas/app/cells/naGroup";
 
 const cellMap = {
     TEXT: {
@@ -63,9 +64,9 @@ const cellMap = {
         component: EmbeddingCell
     },
     ROW_ID: {
-        width: 50,
-        groupedWidth: 220,
-        component: TextCell
+        width: 100,
+        groupedWidth: 100,
+        component: NAGroupCell
     },
     LOADING: {
         width: 200,
