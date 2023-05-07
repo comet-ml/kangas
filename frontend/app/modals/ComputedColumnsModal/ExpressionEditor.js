@@ -36,7 +36,7 @@ const ExpressionEditor = ({ key, className, style, expression, completions,
             } else {
                 setStatus('INVALID');
             }
-	    // FIXME? set the field regardless of validity
+            // FIXME? set the field regardless of validity
             onChange({target: {value: text}});
         });
     }, [params]);
@@ -101,7 +101,7 @@ const ExpressionEditor = ({ key, className, style, expression, completions,
     }, [status]);
 
     return (
-        <div className={cx('filter-bar')}>
+        <div className={cx('filter-bar')} style={style}>
             <Autocomplete
                 defaultValue={expression}
                 trigger={triggers}
@@ -120,7 +120,7 @@ const ExpressionEditor = ({ key, className, style, expression, completions,
                 adornment={false}
                 inputProps={{
                     spellCheck: false,
-                    style: { height: '5px' }
+                    style: {width: '375px', height: '5px' }
                 }}
             />
         </div>
