@@ -119,7 +119,7 @@ const ExpressionEditor = ({ key, className, style, expression, completions,
                 onChange={editorOnChange}
                 adornment={false}
                 inputProps={{
-                    spellcheck: false,
+                    spellCheck: false,
                     style: { height: '5px' }
                 }}
             />
