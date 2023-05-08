@@ -1663,9 +1663,14 @@ def query_sql(
     limit=None,
     offset=0,
     debug=False,
+    select_columns=None,
 ):
     dgid = datagrid.filename
-    select_columns = datagrid.get_columns()
+    if select_columns is None:
+        select_columns = datagrid.get_columns()
+    elif select_columns == "*":
+        select_columns = ["row-id"] + datagrid.get_columns()
+
     if computed_columns:
         select_columns.extend(list(computed_columns.keys()))
     else:

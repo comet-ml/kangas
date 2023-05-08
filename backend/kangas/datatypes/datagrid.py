@@ -1332,6 +1332,8 @@ class DataGrid:
             for column in schema.values()
             if column["type"].endswith("-ASSET")
         ]
+        if len(columns) == 0:
+            return
         # Delete any asset that is not used
         cursor = self.conn.cursor()
         cursor.execute(
@@ -1346,6 +1348,39 @@ class DataGrid:
         if result > 0:
             print("Deleted %s unused assets" % result)
             self._compute_stats()
+
+    def remove_select(
+        self,
+        where,
+        computed_columns=None,
+        limit=None,
+        offset=0,
+        debug=False,
+    ):
+        """
+        Remove items by filter
+
+        Args:
+            where: (optional, str) a Python expression where column names are
+                written as {"Column Name"}.
+            limit: (optional, int) select at most this value
+            offset: (optional, int) start selection at this offset
+            computed_columns: (optional, dict) a dictionary with the keys
+                being the column name, and value is a string describing the
+                expression of the column. Uses same syntax and semantics
+                as the filter query expressions.
+        """
+        results = self.select(
+            where=where,
+            to_dicts=True,
+            computed_columns=computed_columns,
+            limit=limit,
+            offset=offset,
+            debug=debug,
+            select_columns=["row-id"],
+        )
+        row_ids = [row["row-id"] for row in results]
+        self.remove_rows(*row_ids)
 
     def remove_rows(self, *row_ids):
         """
@@ -2022,6 +2057,7 @@ class DataGrid:
         computed_columns=None,
         limit=None,
         offset=0,
+        select_columns=None,
     ):
         """
         Perform a selection on the database, including possibly a
@@ -2030,6 +2066,8 @@ class DataGrid:
         Args:
             where: (optional, str) a Python expression where column names are
                 written as {"Column Name"}.
+            select_columns: (list of str, optional) list of column names to
+                select
             sort_by: (optional, str) name of column to sort on
             sort_desc: (optional, bool) sort descending?
             limit: (optional, int) select at most this value
@@ -2058,6 +2096,7 @@ class DataGrid:
             computed_columns=computed_columns,
             limit=limit,
             offset=offset,
+            select_columns=select_columns,
         )
         if results:
             columns = results[0].keys()
@@ -2074,6 +2113,7 @@ class DataGrid:
         limit=None,
         offset=0,
         debug=False,
+        select_columns=None,
     ):
         """
         Perform a selection on the database, including possibly a
@@ -2082,6 +2122,8 @@ class DataGrid:
         Args:
             where: (optional, str) a Python expression where column names are
                 written as {"Column Name"}.
+            select_columns: (optional, list of str) a list of column names to
+                select
             sort_by: (optional, str) name of column to sort on
             sort_desc: (optional, bool) sort descending?
             limit: (optional, int) select at most this value
@@ -2125,6 +2167,7 @@ class DataGrid:
             limit,
             offset,
             debug=debug,
+            select_columns=select_columns,
         )
         if count:
             return results
