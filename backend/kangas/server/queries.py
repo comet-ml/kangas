@@ -572,7 +572,7 @@ def get_completions(dgid, computed_columns):
         "min()",
         "not",
         "or",
-        "random",
+        "HISTOGRAM(COLUMN, 10)" "random",
         "range()",
         "round()",
         "statistics",
@@ -1834,7 +1834,7 @@ def select_query_page(
         ]
 
     select_fields = [get_field_name(column, metadata) for column in select_columns]
-    sort_by_field_name = get_field_name(sort_by, metadata) if sort_by else "rowid"
+    sort_by_field_name = get_field_name(sort_by, metadata) if sort_by else "column_0"
     remove_columns = []
 
     if group_by:
@@ -2034,7 +2034,7 @@ def select_query_raw(
             # Expression
             sort_by_field_name = sort_by
     else:
-        sort_by_field_name = "rowid"
+        sort_by_field_name = "column_0"
 
     env = {
         "limit": limit,

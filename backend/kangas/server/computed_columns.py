@@ -104,26 +104,49 @@ class Evaluator:
                 "TOTAL",
                 "COUNT",
                 "STDEV",
+                "HISTOGRAM",
             ]:
-                if len(args) != 1:
-                    raise Exception(
-                        "Aggregate functions take one argument, the {'Column name'}"
-                    )
-                elif not (args[0].startswith("{'") and args[0].endswith("'}")):
-                    raise Exception(
-                        "Aggregate function must be applied to a column: got %r"
-                        % args[0]
-                    )
-                # aggregate functions here
                 column_name = args[0][2:-2].lower()
-                expr = "{function_name}({{'{column_name}'}})".format(
-                    function_name=function_name,
-                    column_name=column_name,
-                )
-                # Associate selection with aggregate:
-                aggregate_selection_name = "%s_aggregate_column_%s" % (function_name, 1)
-                self.selections[aggregate_selection_name] = expr
-                return aggregate_selection_name
+                if function_name == "HISTOGRAM":
+                    if len(args) != 2:
+                        raise Exception(
+                            "HISTOGRAM function takes two arguments, the {'Column name'}, and number of bins"
+                        )
+                    elif not (args[0].startswith("{'") and args[0].endswith("'}")):
+                        raise Exception(
+                            "Aggregate function must be applied to a column: got %r"
+                            % args[0]
+                        )
+                    bins = int(args[1])
+                    percent = 1 / bins
+                    expr = (
+                        'math.floor((({{"{column_name}"}}  - MIN({{"{column_name}"}})) / '
+                        + '(MAX({{"{column_name}"}}) - MIN({{"{column_name}"}}))) / {percent})'
+                    ).format(column_name=column_name, percent=percent)
+                    node = ast.parse(expr, mode="eval").body
+                    return self.eval_node(node)
+                else:
+                    if len(args) != 1:
+                        raise Exception(
+                            "Aggregate functions take one argument, the {'Column name'}"
+                        )
+                    elif not (args[0].startswith("{'") and args[0].endswith("'}")):
+                        raise Exception(
+                            "Aggregate function must be applied to a column: got %r"
+                            % args[0]
+                        )
+                    # aggregate functions here
+                    expr = "{function_name}({{'{column_name}'}})".format(
+                        function_name=function_name,
+                        column_name=column_name,
+                    )
+                    # Associate selection with aggregate:
+                    aggregate_selection_name = "%s_aggregate_column_%s" % (
+                        function_name,
+                        abs(hash(column_name)),
+                    )
+                    self.selections[aggregate_selection_name] = expr
+                    return aggregate_selection_name
             elif function_name in [
                 "any",
                 "all",
