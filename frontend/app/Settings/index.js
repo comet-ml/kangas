@@ -6,8 +6,16 @@ import fetchCompletions from '@kangas/lib/fetchCompletions';
 import MatrixSelect from './MatrixSelectClient';
 import FilterExpr from './FilterExpr';
 import HelpText from './HelpText.js';
-import { KangasButton, AboutDialog, SelectButton, HelpButton, GroupByButton,
-	 SortByButton, RefreshButton, ComputedColumnsButton } from './Buttons';
+import { 
+    KangasButton, 
+    AboutDialog,
+    SelectButton,
+    HelpButton,
+    GroupByButton,
+	SortByButton, 
+    RefreshButton, 
+    ComputedColumnsButton 
+} from './Buttons';
 import styles from './SettingsBar.module.scss';
 import classNames from 'classnames/bind';
 import { Suspense } from 'react';

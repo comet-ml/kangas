@@ -17,7 +17,7 @@ const cx = classNames.bind(styles);
 const Pager = ({ dgid, aboutText, firstRow, totalRows, currentPage, totalPages, maxRow, pageSize }) => {
     const { config } = useContext(ConfigContext);
     const { beginLoading } = useContext(ViewContext);
-    const { params, updateParams } = useQueryParams();
+    const { updateParams } = useQueryParams();
     const pageInput = useRef();
     const aboutButton = aboutText !== '' ? (<AboutDataGridButton text={aboutText} />) : (<></>);
     const downloadName = dgid && dgid.includes("/") ? dgid.substring(dgid.lastIndexOf("/") + 1) : dgid;

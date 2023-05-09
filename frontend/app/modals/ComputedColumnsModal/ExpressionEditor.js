@@ -7,13 +7,20 @@ import formatQueryArgs from '@kangas/lib/formatQueryArgs';
 import styles from './ExpressionEditor.module.scss';
 import classNames from 'classnames/bind';
 import { ConfigContext } from "@kangas/app/contexts/ConfigContext";
+import { ViewContext } from '@kangas/app/contexts/ViewContext';
 
 const cx = classNames.bind(styles);
 
-const ExpressionEditor = ({ key, className, style, expression, completions,
-                            computedColumns, onChange }) => {
+const ExpressionEditor = ({ 
+    style, 
+    expression, 
+    completions,             
+    computedColumns, 
+    onChange 
+}) => {
     const { config } = useContext(ConfigContext);
     const { params, updateParams } = useQueryParams();
+    const { query } = useContext(ViewContext);
     const expressionRef = useRef();
     const timeout = useRef();
     const [status, setStatus] = useState();
@@ -23,7 +30,7 @@ const ExpressionEditor = ({ key, className, style, expression, completions,
 
         const queryString = formatQueryArgs({
             dgid: params?.datagrid,
-            timestamp: params?.timestamp,
+            timestamp: query?.timestamp,
             where: text,
             computedColumns: computedColumns,
         });
@@ -39,7 +46,7 @@ const ExpressionEditor = ({ key, className, style, expression, completions,
             // FIXME? set the field regardless of validity
             onChange({target: {value: text}});
         });
-    }, [params]);
+    }, [params, query]);
 
     // Debounce call to verify-filter so that we don't spam the endpoint
     const editorOnChange = useCallback((text) => {

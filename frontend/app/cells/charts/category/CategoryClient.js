@@ -11,6 +11,7 @@ import fetchCategory from '@kangas/lib/fetchCategory';
 import fetchMetadata from '@kangas/lib/fetchMetadata';
 import { ConfigContext } from '@kangas/app/contexts/ConfigContext';
 import { useInView } from "react-intersection-observer";
+import { ViewContext } from '@kangas/app/contexts/ViewContext';
 
 const Plot = dynamic(() => import("react-plotly.js"), {
     ssr: false,
@@ -58,6 +59,8 @@ const VisibleWrapper = (props) => {
         threshold: 0,
     });
     const timeout = useRef();
+
+    const { query } = useContext(ViewContext);
 
     const [hasRendered, setHasRendered] = useState(false);
     const visible = useMemo(() => hasRendered || inView, [hasRendered, inView]);
@@ -130,9 +133,9 @@ const CategoryClient = ({ expanded, value, ssrData }) => {
         return formatQueryArgs({
             chartType: 'category',
             data: JSON.stringify(data),
-            timestamp: params?.timestamp
+            timestamp: query?.timestamp
         });
-    }, [data, params?.timestamp]);
+    }, [data, query?.timestamp]);
 
     useEffect(() => {
         setMessage('Clicking on category bar will copy expression to clipboard');
@@ -146,13 +149,13 @@ const CategoryClient = ({ expanded, value, ssrData }) => {
     useEffect(() => {
         const qargs = {
             dgid: params?.datagrid,
-            timestamp: params?.timestamp,
+            timestamp: query?.timestamp,
             computedColumns: params?.computedColumns
         };
         fetchMetadata(qargs, false).then(res => {
             setMetadata(res);
         });
-    }, [params, setMetadata]);
+    }, [params, setMetadata, query]);
 
     const copyTextToClipboard = async (text) => {
         if ('clipboard' in navigator) {
@@ -163,15 +166,15 @@ const CategoryClient = ({ expanded, value, ssrData }) => {
     };
 
     const quoteString = useCallback((columnName, value) => {
-	// Put quotes around values that are to be compared
-	// with a TEXT column.
-	if (value === null)
-	    return "None"
-	else if (metadata && Object.keys(metadata).includes(columnName) && metadata[columnName]["type"] === "TEXT")
-	    // FIXME: bug: how to query on values that have a double quote in them?
-	    return `"${value}"`;
-	else
-	    return value;
+        // Put quotes around values that are to be compared
+        // with a TEXT column.
+        if (value === null) return "None"
+        
+        else if (metadata && Object.keys(metadata).includes(columnName) && metadata[columnName]["type"] === "TEXT") {
+            // FIXME: bug: how to query on values that have a double quote in them?
+            return `"${value}"`;
+        }
+        else return value;
     }, [metadata]);
 
     const onClick = useCallback(async (figure) => {

@@ -16,6 +16,7 @@ const Plot = dynamic(() => import("react-plotly.js"), {
 import classNames from 'classnames/bind';
 import styles from '../Charts.module.scss';
 import useQueryParams from '@kangas/lib/hooks/useQueryParams';
+import { ViewContext } from '@kangas/app/contexts/ViewContext';
 const cx = classNames.bind(styles);
 
 const HistogramLayout = {
@@ -92,7 +93,7 @@ const VisibleWrapper = (props) => {
 
 const HistogramClient = ({ value, expanded, ssrData }) => {
     const { config } = useContext(ConfigContext);
-    const { params } = useQueryParams();
+    const { query } = useContext(ViewContext);
     const [response, setResponse] = useState();
     const data = useMemo(() => ssrData || response, [ssrData, response]);
     const [open, setOpen] = useState(false);
@@ -136,9 +137,9 @@ const HistogramClient = ({ value, expanded, ssrData }) => {
         return formatQueryArgs({
             chartType: 'histogram',
             data: JSON.stringify(data),
-            timestamp: params?.timestamp
+            timestamp: query?.timestamp
         });
-    }, [data, params?.timestamp]);
+    }, [data, query?.timestamp]);
 
 
     useEffect(() => {

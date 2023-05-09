@@ -80,7 +80,7 @@ const Page = async ({ searchParams }) => {
     }
 
     return (
-        <Polling>
+        <>
             <Imports />
             <Suspense fallback={<Skeleton message={"Suspending Page"} />}>
                 <Main query={query} />
@@ -88,7 +88,7 @@ const Page = async ({ searchParams }) => {
             <Suspense fallback={<></>}>
                 <Prefetch datagrids={datagrids} query={query} />
             </Suspense>
-        </Polling>
+        </>
     );
 };
 

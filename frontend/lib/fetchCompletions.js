@@ -5,7 +5,7 @@ import config from '@kangas/config';
 import fetchIt from './fetchIt';
 
 const fetchCompletions = async ( dgid, timestamp, computedColumns ) => {
-    if (!!dgid) {
+    if (!!dgid && !!timestamp) {
         const data = await fetchIt({
             url: `${config.apiUrl}completions`,
             query: {dgid, timestamp, computedColumns}

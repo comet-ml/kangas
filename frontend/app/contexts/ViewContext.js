@@ -98,7 +98,8 @@ const ViewProvider = ({ value, children }) => {
             updateView: (payload) => dispatch({ type: 'UPDATE_VIEW', payload }),
             beginLoading: () => dispatch({ type: 'BEGIN_LOADING' }),
             completeLoading: () => dispatch({ type: 'COMPLETE_LOADING'}),
-            isLoading: state?.isLoading
+            isLoading: state?.isLoading,
+            query: state?.query
         }}>
             { children }
         </ViewContext.Provider>
