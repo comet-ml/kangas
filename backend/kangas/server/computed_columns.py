@@ -12,12 +12,17 @@
 ######################################################
 
 import ast
+import hashlib
 
 import astor
 
 ## FIXME:
 ## 1. No support for substrings
 ## 2. No support for slices, [:]
+
+
+def get_hash(string):
+    return hashlib.sha1(string.encode("utf-8")).hexdigest()
 
 
 class AttributeNode:
@@ -143,7 +148,7 @@ class Evaluator:
                     # Associate selection with aggregate:
                     aggregate_selection_name = "%s_aggregate_column_%s" % (
                         function_name,
-                        abs(hash(column_name)),
+                        get_hash(column_name),
                     )
                     self.selections[aggregate_selection_name] = expr
                     return aggregate_selection_name
