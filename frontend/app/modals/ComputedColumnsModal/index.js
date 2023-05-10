@@ -46,7 +46,6 @@ const ComputedColumnsModal = ({ columns, query, completions }) => {
       // Verify that this works, with (or without) filter:
       const queryString = formatQueryArgs({
         dgid: query?.dgid,
-        timestamp: query?.timestamp,
         where: query?.whereExpr,
         computedColumns: computedColumns
       });

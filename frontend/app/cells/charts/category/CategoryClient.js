@@ -60,8 +60,6 @@ const VisibleWrapper = (props) => {
     });
     const timeout = useRef();
 
-    const { query } = useContext(ViewContext);
-
     const [hasRendered, setHasRendered] = useState(false);
     const visible = useMemo(() => hasRendered || inView, [hasRendered, inView]);
     const render = useCallback(() => {
@@ -97,6 +95,7 @@ const VisibleWrapper = (props) => {
 const CategoryClient = ({ expanded, value, ssrData }) => {
     const { config } = useContext(ConfigContext);
     const { params } = useQueryParams();
+    const { query } = useContext(ViewContext);
     const [response, setResponse] = useState(false);
     const data = useMemo(() => ssrData || response, [ssrData, response]);
     const [open, setOpen] = useState(false);
