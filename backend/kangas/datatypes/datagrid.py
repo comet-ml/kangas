@@ -347,8 +347,7 @@ class DataGrid:
             self.save()
 
         query_vars = {
-            "datagrid": self.filename,
-            "timestamp": os.path.getmtime(self.filename),
+            "datagrid": self.filename
         }
         query_vars.update(kwargs)
 

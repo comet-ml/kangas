@@ -172,7 +172,6 @@ def show(
     if datagrid:
         query_vars = {
             "datagrid": datagrid,
-            "timestamp": os.path.getmtime(datagrid),
         }
         query_vars.update(kwargs)
         if filter:
