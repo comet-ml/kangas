@@ -1,7 +1,6 @@
 'use client';
 
 import { createContext, useCallback, useEffect, useReducer } from 'react';
-import useDebounce from '@kangas/lib/hooks/useDebounce';
 
 export const ViewContext = createContext();
 
@@ -98,12 +97,6 @@ const ViewProvider = ({ value, children }) => {
         }
     }, [state?.query, value?.query, dispatch])
 
-    useEffect(() => {
-        console.log('should I poll?');
-        console.log(state?.shouldPoll);
-    }, [state?.shouldPoll])
-
-
     return (
         <ViewContext.Provider value={{
             columns: state.columns,
@@ -115,7 +108,7 @@ const ViewProvider = ({ value, children }) => {
             completeLoading: () => dispatch({ type: 'COMPLETE_LOADING'}),
             pausePolling: () => dispatch({ type: 'PAUSE_POLLING' }),
             resumePolling: () => dispatch({ type: 'RESUME_POLLING' }),
-            shouldPoll: state.shouldPoll,
+            shouldPoll: !!state?.shouldPoll,
             isLoading: state?.isLoading
         }}>
             { children }
