@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import DialogueModal from '@kangas/app/modals/DialogueModal/DialogueModalClient';
+import DialogueModal from '@kangas/app/modals/DialogueModal/DialogueModalContainer';
 import Base from './BaseFloatCell';
 import Grouped from './GroupedFloatCell'
 

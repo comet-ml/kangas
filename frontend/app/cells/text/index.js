@@ -1,6 +1,6 @@
 import Base from './BaseTextCell';
 import Grouped from './GroupedTextCell';
-import DialogueModal from '@kangas/app/modals/DialogueModal/DialogueModalClient';
+import DialogueModal from '@kangas/app/modals/DialogueModal/DialogueModalContainer';
 
 const TextCell = ({ value, query, style, ssr }) => {
     if (!query?.groupBy) return (

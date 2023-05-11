@@ -1,6 +1,6 @@
 import Base from './BaseImageCell';
 import Grouped from './GroupedImageCell';
-import DialogueModal from '@kangas/app/modals/DialogueModal/DialogueModalClient';
+import DialogueModal from '@kangas/app/modals/DialogueModal/DialogueModalContainer';
 
 const Image = ({ value, columnName, query, style }) => {
     if (!query?.groupBy || columnName?.toUpperCase() === query?.groupBy?.toUpperCase()) return (

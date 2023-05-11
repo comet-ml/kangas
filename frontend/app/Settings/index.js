@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-key */
 
-import DialogueModal from '@kangas/app/modals/DialogueModal/DialogueModalClient';
+import DialogueModal from '@kangas/app/modals/DialogueModal/DialogueModalContainer';
 import fetchStatus from '@kangas/lib/fetchStatus';
 import fetchCompletions from '@kangas/lib/fetchCompletions';
 import MatrixSelect from './MatrixSelectClient';

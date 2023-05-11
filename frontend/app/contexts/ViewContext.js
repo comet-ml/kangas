@@ -12,7 +12,8 @@ const initialState = {
         start: 0,
         stop: 10
     },
-    isLoading: false
+    isLoading: false,
+    shouldPoll: true
 }
 
 const reducer = (state=initialState, action) => {
@@ -71,6 +72,16 @@ const reducer = (state=initialState, action) => {
                 ...state,
                 isLoading: false
             }
+        case 'PAUSE_POLLING':
+            return {
+                ...state,
+                shouldPoll: false
+            }
+        case 'RESUME_POLLING':
+            return {
+                ...state,
+                shouldPoll: true
+            }
         default:
             return state
     }
@@ -87,6 +98,10 @@ const ViewProvider = ({ value, children }) => {
         }
     }, [state?.query, value?.query, dispatch])
 
+    useEffect(() => {
+        console.log('should I poll?');
+        console.log(state?.shouldPoll);
+    }, [state?.shouldPoll])
 
 
     return (
@@ -98,6 +113,9 @@ const ViewProvider = ({ value, children }) => {
             updateView: (payload) => dispatch({ type: 'UPDATE_VIEW', payload }),
             beginLoading: () => dispatch({ type: 'BEGIN_LOADING' }),
             completeLoading: () => dispatch({ type: 'COMPLETE_LOADING'}),
+            pausePolling: () => dispatch({ type: 'PAUSE_POLLING' }),
+            resumePolling: () => dispatch({ type: 'RESUME_POLLING' }),
+            shouldPoll: state.shouldPoll,
             isLoading: state?.isLoading
         }}>
             { children }

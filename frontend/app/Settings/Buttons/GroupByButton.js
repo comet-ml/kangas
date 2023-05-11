@@ -7,7 +7,7 @@ import usePopover from '@kangas/lib/hooks/usePopover';
 import SelectColumnDropdown from '@kangas/app/modals/SelectColumnDrowpdown/SelectColumnDropdown';
 const cx = classNames.bind(styles);
 
-const GroupByButton = ({columns}) => {
+const GroupByButton = ({ columns }) => {
     const { open, toggleOpen, anchor } = usePopover();
     return (
         <>
