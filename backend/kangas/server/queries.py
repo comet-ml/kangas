@@ -572,7 +572,7 @@ def get_completions(dgid, computed_columns):
         "min()",
         "not",
         "or",
-        "random",
+        "HISTOGRAM(COLUMN, 10)" "random",
         "range()",
         "round()",
         "statistics",
@@ -1219,6 +1219,12 @@ def select_category(
                     "value": values[0],
                     "columnType": column_type,
                 }
+            elif ulength == 1:
+                results_json = {
+                    "type": "verbatim",
+                    "value": "%s (%s of them)" % (values[0], length),
+                    "columnType": column_type,
+                }
             elif ulength > MAX_CATEGORIES:
                 if length == ulength:
                     results_json = {
@@ -1657,9 +1663,14 @@ def query_sql(
     limit=None,
     offset=0,
     debug=False,
+    select_columns=None,
 ):
     dgid = datagrid.filename
-    select_columns = datagrid.get_columns()
+    if select_columns is None:
+        select_columns = datagrid.get_columns()
+    elif select_columns == "*":
+        select_columns = ["row-id"] + datagrid.get_columns()
+
     if computed_columns:
         select_columns.extend(list(computed_columns.keys()))
     else:
@@ -1784,6 +1795,7 @@ def select_query_page(
     computed_columns,
     where_expr=None,
     debug=False,
+    timestamp=None,
 ):
     sort_desc = "DESC" if sort_desc else "ASC"
     conn = get_database_connection(dgid)
@@ -1822,7 +1834,7 @@ def select_query_page(
         ]
 
     select_fields = [get_field_name(column, metadata) for column in select_columns]
-    sort_by_field_name = get_field_name(sort_by, metadata) if sort_by else "rowid"
+    sort_by_field_name = get_field_name(sort_by, metadata) if sort_by else "column_0"
     remove_columns = []
 
     if group_by:
@@ -1897,6 +1909,7 @@ def select_query_page(
                 else:  # all of the rest should be grouped
                     cell = {
                         "dgid": dgid,
+                        "timestamp": timestamp,
                         "groupBy": group_by,
                         "columnName": select_column,
                         "columnValue": group_by_value,
@@ -2021,7 +2034,7 @@ def select_query_raw(
             # Expression
             sort_by_field_name = sort_by
     else:
-        sort_by_field_name = "rowid"
+        sort_by_field_name = "column_0"
 
     env = {
         "limit": limit,
@@ -2524,6 +2537,15 @@ def select_asset_metadata(dgid, asset_id):
     LOGGER.debug("SQL %s seconds", time.time() - start_time)
     if row:
         return row[0]
+    else:
+        error_image = PIL.Image.new(
+            mode="RGB",
+            size=(100, 100),
+            color="red",
+        )
+        asset_data = image_to_fp(error_image, "png").read()
+        return asset_data
+
     return None
 
 

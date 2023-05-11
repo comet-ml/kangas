@@ -11,7 +11,6 @@ const Polling = ({ children }) => {
     const interval = useRef();
 
     const checkTimestamp = useCallback(async () => {
-        console.log(`trying to poll: ${shouldPoll}`)
         if (!params?.datagrid || !shouldPoll) return;
 
         const mostRecent = await fetchTimestamp(params.datagrid, false);
@@ -33,13 +32,11 @@ const Polling = ({ children }) => {
         return () => clearInterval(interval.current);
       }, [checkTimestamp, params?.timestamp]);
       
-
       return (
         <>
             { children }
         </>
-      )
-
-}
+      );
+};
 
 export default Polling;

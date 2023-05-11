@@ -11,6 +11,7 @@
 #    All rights reserved                             #
 ######################################################
 
+import os
 import sys
 import time
 import urllib
@@ -169,7 +170,10 @@ def show(
     )
 
     if datagrid:
-        query_vars = {"datagrid": datagrid}
+        query_vars = {
+            "datagrid": datagrid,
+            "timestamp": os.path.getmtime(datagrid),
+        }
         query_vars.update(kwargs)
         if filter:
             query_vars["filter"] = filter

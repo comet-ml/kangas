@@ -146,16 +146,25 @@ def main():
         guess = int(outputs[index].argmax())
         dg.append([epoch, index, images[index], truth, guess] + list(outputs[index]))
 
+    dg.show(
+        '{"Epoch"} == MAX({"Epoch"}) and {"Truth"} != {"Output"}',
+        group="Truth",
+        sort="Truth",
+    )
+
     for epoch in range(1, parameters["epochs"] + 1):
         train(parameters, model, x_train, y_train, x_test, y_test)
         outputs = model.predict(x_test)
 
+        rows = []
         for index in range(len(x_test)):
             truth = int(y_test[index].argmax())
             guess = int(outputs[index].argmax())
-            dg.append(
+            rows.append(
                 [epoch, index, images[index], truth, guess] + list(outputs[index])
             )
+        dg.extend(rows)
+        input("Press any key")
 
     dg.save()
 

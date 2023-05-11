@@ -2,7 +2,6 @@
 import config from '@kangas/config';
 
 // Utils
-import fetchData from './fetchData';
 import fetchIt from './fetchIt';
 
 const fetchAssetMetadata = async ({ assetId, dgid, timestamp, ssr=true}) => {

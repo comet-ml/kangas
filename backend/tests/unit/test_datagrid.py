@@ -118,7 +118,15 @@ def test_convert_string_to_date(string, datetime_format, expected):
     ],
 )
 def test_convert_string_to_value(value, heuristics, datetime_format, expected):
-    assert convert_string_to_value(value, heuristics, datetime_format) == expected
+    value_converted = convert_string_to_value(value, heuristics, datetime_format)
+    # timezone sensitive
+    if isinstance(expected, datetime.datetime):
+        assert value_converted.year == expected.year
+        assert value_converted.month == expected.month
+    elif isinstance(expected, str):
+        assert value_converted == expected
+    else:
+        assert value_converted == expected
 
 
 @pytest.mark.parametrize(

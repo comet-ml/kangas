@@ -1,3 +1,5 @@
+// Values are not displayable in the UI
+
 import classNames from 'classnames/bind';
 import styles from '../Cell.module.scss';
 

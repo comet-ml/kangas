@@ -203,6 +203,7 @@ def process_about(url, dgid, text):
             start = newstart
         if not found:
             retval = text
+            retval = re.sub(r"(\s)(http\S+)(\s)", r"\1[\2](\2)\3", retval, re.MULTILINE)
         return marko.Markdown().convert(retval)
     else:
         return ""

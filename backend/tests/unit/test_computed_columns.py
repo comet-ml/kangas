@@ -250,10 +250,13 @@ def test_aggregate_where1():
     assert columns == list(computed_columns)
     assert metadata == computed_columns
     assert databases == [
-        "(SELECT rowid, AVG(42) AS AVG_aggregate_column_1 FROM datagrid)"
+        "(SELECT rowid, AVG(42) AS AVG_aggregate_column_11f6ad8ec52a2984abaafd7c3b516503785c2072 FROM datagrid)"
     ]
     assert select_expr_as == ["42 AS cc1"]
-    assert where_sql == "cc1 < AVG_aggregate_column_1"
+    assert (
+        where_sql
+        == "cc1 < AVG_aggregate_column_11f6ad8ec52a2984abaafd7c3b516503785c2072"
+    )
 
     results = select_by_query(where_expr, computed_columns)
     expected_results = {
@@ -295,12 +298,18 @@ def test_aggregate_column():
     assert columns == ["A", "AVG A"]
     assert metadata == ccs(
         cc("A", None, "column_1"),
-        cc("AVG A", "AVG_aggregate_column_1", "cc1"),
+        cc(
+            "AVG A",
+            "AVG_aggregate_column_86f7e437faa5a7fce15d1ddcb9eaeaea377667b8",
+            "cc1",
+        ),
     )
     assert databases == [
-        "(SELECT rowid, AVG(column_1) AS AVG_aggregate_column_1 FROM datagrid)"
+        "(SELECT rowid, AVG(column_1) AS AVG_aggregate_column_86f7e437faa5a7fce15d1ddcb9eaeaea377667b8 FROM datagrid)"
     ]
-    assert select_expr_as == ["AVG_aggregate_column_1 AS cc1"]
+    assert select_expr_as == [
+        "AVG_aggregate_column_86f7e437faa5a7fce15d1ddcb9eaeaea377667b8 AS cc1"
+    ]
     assert where_sql == "column_1 < cc1"
 
     results = select_by_query(where_expr, computed_columns)

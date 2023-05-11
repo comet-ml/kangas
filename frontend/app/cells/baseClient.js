@@ -105,8 +105,8 @@ const CellClient = ({ columnName, type, isHeader, children, grouped, cidx }) => 
             }}
             onResizeStop={stopResizing}
         >
-            <div ref={ref}>
-            { children }
+            <div ref={ref} className={cx('cell-div')} style={ {width: 'inherit'} }>
+                { children }
             </div>
         </Resizable>
     )

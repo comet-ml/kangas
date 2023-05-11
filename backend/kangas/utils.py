@@ -114,6 +114,8 @@ def new_kangas_version_available():
     if int(os.environ.get("KANGAS_VERSION_CHECK", "1")):
         if _in_colab_environment():
             env = "colab"
+        elif _in_kaggle_environment():
+            env = "kaggle"
         elif _in_ipython_environment():
             env = "ipython"
         else:

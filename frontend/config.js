@@ -9,7 +9,8 @@ const localConfig = {
     hideSelector: env.KANGAS_HIDE_SELECTOR === '1',
     cache: true,
     prefetch: false,
-    debug: false
+    debug: false,
+    dynamic: false,
 };
 
 export default localConfig;

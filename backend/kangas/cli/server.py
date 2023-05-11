@@ -350,6 +350,7 @@ def server(parsed_args, remaining=None):
                 raise Exception("Unknown file type: %r" % file_type)
 
             query_vars["datagrid"] = filename
+            query_vars["timestamp"] = os.path.getmtime(filename)
             if parsed_args.filter:
                 query_vars["filter"] = parsed_args.filter
             if parsed_args.group:

@@ -346,7 +346,10 @@ class DataGrid:
         if not self._on_disk:
             self.save()
 
-        query_vars = {"datagrid": self.filename}
+        query_vars = {
+            "datagrid": self.filename,
+            "timestamp": os.path.getmtime(self.filename),
+        }
         query_vars.update(kwargs)
 
         if filter:
@@ -1208,10 +1211,10 @@ class DataGrid:
                     new_value, self._columns[column_name]
                 )
             except Exception:
-                print(
+                raise Exception(
                     "Invalid type for column %r: value was %r, but should have been type %r"
                     % (column_name, value, self._columns[column_name])
-                )
+                ) from None
 
         # After conversion, apply a row-level conversion:
         convert_row_dict(row_dict, self.converters)
@@ -1329,6 +1332,8 @@ class DataGrid:
             for column in schema.values()
             if column["type"].endswith("-ASSET")
         ]
+        if len(columns) == 0:
+            return
         # Delete any asset that is not used
         cursor = self.conn.cursor()
         cursor.execute(
@@ -1343,6 +1348,39 @@ class DataGrid:
         if result > 0:
             print("Deleted %s unused assets" % result)
             self._compute_stats()
+
+    def remove_select(
+        self,
+        where,
+        computed_columns=None,
+        limit=None,
+        offset=0,
+        debug=False,
+    ):
+        """
+        Remove items by filter
+
+        Args:
+            where: (optional, str) a Python expression where column names are
+                written as {"Column Name"}.
+            limit: (optional, int) select at most this value
+            offset: (optional, int) start selection at this offset
+            computed_columns: (optional, dict) a dictionary with the keys
+                being the column name, and value is a string describing the
+                expression of the column. Uses same syntax and semantics
+                as the filter query expressions.
+        """
+        results = self.select(
+            where=where,
+            to_dicts=True,
+            computed_columns=computed_columns,
+            limit=limit,
+            offset=offset,
+            debug=debug,
+            select_columns=["row-id"],
+        )
+        row_ids = [row["row-id"] for row in results]
+        self.remove_rows(*row_ids)
 
     def remove_rows(self, *row_ids):
         """
@@ -2019,6 +2057,7 @@ class DataGrid:
         computed_columns=None,
         limit=None,
         offset=0,
+        select_columns=None,
     ):
         """
         Perform a selection on the database, including possibly a
@@ -2027,6 +2066,8 @@ class DataGrid:
         Args:
             where: (optional, str) a Python expression where column names are
                 written as {"Column Name"}.
+            select_columns: (list of str, optional) list of column names to
+                select
             sort_by: (optional, str) name of column to sort on
             sort_desc: (optional, bool) sort descending?
             limit: (optional, int) select at most this value
@@ -2055,6 +2096,7 @@ class DataGrid:
             computed_columns=computed_columns,
             limit=limit,
             offset=offset,
+            select_columns=select_columns,
         )
         if results:
             columns = results[0].keys()
@@ -2071,6 +2113,7 @@ class DataGrid:
         limit=None,
         offset=0,
         debug=False,
+        select_columns=None,
     ):
         """
         Perform a selection on the database, including possibly a
@@ -2079,6 +2122,8 @@ class DataGrid:
         Args:
             where: (optional, str) a Python expression where column names are
                 written as {"Column Name"}.
+            select_columns: (optional, list of str) a list of column names to
+                select
             sort_by: (optional, str) name of column to sort on
             sort_desc: (optional, bool) sort descending?
             limit: (optional, int) select at most this value
@@ -2122,6 +2167,7 @@ class DataGrid:
             limit,
             offset,
             debug=debug,
+            select_columns=select_columns,
         )
         if count:
             return results
@@ -2378,12 +2424,14 @@ class DataGrid:
                               MAX({field_name}),
                               AVG({field_name}),
                               TOTAL({field_name}),
-                              COUNT({field_name}) from datagrid;""".format(
+                              COUNT({field_name}),
+                              COUNT(DISTINCT {field_name}) from datagrid;""".format(
                         field_name=field_name
                     )
                 ).fetchone()
-                minimum, maximum, avg, total, count = row
+                minimum, maximum, avg, total, count, count_unique = row
 
+                other = json.dumps({"count": count, "count_unique": count_unique})
                 ## FIXME: somebody check my math:
                 deviations = []
                 for row in self.conn.execute(
@@ -2399,12 +2447,21 @@ class DataGrid:
                     stddev = math.sqrt(variance)
                     # min, max, avg, variance, total, stddev, other, name
                     data.append(
-                        [minimum, maximum, avg, variance, total, stddev, None, col_name]
+                        [
+                            minimum,
+                            maximum,
+                            avg,
+                            variance,
+                            total,
+                            stddev,
+                            other,
+                            col_name,
+                        ]
                     )
                 else:
                     # min, max, avg, variance, total, stddev, other, name
                     data.append(
-                        [minimum, maximum, avg, variance, total, None, None, col_name]
+                        [minimum, maximum, avg, variance, total, None, other, col_name]
                     )
 
             elif col_type == "VECTOR":
@@ -2483,9 +2540,21 @@ class DataGrid:
                     data.append(stats)
             else:
                 if col_type == "TEXT":
-                    completions_serialized = json.dumps({"completions": {"": ["str"]}})
+                    row = self.conn.execute(
+                        """SELECT COUNT({field_name}), COUNT(DISTINCT {field_name}) from datagrid;""".format(
+                            field_name=field_name
+                        )
+                    ).fetchone()
+                    count, count_unique = row
+                    other = json.dumps(
+                        {
+                            "completions": {"": ["str"]},
+                            "count": count,
+                            "count_unique": count_unique,
+                        }
+                    )
                 else:
-                    completions_serialized = None
+                    other = None
                 # min, max, avg, variance, total, stddev, other, name
                 data.append(
                     [
@@ -2495,7 +2564,7 @@ class DataGrid:
                         None,
                         None,
                         None,
-                        completions_serialized,
+                        other,
                         col_name,
                     ]
                 )
@@ -2588,7 +2657,7 @@ class DataGrid:
                 self._upgrade_table(
                     "column_0", schema[column_name]["field_name"], "datagrid"
                 )
-                self._compute_stats([column_name])
+        self._compute_stats()
 
     def _upgrade_table(self, column_id_name, column_metadata_name, table_name):
         """
