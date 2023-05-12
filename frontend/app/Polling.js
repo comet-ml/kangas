@@ -1,36 +1,31 @@
 'use client';
 
 import fetchTimestamp from "@kangas/lib/fetchTimestamp";
-import useQueryParams from "@kangas/lib/hooks/useQueryParams";
 import { useCallback, useContext, useEffect, useRef } from "react";
 import { ViewContext } from "./contexts/ViewContext";
 
 const Polling = ({ children }) => {
-    const { params, updateParams } = useQueryParams();
+    const { query } = useContext(ViewContext);
     const { shouldPoll } = useContext(ViewContext);
     const interval = useRef();
 
     const checkTimestamp = useCallback(async () => {
-        if (!params?.datagrid || !shouldPoll) return;
+        if (!query?.dgid) return;
 
-        const mostRecent = await fetchTimestamp(params.datagrid, false);
+        const mostRecent = await fetchTimestamp(query.datagrid, false);
 
-        if (params?.timestamp != mostRecent) {
-            updateParams({ timestamp: mostRecent })
+        if (query?.timestamp != mostRecent) {
+            window.location.reload(false);
         }
-    }, [params?.datagrid, params?.timestamp, updateParams, shouldPoll])
+    }, [query?.dgid, query?.timestamp, shouldPoll])
 
     useEffect(() => {
-        if (!params?.timestamp) {
-            checkTimestamp();
-        } else {
-            if (!!interval.current) clearInterval(interval.current);
+        if (!!interval.current) clearInterval(interval.current);
 
-            interval.current = setInterval(checkTimestamp, 15000);
-        }
+        interval.current = setInterval(checkTimestamp, 15000);
 
         return () => clearInterval(interval.current);
-      }, [checkTimestamp, params?.timestamp]);
+    }, [checkTimestamp, query]);
       
       return (
         <>
