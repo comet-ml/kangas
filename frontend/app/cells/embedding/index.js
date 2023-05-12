@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import DialogueModal from '@kangas/app/modals/DialogueModal/DialogueModalClient';
+import DialogueModal from '@kangas/app/modals/DialogueModal/DialogueModalContainer';
 
 import EmbeddingCellClient from './EmbeddingCellClient'
 import fetchEmbeddingsAsPCA from '@kangas/lib/fetchEmbeddingsAsPCA';

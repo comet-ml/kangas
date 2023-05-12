@@ -1,6 +1,7 @@
 'use client';
 
-import { createContext } from 'react';
+import { createContext, useContext, useCallback } from 'react';
+import { ViewContext } from './ViewContext';
 
 export const ModalContext = createContext({
     closeModal: () => null,
@@ -9,10 +10,23 @@ export const ModalContext = createContext({
 
 
 const ModalProvider = ({ value, children }) => {
+    const { pausePolling, resumePolling } = useContext(ViewContext);
+    
+    const openModal = useCallback(() => {
+        value?.openModal();
+        pausePolling();
+    }, [value?.openModal, pausePolling]);
+
+    const closeModal = useCallback(() => {
+        console.log('HEY CLOSE')
+        value?.closeModal();
+        resumePolling();
+    }, [value?.closeModal, resumePolling])
+
     return (
         <ModalContext.Provider value={{
-            openModal: value?.openModal,
-            closeModal: value?.closeModal
+            openModal: openModal,
+            closeModal: closeModal
         }}>
             { children }
         </ModalContext.Provider>

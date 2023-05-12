@@ -1,7 +1,7 @@
 import Base from './BaseTextCell';
 import Grouped from './GroupedTextCell';
+import DialogueModal from '@kangas/app/modals/DialogueModal/DialogueModalContainer';
 import fetchMetadata from '@kangas/lib/fetchMetadata';
-import DialogueModal from '@kangas/app/modals/DialogueModal/DialogueModalClient';
 
 const TextCell = async ({ value, query, style, ssr, columnName }) => {
     const metadata = await fetchMetadata({

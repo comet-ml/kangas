@@ -2,7 +2,7 @@
 
 // Need to run in client because of JsonViewer uses useEffect
 
-import DialogueModal from '@kangas/app/modals/DialogueModal/DialogueModalClient';
+import DialogueModal from '@kangas/app/modals/DialogueModal/DialogueModalContainer';
 import { JsonViewer } from '@textea/json-viewer';
 
 import classNames from 'classnames/bind';

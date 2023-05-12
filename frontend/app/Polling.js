@@ -2,36 +2,36 @@
 
 import fetchTimestamp from "@kangas/lib/fetchTimestamp";
 import useQueryParams from "@kangas/lib/hooks/useQueryParams";
-import { useCallback, useEffect, useRef, useContext } from "react";
-import { ConfigContext } from "@kangas/app/contexts/ConfigContext";
+import { useCallback, useContext, useEffect, useRef } from "react";
+import { ViewContext } from "./contexts/ViewContext";
 
 const Polling = ({ children }) => {
-    const { config } = useContext(ConfigContext);
     const { params, updateParams } = useQueryParams();
+    const { shouldPoll } = useContext(ViewContext);
     const interval = useRef();
 
     const checkTimestamp = useCallback(async () => {
-        if (!params?.datagrid) return;
+        if (!params?.datagrid || !shouldPoll) return;
 
         const mostRecent = await fetchTimestamp(params.datagrid, false);
 
         if (params?.timestamp != mostRecent) {
-            updateParams({ timestamp: mostRecent });
+            updateParams({ timestamp: mostRecent })
         }
-    }, [params?.datagrid, params?.timestamp, updateParams]);
+    }, [params?.datagrid, params?.timestamp, updateParams, shouldPoll])
 
     useEffect(() => {
-	// If disabled, don't start
-	if (!config.dynamic) return;
+        if (!params?.timestamp) {
+            checkTimestamp();
+        } else {
+            if (!!interval.current) clearInterval(interval.current);
 
-        if (!!interval.current) clearInterval(interval.current);
-
-        interval.current = setInterval(checkTimestamp, 10000);
+            interval.current = setInterval(checkTimestamp, 15000);
+        }
 
         return () => clearInterval(interval.current);
-    }, [checkTimestamp]);
-
-
+      }, [checkTimestamp, params?.timestamp]);
+      
       return (
         <>
             { children }

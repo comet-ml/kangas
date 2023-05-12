@@ -1,4 +1,4 @@
-import DialogueModal from '@kangas/app/modals/DialogueModal/DialogueModalClient';
+import DialogueModal from '@kangas/app/modals/DialogueModal/DialogueModalContainer';
 import ComputedColumnsModal from '@kangas/app/modals/ComputedColumnsModal';
 
 import styles from './Buttons.module.scss';

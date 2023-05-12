@@ -25,9 +25,11 @@ const Main = async ({ query }) => {
 
     return (
         <ViewProvider value={{ columns: view, query }}>
-            <Suspense fallback={<>Loading</>}><SettingsBar query={query} columns={columns} /></Suspense>
-            <Suspense fallback={<>Loading</>}><Table data={data} query={query} start={viewStart} end={viewEnd} /></Suspense>
-            <Suspense fallback={<>Loading</>}><PagerBar query={query} /></Suspense>
+            <Polling>
+                <Suspense fallback={<>Loading</>}><SettingsBar query={query} columns={columns} /></Suspense>
+                <Suspense fallback={<>Loading</>}><Table data={data} query={query} start={viewStart} end={viewEnd} /></Suspense>
+                <Suspense fallback={<>Loading</>}><PagerBar query={query} /></Suspense>
+            </Polling>
         </ViewProvider>
     );
 }
@@ -80,7 +82,7 @@ const Page = async ({ searchParams }) => {
     }
 
     return (
-        <Polling>
+        <>
             <Imports />
             <Suspense fallback={<Skeleton message={"Suspending Page"} />}>
                 <Main query={query} />
@@ -88,7 +90,7 @@ const Page = async ({ searchParams }) => {
             <Suspense fallback={<></>}>
                 <Prefetch datagrids={datagrids} query={query} />
             </Suspense>
-        </Polling>
+        </>
     );
 };
 

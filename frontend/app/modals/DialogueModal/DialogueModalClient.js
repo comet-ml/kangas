@@ -1,18 +1,22 @@
 'use client'
 
-import { useState, useCallback } from 'react';
+import { useContext } from 'react';
 
 import Dialogue from '@mui/material/Dialog';
 import classNames from 'classnames/bind';
 import styles from './DialogueModal.module.scss';
-import ModalContext from '@kangas/app/contexts/ModalContext';
-
+import { ModalContext } from '@kangas/app/contexts/ModalContext';
 const cx = classNames.bind(styles);
 
-const DialogueModalContainer = ({ toggleElement, children, sx, tabIndex, fullScreen = false }) => {
-    const [open, setOpen] = useState(false);
-    const closeModal = useCallback(() => setOpen(false), []);
-    const openModal = useCallback(() => setOpen(true), []);
+const DialogueModal = ({
+    open,
+    toggleElement, 
+    children, 
+    sx, 
+    tabIndex, 
+    fullScreen = false 
+}) => {
+    const { openModal, closeModal } = useContext(ModalContext);
 
     if (!toggleElement) {
         return (
@@ -28,13 +32,13 @@ const DialogueModalContainer = ({ toggleElement, children, sx, tabIndex, fullScr
         );
     }
     return (
-        <ModalContext value={{ closeModal, openModal }}>
+        <>
                 <div className={cx('dialogue-toggle')} tabIndex={tabIndex} onClick={openModal}>{toggleElement}</div>
                 <Dialogue className={cx('dialogue')} open={open} fullScreen={fullScreen} onClose={closeModal} sx={sx}>
                     {children}
                 </Dialogue>
-        </ModalContext>
+        </>
     );
 };
 
-export default DialogueModalContainer;
+export default DialogueModal;

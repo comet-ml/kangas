@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import DialogueModal from '@kangas/app/modals/DialogueModal/DialogueModalClient';
+import DialogueModal from '@kangas/app/modals/DialogueModal/DialogueModalContainer';
 import styles from './ImageCanvas.module.scss';
 import classNames from 'classnames/bind';
 import ImageCanvasControls from "./Controls";
