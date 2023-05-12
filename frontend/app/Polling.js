@@ -1,6 +1,7 @@
 'use client';
 
 import fetchTimestamp from "@kangas/lib/fetchTimestamp";
+import { useRouter } from "next/navigation";
 import { useCallback, useContext, useEffect, useRef } from "react";
 import { ViewContext } from "./contexts/ViewContext";
 
@@ -8,6 +9,7 @@ const Polling = ({ children }) => {
     const { query } = useContext(ViewContext);
     const { shouldPoll } = useContext(ViewContext);
     const interval = useRef();
+    const router = useRouter();
 
     const checkTimestamp = useCallback(async () => {
         if (!query?.dgid) return;
@@ -15,7 +17,8 @@ const Polling = ({ children }) => {
         const mostRecent = await fetchTimestamp(query.datagrid, false);
 
         if (query?.timestamp != mostRecent) {
-            window.location.reload(false);
+            const { pathname, search } = window.location;
+            router.replace(`${pathname}${search}`);
         }
     }, [query?.dgid, query?.timestamp, shouldPoll])
 
