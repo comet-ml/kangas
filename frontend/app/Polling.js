@@ -12,7 +12,7 @@ const Polling = ({ children }) => {
     const router = useRouter();
 
     const checkTimestamp = useCallback(async () => {
-        if (!query?.dgid) return;
+        if (!query?.dgid || !shouldPoll) return;
 
         const mostRecent = await fetchTimestamp(query.datagrid, false);
 
