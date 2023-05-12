@@ -18,7 +18,6 @@ const ModalProvider = ({ value, children }) => {
     }, [value?.openModal, pausePolling]);
 
     const closeModal = useCallback(() => {
-        console.log('HEY CLOSE')
         value?.closeModal();
         resumePolling();
     }, [value?.closeModal, resumePolling])
