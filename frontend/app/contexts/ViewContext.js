@@ -109,7 +109,8 @@ const ViewProvider = ({ value, children }) => {
             pausePolling: () => dispatch({ type: 'PAUSE_POLLING' }),
             resumePolling: () => dispatch({ type: 'RESUME_POLLING' }),
             shouldPoll: !!state?.shouldPoll,
-            isLoading: state?.isLoading
+            isLoading: state?.isLoading,
+            query: state?.query
         }}>
             { children }
         </ViewContext.Provider>

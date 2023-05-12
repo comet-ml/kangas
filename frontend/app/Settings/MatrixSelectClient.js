@@ -23,7 +23,6 @@ const MatrixSelect = ({ query, options=['blah'] }) => {
     const changeDatagrid = useCallback((e) => {
         updateParams({
             datagrid: e.value,
-            timestamp: e.timestamp,
             filter: undefined,
             sort: undefined,
             group: undefined,

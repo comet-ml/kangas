@@ -70,10 +70,9 @@ const Page = async ({ searchParams }) => {
         limit,
         boundary,
         begin,
-        timestamp
     };
 
-    if (!!datagrid && !timestamp) {
+    if (!!datagrid) {
         query.timestamp = await fetchTimestamp(datagrid);
     } 
 
