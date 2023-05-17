@@ -52,6 +52,7 @@ setup_args = dict(
         "click",
         "flask>=2.2",
         "flask-caching",
+        "huggingface_hub",
         "marko",
         "matplotlib",
         "nodejs-bin==16.15.1a4",
