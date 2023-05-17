@@ -1,6 +1,6 @@
 'use client';
 
-import { CircularProgress } from "@mui/material";
+import { CircularProgress, Dialog } from "@mui/material";
 import { useContext, useEffect, useRef } from "react"
 import { ViewContext } from "@kangas/app/contexts/ViewContext"
 
@@ -15,29 +15,27 @@ const TableClientWrapper = ({ data, children }) => {
         }
     }, [data, completeLoading, isLoading]);
 
-    if (isLoading) {
-        return (
-            <div>
-                <div
-                    style={{
-                        position: 'absolute',
-                        width: '100%',
-                        height: '100%',
+    return (
+        <>
+            <Dialog open={isLoading}
+                sx={{ '& .MuiBackdrop-root': { backgroundColor: 'transparent' } }}
+                PaperProps={{
+                    style: {
+                        backgroundColor: 'transparent',
+                        boxShadow: 'none',
+                        minHeight: '250px',
+                        minWidth: '250px',
                         display: 'flex',
                         justifyContent: 'center',
-                        alignItems: 'center',
-                    }}
-                >
-                    <div >
-                        <CircularProgress />
-                    </div>
-                </div>
-                { children }
-            </div>
-        )
-    } else {
-        return <>{ children }</>
-    }
+                        alignItems: 'center'
+                    },
+                }}
+            >
+                    <CircularProgress />
+            </Dialog>
+            { children }
+        </>
+    )
 }
 
 export default TableClientWrapper;
