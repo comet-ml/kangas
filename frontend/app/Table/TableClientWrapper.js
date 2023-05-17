@@ -15,21 +15,27 @@ const TableClientWrapper = ({ data, children }) => {
         }
     }, [data, completeLoading, isLoading]);
 
-        return (
-            <>
-                <Dialog open={isLoading}
-                  PaperProps={{
+    return (
+        <>
+            <Dialog open={isLoading}
+                sx={{ '& .MuiBackdrop-root': { backgroundColor: 'transparent' } }}
+                PaperProps={{
                     style: {
-                      backgroundColor: 'transparent',
-                      boxShadow: 'none',
+                        backgroundColor: 'transparent',
+                        boxShadow: 'none',
+                        minHeight: '250px',
+                        minWidth: '250px',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center'
                     },
-                  }}
-                >
-                        <CircularProgress />
-                </Dialog>
-                { children }
-            </>
-        )
+                }}
+            >
+                    <CircularProgress />
+            </Dialog>
+            { children }
+        </>
+    )
 }
 
 export default TableClientWrapper;
