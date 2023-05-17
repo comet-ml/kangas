@@ -17,14 +17,10 @@ import json
 import logging
 import math
 import os
-import shutil
 import sqlite3
 import tempfile
 import urllib
 from collections import defaultdict
-from pathlib import Path
-import huggingface_hub
-from huggingface_hub import HfApi
 
 import numpy as np
 
@@ -2757,39 +2753,3 @@ class DataGrid:
 
         self.conn.commit()
         print("Updated %s assets" % count)
-
-    def deploy_to_huggingface(self, repo_name=None):
-        """
-        Deploy DataGrid as part of a hosted Kangas instance on HuggingFace Spaces. Overwrites any existing DataGrids with identical names.
-
-        Args:
-            repo_name: (str) Name of repository to create
-
-        """
-        self.save()
-
-        cwd = Path.cwd()
-        upload_path = (cwd / 'datagrids-hf-upload').resolve()
-        if upload_path.exists() == False:
-            os.mkdir('./datagrids-hf-upload')
-
-        filepath = (upload_path / self.filename).resolve()
-        # Delete old datagrid file if present in upload folder
-        if filepath.is_file():
-            os.remove(filepath)
-
-        shutil.copy((cwd / self.filename).resolve(), upload_path)
-
-        try:
-            api = HfApi()
-            repo_info = api.duplicate_space('comet-team/kangas-direct', to_id=repo_name, exist_ok=False)
-            api.upload_folder(repo_id=repo_info.repo_id, repo_type="space", folder_path="datagrids-hf-upload/", path_in_repo="datagrids/")
-            print(f"Successfully uploaded to Space {repo_info.repo_id}")
-        except ValueError as e:
-            huggingface_hub.login()
-            api = HfApi()
-            repo_info = api.duplicate_space('comet-team/kangas-direct', to_id=repo_name, exist_ok=False)
-            api.upload_folder(repo_id=repo_info.repo_id, repo_type="space", folder_path="datagrids-hf-upload/", path_in_repo="datagrids/")
-            print(f"Successfully uploaded to Space {repo_info.repo_id}")
-
-

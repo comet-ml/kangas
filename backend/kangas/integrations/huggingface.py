@@ -14,6 +14,8 @@
 import datetime
 import json
 import os
+import shutil
+from pathlib import Path
 
 import PIL.Image
 
@@ -32,6 +34,61 @@ class JSONEncoder(json.JSONEncoder):
             return {"value": obj.timestamp(), "dtype": "datetime"}
 
         return json.JSONEncoder.default(self, obj)
+
+
+def deploy_to_huggingface(path, name):
+    """
+    Deploy DataGrid as part of a hosted Kangas instance on
+    HuggingFace Spaces. Overwrites any existing DataGrids with
+    identical names.
+
+    Args:
+        path: (str) Name of repository to create
+        name: (str) DataGrid to use
+    """
+    try:
+        import huggingface_hub
+        from huggingface_hub import HfApi
+    except Exception:
+        raise Exception("requires `pip install huggingface_hub`")
+
+    cwd = Path.cwd()
+    upload_path = (cwd / "datagrids-hf-upload").resolve()
+    if not upload_path.exists():
+        os.mkdir("./datagrids-hf-upload")
+
+    filepath = (upload_path / name).resolve()
+    # Delete old datagrid file if present in upload folder
+    if filepath.is_file():
+        os.remove(filepath)
+
+    shutil.copy((cwd / name).resolve(), upload_path)
+
+    try:
+        api = HfApi()
+        repo_info = api.duplicate_space(
+            "comet-team/kangas-direct", to_id=path, exist_ok=False
+        )
+        api.upload_folder(
+            repo_id=repo_info.repo_id,
+            repo_type="space",
+            folder_path="datagrids-hf-upload/",
+            path_in_repo="datagrids/",
+        )
+        print(f"Successfully uploaded to Space {repo_info.repo_id}")
+    except ValueError:
+        huggingface_hub.login()
+        api = HfApi()
+        repo_info = api.duplicate_space(
+            "comet-team/kangas-direct", to_id=path, exist_ok=False
+        )
+        api.upload_folder(
+            repo_id=repo_info.repo_id,
+            repo_type="space",
+            folder_path="datagrids-hf-upload/",
+            path_in_repo="datagrids/",
+        )
+        print(f"Successfully uploaded to Space {repo_info.repo_id}")
 
 
 def import_from_huggingface(path, name, options):
