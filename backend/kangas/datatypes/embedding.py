@@ -12,10 +12,34 @@
 ######################################################
 
 import json
+import random
+import time
 
-from ..server.utils import pickle_dumps
+from ..server.utils import Cache, pickle_dumps
 from .base import Asset
-from .utils import flatten, get_color, get_file_extension, is_valid_file_path
+from .utils import get_color, get_file_extension, is_valid_file_path
+
+PROJECTION_DIMENSIONS = 50
+
+SAMPLE_CACHE = Cache(100)
+
+
+def prepare_embedding(embedding, dimensions, seed):
+    if len(embedding) <= dimensions:
+        return embedding
+
+    key = (seed, dimensions)
+    if not SAMPLE_CACHE.contains(key):
+        random.seed(seed)
+        indices = list(range(len(embedding)))
+        random.shuffle(indices)
+        SAMPLE_CACHE.put(key, set(indices[:dimensions]))
+
+    indices = SAMPLE_CACHE.get(key)
+
+    return [v for i, v in enumerate(embedding) if i in indices]
+
+    SAMPLE_CACHE.get(key)
 
 
 class Embedding(Asset):
@@ -37,6 +61,7 @@ class Embedding(Asset):
         metadata=None,
         source=None,
         unserialize=False,
+        dimensions=PROJECTION_DIMENSIONS,
     ):
         """
         Create an embedding vector.
@@ -53,6 +78,7 @@ class Embedding(Asset):
             include: (bool) whether to include this vector when determining the
                 projection. Useful if you want to see one part of the datagrid in
                 the project of another.
+            dimensions: (int) maximum number of dimensions
 
         Example:
 
@@ -88,6 +114,7 @@ class Embedding(Asset):
         self.metadata["color"] = color
         self.metadata["projection"] = projection
         self.metadata["include"] = include
+        self.metadata["dimensions"] = dimensions
 
         if file_name:
             if is_valid_file_path(file_name):
@@ -98,6 +125,7 @@ class Embedding(Asset):
                             "name": name,
                             "color": color,
                             "text": text,
+                            "dimensions": dimensions,
                         }
                     )
                 self.metadata["extension"] = get_file_extension(file_name)
@@ -106,7 +134,14 @@ class Embedding(Asset):
                 raise ValueError("file not found: %r" % file_name)
         else:
             self.asset_data = json.dumps(
-                {"vector": embedding, "name": name, "color": color, "text": text}
+                {
+                    "vector": embedding,
+                    "name": name,
+                    "color": color,
+                    "text": text,
+                    "dimensions": dimensions,
+                    "include": include,
+                }
             )
         if metadata:
             self.metadata.update(metadata)
@@ -135,39 +170,48 @@ class Embedding(Asset):
         stddev = None
         other = None
         name = col_name
+        seed = time.time()  # set the same for all embeddings
 
         projection = None
         batch = []
         for row in datagrid.conn.execute(
-            """SELECT {field_name} as assetId, asset_data, json_extract(asset_metadata, '$.projection'), json_extract(asset_metadata, '$.include') from datagrid JOIN assets ON assetId = assets.asset_id;""".format(
+            """SELECT {field_name} as assetId, asset_data, asset_metadata from datagrid JOIN assets ON assetId = assets.asset_id;""".format(
                 field_name=field_name
             )
         ):
-            # Skip if explicitly False
-            if row[3] is False:
+            asset_id, asset_data_json, asset_metadata_json = row
+            if not asset_metadata_json:
                 continue
 
-            embedding = json.loads(row[1])
-            vectors = embedding["vector"]
-            vector = flatten(vectors)
+            asset_metdata = json.loads(asset_metadata_json)
+            projection = asset_metdata["projection"]
+            include = asset_metdata["include"]
+            dimensions = asset_metdata["dimensions"]
+
+            # Skip if explicitly False
+            if not include:
+                continue
+
+            asset_data = json.loads(asset_data_json)
+            vector = prepare_embedding(asset_data["vector"], dimensions, seed)
 
             batch.append(vector)
-            if row[2] is None or row[2] == "pca":
+            if projection is None or projection == "pca":
                 projection_name = "pca"
-            elif row[2] == "t-sne":
+            elif projection == "t-sne":
                 projection_name = "t-sne"
-            elif row[2] == "umap":
+            elif projection == "umap":
                 projection_name = "umap"
 
         if projection_name == "pca":
             from sklearn.decomposition import PCA
 
-            projection = PCA()
-            embedding = projection.fit_transform(np.array(batch))
-            x_max = float(embedding[:, 0].max())
-            x_min = float(embedding[:, 0].min())
-            y_max = float(embedding[:, 1].max())
-            y_min = float(embedding[:, 1].min())
+            projection = PCA(n_components=2)
+            transformed = projection.fit_transform(np.array(batch))
+            x_max = float(transformed[:, 0].max())
+            x_min = float(transformed[:, 0].min())
+            y_max = float(transformed[:, 1].max())
+            y_min = float(transformed[:, 1].min())
             x_span = abs(x_max - x_min)
             x_max += x_span * 0.1
             x_min -= x_span * 0.1
@@ -181,17 +225,19 @@ class Embedding(Asset):
                     "projection": projection_name,
                     "x_range": [x_min, x_max],
                     "y_range": [y_min, y_max],
+                    "dimensions": dimensions,
+                    "seed": seed,
                 }
             )
         elif projection_name == "t-sne":
             from openTSNE import TSNE
 
             projection = TSNE()
-            embedding = projection.fit(np.array(batch))
-            x_max = float(embedding[:, 0].max())
-            x_min = float(embedding[:, 0].min())
-            y_max = float(embedding[:, 1].max())
-            y_min = float(embedding[:, 1].min())
+            transformed = projection.fit(np.array(batch))
+            x_max = float(transformed[:, 0].max())
+            x_min = float(transformed[:, 0].min())
+            y_max = float(transformed[:, 1].max())
+            y_min = float(transformed[:, 1].min())
             x_span = abs(x_max - x_min)
             x_max += x_span * 0.1
             x_min -= x_span * 0.1
@@ -201,9 +247,11 @@ class Embedding(Asset):
             other = json.dumps(
                 {
                     "projection": projection_name,
-                    "embedding": pickle_dumps(embedding),
+                    "pickled_projection": pickle_dumps(transformed),
                     "x_range": [x_min, x_max],
                     "y_range": [y_min, y_max],
+                    "dimensions": dimensions,
+                    "seed": seed,
                 }
             )
         elif projection_name == "umap":
