@@ -15,7 +15,7 @@ import json
 import random
 import time
 
-from ..server.utils import Cache, pickle_dumps
+from ..server.utils import Cache
 from .base import Asset
 from .utils import get_color, get_file_extension, is_valid_file_path
 
@@ -174,6 +174,8 @@ class Embedding(Asset):
 
         projection = None
         batch = []
+        asset_ids = []
+
         for row in datagrid.conn.execute(
             """SELECT {field_name} as assetId, asset_data, asset_metadata from datagrid JOIN assets ON assetId = assets.asset_id;""".format(
                 field_name=field_name
@@ -195,71 +197,67 @@ class Embedding(Asset):
             asset_data = json.loads(asset_data_json)
             vector = prepare_embedding(asset_data["vector"], dimensions, seed)
 
+            # Save asset_id to update assets next
             batch.append(vector)
-            if projection is None or projection == "pca":
+            asset_ids.append(asset_id)
+
+            if projection == "pca":
                 projection_name = "pca"
             elif projection == "t-sne":
                 projection_name = "t-sne"
             elif projection == "umap":
                 projection_name = "umap"
+            else:
+                raise Exception("projection not found")
 
         if projection_name == "pca":
             from sklearn.decomposition import PCA
 
             projection = PCA(n_components=2)
             transformed = projection.fit_transform(np.array(batch))
-            x_max = float(transformed[:, 0].max())
-            x_min = float(transformed[:, 0].min())
-            y_max = float(transformed[:, 1].max())
-            y_min = float(transformed[:, 1].min())
-            x_span = abs(x_max - x_min)
-            x_max += x_span * 0.1
-            x_min -= x_span * 0.1
-            y_span = abs(y_max - y_min)
-            y_max += y_span * 0.1
-            y_min -= y_span * 0.1
-            other = json.dumps(
-                {
-                    "pca_eigen_vectors": projection.components_.tolist(),
-                    "pca_mean": projection.mean_.tolist(),
-                    "projection": projection_name,
-                    "x_range": [x_min, x_max],
-                    "y_range": [y_min, y_max],
-                    "dimensions": dimensions,
-                    "seed": seed,
-                }
-            )
+
         elif projection_name == "t-sne":
-            from openTSNE import TSNE
+            from sklearn.manifold import TSNE
 
             projection = TSNE()
-            transformed = projection.fit(np.array(batch))
-            x_max = float(transformed[:, 0].max())
-            x_min = float(transformed[:, 0].min())
-            y_max = float(transformed[:, 1].max())
-            y_min = float(transformed[:, 1].min())
-            x_span = abs(x_max - x_min)
-            x_max += x_span * 0.1
-            x_min -= x_span * 0.1
-            y_span = abs(y_max - y_min)
-            y_max += y_span * 0.1
-            y_min -= y_span * 0.1
-            other = json.dumps(
-                {
-                    "projection": projection_name,
-                    "pickled_projection": pickle_dumps(transformed),
-                    "x_range": [x_min, x_max],
-                    "y_range": [y_min, y_max],
-                    "dimensions": dimensions,
-                    "seed": seed,
-                }
-            )
+            transformed = projection.fit_transform(np.array(batch))
+
         elif projection_name == "umap":
-            projection_name = (projection_name,)
-            other = json.dumps(
-                {
-                    "projection": projection_name,
-                }
+            pass  # TODO
+
+        x_max = float(transformed[:, 0].max())
+        x_min = float(transformed[:, 0].min())
+        y_max = float(transformed[:, 1].max())
+        y_min = float(transformed[:, 1].min())
+        x_span = abs(x_max - x_min)
+        x_max += x_span * 0.1
+        x_min -= x_span * 0.1
+        y_span = abs(y_max - y_min)
+        y_max += y_span * 0.1
+        y_min -= y_span * 0.1
+        other = json.dumps(
+            {
+                "x_range": [x_min, x_max],
+                "y_range": [y_min, y_max],
+            }
+        )
+
+        # update assets with transformed
+        cursor = datagrid.conn.cursor()
+        for asset_id, tran in zip(asset_ids, transformed):
+            sql = """SELECT asset_data from assets WHERE asset_id = ?;"""
+            asset_data_json = datagrid.conn.execute(sql, (asset_id,)).fetchone()[0]
+            asset_data = json.loads(asset_data_json)
+            asset_data["projection_transform"] = tran.tolist()
+            asset_data_json = json.dumps(asset_data)
+            sql = """UPDATE assets SET asset_data = ? WHERE asset_id = ?;"""
+            cursor.execute(
+                sql,
+                (
+                    asset_data_json,
+                    asset_id,
+                ),
             )
+        datagrid.conn.commit()
 
         return [minimum, maximum, avg, variance, total, stddev, other, name]

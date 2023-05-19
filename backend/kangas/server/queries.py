@@ -37,13 +37,7 @@ from ..datatypes.utils import (
     pytype_to_dgtype,
 )
 from .computed_columns import unify_computed_columns, update_state
-from .utils import (
-    Cache,
-    pickle_loads_embedding_unsafe,
-    process_about,
-    safe_compile,
-    safe_env,
-)
+from .utils import Cache, process_about, safe_compile, safe_env
 
 LOGGER = logging.getLogger(__name__)
 KANGAS_ROOT = os.environ.get("KANGAS_ROOT", ".")
@@ -63,7 +57,6 @@ import math
 VALID_CHARS = string.ascii_letters + string.digits + "_"
 
 PROJECTION_TRACE_CACHE = Cache(100)
-PROJECTION_EMBEDDING_CACHE = Cache(50)
 
 
 def sqlite_query_explain(
@@ -2233,17 +2226,11 @@ def process_projection_asset_ids(
     name,
     cur,
     asset_ids,
-    projection_name,
-    projection,
     traces,
     size,
     default_color,
     color_override=None,
-    projection_dimensions=None,
-    projection_seed=None,
 ):
-    from ..datatypes.embedding import prepare_embedding
-
     # asset_ids is a list of str
     # side-effect: adds to traces
     # Turn to string:
@@ -2256,14 +2243,11 @@ def process_projection_asset_ids(
     )
 
     trace_data = {}
-    print("using seed", projection_seed)
 
     for asset_data_row in cur.execute(sql):
         asset_data_raw = asset_data_row[0]
         asset_data = json.loads(asset_data_raw)
-        vector_reduced = prepare_embedding(
-            asset_data["vector"], projection_dimensions, projection_seed
-        )
+        transform = asset_data["projection_transform"]
         if color_override:
             color = color_override
         elif asset_data["color"]:
@@ -2283,26 +2267,25 @@ def process_projection_asset_ids(
 
         if trace_name not in trace_data:
             trace_data[trace_name] = {
-                "vectors": [],
+                "transform": [],
                 "colors": [],
                 "texts": [],
                 "customdata": [],
             }
 
         trace_data[trace_name]["texts"].append(asset_data.get("text"))
-        trace_data[trace_name]["vectors"].append(vector_reduced)
+        trace_data[trace_name]["transform"].append(transform)
         trace_data[trace_name]["colors"].append(color)
         trace_data[trace_name]["customdata"].append(row_id)
 
     for trace_name in trace_data:
-        vectors = trace_data[trace_name]["vectors"]
+        transform = trace_data[trace_name]["transform"]
         texts = trace_data[trace_name]["texts"]
         colors = trace_data[trace_name]["colors"]
         customdata = trace_data[trace_name]["customdata"]
 
-        eigen_vector = projection.transform(np.array(vectors))
-        xs = eigen_vector[:, 0].tolist()
-        ys = eigen_vector[:, 1].tolist()
+        xs = [xy[0] for xy in transform]
+        ys = [xy[1] for xy in transform]
 
         if texts:
             if any(texts):
@@ -2340,8 +2323,6 @@ def select_projection_data(
     where_expr,
     computed_columns,
 ):
-    from ..datatypes.embedding import prepare_embedding
-
     conn = get_database_connection(dgid)
     cur = conn.cursor()
     unify_computed_columns(computed_columns)
@@ -2349,38 +2330,7 @@ def select_projection_data(
     column_limit = None
     column_offset = 0
 
-    if "projection" in metadata[column_name]["other"]:
-        projection_name = metadata[column_name]["other"]["projection"]
-    else:
-        projection_name = "pca"
-
-    if projection_name == "pca":
-        from sklearn.decomposition import PCA
-
-        pca_eigen_vectors = metadata[column_name]["other"]["pca_eigen_vectors"]
-        pca_mean = metadata[column_name]["other"]["pca_mean"]
-        projection = PCA(n_components=2)
-        projection.components_ = np.array(pca_eigen_vectors)
-        projection.mean_ = np.array(pca_mean)
-    elif projection_name == "t-sne":
-        # FIXME: Trying to prevent an error on first load; race condition?
-        from openTSNE import TSNE  # noqa
-
-        ascii_string = metadata[column_name]["other"]["pickled_projection"]
-        if not PROJECTION_EMBEDDING_CACHE.contains(ascii_string):
-            PROJECTION_EMBEDDING_CACHE.put(
-                ascii_string, pickle_loads_embedding_unsafe(ascii_string)
-            )
-        projection = PROJECTION_EMBEDDING_CACHE.get(ascii_string)
-
-    elif projection_name == "umap":
-        pass
-    else:
-        return
-
     default_color = get_color(column_name)
-    projection_dimensions = metadata[column_name]["other"]["dimensions"]
-    projection_seed = metadata[column_name]["other"]["seed"]
 
     traces = []
     if asset_id:
@@ -2412,14 +2362,10 @@ def select_projection_data(
                 "Sampled Data",
                 cur,
                 [row[0] for row in rows],
-                projection_name,
-                projection,
                 traces,
                 3,
                 default_color,
                 "lightgray",
-                projection_dimensions,
-                projection_seed,
             )
             PROJECTION_TRACE_CACHE.put(key, traces)
         # Traces contains projection data; make copy:
@@ -2428,10 +2374,7 @@ def select_projection_data(
         # Next, add the selected asset:
         asset_data_raw = select_asset(dgid, asset_id)
         asset_data = json.loads(asset_data_raw)
-        vector_reduced = prepare_embedding(
-            asset_data["vector"], projection_dimensions, projection_seed
-        )
-        transformed = projection.transform(np.array([vector_reduced]))
+        transform = asset_data["projection_transform"]
         if asset_data["color"]:
             color = asset_data["color"]
         else:
@@ -2443,8 +2386,8 @@ def select_projection_data(
         text = asset_data.get("text", column_name)
 
         trace = {
-            "x": [transformed[0][0]],
-            "y": [transformed[0][1]],
+            "x": [transform[0]],
+            "y": [transform[1]],
             "text": text,
             "name": text,
             "type": "scatter",
@@ -2484,14 +2427,10 @@ def select_projection_data(
                         None,
                         cur,
                         values,
-                        projection_name,
-                        projection,
                         traces,
                         3,
                         default_color,
                         None,
-                        projection_dimensions,
-                        projection_seed,
                     )
             PROJECTION_TRACE_CACHE.put(key, traces)
         # Traces contains projection data; make copy:
