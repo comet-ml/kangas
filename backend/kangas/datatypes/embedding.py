@@ -62,6 +62,7 @@ class Embedding(Asset):
         source=None,
         unserialize=False,
         dimensions=PROJECTION_DIMENSIONS,
+        **kwargs
     ):
         """
         Create an embedding vector.
@@ -79,6 +80,7 @@ class Embedding(Asset):
                 projection. Useful if you want to see one part of the datagrid in
                 the project of another.
             dimensions: (int) maximum number of dimensions
+            kwargs: (dict) optional keyword arguments for projection algorithm
 
         Example:
 
@@ -91,6 +93,11 @@ class Embedding(Asset):
         >>> dg.save("embeddings.datagrid")
         ```
         """
+        if not include and projection not in ["pca"]:
+            raise Exception(
+                "projection '%s' does not allow embeddings to be excluded; change projection or set include=True"
+            )
+
         super().__init__(source)
         if unserialize:
             self._unserialize = unserialize
@@ -115,6 +122,7 @@ class Embedding(Asset):
         self.metadata["projection"] = projection
         self.metadata["include"] = include
         self.metadata["dimensions"] = dimensions
+        self.metadata["kwargs"] = kwargs
 
         if file_name:
             if is_valid_file_path(file_name):
@@ -174,7 +182,9 @@ class Embedding(Asset):
 
         projection = None
         batch = []
-        asset_ids = []
+        batch_asset_ids = []
+        not_included = []
+        not_included_asset_ids = []
 
         for row in datagrid.conn.execute(
             """SELECT {field_name} as assetId, asset_data, asset_metadata from datagrid JOIN assets ON assetId = assets.asset_id;""".format(
@@ -186,20 +196,11 @@ class Embedding(Asset):
                 continue
 
             asset_metdata = json.loads(asset_metadata_json)
+
             projection = asset_metdata["projection"]
             include = asset_metdata["include"]
             dimensions = asset_metdata["dimensions"]
-
-            # Skip if explicitly False
-            if not include:
-                continue
-
-            asset_data = json.loads(asset_data_json)
-            vector = prepare_embedding(asset_data["vector"], dimensions, seed)
-
-            # Save asset_id to update assets next
-            batch.append(vector)
-            asset_ids.append(asset_id)
+            kwargs = asset_metdata["kwargs"]
 
             if projection == "pca":
                 projection_name = "pca"
@@ -208,19 +209,37 @@ class Embedding(Asset):
             elif projection == "umap":
                 projection_name = "umap"
             else:
-                raise Exception("projection not found")
+                raise Exception("projection not found for %s" % asset_id)
+
+            asset_data = json.loads(asset_data_json)
+            vector = prepare_embedding(asset_data["vector"], dimensions, seed)
+
+            if include:
+                batch.append(vector)
+                batch_asset_ids.append(asset_id)
+            else:
+                not_included.append(vector)
+                not_included_asset_ids.append(asset_id)
 
         if projection_name == "pca":
             from sklearn.decomposition import PCA
 
-            projection = PCA(n_components=2)
+            if "n_components" not in kwargs:
+                kwargs["n_components"] = 2
+
+            projection = PCA(**kwargs)
             transformed = projection.fit_transform(np.array(batch))
+            if not_included:
+                transformed_not_included = projection.transform(np.array(not_included))
+            else:
+                transformed_not_included = np.array([])
 
         elif projection_name == "t-sne":
             from sklearn.manifold import TSNE
 
-            projection = TSNE()
+            projection = TSNE(**kwargs)
             transformed = projection.fit_transform(np.array(batch))
+            transformed_not_included = np.array([])
 
         elif projection_name == "umap":
             pass  # TODO
@@ -244,7 +263,11 @@ class Embedding(Asset):
 
         # update assets with transformed
         cursor = datagrid.conn.cursor()
-        for asset_id, tran in zip(asset_ids, transformed):
+        if not_included_asset_ids:
+            batch_asset_ids = batch_asset_ids + not_included_asset_ids
+            transformed = np.concatenate((transformed, transformed_not_included))
+
+        for asset_id, tran in zip(batch_asset_ids, transformed):
             sql = """SELECT asset_data from assets WHERE asset_id = ?;"""
             asset_data_json = datagrid.conn.execute(sql, (asset_id,)).fetchone()[0]
             asset_data = json.loads(asset_data_json)
