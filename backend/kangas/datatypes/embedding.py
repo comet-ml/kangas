@@ -62,6 +62,7 @@ class Embedding(Asset):
         source=None,
         unserialize=False,
         dimensions=PROJECTION_DIMENSIONS,
+        scale=False,
         **kwargs
     ):
         """
@@ -81,6 +82,7 @@ class Embedding(Asset):
                 the project of another.
             dimensions: (int) maximum number of dimensions
             kwargs: (dict) optional keyword arguments for projection algorithm
+            scale: (bool) boolean indicating whether each column should be normalized
 
         Example:
 
@@ -122,6 +124,7 @@ class Embedding(Asset):
         self.metadata["projection"] = projection
         self.metadata["include"] = include
         self.metadata["dimensions"] = dimensions
+        self.metadata["scale"] = scale
         self.metadata["kwargs"] = kwargs
 
         if file_name:
@@ -134,6 +137,7 @@ class Embedding(Asset):
                             "color": color,
                             "text": text,
                             "dimensions": dimensions,
+                            "scale": scale,
                         }
                     )
                 self.metadata["extension"] = get_file_extension(file_name)
@@ -148,6 +152,7 @@ class Embedding(Asset):
                     "color": color,
                     "text": text,
                     "dimensions": dimensions,
+                    "scale": scale,
                     "include": include,
                 }
             )
@@ -195,12 +200,13 @@ class Embedding(Asset):
             if not asset_metadata_json:
                 continue
 
-            asset_metdata = json.loads(asset_metadata_json)
+            asset_metadata = json.loads(asset_metadata_json)
 
-            projection = asset_metdata["projection"]
-            include = asset_metdata["include"]
-            dimensions = asset_metdata["dimensions"]
-            kwargs = asset_metdata["kwargs"]
+            projection = asset_metadata["projection"]
+            include = asset_metadata["include"]
+            dimensions = asset_metadata["dimensions"]
+            scale = asset_metadata["scale"]
+            kwargs = asset_metadata["kwargs"]
 
             if projection == "pca":
                 projection_name = "pca"
@@ -221,6 +227,19 @@ class Embedding(Asset):
                 not_included.append(vector)
                 not_included_asset_ids.append(asset_id)
 
+        batch = np.array(batch)
+        not_included = np.array(not_included)
+
+        if scale:
+            from sklearn.preprocessing import MinMaxScaler
+
+            if len(batch) > 0:
+                scaler = MinMaxScaler()
+                batch = scaler.fit_transform(batch)
+            if len(not_included) > 0:
+                scaler = MinMaxScaler()
+                not_included = scaler.fit_transform(not_included)
+
         if projection_name == "pca":
             from sklearn.decomposition import PCA
 
@@ -228,9 +247,9 @@ class Embedding(Asset):
                 kwargs["n_components"] = 2
 
             projection = PCA(**kwargs)
-            transformed = projection.fit_transform(np.array(batch))
+            transformed = projection.fit_transform(batch)
             if not_included:
-                transformed_not_included = projection.transform(np.array(not_included))
+                transformed_not_included = projection.transform(not_included)
             else:
                 transformed_not_included = np.array([])
 
@@ -238,7 +257,8 @@ class Embedding(Asset):
             from sklearn.manifold import TSNE
 
             projection = TSNE(**kwargs)
-            transformed = projection.fit_transform(np.array(batch))
+            transformed = projection.fit_transform(batch)
+            # t-SNE can't handle rows where include=False
             transformed_not_included = np.array([])
 
         elif projection_name == "umap":
