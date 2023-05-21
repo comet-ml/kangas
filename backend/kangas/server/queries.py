@@ -2764,7 +2764,8 @@ def generate_chart_image(chart_type, data, width, height, x_range=None, y_range=
             if "y" not in trace or len(trace["y"]) == 0:
                 continue
 
-            radius = trace["marker"]["size"] / 2
+            # Plotly: 8 or 14
+            radius = 2 if trace["marker"]["size"] == 8 else 6
             colors = trace["marker"]["color"]
             margin = 5
 
