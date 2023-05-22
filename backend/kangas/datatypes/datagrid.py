@@ -945,9 +945,13 @@ class DataGrid:
         >>> dg = DataGrid.read_csv("results.csv")
         ```
         """
-        if not isinstance(header, int) or isinstance(header, bool):
+        if (
+            not isinstance(header, int)
+            and not isinstance(header, bool)
+            and header is not None
+        ):
             raise ValueError(
-                "header should be an int indicating header row (zero-based)"
+                "header should be an int indicating header row (zero-based) or None"
             )
 
         columns = None
@@ -958,17 +962,23 @@ class DataGrid:
         with open(filename) as csvfile:
             reader = csv.reader(csvfile, delimiter=sep, quotechar=quotechar)
             for r, row in ProgressBar(enumerate(reader)):
-                if header is not None:
-                    if not read_header:
-                        if header == r:
-                            columns = row
-                            read_header = True
-                            continue
+                if header is None:
+                    read_header = True
+                    header = 0
+                    columns = (
+                        columns
+                        if columns
+                        else list(create_columns(len(row)).keys())[1:]
+                    )
+                elif not read_header:
+                    if header == r:
+                        columns = row
+                        read_header = True
+                        continue
+
                 # Don't read any rows if header > 0
                 if header is not None and r < header:
                     continue
-
-                columns = columns if columns else create_columns(len(row))
 
                 data.append(
                     [

@@ -332,7 +332,14 @@ def convert_string_to_value(
     if converters:
         if colname in converters:
             converter = converters[colname]
-            return converter(value)
+            try:
+                return converter(value)
+            except Exception:
+                print(
+                    "Failed to convert %r in column %r; returning None"
+                    % (value, colname)
+                )
+                return None
 
     if value.strip() == "":
         return None
