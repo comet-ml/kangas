@@ -30,11 +30,11 @@ const SettingsBar = async ({ query }) => {
         <div className={cx('settings-bar')}>
             <div className={cx('left-settings-bar')}>
                 <DialogueModal fullScreen={false} toggleElement={<KangasButton />}>
-                    <Suspense fallback={<div>Loading</div>}>
+                    <Suspense fallback={<div>Loading...</div>}>
                         <AboutDialog status={status} />
                     </Suspense>
                 </DialogueModal>
-                <Suspense fallback={<>FDKLSF</>}>
+                <Suspense fallback={<>Loading...</>}>
                     <MatrixSelect query={query} options={options} />
                 </Suspense>
                 <RefreshButton query={query} />
