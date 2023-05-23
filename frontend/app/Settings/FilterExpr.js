@@ -20,9 +20,9 @@ const FilterExpr = ({ query, completions }) => {
 
     // If the filter is cleared in the refresh button:
     useEffect(() => {
-	if (typeof query?.whereExpr === "undefined" && filterText != '') {
-	    setFilterText('');
-	}
+        if (typeof query?.whereExpr === "undefined" && filterText != '') {
+            setFilterText('');
+        }
     }, [query?.whereExpr]);
 
     const fetchValidity = useCallback((filter) => {
@@ -49,20 +49,17 @@ const FilterExpr = ({ query, completions }) => {
     // Debounce call to verify-filter so that we don't spam the endpoint
     const onChange = useCallback((filter) => {
         setFilterText(filter);
-        if (status !== 'LOADING') {
-            try {
-                clearTimeout(timeout.current)
-            } catch {
+        try {
+            clearTimeout(timeout.current)
+        } catch {
 
-            } finally {
-                timeout.current = setTimeout(() => fetchValidity(filter), 150)
-            }
+        } finally {
+            timeout.current = setTimeout(() => fetchValidity(filter), 150)
         }
-    }, [fetchValidity, status]);
+    }, [fetchValidity]);
 
     const getValue = (value) => {
-        if (typeof(value) === 'undefined' || value === '')
-            return undefined;
+        if (typeof(value) === 'undefined' || value === '') return undefined;
         return value;
     };
 
