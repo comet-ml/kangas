@@ -62,7 +62,7 @@ def contain(image, size, method=None):
 
 def download(url, filename):
     if not os.path.isfile(filename):
-        g = urllib.request.urlopen(url)
+        g = urllib.request.urlopen(url, timeout=5)
         with open(filename, "wb") as f:
             f.write(g.read())
 
