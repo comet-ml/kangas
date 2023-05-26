@@ -76,13 +76,17 @@ class Embedding(Asset):
                 view
             color: (str) a string that represents a color for the chart, typically
                 given as a "#rrggbb" hex string where "rr" is between "00" and "ff".
-            projection: (str) the type of projection either 'pca' or 't-sne'
+            projection: (str) the type of projection either 'pca', 'umap', or 't-sne'
             include: (bool) whether to include this vector when determining the
                 projection. Useful if you want to see one part of the datagrid in
                 the project of another.
             dimensions: (int) maximum number of dimensions
             kwargs: (dict) optional keyword arguments for projection algorithm
             scale: (bool) boolean indicating whether each column should be normalized
+            kwargs: (keys, values) passed to the projection constructor
+
+        NOTE: when using 't-sne', you cannot have any row that is excluded from
+            the projection. That is because t-SNE does not allow arbitrary mappings.
 
         Example:
 
@@ -95,9 +99,9 @@ class Embedding(Asset):
         >>> dg.save("embeddings.datagrid")
         ```
         """
-        if not include and projection not in ["pca"]:
+        if not include and projection == "t-sne":
             raise Exception(
-                "projection '%s' does not allow embeddings to be excluded; change projection or set include=True"
+                "projection 't-sne' does not allow embeddings to be excluded; change projection or set include=True"
             )
 
         super().__init__(source)
