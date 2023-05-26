@@ -262,7 +262,14 @@ class Embedding(Asset):
             transformed_not_included = np.array([])
 
         elif projection_name == "umap":
-            pass  # TODO
+            from umap import UMAP
+
+            projection = UMAP(**kwargs)
+            transformed = projection.fit_transform(batch)
+            if not_included:
+                transformed_not_included = projection.transform(not_included)
+            else:
+                transformed_not_included = np.array([])
 
         x_max = float(transformed[:, 0].max())
         x_min = float(transformed[:, 0].min())
