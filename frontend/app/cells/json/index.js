@@ -10,7 +10,7 @@ import styles from '../Cell.module.scss';
 
 const cx = classNames.bind(styles);
 
-const JSONCell = ({ value, query, style, expanded=false }) => {
+const JSONCell = ({ value, query, style }) => {
 
     const cell = (
             <div className={cx("cell-content")} style={style}>
