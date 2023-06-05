@@ -1296,12 +1296,16 @@ def select_asset_group_thumbnail(
     )
     images = []
     for asset_id in results_json["values"]:
-        image = select_asset(dgid, asset_id, thumbnail=True, return_image=True)
-        background = PIL.Image.new(mode="RGBA", size=image_size, color=background_color)
-        left = (background.size[0] - image_size[0]) // 2
-        top = (background.size[1] - image_size[1]) // 2
-        background.paste(image, (left, top))
-        images.append(background)
+        if asset_id != "None":
+            image = select_asset(dgid, asset_id, thumbnail=True, return_image=True)
+            if image:
+                background = PIL.Image.new(
+                    mode="RGBA", size=image_size, color=background_color
+                )
+                left = (background.size[0] - image_size[0]) // 2
+                top = (background.size[1] - image_size[1]) // 2
+                background.paste(image, (left, top))
+                images.append(background)
 
     gallery_image = PIL.Image.new(
         mode="RGBA",
