@@ -56,6 +56,12 @@ def get_parser_arguments(parser):
         default=None,
     )
     parser.add_argument(
+        "--rows",
+        help="Number of rows to show",
+        type=int,
+        default=None,
+    )
+    parser.add_argument(
         "-r",
         "--root",
         help="The directory from which to server datagrid files; also can use KANGAS_ROOT env variable",
@@ -356,6 +362,8 @@ def server(parsed_args, remaining=None):
                 query_vars["group"] = parsed_args.group
             if parsed_args.sort:
                 query_vars["sort"] = parsed_args.sort
+            if parsed_args.rows:
+                query_vars["rows"] = parsed_args.rows
         if query_vars:
             url = "%s?%s" % (host, urllib.parse.urlencode(query_vars))
         else:
