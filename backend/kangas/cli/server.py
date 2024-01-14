@@ -62,13 +62,6 @@ def get_parser_arguments(parser):
         default=None,
     )
     parser.add_argument(
-        "-r",
-        "--root",
-        help="The directory from which to server datagrid files; also can use KANGAS_ROOT env variable",
-        type=str,
-        default=None,
-    )
-    parser.add_argument(
         "-b",
         "--backend",
         help="The backend to use; use 'no' for no backend",
@@ -227,9 +220,8 @@ def server(parsed_args, remaining=None):
         terminate()
         return
 
-    print(
-        "Serving DataGrids from directory: %r"
-        % (parsed_args.root or kangas.server.KANGAS_ROOT)
+    print("Serving DataGrids from directory: %r"
+        % (kangas.server.KANGAS_ROOT)
     )
 
     if parsed_args.frontend != "no":
@@ -257,6 +249,7 @@ def server(parsed_args, remaining=None):
                 "KANGAS_BACKEND_HOST": str(KANGAS_BACKEND_HOST),
                 "KANGAS_BACKEND_PROTOCOL": KANGAS_BACKEND_PROTOCOL,
                 "KANGAS_HIDE_SELECTOR": str(KANGAS_HIDE_SELECTOR),
+                "KANGAS_ROOT": kangas.server.KANGAS_ROOT
             }
         )
         # Only add these if they are set:

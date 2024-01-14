@@ -229,7 +229,11 @@ def export_to_comet(path, name, options):
     ):
         asset_metadata = json.loads(asset_metadata_string)
         asset_metadata["source"] = asset_map[asset_id]["web"]
-        asset_metadata["cometAssetId"] = asset_map[asset_id]["assetId"]
+        asset_metadata["remote"] = {
+            "framework": "comet",
+            "assetId": asset_map[asset_id]["assetId"],
+            "experimentId": experiment.id,
+        }
         cur.execute(
             "UPDATE assets SET asset_metadata = ? WHERE asset_id = ?;",
             (json.dumps(asset_metadata), asset_id),

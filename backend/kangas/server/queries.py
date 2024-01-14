@@ -2447,7 +2447,7 @@ def select_asset(dgid, asset_id, thumbnail=False, return_image=False):
     cur = conn.cursor()
     selection = (
         "SELECT asset_data, asset_type, asset_thumbnail, "
-        + 'json_extract(asset_metadata, "$.source") as asset_source, '
+        + 'json_extract(asset_metadata, "$.remote") as asset_remote, '
         + 'json_extract(asset_metadata, "$.annotations") as asset_annotations '
         + 'from assets where asset_id = "{asset_id}";'
     )
@@ -2459,17 +2459,24 @@ def select_asset(dgid, asset_id, thumbnail=False, return_image=False):
     LOGGER.debug("SQL %s seconds", time.time() - start_time)
 
     if row:
-        asset_data, asset_type, asset_thumbnail, asset_source, asset_annotations = row
-        if asset_source:  # FIXME: asset_type == ["Image"]
+        asset_data, asset_type, asset_thumbnail, asset_remote, asset_annotations = row
+        if asset_remote:  
+            # FIXME: asset_type == ["Image"]
             # FIXME: move to Image class
             # FIXME: use a cache?
-            url_data = urllib.request.urlopen(asset_source)
-            with io.BytesIO() as fp:
-                fp.write(url_data.read())
-                image = PIL.Image.open(fp)
-                if image.mode == "CMYK":
-                    image = image.convert("RGB")
-                asset_data = image_to_fp(image, "png").read()
+            remote = json.loads(asset_remote)
+            experiment_key = remote["experimentId"]
+            asset_id = remote["assetId"]
+            if remote["framework"] == "comet":
+                import comet_ml
+                api = comet_ml.API()
+                asset_data = api._client.get_experiment_asset(
+                    asset_id=asset_id,
+                    experiment_key=experiment_key,
+                    return_type="binary",
+                )
+            else:
+                raise Exception("Unknown remote type")
 
         if thumbnail and asset_type in ["Image"]:
             if asset_annotations:
@@ -2534,7 +2541,7 @@ def list_datagrids():
         filename
         for directory, dirs, files in walk(KANGAS_ROOT)
         for filename in files
-        if filename.endswith(".datagrid")
+        if filename.endswith(".datagrid") or filename.endswith(".db")
     ]
 
     return [
