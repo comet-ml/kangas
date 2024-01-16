@@ -45,6 +45,12 @@ def get_parser_arguments(parser):
         default=False,
     )
     parser.add_argument(
+        "--wandb",
+        help="Use wandb as the source",
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
         "--debug",
         help="Show debugging information",
         action="store_true",
@@ -76,6 +82,7 @@ def import_cli(parsed_args):
     # Include source-specific files here:
     from ..integrations.comet import import_from_comet
     from ..integrations.huggingface import import_from_huggingface
+    from ..integrations.wandb import import_from_wandb
 
     options = Options(parsed_args.options)
 
@@ -83,6 +90,10 @@ def import_cli(parsed_args):
         import_from_comet(path=parsed_args.PATH, name=parsed_args.NAME, options=options)
     elif parsed_args.huggingface:
         import_from_huggingface(
+            path=parsed_args.PATH, name=parsed_args.NAME, options=options
+        )
+    elif parsed_args.wandb:
+        import_from_wandb(
             path=parsed_args.PATH, name=parsed_args.NAME, options=options
         )
     else:
