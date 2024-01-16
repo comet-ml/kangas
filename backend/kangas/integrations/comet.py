@@ -173,12 +173,13 @@ def export_to_comet(path, name, options):
         asset_id, asset_type, asset_data, asset_metadata, asset_thumbnail = row
         metadata = json.loads(asset_metadata)
         ## Only send what comet can accept:
-        for layer_index, annotation_layer in enumerate(metadata["annotations"]):
-            for index, annotation in reversed(
-                list(enumerate(annotation_layer["data"][:]))
-            ):
-                if get_annnotation_type(annotation) not in ["points", "boxes"]:
-                    del metadata["annotations"][layer_index]["data"][index]
+        if "annotations" in metadata:
+            for layer_index, annotation_layer in enumerate(metadata["annotations"]):
+                for index, annotation in reversed(
+                    list(enumerate(annotation_layer["data"][:]))
+                ):
+                    if get_annnotation_type(annotation) not in ["points", "boxes"]:
+                        del metadata["annotations"][layer_index]["data"][index]
         if asset_data:
             if isinstance(asset_data, str):
                 if asset_data.startswith("{"):
@@ -202,10 +203,12 @@ def export_to_comet(path, name, options):
         else:
             step = 0
 
+        annotations = metadata["annotations"] if "annotations" in metadata else None
+
         asset_results = experiment.log_image(
             binary_io,
             name=file_name,
-            annotations=metadata["annotations"],
+            annotations=annotations,
             step=step,
         )
         # For consistenency:
