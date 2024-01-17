@@ -66,7 +66,7 @@ const cellMap = {
     'POINTCLOUD-ASSET': {
         width: 150,
         groupedWidth: 300,
-        component: NACell
+        component: ImageCell
     },
     ROW_ID: {
         width: 100,

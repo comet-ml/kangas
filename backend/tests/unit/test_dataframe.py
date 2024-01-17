@@ -1,7 +1,8 @@
+import numpy as np
+import pandas as pd
 from pandas._testing import (
     makeCustomDataframe,
     makeDataFrame,
-    makeMissingDataframe,
     makeMixedDataFrame,
     makePeriodFrame,
     makeTimeDataFrame,
@@ -9,6 +10,12 @@ from pandas._testing import (
 
 import kangas
 
+
+def makeMissingDataframe():
+    df = makeDataFrame()
+    data = df.values
+    data = np.where(data > 1, np.nan, data)
+    return pd.DataFrame(data, index=df.index, columns=df.columns)
 
 def test_makeCustomDataframe():
     df = makeCustomDataframe(100, 25)

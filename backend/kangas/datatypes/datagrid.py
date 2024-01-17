@@ -43,7 +43,6 @@ from .utils import (
     create_columns,
     download_filename,
     expand_mask,
-    generate_thumbnail,
     get_annotations_from_layers,
     get_labels_from_annotations,
     get_mask_from_annotations,
@@ -2636,14 +2635,9 @@ class DataGrid:
             json_string = _convert_with_assets_to_json(metadata, self)
             # Log to database
             # If we should make a thumbnail, do it
-            if self.create_thumbnails and asset_type in ["Image"]:
-                ## FIXME: check metadata "source" to retrieve from file or URL
-                if "annotations" in metadata and metadata["annotations"]:
-                    annotations = json.loads(metadata["annotations"])
-                else:
-                    annotations = None
-                asset_thumbnail = generate_thumbnail(
-                    asset_data, annotations=annotations
+            if self.create_thumbnails and hasattr(ASSET_TYPE_MAP[asset_type.lower()], "generate_thumbnail"):
+                asset_thumbnail = ASSET_TYPE_MAP[asset_type.lower()].generate_thumbnail(
+                    asset_data, metadata
                 )
             else:
                 asset_thumbnail = None  # means one hasn't been created yet

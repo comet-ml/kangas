@@ -31,6 +31,7 @@ from .utils import (
     fast_flatten,
     flatten,
     generate_image,
+    generate_thumbnail,
     get_file_extension,
     image_to_fp,
     is_valid_file_path,
@@ -818,6 +819,21 @@ class Image(Asset):
             },
         )
         return self
+
+
+    @classmethod
+    def generate_thumbnail(cls, asset_data, metadata=None):
+        """
+        Args:
+            asset_data: the raw asset data (bytes or string)
+            metadata: the metadata dict
+        """
+        ## FIXME: check metadata "source" to retrieve from file or URL
+        if metadata and "annotations" in metadata and metadata["annotations"]:
+            annotations = json.loads(metadata["annotations"])
+        else:
+            annotations = None
+        return generate_thumbnail(asset_data, annotations=annotations)
 
 
 def _image_data_to_file_like_object(
