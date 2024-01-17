@@ -26,6 +26,7 @@ from .datatypes import (  # noqa
     Tensor,
     Text,
     Video,
+    PointCloud,
 )
 from .integrations import export_to_comet, import_from_comet  # noqa
 from .server.queries import sqlite_query, sqlite_query_explain  # noqa
