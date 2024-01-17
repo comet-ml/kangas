@@ -63,6 +63,11 @@ const cellMap = {
         groupedWidth: 300,
         component: EmbeddingCell
     },
+    'POINTCLOUD-ASSET': {
+        width: 150,
+        groupedWidth: 300,
+        component: NACell
+    },
     ROW_ID: {
         width: 100,
         groupedWidth: 100,
