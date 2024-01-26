@@ -2478,7 +2478,7 @@ def select_asset(dgid, asset_id, thumbnail=False, return_image=False):
             else:
                 raise Exception("Unknown remote type")
 
-        if thumbnail and asset_type in ["Image"]:
+        if thumbnail and asset_type in ["Image", "PointCloud"]:
             if asset_annotations:
                 asset_annotations = json.loads(asset_annotations)
             thumbnail_data, thumbnail_image = generate_thumbnail(
