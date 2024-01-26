@@ -7,18 +7,17 @@
 #    | |__/ ( ( | | | ( ( | | |__| | | | ( (_| |     #
 #    |_____/ \_||_|___)\_||_|_____/|_| |_|\____|     #
 #                                                    #
-#    Copyright (c) 2023-2024 Kangas Development Team #
-#    All rights reserved                             #
+#  Copyright (c) 2023-2024 Kangas Development Team   #
+#                All rights reserved                 #
 ######################################################
 
 import logging
 import json
 import tempfile
-import random
 
 from .base import Asset
-from .thumbnail import create_thumbnail
-from .utils import image_to_fp
+from .math_3d import generate_image_from_points
+from .utils import image_to_fp, generate_thumbnail
 
 LOGGER = logging.getLogger(__name__)
 
@@ -57,8 +56,6 @@ class PointCloud(Asset):
             min_max_y = min(point[1], min_max_y[0]), max(point[1], min_max_y[1])
             min_max_z = min(point[2], min_max_z[0]), max(point[2], min_max_z[1])
 
-        random.shuffle(points)
-
         for box in boxes:
             for segment_points in box["segments"]:
                 for point in segment_points:
@@ -77,39 +74,38 @@ class PointCloud(Asset):
         self.metadata["min_max_x"] = min_max_x
         self.metadata["min_max_y"] = min_max_y
         self.metadata["min_max_z"] = min_max_z
+        self.metadata["points"] = points
+        self.metadata["boxes"] = boxes
 
-        self.asset_data = json.dumps(
-            {
-                "points": points,
-                "boxes": boxes,
-            }
-        )
+        self.asset_data = PointCloud.generate_thumbnail(None, self.metadata)
 
     @classmethod
-    def generate_thumbnail(cls, asset_data_raw, metadata=None):
+    def generate_thumbnail(cls, asset_data, metadata):
         """
         Args:
-            asset_data_raw: the raw asset data (bytes or string)
             metadata: the metadata dict
         """
-        asset_data = json.loads(asset_data_raw)
-        points = asset_data["points"]
-        boxes = asset_data["boxes"]
-        min_max_x = metadata["min_max_x"]
-        min_max_y = metadata["min_max_y"]
-        min_max_z = metadata["min_max_z"]
-        
-        thumbnail_image = create_thumbnail(
-            points,
-            boxes,
-            45,
-            0,
-            45,
-            min_max_x,
-            min_max_y,
-            min_max_z,
-        )
+        if asset_data is None:
+            points = metadata["points"]
+            boxes = metadata["boxes"]
+            min_max_x = metadata["min_max_x"]
+            min_max_y = metadata["min_max_y"]
+            min_max_z = metadata["min_max_z"]
 
-        fp = image_to_fp(thumbnail_image, "png")
-        image_data = fp.read()
-        return image_data
+            image = generate_image_from_points(
+                points,
+                boxes,
+                45,
+                0,
+                45,
+                min_max_x,
+                min_max_y,
+                min_max_z,
+                size=(400, 300)
+            )
+
+            fp = image_to_fp(image, "png")
+            image_data = fp.read()
+            return image_data
+        else:
+            return generate_thumbnail(asset_data)

@@ -171,51 +171,60 @@ def export_to_comet(path, name, options):
     asset_map = {}
     for row in ProgressBar(rows.fetchall(), "Uploading DataGrid assets to comet.com"):
         asset_id, asset_type, asset_data, asset_metadata, asset_thumbnail = row
-        metadata = json.loads(asset_metadata)
-        ## Only send what comet can accept:
-        if "annotations" in metadata:
-            for layer_index, annotation_layer in enumerate(metadata["annotations"]):
-                for index, annotation in reversed(
-                    list(enumerate(annotation_layer["data"][:]))
-                ):
-                    if get_annnotation_type(annotation) not in ["points", "boxes"]:
-                        del metadata["annotations"][layer_index]["data"][index]
-        if asset_data:
-            if isinstance(asset_data, str):
-                if asset_data.startswith("{"):
-                    # remote "source" image
-                    asset_json = json.loads(asset_data)
-                    asset_data = requests.get(asset_json["source"]).content
-                    # Comet does not like filenames that are URLs!
-                    metadata["filename"] = "%s-%s" % (asset_type, asset_id)
-                    binary_io = io.BytesIO(asset_data)
+        if asset_type == "Image":
+            metadata = json.loads(asset_metadata)
+            ## Only send what comet can accept:
+            if "annotations" in metadata:
+                for layer_index, annotation_layer in enumerate(metadata["annotations"]):
+                    for index, annotation in reversed(
+                        list(enumerate(annotation_layer["data"][:]))
+                    ):
+                        if get_annnotation_type(annotation) not in ["points", "boxes"]:
+                            del metadata["annotations"][layer_index]["data"][index]
+            if asset_data:
+                if isinstance(asset_data, str):
+                    if asset_data.startswith("{"):
+                        # remote "source" image
+                        asset_json = json.loads(asset_data)
+                        asset_data = requests.get(asset_json["source"]).content
+                        # Comet does not like filenames that are URLs!
+                        metadata["filename"] = "%s-%s" % (asset_type, asset_id)
+                        binary_io = io.BytesIO(asset_data)
+                    else:
+                        binary_io = io.StringIO(asset_data)
                 else:
-                    binary_io = io.StringIO(asset_data)
+                    binary_io = io.BytesIO(asset_data)
             else:
-                binary_io = io.BytesIO(asset_data)
-        else:
-            raise Exception("asset has no asset_data")
-        file_name = metadata.get("filename", "%s-%s" % (asset_type, asset_id))
-        # When we have more than one asset type:
-        # comet_type = get_comet_type(asset_type)
-        if "step" in metadata:
-            step = metadata["step"]
-        else:
-            step = 0
+                raise Exception("asset has no asset_data")
+            file_name = metadata.get("filename", "%s-%s" % (asset_type, asset_id))
+            # When we have more than one asset type:
+            # comet_type = get_comet_type(asset_type)
+            if "step" in metadata:
+                step = metadata["step"]
+            else:
+                step = 0
 
-        annotations = metadata["annotations"] if "annotations" in metadata else None
+            annotations = metadata["annotations"] if "annotations" in metadata else None
 
-        asset_results = experiment.log_image(
-            binary_io,
-            name=file_name,
-            annotations=annotations,
-            step=step,
-        )
-        # For consistenency:
-        asset_results["assetId"] = asset_results["imageId"]
+            asset_results = experiment.log_image(
+                binary_io,
+                name=file_name,
+                annotations=annotations,
+                step=step,
+            )
+            # For consistenency:
+            asset_results["assetId"] = asset_results["imageId"]
+        elif asset_type == "PointCloud":
+            metadata = json.loads(asset_metadata)
+            asset_results = experiment.log_points_3d(
+                scene_name=metadata["scene_name"],
+                points=metadata["points"],
+                boxes=metadata["boxes"],
+                step=metadata["step"],
+            )
+
         # Save for asset metadata:
         asset_map[asset_id] = asset_results
-
     cur.execute("CREATE TABLE datagrid AS SELECT * from original.datagrid;")
     cur.execute("CREATE TABLE metadata AS SELECT * from original.metadata;")
     cur.execute(
