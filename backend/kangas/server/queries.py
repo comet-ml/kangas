@@ -863,8 +863,22 @@ def get_column_type(column, metadata):
 
 
 def get_dg_path(dgid):
-    return os.path.join(KANGAS_ROOT, dgid)
+    """
+    Get the full path to the datagrid.
 
+    Args:
+        dgid: the datagrid id (often just its name)
+
+    If you wish to redefine this function, you can have your
+    own lookup scheme where you are given an ID, and it
+    is associated with the path to the datagrid.
+
+    Returns: full path to the datagrid
+    """
+    if any([dgid.endswith(extension) for extension in [".datagrid", ".dg"]]):
+        return os.path.join(KANGAS_ROOT, dgid)
+    else:
+        raise Exception("Datagrid name must end in .datagrid or .dg")
 
 def get_value_column_name(row, column_name, columns):
     index = columns.index(column_name)
@@ -2460,7 +2474,7 @@ def select_asset(dgid, asset_id, thumbnail=False, return_image=False):
 
     if row:
         asset_data, asset_type, asset_thumbnail, asset_remote, asset_annotations = row
-        if asset_remote:  
+        if asset_remote:
             # FIXME: asset_type == ["Image"]
             # FIXME: move to Image class
             # FIXME: use a cache?
