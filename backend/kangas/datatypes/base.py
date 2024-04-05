@@ -56,12 +56,12 @@ class Asset:
     def asset_data(self, asset_data):
         self._asset_data = asset_data
 
-    def deserialize(self):
+    def deserialize(self, get_remote_source=True):
         """
         Deserialize if needed.
         """
         if self._unserialize:
-            self._unserialize(self)
+            self._unserialize(self, get_remote_source)
             self._unserialize = None
         return self
 
@@ -84,7 +84,7 @@ class Asset:
     def unserialize(cls, datagrid, row, column_name):
         asset_id = row[column_name]
 
-        def _unserialize(obj):
+        def _unserialize(obj, get_remote_asset=True):
             row = datagrid.conn.execute(
                 """SELECT asset_data, asset_metadata,
                           json_extract(asset_metadata, "$.source") as asset_source
@@ -94,7 +94,8 @@ class Asset:
             if row:
                 asset_data, asset_metadata, asset_source = row
                 if asset_source:
-                    obj.asset_data = obj._get_asset_data_from_source(asset_source)
+                    if get_remote_asset:
+                        obj.asset_data = obj._get_asset_data_from_source(asset_source)
                     obj.metadata = json.loads(asset_metadata)
                     obj.source = asset_source
                 else:
