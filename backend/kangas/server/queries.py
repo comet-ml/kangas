@@ -756,12 +756,12 @@ def histogram(cur, metadata, values, column):
     name = stats.get("name", column)
 
     if values:
-        np_values = np.array(values, dtype=np.float_)
+        np_values = np.array(values, dtype=np.float64)
         np_values = np_values[~np.isnan(np_values)]
     else:
         # How can this happen? The field changed
         # probably using random.random()
-        np_values = np.array([], dtype=np.float_)
+        np_values = np.array([], dtype=np.float64)
 
     if "minimum" not in stats or stats["minimum"] is None:
         LOGGER.debug(
