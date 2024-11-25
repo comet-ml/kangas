@@ -35,7 +35,7 @@ def get_version(file, name="__version__"):
 
 __version__ = get_version(os.path.join(HERE, "kangas/_version.py"))
 
-with io.open(os.path.join(HERE, "..", "README.md"), encoding="utf8") as fh:
+with io.open(os.path.join(HERE, "README.md"), encoding="utf8") as fh:
     long_description = fh.read()
 
 setup_args = dict(
