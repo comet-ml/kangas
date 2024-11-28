@@ -129,6 +129,7 @@ class DataGrid:
         datetime_format="%Y/%m/%d",
         heuristics=False,
         converters=None,
+        verify=True,
     ):
         """
         Create a DataGrid instance.
@@ -143,6 +144,7 @@ class DataGrid:
             heuristics: if True, guess that some numbers might be dates
             converters: (optional, dict) dictionary of functions to convert items
                 into values. Keys are str (to match column name)
+            verify: if data and verify is False, use column types
 
         NOTES:
 
@@ -238,7 +240,7 @@ class DataGrid:
         # Else, will have to add columns on the fly when we get some data
 
         if data:
-            self.extend(ProgressBar(data))
+            self.extend(ProgressBar(data), verify=verify)
 
     def __repr__(self, row=None):
         nrows = self.nrows
