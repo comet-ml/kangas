@@ -28,7 +28,7 @@ def get_hash(string):
 class AttributeNode:
     def __init__(self, obj, attr):
         self.obj = obj
-        self.attr = attr
+        self.attr = attr.replace("__", " ")
 
     def __str__(self):
         if self.obj in ["random", "math", "datetime", "statistics"]:
@@ -92,7 +92,17 @@ class Evaluator:
             }
             return template.format(**args)
         elif isinstance(node, ast.Name):
-            return str(node.id)
+            ## Special format for delayed evaluation of computed
+            ## columns
+            value = node.id
+            if value.lower() in [
+                    "math", "random", "any", "all", "avg", "len",
+                    "flatten", "sum", "range"
+            ]:
+                return str(value)
+            else:
+                return "{'%s'}" % value.lower().replace("__", " ")
+
         elif isinstance(node, (ast.Constant, ast.NameConstant)):
             if node.value is None:
                 return "null"
